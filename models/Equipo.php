@@ -185,9 +185,20 @@ class Equipo extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'SELECT'
         );
         $this->REGION_EQUIPO->InputTextType = "text";
+        $this->REGION_EQUIPO->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->REGION_EQUIPO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->REGION_EQUIPO->Lookup = new Lookup('REGION_EQUIPO', 'equipo', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                break;
+            default:
+                $this->REGION_EQUIPO->Lookup = new Lookup('REGION_EQUIPO', 'equipo', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                break;
+        }
+        $this->REGION_EQUIPO->OptionCount = 6;
         $this->Fields['REGION_EQUIPO'] = &$this->REGION_EQUIPO;
 
         // DETALLE_EQUIPO
@@ -233,7 +244,6 @@ class Equipo extends DbTable
         );
         $this->ESCUDO_EQUIPO->InputTextType = "text";
         $this->ESCUDO_EQUIPO->Sortable = false; // Allow sort
-        $this->ESCUDO_EQUIPO->ImageResize = true;
         $this->Fields['ESCUDO_EQUIPO'] = &$this->ESCUDO_EQUIPO;
 
         // NOM_ESTADIO
@@ -1067,7 +1077,11 @@ class Equipo extends DbTable
         $this->PAIS_EQUIPO->ViewCustomAttributes = "";
 
         // REGION_EQUIPO
-        $this->REGION_EQUIPO->ViewValue = $this->REGION_EQUIPO->CurrentValue;
+        if (strval($this->REGION_EQUIPO->CurrentValue) != "") {
+            $this->REGION_EQUIPO->ViewValue = $this->REGION_EQUIPO->optionCaption($this->REGION_EQUIPO->CurrentValue);
+        } else {
+            $this->REGION_EQUIPO->ViewValue = null;
+        }
         $this->REGION_EQUIPO->ViewCustomAttributes = "";
 
         // DETALLE_EQUIPO
@@ -1192,7 +1206,7 @@ class Equipo extends DbTable
         // REGION_EQUIPO
         $this->REGION_EQUIPO->setupEditAttributes();
         $this->REGION_EQUIPO->EditCustomAttributes = "";
-        $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->CurrentValue;
+        $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->options(true);
         $this->REGION_EQUIPO->PlaceHolder = RemoveHtml($this->REGION_EQUIPO->caption());
 
         // DETALLE_EQUIPO

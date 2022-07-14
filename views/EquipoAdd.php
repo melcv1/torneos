@@ -25,6 +25,7 @@ loadjs.ready(["wrapper", "head"], function () {
         ["PAIS_EQUIPO", [fields.PAIS_EQUIPO.visible && fields.PAIS_EQUIPO.required ? ew.Validators.required(fields.PAIS_EQUIPO.caption) : null], fields.PAIS_EQUIPO.isInvalid],
         ["REGION_EQUIPO", [fields.REGION_EQUIPO.visible && fields.REGION_EQUIPO.required ? ew.Validators.required(fields.REGION_EQUIPO.caption) : null], fields.REGION_EQUIPO.isInvalid],
         ["DETALLE_EQUIPO", [fields.DETALLE_EQUIPO.visible && fields.DETALLE_EQUIPO.required ? ew.Validators.required(fields.DETALLE_EQUIPO.caption) : null], fields.DETALLE_EQUIPO.isInvalid],
+        ["ESCUDO_EQUIPO", [fields.ESCUDO_EQUIPO.visible && fields.ESCUDO_EQUIPO.required ? ew.Validators.fileRequired(fields.ESCUDO_EQUIPO.caption) : null], fields.ESCUDO_EQUIPO.isInvalid],
         ["NOM_ESTADIO", [fields.NOM_ESTADIO.visible && fields.NOM_ESTADIO.required ? ew.Validators.required(fields.NOM_ESTADIO.caption) : null], fields.NOM_ESTADIO.isInvalid]
     ]);
 
@@ -38,6 +39,7 @@ loadjs.ready(["wrapper", "head"], function () {
     fequipoadd.validateRequired = ew.CLIENT_VALIDATE;
 
     // Dynamic selection lists
+    fequipoadd.lists.REGION_EQUIPO = <?= $Page->REGION_EQUIPO->toClientList($Page) ?>;
     loadjs.done("fequipoadd");
 });
 </script>
@@ -101,9 +103,35 @@ $Page->showMessage();
         <label id="elh_equipo_REGION_EQUIPO" for="x_REGION_EQUIPO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->REGION_EQUIPO->caption() ?><?= $Page->REGION_EQUIPO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->REGION_EQUIPO->cellAttributes() ?>>
 <span id="el_equipo_REGION_EQUIPO">
-<textarea data-table="equipo" data-field="x_REGION_EQUIPO" name="x_REGION_EQUIPO" id="x_REGION_EQUIPO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->REGION_EQUIPO->getPlaceHolder()) ?>"<?= $Page->REGION_EQUIPO->editAttributes() ?> aria-describedby="x_REGION_EQUIPO_help"><?= $Page->REGION_EQUIPO->EditValue ?></textarea>
-<?= $Page->REGION_EQUIPO->getCustomMessage() ?>
-<div class="invalid-feedback"><?= $Page->REGION_EQUIPO->getErrorMessage() ?></div>
+    <select
+        id="x_REGION_EQUIPO"
+        name="x_REGION_EQUIPO"
+        class="form-select ew-select<?= $Page->REGION_EQUIPO->isInvalidClass() ?>"
+        data-select2-id="fequipoadd_x_REGION_EQUIPO"
+        data-table="equipo"
+        data-field="x_REGION_EQUIPO"
+        data-value-separator="<?= $Page->REGION_EQUIPO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->REGION_EQUIPO->getPlaceHolder()) ?>"
+        <?= $Page->REGION_EQUIPO->editAttributes() ?>>
+        <?= $Page->REGION_EQUIPO->selectOptionListHtml("x_REGION_EQUIPO") ?>
+    </select>
+    <?= $Page->REGION_EQUIPO->getCustomMessage() ?>
+    <div class="invalid-feedback"><?= $Page->REGION_EQUIPO->getErrorMessage() ?></div>
+<script>
+loadjs.ready("fequipoadd", function() {
+    var options = { name: "x_REGION_EQUIPO", selectId: "fequipoadd_x_REGION_EQUIPO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipoadd.lists.REGION_EQUIPO.lookupOptions.length) {
+        options.data = { id: "x_REGION_EQUIPO", form: "fequipoadd" };
+    } else {
+        options.ajax = { id: "x_REGION_EQUIPO", form: "fequipoadd", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.REGION_EQUIPO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
 </span>
 </div></div>
     </div>
@@ -116,6 +144,27 @@ $Page->showMessage();
 <textarea data-table="equipo" data-field="x_DETALLE_EQUIPO" name="x_DETALLE_EQUIPO" id="x_DETALLE_EQUIPO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->DETALLE_EQUIPO->getPlaceHolder()) ?>"<?= $Page->DETALLE_EQUIPO->editAttributes() ?> aria-describedby="x_DETALLE_EQUIPO_help"><?= $Page->DETALLE_EQUIPO->EditValue ?></textarea>
 <?= $Page->DETALLE_EQUIPO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->DETALLE_EQUIPO->getErrorMessage() ?></div>
+</span>
+</div></div>
+    </div>
+<?php } ?>
+<?php if ($Page->ESCUDO_EQUIPO->Visible) { // ESCUDO_EQUIPO ?>
+    <div id="r_ESCUDO_EQUIPO"<?= $Page->ESCUDO_EQUIPO->rowAttributes() ?>>
+        <label id="elh_equipo_ESCUDO_EQUIPO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->ESCUDO_EQUIPO->caption() ?><?= $Page->ESCUDO_EQUIPO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->ESCUDO_EQUIPO->cellAttributes() ?>>
+<span id="el_equipo_ESCUDO_EQUIPO">
+<div id="fd_x_ESCUDO_EQUIPO" class="fileinput-button ew-file-drop-zone">
+    <input type="file" class="form-control ew-file-input" title="<?= $Page->ESCUDO_EQUIPO->title() ?>" data-table="equipo" data-field="x_ESCUDO_EQUIPO" name="x_ESCUDO_EQUIPO" id="x_ESCUDO_EQUIPO" lang="<?= CurrentLanguageID() ?>"<?= $Page->ESCUDO_EQUIPO->editAttributes() ?> aria-describedby="x_ESCUDO_EQUIPO_help"<?= ($Page->ESCUDO_EQUIPO->ReadOnly || $Page->ESCUDO_EQUIPO->Disabled) ? " disabled" : "" ?>>
+    <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
+</div>
+<?= $Page->ESCUDO_EQUIPO->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->ESCUDO_EQUIPO->getErrorMessage() ?></div>
+<input type="hidden" name="fn_x_ESCUDO_EQUIPO" id= "fn_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->Upload->FileName ?>">
+<input type="hidden" name="fa_x_ESCUDO_EQUIPO" id= "fa_x_ESCUDO_EQUIPO" value="0">
+<input type="hidden" name="fs_x_ESCUDO_EQUIPO" id= "fs_x_ESCUDO_EQUIPO" value="0">
+<input type="hidden" name="fx_x_ESCUDO_EQUIPO" id= "fx_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x_ESCUDO_EQUIPO" id= "fm_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>">
+<table id="ft_x_ESCUDO_EQUIPO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
 </span>
 </div></div>
     </div>

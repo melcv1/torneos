@@ -232,7 +232,6 @@ class Torneo extends DbTable
         );
         $this->LOGO_TORNEO->InputTextType = "text";
         $this->LOGO_TORNEO->Sortable = false; // Allow sort
-        $this->LOGO_TORNEO->ImageResize = true;
         $this->Fields['LOGO_TORNEO'] = &$this->LOGO_TORNEO;
 
         // Add Doctrine Cache

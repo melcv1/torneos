@@ -419,6 +419,7 @@ class EquipoDelete extends Equipo
         }
 
         // Set up lookup cache
+        $this->setupLookupOptions($this->REGION_EQUIPO);
 
         // Set up Breadcrumb
         $this->setupBreadcrumb();
@@ -661,7 +662,11 @@ class EquipoDelete extends Equipo
             $this->PAIS_EQUIPO->ViewCustomAttributes = "";
 
             // REGION_EQUIPO
-            $this->REGION_EQUIPO->ViewValue = $this->REGION_EQUIPO->CurrentValue;
+            if (strval($this->REGION_EQUIPO->CurrentValue) != "") {
+                $this->REGION_EQUIPO->ViewValue = $this->REGION_EQUIPO->optionCaption($this->REGION_EQUIPO->CurrentValue);
+            } else {
+                $this->REGION_EQUIPO->ViewValue = null;
+            }
             $this->REGION_EQUIPO->ViewCustomAttributes = "";
 
             // DETALLE_EQUIPO
@@ -863,6 +868,8 @@ class EquipoDelete extends Equipo
 
             // Set up lookup SQL and connection
             switch ($fld->FieldVar) {
+                case "x_REGION_EQUIPO":
+                    break;
                 default:
                     $lookupFilter = "";
                     break;

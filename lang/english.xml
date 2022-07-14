@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ew-language version="18.12.0" id="en-US" name="English (US)" desc="English (US)" author="e.World Technology Limited" date="2022/7/13">
+<ew-language version="18.12.0" id="en-US" name="English (US)" desc="English (US)" author="e.World Technology Limited" date="2022/7/14">
   <!--
     IMPORTANT NOTES:
     1. Language ID must be RFC 4646 language tags (which use hyphen, not underscore), e.g. en-US, fr-CA, fr-FR,
@@ -1082,6 +1082,18 @@
       </field>
       <field id="region_equipo">
         <phrase id="fldcaption" value="REGION EQUIPO" />
+        <phrase id="fldtagvalue1" value="ASIA" />
+        <phrase id="fldtagcaption1" value="ASIA" />
+        <phrase id="fldtagvalue2" value="EUROPA" />
+        <phrase id="fldtagcaption2" value="EUROPA" />
+        <phrase id="fldtagvalue3" value="SUDAMERICA" />
+        <phrase id="fldtagcaption3" value="SUDAMERICA" />
+        <phrase id="fldtagvalue4" value="NORTEAMERICA" />
+        <phrase id="fldtagcaption4" value="NORTEAMERICA" />
+        <phrase id="fldtagvalue5" value="OCEANIA" />
+        <phrase id="fldtagcaption5" value="OCEANIA" />
+        <phrase id="fldtagvalue6" value="AFRICA" />
+        <phrase id="fldtagcaption6" value="AFRICA" />
       </field>
       <field id="detalle_equipo">
         <phrase id="fldcaption" value="DETALLE EQUIPO" />

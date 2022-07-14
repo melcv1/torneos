@@ -40,6 +40,7 @@ loadjs.ready(["wrapper", "head"], function () {
     fequipoedit.validateRequired = ew.CLIENT_VALIDATE;
 
     // Dynamic selection lists
+    fequipoedit.lists.REGION_EQUIPO = <?= $Page->REGION_EQUIPO->toClientList($Page) ?>;
     loadjs.done("fequipoedit");
 });
 </script>
@@ -115,9 +116,35 @@ $Page->showMessage();
         <label id="elh_equipo_REGION_EQUIPO" for="x_REGION_EQUIPO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->REGION_EQUIPO->caption() ?><?= $Page->REGION_EQUIPO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->REGION_EQUIPO->cellAttributes() ?>>
 <span id="el_equipo_REGION_EQUIPO">
-<textarea data-table="equipo" data-field="x_REGION_EQUIPO" name="x_REGION_EQUIPO" id="x_REGION_EQUIPO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->REGION_EQUIPO->getPlaceHolder()) ?>"<?= $Page->REGION_EQUIPO->editAttributes() ?> aria-describedby="x_REGION_EQUIPO_help"><?= $Page->REGION_EQUIPO->EditValue ?></textarea>
-<?= $Page->REGION_EQUIPO->getCustomMessage() ?>
-<div class="invalid-feedback"><?= $Page->REGION_EQUIPO->getErrorMessage() ?></div>
+    <select
+        id="x_REGION_EQUIPO"
+        name="x_REGION_EQUIPO"
+        class="form-select ew-select<?= $Page->REGION_EQUIPO->isInvalidClass() ?>"
+        data-select2-id="fequipoedit_x_REGION_EQUIPO"
+        data-table="equipo"
+        data-field="x_REGION_EQUIPO"
+        data-value-separator="<?= $Page->REGION_EQUIPO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->REGION_EQUIPO->getPlaceHolder()) ?>"
+        <?= $Page->REGION_EQUIPO->editAttributes() ?>>
+        <?= $Page->REGION_EQUIPO->selectOptionListHtml("x_REGION_EQUIPO") ?>
+    </select>
+    <?= $Page->REGION_EQUIPO->getCustomMessage() ?>
+    <div class="invalid-feedback"><?= $Page->REGION_EQUIPO->getErrorMessage() ?></div>
+<script>
+loadjs.ready("fequipoedit", function() {
+    var options = { name: "x_REGION_EQUIPO", selectId: "fequipoedit_x_REGION_EQUIPO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipoedit.lists.REGION_EQUIPO.lookupOptions.length) {
+        options.data = { id: "x_REGION_EQUIPO", form: "fequipoedit" };
+    } else {
+        options.ajax = { id: "x_REGION_EQUIPO", form: "fequipoedit", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.REGION_EQUIPO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
 </span>
 </div></div>
     </div>

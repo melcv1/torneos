@@ -492,7 +492,7 @@ class EquipoAdd extends Equipo
         $this->PAIS_EQUIPO->setVisibility();
         $this->REGION_EQUIPO->setVisibility();
         $this->DETALLE_EQUIPO->setVisibility();
-        $this->ESCUDO_EQUIPO->Visible = false;
+        $this->ESCUDO_EQUIPO->setVisibility();
         $this->NOM_ESTADIO->setVisibility();
         $this->hideFieldsForAddEdit();
 
@@ -510,6 +510,7 @@ class EquipoAdd extends Equipo
         }
 
         // Set up lookup cache
+        $this->setupLookupOptions($this->REGION_EQUIPO);
 
         // Load default values for add
         $this->loadDefaultValues();
@@ -642,6 +643,8 @@ class EquipoAdd extends Equipo
     protected function getUploadFiles()
     {
         global $CurrentForm, $Language;
+        $this->ESCUDO_EQUIPO->Upload->Index = $CurrentForm->Index;
+        $this->ESCUDO_EQUIPO->Upload->uploadFile();
     }
 
     // Load default values
@@ -718,6 +721,7 @@ class EquipoAdd extends Equipo
 
         // Check field name 'ID_EQUIPO' first before field var 'x_ID_EQUIPO'
         $val = $CurrentForm->hasValue("ID_EQUIPO") ? $CurrentForm->getValue("ID_EQUIPO") : $CurrentForm->getValue("x_ID_EQUIPO");
+        $this->getUploadFiles(); // Get upload files
     }
 
     // Restore form values
@@ -878,12 +882,29 @@ class EquipoAdd extends Equipo
             $this->PAIS_EQUIPO->ViewCustomAttributes = "";
 
             // REGION_EQUIPO
-            $this->REGION_EQUIPO->ViewValue = $this->REGION_EQUIPO->CurrentValue;
+            if (strval($this->REGION_EQUIPO->CurrentValue) != "") {
+                $this->REGION_EQUIPO->ViewValue = $this->REGION_EQUIPO->optionCaption($this->REGION_EQUIPO->CurrentValue);
+            } else {
+                $this->REGION_EQUIPO->ViewValue = null;
+            }
             $this->REGION_EQUIPO->ViewCustomAttributes = "";
 
             // DETALLE_EQUIPO
             $this->DETALLE_EQUIPO->ViewValue = $this->DETALLE_EQUIPO->CurrentValue;
             $this->DETALLE_EQUIPO->ViewCustomAttributes = "";
+
+            // ESCUDO_EQUIPO
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->ImageWidth = 50;
+                $this->ESCUDO_EQUIPO->ImageHeight = 0;
+                $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
+                $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
+                $this->ESCUDO_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
+                $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+            } else {
+                $this->ESCUDO_EQUIPO->ViewValue = "";
+            }
+            $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->CurrentValue;
@@ -908,6 +929,22 @@ class EquipoAdd extends Equipo
             // DETALLE_EQUIPO
             $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
             $this->DETALLE_EQUIPO->HrefValue = "";
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
+            if (!empty($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "";
+                if ($this->ESCUDO_EQUIPO->IsBlobImage && empty($this->ESCUDO_EQUIPO->LinkAttrs["target"])) {
+                    $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "_blank";
+                }
+                if ($this->isExport()) {
+                    $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
+                }
+            } else {
+                $this->ESCUDO_EQUIPO->HrefValue = "";
+            }
+            $this->ESCUDO_EQUIPO->ExportHrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
@@ -934,7 +971,7 @@ class EquipoAdd extends Equipo
             // REGION_EQUIPO
             $this->REGION_EQUIPO->setupEditAttributes();
             $this->REGION_EQUIPO->EditCustomAttributes = "";
-            $this->REGION_EQUIPO->EditValue = HtmlEncode($this->REGION_EQUIPO->CurrentValue);
+            $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->options(true);
             $this->REGION_EQUIPO->PlaceHolder = RemoveHtml($this->REGION_EQUIPO->caption());
 
             // DETALLE_EQUIPO
@@ -942,6 +979,23 @@ class EquipoAdd extends Equipo
             $this->DETALLE_EQUIPO->EditCustomAttributes = "";
             $this->DETALLE_EQUIPO->EditValue = HtmlEncode($this->DETALLE_EQUIPO->CurrentValue);
             $this->DETALLE_EQUIPO->PlaceHolder = RemoveHtml($this->DETALLE_EQUIPO->caption());
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->setupEditAttributes();
+            $this->ESCUDO_EQUIPO->EditCustomAttributes = "";
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->ImageWidth = 50;
+                $this->ESCUDO_EQUIPO->ImageHeight = 0;
+                $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
+                $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
+                $this->ESCUDO_EQUIPO->EditValue = $this->ID_EQUIPO->CurrentValue;
+                $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+            } else {
+                $this->ESCUDO_EQUIPO->EditValue = "";
+            }
+            if ($this->isShow() || $this->isCopy()) {
+                RenderUploadField($this->ESCUDO_EQUIPO);
+            }
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->setupEditAttributes();
@@ -970,6 +1024,22 @@ class EquipoAdd extends Equipo
             // DETALLE_EQUIPO
             $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
             $this->DETALLE_EQUIPO->HrefValue = "";
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
+            if (!empty($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "";
+                if ($this->ESCUDO_EQUIPO->IsBlobImage && empty($this->ESCUDO_EQUIPO->LinkAttrs["target"])) {
+                    $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "_blank";
+                }
+                if ($this->isExport()) {
+                    $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
+                }
+            } else {
+                $this->ESCUDO_EQUIPO->HrefValue = "";
+            }
+            $this->ESCUDO_EQUIPO->ExportHrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
@@ -1020,6 +1090,11 @@ class EquipoAdd extends Equipo
                 $this->DETALLE_EQUIPO->addErrorMessage(str_replace("%s", $this->DETALLE_EQUIPO->caption(), $this->DETALLE_EQUIPO->RequiredErrorMessage));
             }
         }
+        if ($this->ESCUDO_EQUIPO->Required) {
+            if ($this->ESCUDO_EQUIPO->Upload->FileName == "" && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+                $this->ESCUDO_EQUIPO->addErrorMessage(str_replace("%s", $this->ESCUDO_EQUIPO->caption(), $this->ESCUDO_EQUIPO->RequiredErrorMessage));
+            }
+        }
         if ($this->NOM_ESTADIO->Required) {
             if (!$this->NOM_ESTADIO->IsDetailKey && EmptyValue($this->NOM_ESTADIO->FormValue)) {
                 $this->NOM_ESTADIO->addErrorMessage(str_replace("%s", $this->NOM_ESTADIO->caption(), $this->NOM_ESTADIO->RequiredErrorMessage));
@@ -1061,6 +1136,15 @@ class EquipoAdd extends Equipo
         // DETALLE_EQUIPO
         $this->DETALLE_EQUIPO->setDbValueDef($rsnew, $this->DETALLE_EQUIPO->CurrentValue, null, false);
 
+        // ESCUDO_EQUIPO
+        if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+            if ($this->ESCUDO_EQUIPO->Upload->Value === null) {
+                $rsnew['ESCUDO_EQUIPO'] = null;
+            } else {
+                $rsnew['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->Upload->Value;
+            }
+        }
+
         // NOM_ESTADIO
         $this->NOM_ESTADIO->setDbValueDef($rsnew, $this->NOM_ESTADIO->CurrentValue, null, false);
 
@@ -1097,6 +1181,8 @@ class EquipoAdd extends Equipo
 
         // Clean upload path if any
         if ($addRow) {
+            // ESCUDO_EQUIPO
+            CleanUploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index);
         }
 
         // Write JSON for API request
@@ -1131,6 +1217,8 @@ class EquipoAdd extends Equipo
 
             // Set up lookup SQL and connection
             switch ($fld->FieldVar) {
+                case "x_REGION_EQUIPO":
+                    break;
                 default:
                     $lookupFilter = "";
                     break;
