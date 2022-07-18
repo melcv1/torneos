@@ -1,0 +1,6 @@
+[2022-07-18T21:04:36.948873+00:00] log.DEBUG: SELECT COUNT(*) FROM `participante` {"params":[],"types":[],"executionMS":0.0013470649719238281} []
+[2022-07-18T21:04:36.950889+00:00] log.DEBUG: SELECT `ID_PARTICIPANTE` AS `lf`, `NOMBRE` AS `df`, `APELLIDO` AS `df2`, '' AS `df3`, '' AS `df4` FROM `participante` {"params":[],"types":[],"executionMS":0.00028204917907714844} []
+[2022-07-18T21:04:36.957517+00:00] log.DEBUG: SELECT COUNT(*) FROM `equipo` {"params":[],"types":[],"executionMS":0.0003027915954589844} []
+[2022-07-18T21:04:36.957880+00:00] log.DEBUG: SELECT `NOM_EQUIPO_CORTO` AS `lf`, `NOM_EQUIPO_LARGO` AS `df`, '' AS `df2`, '' AS `df3`, '' AS `df4` FROM `equipo` {"params":[],"types":[],"executionMS":0.00020599365234375} []
+[2022-07-18T21:04:36.985511+00:00] log.DEBUG: SELECT COUNT(*) FROM `encuesta` {"params":[],"types":[],"executionMS":0.00031113624572753906} []
+[2022-07-18T21:04:36.990042+00:00] log.DEBUG: SELECT * FROM `encuesta` LIMIT 20 {"params":[],"types":[],"executionMS":0.0003058910369873047} []

@@ -55,7 +55,7 @@ class CompiledContainer extends DI\CompiledContainer{
     {
         return $this->resolveFactory(static function (\Psr\Container\ContainerInterface $c) {
         $logger = new \Monolog\Logger("audit"); // For audit trail
-        $logger->pushHandler(new \PHPMaker2022\project1\AuditTrailHandler("audit.log"));
+        $logger->pushHandler(new \PHPMaker2022\project1\AuditTrailHandler("registro/audit.log"));
         return $logger;
     }, 'audit');
     }
@@ -65,7 +65,7 @@ class CompiledContainer extends DI\CompiledContainer{
         return $this->resolveFactory(static function (\Psr\Container\ContainerInterface $c) {
         global $RELATIVE_PATH;
         $logger = new \Monolog\Logger("log");
-        $logger->pushHandler(new \Monolog\Handler\RotatingFileHandler($RELATIVE_PATH . "log.log"));
+        $logger->pushHandler(new \Monolog\Handler\RotatingFileHandler($RELATIVE_PATH . "registro/log.log"));
         return $logger;
     }, 'log');
     }
@@ -77,6 +77,7 @@ class CompiledContainer extends DI\CompiledContainer{
         if (\PHPMaker2022\project1\Config("DEBUG")) {
             $loggers[] = $c->get("debugstack");
         }
+        $loggers[] = $c->get("debugsqllogger");
         return (count($loggers) > 0) ? new \Doctrine\DBAL\Logging\LoggerChain($loggers) : null;
     }, 'sqllogger');
     }

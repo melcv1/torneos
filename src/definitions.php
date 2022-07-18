@@ -22,13 +22,13 @@ return [
     },
     "audit" => function (ContainerInterface $c) {
         $logger = new Logger("audit"); // For audit trail
-        $logger->pushHandler(new AuditTrailHandler("audit.log"));
+        $logger->pushHandler(new AuditTrailHandler("registro/audit.log"));
         return $logger;
     },
     "log" => function (ContainerInterface $c) {
         global $RELATIVE_PATH;
         $logger = new Logger("log");
-        $logger->pushHandler(new RotatingFileHandler($RELATIVE_PATH . "log.log"));
+        $logger->pushHandler(new RotatingFileHandler($RELATIVE_PATH . "registro/log.log"));
         return $logger;
     },
     "sqllogger" => function (ContainerInterface $c) {
@@ -36,6 +36,7 @@ return [
         if (Config("DEBUG")) {
             $loggers[] = $c->get("debugstack");
         }
+        $loggers[] = $c->get("debugsqllogger");
         return (count($loggers) > 0) ? new LoggerChain($loggers) : null;
     },
     "csrf" => function (ContainerInterface $c) {
