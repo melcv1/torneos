@@ -127,7 +127,7 @@ require_once __DIR__ . "/userlevelsettings.php";
 $CONFIG = [
 
     // Debug
-    "DEBUG" => true, // Enabled
+    "DEBUG" => false, // Enabled
     "REPORT_ALL_ERRORS" => false, // Treat PHP warnings and notices as errors
     "LOG_ERROR_TO_FILE" => false, // Log error to file
     "DEBUG_MESSAGE_TEMPLATE" => '<div class="card card-danger ew-debug"><div class="card-header">' .
@@ -146,7 +146,7 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'oqH3TuiJK9L0kKUl', // Random key for encryption
+    "RANDOM_KEY" => 'nbj7G02WR0kqNn9o', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project1.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
