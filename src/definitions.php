@@ -36,6 +36,7 @@ return [
         if (Config("DEBUG")) {
             $loggers[] = $c->get("debugstack");
         }
+        $loggers[] = $c->get("debugsqllogger");
         return (count($loggers) > 0) ? new LoggerChain($loggers) : null;
     },
     "csrf" => function (ContainerInterface $c) {
