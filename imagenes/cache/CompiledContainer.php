@@ -77,7 +77,6 @@ class CompiledContainer extends DI\CompiledContainer{
         if (\PHPMaker2022\project1\Config("DEBUG")) {
             $loggers[] = $c->get("debugstack");
         }
-        $loggers[] = $c->get("debugsqllogger");
         return (count($loggers) > 0) ? new \Doctrine\DBAL\Logging\LoggerChain($loggers) : null;
     }, 'sqllogger');
     }
