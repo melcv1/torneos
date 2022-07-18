@@ -284,7 +284,7 @@ class PartidosEdit extends Partidos
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "PartidosView") {
+                    if ($pageName == "partidosview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -625,13 +625,13 @@ class PartidosEdit extends Partidos
                         if ($this->getFailureMessage() == "") {
                             $this->setFailureMessage($Language->phrase("NoRecord")); // No record found
                         }
-                        $this->terminate("PartidosList"); // No matching record, return to list
+                        $this->terminate("partidoslist"); // No matching record, return to list
                         return;
                     }
                 break;
             case "update": // Update
                 $returnUrl = $this->getReturnUrl();
-                if (GetPageName($returnUrl) == "PartidosList") {
+                if (GetPageName($returnUrl) == "partidoslist") {
                     $returnUrl = $this->addMasterUrl($returnUrl); // List page, return to List page with correct master key if necessary
                 }
                 $this->SendEmail = true; // Send email on update success
@@ -1914,7 +1914,7 @@ class PartidosEdit extends Partidos
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("PartidosList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("partidoslist"), "", $this->TableVar, true);
         $pageId = "edit";
         $Breadcrumb->add("edit", $pageId, $url);
     }

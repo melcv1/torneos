@@ -795,7 +795,7 @@ class Participante extends DbTable
         if ($referUrl != "" && $referPageName != CurrentPageName() && $referPageName != "login") { // Referer not same page or login page
             $_SESSION[$name] = $referUrl; // Save to Session
         }
-        return $_SESSION[$name] ?? GetUrl("ParticipanteList");
+        return $_SESSION[$name] ?? GetUrl("participantelist");
     }
 
     // Set return page URL
@@ -808,11 +808,11 @@ class Participante extends DbTable
     public function getModalCaption($pageName)
     {
         global $Language;
-        if ($pageName == "ParticipanteView") {
+        if ($pageName == "participanteview") {
             return $Language->phrase("View");
-        } elseif ($pageName == "ParticipanteEdit") {
+        } elseif ($pageName == "participanteedit") {
             return $Language->phrase("Edit");
-        } elseif ($pageName == "ParticipanteAdd") {
+        } elseif ($pageName == "participanteadd") {
             return $Language->phrase("Add");
         } else {
             return "";
@@ -841,16 +841,16 @@ class Participante extends DbTable
     // List URL
     public function getListUrl()
     {
-        return "ParticipanteList";
+        return "participantelist";
     }
 
     // View URL
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("ParticipanteView", $this->getUrlParm($parm));
+            $url = $this->keyUrl("participanteview", $this->getUrlParm($parm));
         } else {
-            $url = $this->keyUrl("ParticipanteView", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("participanteview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
         }
         return $this->addMasterUrl($url);
     }
@@ -859,9 +859,9 @@ class Participante extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "ParticipanteAdd?" . $this->getUrlParm($parm);
+            $url = "participanteadd?" . $this->getUrlParm($parm);
         } else {
-            $url = "ParticipanteAdd";
+            $url = "participanteadd";
         }
         return $this->addMasterUrl($url);
     }
@@ -869,7 +869,7 @@ class Participante extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("ParticipanteEdit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("participanteedit", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -883,7 +883,7 @@ class Participante extends DbTable
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("ParticipanteAdd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("participanteadd", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -897,7 +897,7 @@ class Participante extends DbTable
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("ParticipanteDelete", $this->getUrlParm());
+        return $this->keyUrl("participantedelete", $this->getUrlParm());
     }
 
     // Add master url

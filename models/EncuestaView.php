@@ -328,7 +328,7 @@ class EncuestaView extends Encuesta
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EncuestaView") {
+                    if ($pageName == "encuestaview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -578,7 +578,7 @@ class EncuestaView extends Encuesta
                 $this->ID_ENCUESTA->setQueryStringValue($keyValue);
                 $this->RecKey["ID_ENCUESTA"] = $this->ID_ENCUESTA->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "EncuestaList"; // Return to list
+                $returnUrl = "encuestalist"; // Return to list
             }
 
             // Get action
@@ -601,12 +601,12 @@ class EncuestaView extends Encuesta
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "EncuestaList"; // No matching record, return to list
+                            $returnUrl = "encuestalist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "EncuestaList"; // Not page request, return to list
+            $returnUrl = "encuestalist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -957,7 +957,7 @@ class EncuestaView extends Encuesta
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EncuestaList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("encuestalist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

@@ -428,7 +428,7 @@ class ParticipanteDelete extends Participante
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("ParticipanteList"); // Prevent SQL injection, return to list
+            $this->terminate("participantelist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -474,7 +474,7 @@ class ParticipanteDelete extends Participante
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("ParticipanteList"); // Return to list
+                $this->terminate("participantelist"); // Return to list
                 return;
             }
         }
@@ -833,7 +833,7 @@ class ParticipanteDelete extends Participante
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("ParticipanteList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("participantelist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }

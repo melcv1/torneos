@@ -443,7 +443,7 @@ class PartidosDelete extends Partidos
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("PartidosList"); // Prevent SQL injection, return to list
+            $this->terminate("partidoslist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -489,7 +489,7 @@ class PartidosDelete extends Partidos
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("PartidosList"); // Return to list
+                $this->terminate("partidoslist"); // Return to list
                 return;
             }
         }
@@ -1072,7 +1072,7 @@ class PartidosDelete extends Partidos
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("PartidosList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("partidoslist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }

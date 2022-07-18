@@ -431,7 +431,7 @@ class EquipoDelete extends Equipo
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("EquipoList"); // Prevent SQL injection, return to list
+            $this->terminate("equipolist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -477,7 +477,7 @@ class EquipoDelete extends Equipo
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("EquipoList"); // Return to list
+                $this->terminate("equipolist"); // Return to list
                 return;
             }
         }
@@ -914,7 +914,7 @@ class EquipoDelete extends Equipo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EquipoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("equipolist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }

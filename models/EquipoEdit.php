@@ -284,7 +284,7 @@ class EquipoEdit extends Equipo
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EquipoView") {
+                    if ($pageName == "equipoview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -613,13 +613,13 @@ class EquipoEdit extends Equipo
                         if ($this->getFailureMessage() == "") {
                             $this->setFailureMessage($Language->phrase("NoRecord")); // No record found
                         }
-                        $this->terminate("EquipoList"); // No matching record, return to list
+                        $this->terminate("equipolist"); // No matching record, return to list
                         return;
                     }
                 break;
             case "update": // Update
                 $returnUrl = $this->getReturnUrl();
-                if (GetPageName($returnUrl) == "EquipoList") {
+                if (GetPageName($returnUrl) == "equipolist") {
                     $returnUrl = $this->addMasterUrl($returnUrl); // List page, return to List page with correct master key if necessary
                 }
                 $this->SendEmail = true; // Send email on update success
@@ -1419,7 +1419,7 @@ class EquipoEdit extends Equipo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EquipoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("equipolist"), "", $this->TableVar, true);
         $pageId = "edit";
         $Breadcrumb->add("edit", $pageId, $url);
     }

@@ -696,7 +696,7 @@ class Estadio extends DbTable
         if ($referUrl != "" && $referPageName != CurrentPageName() && $referPageName != "login") { // Referer not same page or login page
             $_SESSION[$name] = $referUrl; // Save to Session
         }
-        return $_SESSION[$name] ?? GetUrl("EstadioList");
+        return $_SESSION[$name] ?? GetUrl("estadiolist");
     }
 
     // Set return page URL
@@ -709,11 +709,11 @@ class Estadio extends DbTable
     public function getModalCaption($pageName)
     {
         global $Language;
-        if ($pageName == "EstadioView") {
+        if ($pageName == "estadioview") {
             return $Language->phrase("View");
-        } elseif ($pageName == "EstadioEdit") {
+        } elseif ($pageName == "estadioedit") {
             return $Language->phrase("Edit");
-        } elseif ($pageName == "EstadioAdd") {
+        } elseif ($pageName == "estadioadd") {
             return $Language->phrase("Add");
         } else {
             return "";
@@ -742,16 +742,16 @@ class Estadio extends DbTable
     // List URL
     public function getListUrl()
     {
-        return "EstadioList";
+        return "estadiolist";
     }
 
     // View URL
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("EstadioView", $this->getUrlParm($parm));
+            $url = $this->keyUrl("estadioview", $this->getUrlParm($parm));
         } else {
-            $url = $this->keyUrl("EstadioView", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("estadioview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
         }
         return $this->addMasterUrl($url);
     }
@@ -760,9 +760,9 @@ class Estadio extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "EstadioAdd?" . $this->getUrlParm($parm);
+            $url = "estadioadd?" . $this->getUrlParm($parm);
         } else {
-            $url = "EstadioAdd";
+            $url = "estadioadd";
         }
         return $this->addMasterUrl($url);
     }
@@ -770,7 +770,7 @@ class Estadio extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("EstadioEdit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("estadioedit", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -784,7 +784,7 @@ class Estadio extends DbTable
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("EstadioAdd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("estadioadd", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -798,7 +798,7 @@ class Estadio extends DbTable
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("EstadioDelete", $this->getUrlParm());
+        return $this->keyUrl("estadiodelete", $this->getUrlParm());
     }
 
     // Add master url

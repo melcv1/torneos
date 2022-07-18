@@ -320,7 +320,7 @@ class EquipoView extends Equipo
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EquipoView") {
+                    if ($pageName == "equipoview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -570,7 +570,7 @@ class EquipoView extends Equipo
                 $this->ID_EQUIPO->setQueryStringValue($keyValue);
                 $this->RecKey["ID_EQUIPO"] = $this->ID_EQUIPO->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "EquipoList"; // Return to list
+                $returnUrl = "equipolist"; // Return to list
             }
 
             // Get action
@@ -593,12 +593,12 @@ class EquipoView extends Equipo
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "EquipoList"; // No matching record, return to list
+                            $returnUrl = "equipolist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "EquipoList"; // Not page request, return to list
+            $returnUrl = "equipolist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -992,7 +992,7 @@ class EquipoView extends Equipo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EquipoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("equipolist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

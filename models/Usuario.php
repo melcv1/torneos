@@ -738,7 +738,7 @@ class Usuario extends DbTable
         if ($referUrl != "" && $referPageName != CurrentPageName() && $referPageName != "login") { // Referer not same page or login page
             $_SESSION[$name] = $referUrl; // Save to Session
         }
-        return $_SESSION[$name] ?? GetUrl("UsuarioList");
+        return $_SESSION[$name] ?? GetUrl("usuariolist");
     }
 
     // Set return page URL
@@ -751,11 +751,11 @@ class Usuario extends DbTable
     public function getModalCaption($pageName)
     {
         global $Language;
-        if ($pageName == "UsuarioView") {
+        if ($pageName == "usuarioview") {
             return $Language->phrase("View");
-        } elseif ($pageName == "UsuarioEdit") {
+        } elseif ($pageName == "usuarioedit") {
             return $Language->phrase("Edit");
-        } elseif ($pageName == "UsuarioAdd") {
+        } elseif ($pageName == "usuarioadd") {
             return $Language->phrase("Add");
         } else {
             return "";
@@ -784,16 +784,16 @@ class Usuario extends DbTable
     // List URL
     public function getListUrl()
     {
-        return "UsuarioList";
+        return "usuariolist";
     }
 
     // View URL
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("UsuarioView", $this->getUrlParm($parm));
+            $url = $this->keyUrl("usuarioview", $this->getUrlParm($parm));
         } else {
-            $url = $this->keyUrl("UsuarioView", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("usuarioview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
         }
         return $this->addMasterUrl($url);
     }
@@ -802,9 +802,9 @@ class Usuario extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "UsuarioAdd?" . $this->getUrlParm($parm);
+            $url = "usuarioadd?" . $this->getUrlParm($parm);
         } else {
-            $url = "UsuarioAdd";
+            $url = "usuarioadd";
         }
         return $this->addMasterUrl($url);
     }
@@ -812,7 +812,7 @@ class Usuario extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("UsuarioEdit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("usuarioedit", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -826,7 +826,7 @@ class Usuario extends DbTable
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("UsuarioAdd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("usuarioadd", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -840,7 +840,7 @@ class Usuario extends DbTable
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("UsuarioDelete", $this->getUrlParm());
+        return $this->keyUrl("usuariodelete", $this->getUrlParm());
     }
 
     // Add master url

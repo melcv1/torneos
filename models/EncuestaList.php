@@ -187,12 +187,12 @@ class EncuestaList extends Encuesta
         $pageUrl = $this->pageUrl(false);
 
         // Initialize URLs
-        $this->AddUrl = "EncuestaAdd";
+        $this->AddUrl = "encuestaadd";
         $this->InlineAddUrl = $pageUrl . "action=add";
         $this->GridAddUrl = $pageUrl . "action=gridadd";
         $this->GridEditUrl = $pageUrl . "action=gridedit";
-        $this->MultiDeleteUrl = "EncuestaDelete";
-        $this->MultiUpdateUrl = "EncuestaUpdate";
+        $this->MultiDeleteUrl = "encuestadelete";
+        $this->MultiUpdateUrl = "encuestaupdate";
 
         // Table name (for backward compatibility only)
         if (!defined(PROJECT_NAMESPACE . "TABLE_NAME")) {

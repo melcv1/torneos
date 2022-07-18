@@ -428,7 +428,7 @@ class TorneoDelete extends Torneo
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("TorneoList"); // Prevent SQL injection, return to list
+            $this->terminate("torneolist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -474,7 +474,7 @@ class TorneoDelete extends Torneo
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("TorneoList"); // Return to list
+                $this->terminate("torneolist"); // Return to list
                 return;
             }
         }
@@ -865,7 +865,7 @@ class TorneoDelete extends Torneo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("TorneoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("torneolist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }

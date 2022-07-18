@@ -3,72 +3,72 @@
   array (
     'GET' => 
     array (
-      '/torneo/EncuestaList' => 'route0',
-      '/torneo/EncuestaAdd' => 'route1',
-      '/torneo/EncuestaView' => 'route2',
-      '/torneo/EncuestaEdit' => 'route3',
-      '/torneo/EncuestaDelete' => 'route4',
+      '/torneo/encuestalist' => 'route0',
+      '/torneo/encuestaadd' => 'route1',
+      '/torneo/encuestaview' => 'route2',
+      '/torneo/encuestaedit' => 'route3',
+      '/torneo/encuestadelete' => 'route4',
       '/torneo/encuesta/list' => 'route5',
       '/torneo/encuesta/add' => 'route6',
       '/torneo/encuesta/view' => 'route7',
       '/torneo/encuesta/edit' => 'route8',
       '/torneo/encuesta/delete' => 'route9',
-      '/torneo/EquipoList' => 'route10',
-      '/torneo/EquipoAdd' => 'route11',
-      '/torneo/EquipoView' => 'route12',
-      '/torneo/EquipoEdit' => 'route13',
-      '/torneo/EquipoDelete' => 'route14',
+      '/torneo/equipolist' => 'route10',
+      '/torneo/equipoadd' => 'route11',
+      '/torneo/equipoview' => 'route12',
+      '/torneo/equipoedit' => 'route13',
+      '/torneo/equipodelete' => 'route14',
       '/torneo/equipo/list' => 'route15',
       '/torneo/equipo/add' => 'route16',
       '/torneo/equipo/view' => 'route17',
       '/torneo/equipo/edit' => 'route18',
       '/torneo/equipo/delete' => 'route19',
-      '/torneo/EquipotorneoList' => 'route20',
-      '/torneo/EquipotorneoAdd' => 'route21',
-      '/torneo/EquipotorneoView' => 'route22',
-      '/torneo/EquipotorneoEdit' => 'route23',
-      '/torneo/EquipotorneoDelete' => 'route24',
+      '/torneo/equipotorneolist' => 'route20',
+      '/torneo/equipotorneoadd' => 'route21',
+      '/torneo/equipotorneoview' => 'route22',
+      '/torneo/equipotorneoedit' => 'route23',
+      '/torneo/equipotorneodelete' => 'route24',
       '/torneo/equipotorneo/list' => 'route25',
       '/torneo/equipotorneo/add' => 'route26',
       '/torneo/equipotorneo/view' => 'route27',
       '/torneo/equipotorneo/edit' => 'route28',
       '/torneo/equipotorneo/delete' => 'route29',
-      '/torneo/ParticipanteList' => 'route30',
-      '/torneo/ParticipanteAdd' => 'route31',
-      '/torneo/ParticipanteView' => 'route32',
-      '/torneo/ParticipanteEdit' => 'route33',
-      '/torneo/ParticipanteDelete' => 'route34',
+      '/torneo/participantelist' => 'route30',
+      '/torneo/participanteadd' => 'route31',
+      '/torneo/participanteview' => 'route32',
+      '/torneo/participanteedit' => 'route33',
+      '/torneo/participantedelete' => 'route34',
       '/torneo/participante/list' => 'route35',
       '/torneo/participante/add' => 'route36',
       '/torneo/participante/view' => 'route37',
       '/torneo/participante/edit' => 'route38',
       '/torneo/participante/delete' => 'route39',
-      '/torneo/PartidosList' => 'route40',
-      '/torneo/PartidosAdd' => 'route41',
-      '/torneo/PartidosView' => 'route42',
-      '/torneo/PartidosEdit' => 'route43',
-      '/torneo/PartidosDelete' => 'route44',
+      '/torneo/partidoslist' => 'route40',
+      '/torneo/partidosadd' => 'route41',
+      '/torneo/partidosview' => 'route42',
+      '/torneo/partidosedit' => 'route43',
+      '/torneo/partidosdelete' => 'route44',
       '/torneo/partidos/list' => 'route45',
       '/torneo/partidos/add' => 'route46',
       '/torneo/partidos/view' => 'route47',
       '/torneo/partidos/edit' => 'route48',
       '/torneo/partidos/delete' => 'route49',
-      '/torneo/TorneoList' => 'route50',
-      '/torneo/TorneoAdd' => 'route51',
-      '/torneo/TorneoView' => 'route52',
-      '/torneo/TorneoEdit' => 'route53',
-      '/torneo/TorneoDelete' => 'route54',
+      '/torneo/torneolist' => 'route50',
+      '/torneo/torneoadd' => 'route51',
+      '/torneo/torneoview' => 'route52',
+      '/torneo/torneoedit' => 'route53',
+      '/torneo/torneodelete' => 'route54',
       '/torneo/torneo/list' => 'route55',
       '/torneo/torneo/add' => 'route56',
       '/torneo/torneo/view' => 'route57',
       '/torneo/torneo/edit' => 'route58',
       '/torneo/torneo/delete' => 'route59',
-      '/torneo/EstadioList' => 'route60',
-      '/torneo/EstadioAdd' => 'route61',
-      '/torneo/EstadioAddopt' => 'route62',
-      '/torneo/EstadioView' => 'route63',
-      '/torneo/EstadioEdit' => 'route64',
-      '/torneo/EstadioDelete' => 'route65',
+      '/torneo/estadiolist' => 'route60',
+      '/torneo/estadioadd' => 'route61',
+      '/torneo/estadioaddopt' => 'route62',
+      '/torneo/estadioview' => 'route63',
+      '/torneo/estadioedit' => 'route64',
+      '/torneo/estadiodelete' => 'route65',
       '/torneo/estadio/list' => 'route66',
       '/torneo/estadio/add' => 'route67',
       '/torneo/estadio/addopt' => 'route68',
@@ -86,72 +86,72 @@
     ),
     'POST' => 
     array (
-      '/torneo/EncuestaList' => 'route0',
-      '/torneo/EncuestaAdd' => 'route1',
-      '/torneo/EncuestaView' => 'route2',
-      '/torneo/EncuestaEdit' => 'route3',
-      '/torneo/EncuestaDelete' => 'route4',
+      '/torneo/encuestalist' => 'route0',
+      '/torneo/encuestaadd' => 'route1',
+      '/torneo/encuestaview' => 'route2',
+      '/torneo/encuestaedit' => 'route3',
+      '/torneo/encuestadelete' => 'route4',
       '/torneo/encuesta/list' => 'route5',
       '/torneo/encuesta/add' => 'route6',
       '/torneo/encuesta/view' => 'route7',
       '/torneo/encuesta/edit' => 'route8',
       '/torneo/encuesta/delete' => 'route9',
-      '/torneo/EquipoList' => 'route10',
-      '/torneo/EquipoAdd' => 'route11',
-      '/torneo/EquipoView' => 'route12',
-      '/torneo/EquipoEdit' => 'route13',
-      '/torneo/EquipoDelete' => 'route14',
+      '/torneo/equipolist' => 'route10',
+      '/torneo/equipoadd' => 'route11',
+      '/torneo/equipoview' => 'route12',
+      '/torneo/equipoedit' => 'route13',
+      '/torneo/equipodelete' => 'route14',
       '/torneo/equipo/list' => 'route15',
       '/torneo/equipo/add' => 'route16',
       '/torneo/equipo/view' => 'route17',
       '/torneo/equipo/edit' => 'route18',
       '/torneo/equipo/delete' => 'route19',
-      '/torneo/EquipotorneoList' => 'route20',
-      '/torneo/EquipotorneoAdd' => 'route21',
-      '/torneo/EquipotorneoView' => 'route22',
-      '/torneo/EquipotorneoEdit' => 'route23',
-      '/torneo/EquipotorneoDelete' => 'route24',
+      '/torneo/equipotorneolist' => 'route20',
+      '/torneo/equipotorneoadd' => 'route21',
+      '/torneo/equipotorneoview' => 'route22',
+      '/torneo/equipotorneoedit' => 'route23',
+      '/torneo/equipotorneodelete' => 'route24',
       '/torneo/equipotorneo/list' => 'route25',
       '/torneo/equipotorneo/add' => 'route26',
       '/torneo/equipotorneo/view' => 'route27',
       '/torneo/equipotorneo/edit' => 'route28',
       '/torneo/equipotorneo/delete' => 'route29',
-      '/torneo/ParticipanteList' => 'route30',
-      '/torneo/ParticipanteAdd' => 'route31',
-      '/torneo/ParticipanteView' => 'route32',
-      '/torneo/ParticipanteEdit' => 'route33',
-      '/torneo/ParticipanteDelete' => 'route34',
+      '/torneo/participantelist' => 'route30',
+      '/torneo/participanteadd' => 'route31',
+      '/torneo/participanteview' => 'route32',
+      '/torneo/participanteedit' => 'route33',
+      '/torneo/participantedelete' => 'route34',
       '/torneo/participante/list' => 'route35',
       '/torneo/participante/add' => 'route36',
       '/torneo/participante/view' => 'route37',
       '/torneo/participante/edit' => 'route38',
       '/torneo/participante/delete' => 'route39',
-      '/torneo/PartidosList' => 'route40',
-      '/torneo/PartidosAdd' => 'route41',
-      '/torneo/PartidosView' => 'route42',
-      '/torneo/PartidosEdit' => 'route43',
-      '/torneo/PartidosDelete' => 'route44',
+      '/torneo/partidoslist' => 'route40',
+      '/torneo/partidosadd' => 'route41',
+      '/torneo/partidosview' => 'route42',
+      '/torneo/partidosedit' => 'route43',
+      '/torneo/partidosdelete' => 'route44',
       '/torneo/partidos/list' => 'route45',
       '/torneo/partidos/add' => 'route46',
       '/torneo/partidos/view' => 'route47',
       '/torneo/partidos/edit' => 'route48',
       '/torneo/partidos/delete' => 'route49',
-      '/torneo/TorneoList' => 'route50',
-      '/torneo/TorneoAdd' => 'route51',
-      '/torneo/TorneoView' => 'route52',
-      '/torneo/TorneoEdit' => 'route53',
-      '/torneo/TorneoDelete' => 'route54',
+      '/torneo/torneolist' => 'route50',
+      '/torneo/torneoadd' => 'route51',
+      '/torneo/torneoview' => 'route52',
+      '/torneo/torneoedit' => 'route53',
+      '/torneo/torneodelete' => 'route54',
       '/torneo/torneo/list' => 'route55',
       '/torneo/torneo/add' => 'route56',
       '/torneo/torneo/view' => 'route57',
       '/torneo/torneo/edit' => 'route58',
       '/torneo/torneo/delete' => 'route59',
-      '/torneo/EstadioList' => 'route60',
-      '/torneo/EstadioAdd' => 'route61',
-      '/torneo/EstadioAddopt' => 'route62',
-      '/torneo/EstadioView' => 'route63',
-      '/torneo/EstadioEdit' => 'route64',
-      '/torneo/EstadioDelete' => 'route65',
+      '/torneo/estadiolist' => 'route60',
+      '/torneo/estadioadd' => 'route61',
+      '/torneo/estadioaddopt' => 'route62',
+      '/torneo/estadioview' => 'route63',
+      '/torneo/estadioedit' => 'route64',
+      '/torneo/estadiodelete' => 'route65',
       '/torneo/estadio/list' => 'route66',
       '/torneo/estadio/add' => 'route67',
       '/torneo/estadio/addopt' => 'route68',
@@ -166,72 +166,72 @@
     ),
     'OPTIONS' => 
     array (
-      '/torneo/EncuestaList' => 'route0',
-      '/torneo/EncuestaAdd' => 'route1',
-      '/torneo/EncuestaView' => 'route2',
-      '/torneo/EncuestaEdit' => 'route3',
-      '/torneo/EncuestaDelete' => 'route4',
+      '/torneo/encuestalist' => 'route0',
+      '/torneo/encuestaadd' => 'route1',
+      '/torneo/encuestaview' => 'route2',
+      '/torneo/encuestaedit' => 'route3',
+      '/torneo/encuestadelete' => 'route4',
       '/torneo/encuesta/list' => 'route5',
       '/torneo/encuesta/add' => 'route6',
       '/torneo/encuesta/view' => 'route7',
       '/torneo/encuesta/edit' => 'route8',
       '/torneo/encuesta/delete' => 'route9',
-      '/torneo/EquipoList' => 'route10',
-      '/torneo/EquipoAdd' => 'route11',
-      '/torneo/EquipoView' => 'route12',
-      '/torneo/EquipoEdit' => 'route13',
-      '/torneo/EquipoDelete' => 'route14',
+      '/torneo/equipolist' => 'route10',
+      '/torneo/equipoadd' => 'route11',
+      '/torneo/equipoview' => 'route12',
+      '/torneo/equipoedit' => 'route13',
+      '/torneo/equipodelete' => 'route14',
       '/torneo/equipo/list' => 'route15',
       '/torneo/equipo/add' => 'route16',
       '/torneo/equipo/view' => 'route17',
       '/torneo/equipo/edit' => 'route18',
       '/torneo/equipo/delete' => 'route19',
-      '/torneo/EquipotorneoList' => 'route20',
-      '/torneo/EquipotorneoAdd' => 'route21',
-      '/torneo/EquipotorneoView' => 'route22',
-      '/torneo/EquipotorneoEdit' => 'route23',
-      '/torneo/EquipotorneoDelete' => 'route24',
+      '/torneo/equipotorneolist' => 'route20',
+      '/torneo/equipotorneoadd' => 'route21',
+      '/torneo/equipotorneoview' => 'route22',
+      '/torneo/equipotorneoedit' => 'route23',
+      '/torneo/equipotorneodelete' => 'route24',
       '/torneo/equipotorneo/list' => 'route25',
       '/torneo/equipotorneo/add' => 'route26',
       '/torneo/equipotorneo/view' => 'route27',
       '/torneo/equipotorneo/edit' => 'route28',
       '/torneo/equipotorneo/delete' => 'route29',
-      '/torneo/ParticipanteList' => 'route30',
-      '/torneo/ParticipanteAdd' => 'route31',
-      '/torneo/ParticipanteView' => 'route32',
-      '/torneo/ParticipanteEdit' => 'route33',
-      '/torneo/ParticipanteDelete' => 'route34',
+      '/torneo/participantelist' => 'route30',
+      '/torneo/participanteadd' => 'route31',
+      '/torneo/participanteview' => 'route32',
+      '/torneo/participanteedit' => 'route33',
+      '/torneo/participantedelete' => 'route34',
       '/torneo/participante/list' => 'route35',
       '/torneo/participante/add' => 'route36',
       '/torneo/participante/view' => 'route37',
       '/torneo/participante/edit' => 'route38',
       '/torneo/participante/delete' => 'route39',
-      '/torneo/PartidosList' => 'route40',
-      '/torneo/PartidosAdd' => 'route41',
-      '/torneo/PartidosView' => 'route42',
-      '/torneo/PartidosEdit' => 'route43',
-      '/torneo/PartidosDelete' => 'route44',
+      '/torneo/partidoslist' => 'route40',
+      '/torneo/partidosadd' => 'route41',
+      '/torneo/partidosview' => 'route42',
+      '/torneo/partidosedit' => 'route43',
+      '/torneo/partidosdelete' => 'route44',
       '/torneo/partidos/list' => 'route45',
       '/torneo/partidos/add' => 'route46',
       '/torneo/partidos/view' => 'route47',
       '/torneo/partidos/edit' => 'route48',
       '/torneo/partidos/delete' => 'route49',
-      '/torneo/TorneoList' => 'route50',
-      '/torneo/TorneoAdd' => 'route51',
-      '/torneo/TorneoView' => 'route52',
-      '/torneo/TorneoEdit' => 'route53',
-      '/torneo/TorneoDelete' => 'route54',
+      '/torneo/torneolist' => 'route50',
+      '/torneo/torneoadd' => 'route51',
+      '/torneo/torneoview' => 'route52',
+      '/torneo/torneoedit' => 'route53',
+      '/torneo/torneodelete' => 'route54',
       '/torneo/torneo/list' => 'route55',
       '/torneo/torneo/add' => 'route56',
       '/torneo/torneo/view' => 'route57',
       '/torneo/torneo/edit' => 'route58',
       '/torneo/torneo/delete' => 'route59',
-      '/torneo/EstadioList' => 'route60',
-      '/torneo/EstadioAdd' => 'route61',
-      '/torneo/EstadioAddopt' => 'route62',
-      '/torneo/EstadioView' => 'route63',
-      '/torneo/EstadioEdit' => 'route64',
-      '/torneo/EstadioDelete' => 'route65',
+      '/torneo/estadiolist' => 'route60',
+      '/torneo/estadioadd' => 'route61',
+      '/torneo/estadioaddopt' => 'route62',
+      '/torneo/estadioview' => 'route63',
+      '/torneo/estadioedit' => 'route64',
+      '/torneo/estadiodelete' => 'route65',
       '/torneo/estadio/list' => 'route66',
       '/torneo/estadio/add' => 'route67',
       '/torneo/estadio/addopt' => 'route68',
@@ -251,7 +251,7 @@
     array (
       0 => 
       array (
-        'regex' => '~^(?|/torneo/EncuestaList/([^/]+)|/torneo/EncuestaAdd/([^/]+)()|/torneo/EncuestaView/([^/]+)()()|/torneo/EncuestaEdit/([^/]+)()()()|/torneo/EncuestaDelete/([^/]+)()()()()|/torneo/encuesta/list/([^/]+)()()()()()|/torneo/encuesta/add/([^/]+)()()()()()()|/torneo/encuesta/view/([^/]+)()()()()()()()|/torneo/encuesta/edit/([^/]+)()()()()()()()()|/torneo/encuesta/delete/([^/]+)()()()()()()()()()|/torneo/EquipoList/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/encuestalist/([^/]+)|/torneo/encuestaadd/([^/]+)()|/torneo/encuestaview/([^/]+)()()|/torneo/encuestaedit/([^/]+)()()()|/torneo/encuestadelete/([^/]+)()()()()|/torneo/encuesta/list/([^/]+)()()()()()|/torneo/encuesta/add/([^/]+)()()()()()()|/torneo/encuesta/view/([^/]+)()()()()()()()|/torneo/encuesta/edit/([^/]+)()()()()()()()()|/torneo/encuesta/delete/([^/]+)()()()()()()()()()|/torneo/equipolist/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -346,7 +346,7 @@
       ),
       1 => 
       array (
-        'regex' => '~^(?|/torneo/EquipoAdd/([^/]+)|/torneo/EquipoView/([^/]+)()|/torneo/EquipoEdit/([^/]+)()()|/torneo/EquipoDelete/([^/]+)()()()|/torneo/equipo/list/([^/]+)()()()()|/torneo/equipo/add/([^/]+)()()()()()|/torneo/equipo/view/([^/]+)()()()()()()|/torneo/equipo/edit/([^/]+)()()()()()()()|/torneo/equipo/delete/([^/]+)()()()()()()()()|/torneo/EquipotorneoList/([^/]+)()()()()()()()()()|/torneo/EquipotorneoAdd/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/equipoadd/([^/]+)|/torneo/equipoview/([^/]+)()|/torneo/equipoedit/([^/]+)()()|/torneo/equipodelete/([^/]+)()()()|/torneo/equipo/list/([^/]+)()()()()|/torneo/equipo/add/([^/]+)()()()()()|/torneo/equipo/view/([^/]+)()()()()()()|/torneo/equipo/edit/([^/]+)()()()()()()()|/torneo/equipo/delete/([^/]+)()()()()()()()()|/torneo/equipotorneolist/([^/]+)()()()()()()()()()|/torneo/equipotorneoadd/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -441,7 +441,7 @@
       ),
       2 => 
       array (
-        'regex' => '~^(?|/torneo/EquipotorneoView/([^/]+)|/torneo/EquipotorneoEdit/([^/]+)()|/torneo/EquipotorneoDelete/([^/]+)()()|/torneo/equipotorneo/list/([^/]+)()()()|/torneo/equipotorneo/add/([^/]+)()()()()|/torneo/equipotorneo/view/([^/]+)()()()()()|/torneo/equipotorneo/edit/([^/]+)()()()()()()|/torneo/equipotorneo/delete/([^/]+)()()()()()()()|/torneo/ParticipanteList/([^/]+)()()()()()()()()|/torneo/ParticipanteAdd/([^/]+)()()()()()()()()()|/torneo/ParticipanteView/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/equipotorneoview/([^/]+)|/torneo/equipotorneoedit/([^/]+)()|/torneo/equipotorneodelete/([^/]+)()()|/torneo/equipotorneo/list/([^/]+)()()()|/torneo/equipotorneo/add/([^/]+)()()()()|/torneo/equipotorneo/view/([^/]+)()()()()()|/torneo/equipotorneo/edit/([^/]+)()()()()()()|/torneo/equipotorneo/delete/([^/]+)()()()()()()()|/torneo/participantelist/([^/]+)()()()()()()()()|/torneo/participanteadd/([^/]+)()()()()()()()()()|/torneo/participanteview/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -536,7 +536,7 @@
       ),
       3 => 
       array (
-        'regex' => '~^(?|/torneo/ParticipanteEdit/([^/]+)|/torneo/ParticipanteDelete/([^/]+)()|/torneo/participante/list/([^/]+)()()|/torneo/participante/add/([^/]+)()()()|/torneo/participante/view/([^/]+)()()()()|/torneo/participante/edit/([^/]+)()()()()()|/torneo/participante/delete/([^/]+)()()()()()()|/torneo/PartidosList/([^/]+)()()()()()()()|/torneo/PartidosAdd/([^/]+)()()()()()()()()|/torneo/PartidosView/([^/]+)()()()()()()()()()|/torneo/PartidosEdit/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/participanteedit/([^/]+)|/torneo/participantedelete/([^/]+)()|/torneo/participante/list/([^/]+)()()|/torneo/participante/add/([^/]+)()()()|/torneo/participante/view/([^/]+)()()()()|/torneo/participante/edit/([^/]+)()()()()()|/torneo/participante/delete/([^/]+)()()()()()()|/torneo/partidoslist/([^/]+)()()()()()()()|/torneo/partidosadd/([^/]+)()()()()()()()()|/torneo/partidosview/([^/]+)()()()()()()()()()|/torneo/partidosedit/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -631,7 +631,7 @@
       ),
       4 => 
       array (
-        'regex' => '~^(?|/torneo/PartidosDelete/([^/]+)|/torneo/partidos/list/([^/]+)()|/torneo/partidos/add/([^/]+)()()|/torneo/partidos/view/([^/]+)()()()|/torneo/partidos/edit/([^/]+)()()()()|/torneo/partidos/delete/([^/]+)()()()()()|/torneo/TorneoList/([^/]+)()()()()()()|/torneo/TorneoAdd/([^/]+)()()()()()()()|/torneo/TorneoView/([^/]+)()()()()()()()()|/torneo/TorneoEdit/([^/]+)()()()()()()()()()|/torneo/TorneoDelete/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/partidosdelete/([^/]+)|/torneo/partidos/list/([^/]+)()|/torneo/partidos/add/([^/]+)()()|/torneo/partidos/view/([^/]+)()()()|/torneo/partidos/edit/([^/]+)()()()()|/torneo/partidos/delete/([^/]+)()()()()()|/torneo/torneolist/([^/]+)()()()()()()|/torneo/torneoadd/([^/]+)()()()()()()()|/torneo/torneoview/([^/]+)()()()()()()()()|/torneo/torneoedit/([^/]+)()()()()()()()()()|/torneo/torneodelete/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -726,7 +726,7 @@
       ),
       5 => 
       array (
-        'regex' => '~^(?|/torneo/torneo/list/([^/]+)|/torneo/torneo/add/([^/]+)()|/torneo/torneo/view/([^/]+)()()|/torneo/torneo/edit/([^/]+)()()()|/torneo/torneo/delete/([^/]+)()()()()|/torneo/EstadioList/([^/]+)()()()()()|/torneo/EstadioAdd/([^/]+)()()()()()()|/torneo/EstadioView/([^/]+)()()()()()()()|/torneo/EstadioEdit/([^/]+)()()()()()()()()|/torneo/EstadioDelete/([^/]+)()()()()()()()()()|/torneo/estadio/list/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/torneo/list/([^/]+)|/torneo/torneo/add/([^/]+)()|/torneo/torneo/view/([^/]+)()()|/torneo/torneo/edit/([^/]+)()()()|/torneo/torneo/delete/([^/]+)()()()()|/torneo/estadiolist/([^/]+)()()()()()|/torneo/estadioadd/([^/]+)()()()()()()|/torneo/estadioview/([^/]+)()()()()()()()|/torneo/estadioedit/([^/]+)()()()()()()()()|/torneo/estadiodelete/([^/]+)()()()()()()()()()|/torneo/estadio/list/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -871,7 +871,7 @@
     array (
       0 => 
       array (
-        'regex' => '~^(?|/torneo/EncuestaList/([^/]+)|/torneo/EncuestaAdd/([^/]+)()|/torneo/EncuestaView/([^/]+)()()|/torneo/EncuestaEdit/([^/]+)()()()|/torneo/EncuestaDelete/([^/]+)()()()()|/torneo/encuesta/list/([^/]+)()()()()()|/torneo/encuesta/add/([^/]+)()()()()()()|/torneo/encuesta/view/([^/]+)()()()()()()()|/torneo/encuesta/edit/([^/]+)()()()()()()()()|/torneo/encuesta/delete/([^/]+)()()()()()()()()()|/torneo/EquipoList/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/encuestalist/([^/]+)|/torneo/encuestaadd/([^/]+)()|/torneo/encuestaview/([^/]+)()()|/torneo/encuestaedit/([^/]+)()()()|/torneo/encuestadelete/([^/]+)()()()()|/torneo/encuesta/list/([^/]+)()()()()()|/torneo/encuesta/add/([^/]+)()()()()()()|/torneo/encuesta/view/([^/]+)()()()()()()()|/torneo/encuesta/edit/([^/]+)()()()()()()()()|/torneo/encuesta/delete/([^/]+)()()()()()()()()()|/torneo/equipolist/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -966,7 +966,7 @@
       ),
       1 => 
       array (
-        'regex' => '~^(?|/torneo/EquipoAdd/([^/]+)|/torneo/EquipoView/([^/]+)()|/torneo/EquipoEdit/([^/]+)()()|/torneo/EquipoDelete/([^/]+)()()()|/torneo/equipo/list/([^/]+)()()()()|/torneo/equipo/add/([^/]+)()()()()()|/torneo/equipo/view/([^/]+)()()()()()()|/torneo/equipo/edit/([^/]+)()()()()()()()|/torneo/equipo/delete/([^/]+)()()()()()()()()|/torneo/EquipotorneoList/([^/]+)()()()()()()()()()|/torneo/EquipotorneoAdd/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/equipoadd/([^/]+)|/torneo/equipoview/([^/]+)()|/torneo/equipoedit/([^/]+)()()|/torneo/equipodelete/([^/]+)()()()|/torneo/equipo/list/([^/]+)()()()()|/torneo/equipo/add/([^/]+)()()()()()|/torneo/equipo/view/([^/]+)()()()()()()|/torneo/equipo/edit/([^/]+)()()()()()()()|/torneo/equipo/delete/([^/]+)()()()()()()()()|/torneo/equipotorneolist/([^/]+)()()()()()()()()()|/torneo/equipotorneoadd/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1061,7 +1061,7 @@
       ),
       2 => 
       array (
-        'regex' => '~^(?|/torneo/EquipotorneoView/([^/]+)|/torneo/EquipotorneoEdit/([^/]+)()|/torneo/EquipotorneoDelete/([^/]+)()()|/torneo/equipotorneo/list/([^/]+)()()()|/torneo/equipotorneo/add/([^/]+)()()()()|/torneo/equipotorneo/view/([^/]+)()()()()()|/torneo/equipotorneo/edit/([^/]+)()()()()()()|/torneo/equipotorneo/delete/([^/]+)()()()()()()()|/torneo/ParticipanteList/([^/]+)()()()()()()()()|/torneo/ParticipanteAdd/([^/]+)()()()()()()()()()|/torneo/ParticipanteView/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/equipotorneoview/([^/]+)|/torneo/equipotorneoedit/([^/]+)()|/torneo/equipotorneodelete/([^/]+)()()|/torneo/equipotorneo/list/([^/]+)()()()|/torneo/equipotorneo/add/([^/]+)()()()()|/torneo/equipotorneo/view/([^/]+)()()()()()|/torneo/equipotorneo/edit/([^/]+)()()()()()()|/torneo/equipotorneo/delete/([^/]+)()()()()()()()|/torneo/participantelist/([^/]+)()()()()()()()()|/torneo/participanteadd/([^/]+)()()()()()()()()()|/torneo/participanteview/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1156,7 +1156,7 @@
       ),
       3 => 
       array (
-        'regex' => '~^(?|/torneo/ParticipanteEdit/([^/]+)|/torneo/ParticipanteDelete/([^/]+)()|/torneo/participante/list/([^/]+)()()|/torneo/participante/add/([^/]+)()()()|/torneo/participante/view/([^/]+)()()()()|/torneo/participante/edit/([^/]+)()()()()()|/torneo/participante/delete/([^/]+)()()()()()()|/torneo/PartidosList/([^/]+)()()()()()()()|/torneo/PartidosAdd/([^/]+)()()()()()()()()|/torneo/PartidosView/([^/]+)()()()()()()()()()|/torneo/PartidosEdit/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/participanteedit/([^/]+)|/torneo/participantedelete/([^/]+)()|/torneo/participante/list/([^/]+)()()|/torneo/participante/add/([^/]+)()()()|/torneo/participante/view/([^/]+)()()()()|/torneo/participante/edit/([^/]+)()()()()()|/torneo/participante/delete/([^/]+)()()()()()()|/torneo/partidoslist/([^/]+)()()()()()()()|/torneo/partidosadd/([^/]+)()()()()()()()()|/torneo/partidosview/([^/]+)()()()()()()()()()|/torneo/partidosedit/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1251,7 +1251,7 @@
       ),
       4 => 
       array (
-        'regex' => '~^(?|/torneo/PartidosDelete/([^/]+)|/torneo/partidos/list/([^/]+)()|/torneo/partidos/add/([^/]+)()()|/torneo/partidos/view/([^/]+)()()()|/torneo/partidos/edit/([^/]+)()()()()|/torneo/partidos/delete/([^/]+)()()()()()|/torneo/TorneoList/([^/]+)()()()()()()|/torneo/TorneoAdd/([^/]+)()()()()()()()|/torneo/TorneoView/([^/]+)()()()()()()()()|/torneo/TorneoEdit/([^/]+)()()()()()()()()()|/torneo/TorneoDelete/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/partidosdelete/([^/]+)|/torneo/partidos/list/([^/]+)()|/torneo/partidos/add/([^/]+)()()|/torneo/partidos/view/([^/]+)()()()|/torneo/partidos/edit/([^/]+)()()()()|/torneo/partidos/delete/([^/]+)()()()()()|/torneo/torneolist/([^/]+)()()()()()()|/torneo/torneoadd/([^/]+)()()()()()()()|/torneo/torneoview/([^/]+)()()()()()()()()|/torneo/torneoedit/([^/]+)()()()()()()()()()|/torneo/torneodelete/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1346,7 +1346,7 @@
       ),
       5 => 
       array (
-        'regex' => '~^(?|/torneo/torneo/list/([^/]+)|/torneo/torneo/add/([^/]+)()|/torneo/torneo/view/([^/]+)()()|/torneo/torneo/edit/([^/]+)()()()|/torneo/torneo/delete/([^/]+)()()()()|/torneo/EstadioList/([^/]+)()()()()()|/torneo/EstadioAdd/([^/]+)()()()()()()|/torneo/EstadioView/([^/]+)()()()()()()()|/torneo/EstadioEdit/([^/]+)()()()()()()()()|/torneo/EstadioDelete/([^/]+)()()()()()()()()()|/torneo/estadio/list/([^/]+)()()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/torneo/list/([^/]+)|/torneo/torneo/add/([^/]+)()|/torneo/torneo/view/([^/]+)()()|/torneo/torneo/edit/([^/]+)()()()|/torneo/torneo/delete/([^/]+)()()()()|/torneo/estadiolist/([^/]+)()()()()()|/torneo/estadioadd/([^/]+)()()()()()()|/torneo/estadioview/([^/]+)()()()()()()()|/torneo/estadioedit/([^/]+)()()()()()()()()|/torneo/estadiodelete/([^/]+)()()()()()()()()()|/torneo/estadio/list/([^/]+)()()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1491,7 +1491,7 @@
     array (
       0 => 
       array (
-        'regex' => '~^(?|/torneo/EncuestaList/([^/]+)|/torneo/EncuestaAdd/([^/]+)()|/torneo/EncuestaView/([^/]+)()()|/torneo/EncuestaEdit/([^/]+)()()()|/torneo/EncuestaDelete/([^/]+)()()()()|/torneo/encuesta/list/([^/]+)()()()()()|/torneo/encuesta/add/([^/]+)()()()()()()|/torneo/encuesta/view/([^/]+)()()()()()()()|/torneo/encuesta/edit/([^/]+)()()()()()()()()|/torneo/encuesta/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/encuestalist/([^/]+)|/torneo/encuestaadd/([^/]+)()|/torneo/encuestaview/([^/]+)()()|/torneo/encuestaedit/([^/]+)()()()|/torneo/encuestadelete/([^/]+)()()()()|/torneo/encuesta/list/([^/]+)()()()()()|/torneo/encuesta/add/([^/]+)()()()()()()|/torneo/encuesta/view/([^/]+)()()()()()()()|/torneo/encuesta/edit/([^/]+)()()()()()()()()|/torneo/encuesta/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1578,7 +1578,7 @@
       ),
       1 => 
       array (
-        'regex' => '~^(?|/torneo/EquipoList/([^/]+)|/torneo/EquipoAdd/([^/]+)()|/torneo/EquipoView/([^/]+)()()|/torneo/EquipoEdit/([^/]+)()()()|/torneo/EquipoDelete/([^/]+)()()()()|/torneo/equipo/list/([^/]+)()()()()()|/torneo/equipo/add/([^/]+)()()()()()()|/torneo/equipo/view/([^/]+)()()()()()()()|/torneo/equipo/edit/([^/]+)()()()()()()()()|/torneo/equipo/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/equipolist/([^/]+)|/torneo/equipoadd/([^/]+)()|/torneo/equipoview/([^/]+)()()|/torneo/equipoedit/([^/]+)()()()|/torneo/equipodelete/([^/]+)()()()()|/torneo/equipo/list/([^/]+)()()()()()|/torneo/equipo/add/([^/]+)()()()()()()|/torneo/equipo/view/([^/]+)()()()()()()()|/torneo/equipo/edit/([^/]+)()()()()()()()()|/torneo/equipo/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1665,7 +1665,7 @@
       ),
       2 => 
       array (
-        'regex' => '~^(?|/torneo/EquipotorneoList/([^/]+)|/torneo/EquipotorneoAdd/([^/]+)()|/torneo/EquipotorneoView/([^/]+)()()|/torneo/EquipotorneoEdit/([^/]+)()()()|/torneo/EquipotorneoDelete/([^/]+)()()()()|/torneo/equipotorneo/list/([^/]+)()()()()()|/torneo/equipotorneo/add/([^/]+)()()()()()()|/torneo/equipotorneo/view/([^/]+)()()()()()()()|/torneo/equipotorneo/edit/([^/]+)()()()()()()()()|/torneo/equipotorneo/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/equipotorneolist/([^/]+)|/torneo/equipotorneoadd/([^/]+)()|/torneo/equipotorneoview/([^/]+)()()|/torneo/equipotorneoedit/([^/]+)()()()|/torneo/equipotorneodelete/([^/]+)()()()()|/torneo/equipotorneo/list/([^/]+)()()()()()|/torneo/equipotorneo/add/([^/]+)()()()()()()|/torneo/equipotorneo/view/([^/]+)()()()()()()()|/torneo/equipotorneo/edit/([^/]+)()()()()()()()()|/torneo/equipotorneo/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1752,7 +1752,7 @@
       ),
       3 => 
       array (
-        'regex' => '~^(?|/torneo/ParticipanteList/([^/]+)|/torneo/ParticipanteAdd/([^/]+)()|/torneo/ParticipanteView/([^/]+)()()|/torneo/ParticipanteEdit/([^/]+)()()()|/torneo/ParticipanteDelete/([^/]+)()()()()|/torneo/participante/list/([^/]+)()()()()()|/torneo/participante/add/([^/]+)()()()()()()|/torneo/participante/view/([^/]+)()()()()()()()|/torneo/participante/edit/([^/]+)()()()()()()()()|/torneo/participante/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/participantelist/([^/]+)|/torneo/participanteadd/([^/]+)()|/torneo/participanteview/([^/]+)()()|/torneo/participanteedit/([^/]+)()()()|/torneo/participantedelete/([^/]+)()()()()|/torneo/participante/list/([^/]+)()()()()()|/torneo/participante/add/([^/]+)()()()()()()|/torneo/participante/view/([^/]+)()()()()()()()|/torneo/participante/edit/([^/]+)()()()()()()()()|/torneo/participante/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1839,7 +1839,7 @@
       ),
       4 => 
       array (
-        'regex' => '~^(?|/torneo/PartidosList/([^/]+)|/torneo/PartidosAdd/([^/]+)()|/torneo/PartidosView/([^/]+)()()|/torneo/PartidosEdit/([^/]+)()()()|/torneo/PartidosDelete/([^/]+)()()()()|/torneo/partidos/list/([^/]+)()()()()()|/torneo/partidos/add/([^/]+)()()()()()()|/torneo/partidos/view/([^/]+)()()()()()()()|/torneo/partidos/edit/([^/]+)()()()()()()()()|/torneo/partidos/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/partidoslist/([^/]+)|/torneo/partidosadd/([^/]+)()|/torneo/partidosview/([^/]+)()()|/torneo/partidosedit/([^/]+)()()()|/torneo/partidosdelete/([^/]+)()()()()|/torneo/partidos/list/([^/]+)()()()()()|/torneo/partidos/add/([^/]+)()()()()()()|/torneo/partidos/view/([^/]+)()()()()()()()|/torneo/partidos/edit/([^/]+)()()()()()()()()|/torneo/partidos/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -1926,7 +1926,7 @@
       ),
       5 => 
       array (
-        'regex' => '~^(?|/torneo/TorneoList/([^/]+)|/torneo/TorneoAdd/([^/]+)()|/torneo/TorneoView/([^/]+)()()|/torneo/TorneoEdit/([^/]+)()()()|/torneo/TorneoDelete/([^/]+)()()()()|/torneo/torneo/list/([^/]+)()()()()()|/torneo/torneo/add/([^/]+)()()()()()()|/torneo/torneo/view/([^/]+)()()()()()()()|/torneo/torneo/edit/([^/]+)()()()()()()()()|/torneo/torneo/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/torneolist/([^/]+)|/torneo/torneoadd/([^/]+)()|/torneo/torneoview/([^/]+)()()|/torneo/torneoedit/([^/]+)()()()|/torneo/torneodelete/([^/]+)()()()()|/torneo/torneo/list/([^/]+)()()()()()|/torneo/torneo/add/([^/]+)()()()()()()|/torneo/torneo/view/([^/]+)()()()()()()()|/torneo/torneo/edit/([^/]+)()()()()()()()()|/torneo/torneo/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 
@@ -2013,7 +2013,7 @@
       ),
       6 => 
       array (
-        'regex' => '~^(?|/torneo/EstadioList/([^/]+)|/torneo/EstadioAdd/([^/]+)()|/torneo/EstadioView/([^/]+)()()|/torneo/EstadioEdit/([^/]+)()()()|/torneo/EstadioDelete/([^/]+)()()()()|/torneo/estadio/list/([^/]+)()()()()()|/torneo/estadio/add/([^/]+)()()()()()()|/torneo/estadio/view/([^/]+)()()()()()()()|/torneo/estadio/edit/([^/]+)()()()()()()()()|/torneo/estadio/delete/([^/]+)()()()()()()()()())$~',
+        'regex' => '~^(?|/torneo/estadiolist/([^/]+)|/torneo/estadioadd/([^/]+)()|/torneo/estadioview/([^/]+)()()|/torneo/estadioedit/([^/]+)()()()|/torneo/estadiodelete/([^/]+)()()()()|/torneo/estadio/list/([^/]+)()()()()()|/torneo/estadio/add/([^/]+)()()()()()()|/torneo/estadio/view/([^/]+)()()()()()()()|/torneo/estadio/edit/([^/]+)()()()()()()()()|/torneo/estadio/delete/([^/]+)()()()()()()()()())$~',
         'routeMap' => 
         array (
           2 => 

@@ -836,7 +836,7 @@ class Encuesta extends DbTable
         if ($referUrl != "" && $referPageName != CurrentPageName() && $referPageName != "login") { // Referer not same page or login page
             $_SESSION[$name] = $referUrl; // Save to Session
         }
-        return $_SESSION[$name] ?? GetUrl("EncuestaList");
+        return $_SESSION[$name] ?? GetUrl("encuestalist");
     }
 
     // Set return page URL
@@ -849,11 +849,11 @@ class Encuesta extends DbTable
     public function getModalCaption($pageName)
     {
         global $Language;
-        if ($pageName == "EncuestaView") {
+        if ($pageName == "encuestaview") {
             return $Language->phrase("View");
-        } elseif ($pageName == "EncuestaEdit") {
+        } elseif ($pageName == "encuestaedit") {
             return $Language->phrase("Edit");
-        } elseif ($pageName == "EncuestaAdd") {
+        } elseif ($pageName == "encuestaadd") {
             return $Language->phrase("Add");
         } else {
             return "";
@@ -882,16 +882,16 @@ class Encuesta extends DbTable
     // List URL
     public function getListUrl()
     {
-        return "EncuestaList";
+        return "encuestalist";
     }
 
     // View URL
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("EncuestaView", $this->getUrlParm($parm));
+            $url = $this->keyUrl("encuestaview", $this->getUrlParm($parm));
         } else {
-            $url = $this->keyUrl("EncuestaView", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("encuestaview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
         }
         return $this->addMasterUrl($url);
     }
@@ -900,9 +900,9 @@ class Encuesta extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "EncuestaAdd?" . $this->getUrlParm($parm);
+            $url = "encuestaadd?" . $this->getUrlParm($parm);
         } else {
-            $url = "EncuestaAdd";
+            $url = "encuestaadd";
         }
         return $this->addMasterUrl($url);
     }
@@ -910,7 +910,7 @@ class Encuesta extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("EncuestaEdit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("encuestaedit", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -924,7 +924,7 @@ class Encuesta extends DbTable
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("EncuestaAdd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("encuestaadd", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -938,7 +938,7 @@ class Encuesta extends DbTable
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("EncuestaDelete", $this->getUrlParm());
+        return $this->keyUrl("encuestadelete", $this->getUrlParm());
     }
 
     // Add master url

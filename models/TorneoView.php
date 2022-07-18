@@ -320,7 +320,7 @@ class TorneoView extends Torneo
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "TorneoView") {
+                    if ($pageName == "torneoview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -567,7 +567,7 @@ class TorneoView extends Torneo
                 $this->ID_TORNEO->setQueryStringValue($keyValue);
                 $this->RecKey["ID_TORNEO"] = $this->ID_TORNEO->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "TorneoList"; // Return to list
+                $returnUrl = "torneolist"; // Return to list
             }
 
             // Get action
@@ -590,12 +590,12 @@ class TorneoView extends Torneo
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "TorneoList"; // No matching record, return to list
+                            $returnUrl = "torneolist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "TorneoList"; // Not page request, return to list
+            $returnUrl = "torneolist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -943,7 +943,7 @@ class TorneoView extends Torneo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("TorneoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("torneolist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

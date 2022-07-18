@@ -320,7 +320,7 @@ class EstadioView extends Estadio
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EstadioView") {
+                    if ($pageName == "estadioview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -563,7 +563,7 @@ class EstadioView extends Estadio
                 $this->id_estadio->setQueryStringValue($keyValue);
                 $this->RecKey["id_estadio"] = $this->id_estadio->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "EstadioList"; // Return to list
+                $returnUrl = "estadiolist"; // Return to list
             }
 
             // Get action
@@ -586,12 +586,12 @@ class EstadioView extends Estadio
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "EstadioList"; // No matching record, return to list
+                            $returnUrl = "estadiolist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "EstadioList"; // Not page request, return to list
+            $returnUrl = "estadiolist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -887,7 +887,7 @@ class EstadioView extends Estadio
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EstadioList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("estadiolist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

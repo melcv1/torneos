@@ -320,7 +320,7 @@ class EquipotorneoView extends Equipotorneo
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EquipotorneoView") {
+                    if ($pageName == "equipotorneoview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -575,7 +575,7 @@ class EquipotorneoView extends Equipotorneo
                 $this->ID_EQUIPO_TORNEO->setQueryStringValue($keyValue);
                 $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "EquipotorneoList"; // Return to list
+                $returnUrl = "equipotorneolist"; // Return to list
             }
 
             // Get action
@@ -598,12 +598,12 @@ class EquipotorneoView extends Equipotorneo
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "EquipotorneoList"; // No matching record, return to list
+                            $returnUrl = "equipotorneolist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "EquipotorneoList"; // Not page request, return to list
+            $returnUrl = "equipotorneolist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -1036,7 +1036,7 @@ class EquipotorneoView extends Equipotorneo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EquipotorneoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("equipotorneolist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

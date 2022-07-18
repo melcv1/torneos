@@ -864,7 +864,7 @@ class EstadioAddopt extends Estadio
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EstadioList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("estadiolist"), "", $this->TableVar, true);
         $pageId = "addopt";
         $Breadcrumb->add("addopt", $pageId, $url);
     }

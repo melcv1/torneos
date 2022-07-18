@@ -796,7 +796,7 @@ class Torneo extends DbTable
         if ($referUrl != "" && $referPageName != CurrentPageName() && $referPageName != "login") { // Referer not same page or login page
             $_SESSION[$name] = $referUrl; // Save to Session
         }
-        return $_SESSION[$name] ?? GetUrl("TorneoList");
+        return $_SESSION[$name] ?? GetUrl("torneolist");
     }
 
     // Set return page URL
@@ -809,11 +809,11 @@ class Torneo extends DbTable
     public function getModalCaption($pageName)
     {
         global $Language;
-        if ($pageName == "TorneoView") {
+        if ($pageName == "torneoview") {
             return $Language->phrase("View");
-        } elseif ($pageName == "TorneoEdit") {
+        } elseif ($pageName == "torneoedit") {
             return $Language->phrase("Edit");
-        } elseif ($pageName == "TorneoAdd") {
+        } elseif ($pageName == "torneoadd") {
             return $Language->phrase("Add");
         } else {
             return "";
@@ -842,16 +842,16 @@ class Torneo extends DbTable
     // List URL
     public function getListUrl()
     {
-        return "TorneoList";
+        return "torneolist";
     }
 
     // View URL
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("TorneoView", $this->getUrlParm($parm));
+            $url = $this->keyUrl("torneoview", $this->getUrlParm($parm));
         } else {
-            $url = $this->keyUrl("TorneoView", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("torneoview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
         }
         return $this->addMasterUrl($url);
     }
@@ -860,9 +860,9 @@ class Torneo extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "TorneoAdd?" . $this->getUrlParm($parm);
+            $url = "torneoadd?" . $this->getUrlParm($parm);
         } else {
-            $url = "TorneoAdd";
+            $url = "torneoadd";
         }
         return $this->addMasterUrl($url);
     }
@@ -870,7 +870,7 @@ class Torneo extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("TorneoEdit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("torneoedit", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -884,7 +884,7 @@ class Torneo extends DbTable
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("TorneoAdd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("torneoadd", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -898,7 +898,7 @@ class Torneo extends DbTable
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("TorneoDelete", $this->getUrlParm());
+        return $this->keyUrl("torneodelete", $this->getUrlParm());
     }
 
     // Add master url

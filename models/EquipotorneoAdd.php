@@ -284,7 +284,7 @@ class EquipotorneoAdd extends Equipotorneo
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EquipotorneoView") {
+                    if ($pageName == "equipotorneoview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -582,7 +582,7 @@ class EquipotorneoAdd extends Equipotorneo
                     if ($this->getFailureMessage() == "") {
                         $this->setFailureMessage($Language->phrase("NoRecord")); // No record found
                     }
-                    $this->terminate("EquipotorneoList"); // No matching record, return to list
+                    $this->terminate("equipotorneolist"); // No matching record, return to list
                     return;
                 }
                 break;
@@ -593,9 +593,9 @@ class EquipotorneoAdd extends Equipotorneo
                         $this->setSuccessMessage($Language->phrase("AddSuccess")); // Set up success message
                     }
                     $returnUrl = $this->getReturnUrl();
-                    if (GetPageName($returnUrl) == "EquipotorneoList") {
+                    if (GetPageName($returnUrl) == "equipotorneolist") {
                         $returnUrl = $this->addMasterUrl($returnUrl); // List page, return to List page with correct master key if necessary
-                    } elseif (GetPageName($returnUrl) == "EquipotorneoView") {
+                    } elseif (GetPageName($returnUrl) == "equipotorneoview") {
                         $returnUrl = $this->getViewUrl(); // View page, return to View page with keyurl directly
                     }
                     if (IsApi()) { // Return to caller
@@ -1488,7 +1488,7 @@ class EquipotorneoAdd extends Equipotorneo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EquipotorneoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("equipotorneolist"), "", $this->TableVar, true);
         $pageId = ($this->isCopy()) ? "Copy" : "Add";
         $Breadcrumb->add("add", $pageId, $url);
     }

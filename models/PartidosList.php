@@ -179,12 +179,12 @@ class PartidosList extends Partidos
         $pageUrl = $this->pageUrl(false);
 
         // Initialize URLs
-        $this->AddUrl = "PartidosAdd";
+        $this->AddUrl = "partidosadd";
         $this->InlineAddUrl = $pageUrl . "action=add";
         $this->GridAddUrl = $pageUrl . "action=gridadd";
         $this->GridEditUrl = $pageUrl . "action=gridedit";
-        $this->MultiDeleteUrl = "PartidosDelete";
-        $this->MultiUpdateUrl = "PartidosUpdate";
+        $this->MultiDeleteUrl = "partidosdelete";
+        $this->MultiUpdateUrl = "partidosupdate";
 
         // Table name (for backward compatibility only)
         if (!defined(PROJECT_NAMESPACE . "TABLE_NAME")) {

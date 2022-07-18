@@ -439,7 +439,7 @@ class EncuestaDelete extends Encuesta
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("EncuestaList"); // Prevent SQL injection, return to list
+            $this->terminate("encuestalist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -485,7 +485,7 @@ class EncuestaDelete extends Encuesta
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("EncuestaList"); // Return to list
+                $this->terminate("encuestalist"); // Return to list
                 return;
             }
         }
@@ -885,7 +885,7 @@ class EncuestaDelete extends Encuesta
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EncuestaList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("encuestalist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }

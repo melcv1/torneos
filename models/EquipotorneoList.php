@@ -179,12 +179,12 @@ class EquipotorneoList extends Equipotorneo
         $pageUrl = $this->pageUrl(false);
 
         // Initialize URLs
-        $this->AddUrl = "EquipotorneoAdd";
+        $this->AddUrl = "equipotorneoadd";
         $this->InlineAddUrl = $pageUrl . "action=add";
         $this->GridAddUrl = $pageUrl . "action=gridadd";
         $this->GridEditUrl = $pageUrl . "action=gridedit";
-        $this->MultiDeleteUrl = "EquipotorneoDelete";
-        $this->MultiUpdateUrl = "EquipotorneoUpdate";
+        $this->MultiDeleteUrl = "equipotorneodelete";
+        $this->MultiUpdateUrl = "equipotorneoupdate";
 
         // Table name (for backward compatibility only)
         if (!defined(PROJECT_NAMESPACE . "TABLE_NAME")) {

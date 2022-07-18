@@ -179,12 +179,12 @@ class ParticipanteList extends Participante
         $pageUrl = $this->pageUrl(false);
 
         // Initialize URLs
-        $this->AddUrl = "ParticipanteAdd";
+        $this->AddUrl = "participanteadd";
         $this->InlineAddUrl = $pageUrl . "action=add";
         $this->GridAddUrl = $pageUrl . "action=gridadd";
         $this->GridEditUrl = $pageUrl . "action=gridedit";
-        $this->MultiDeleteUrl = "ParticipanteDelete";
-        $this->MultiUpdateUrl = "ParticipanteUpdate";
+        $this->MultiDeleteUrl = "participantedelete";
+        $this->MultiUpdateUrl = "participanteupdate";
 
         // Table name (for backward compatibility only)
         if (!defined(PROJECT_NAMESPACE . "TABLE_NAME")) {

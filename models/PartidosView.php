@@ -320,7 +320,7 @@ class PartidosView extends Partidos
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "PartidosView") {
+                    if ($pageName == "partidosview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -582,7 +582,7 @@ class PartidosView extends Partidos
                 $this->ID_PARTIDO->setQueryStringValue($keyValue);
                 $this->RecKey["ID_PARTIDO"] = $this->ID_PARTIDO->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "PartidosList"; // Return to list
+                $returnUrl = "partidoslist"; // Return to list
             }
 
             // Get action
@@ -605,12 +605,12 @@ class PartidosView extends Partidos
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "PartidosList"; // No matching record, return to list
+                            $returnUrl = "partidoslist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "PartidosList"; // Not page request, return to list
+            $returnUrl = "partidoslist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -1150,7 +1150,7 @@ class PartidosView extends Partidos
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("PartidosList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("partidoslist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

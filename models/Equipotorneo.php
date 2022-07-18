@@ -955,7 +955,7 @@ class Equipotorneo extends DbTable
         if ($referUrl != "" && $referPageName != CurrentPageName() && $referPageName != "login") { // Referer not same page or login page
             $_SESSION[$name] = $referUrl; // Save to Session
         }
-        return $_SESSION[$name] ?? GetUrl("EquipotorneoList");
+        return $_SESSION[$name] ?? GetUrl("equipotorneolist");
     }
 
     // Set return page URL
@@ -968,11 +968,11 @@ class Equipotorneo extends DbTable
     public function getModalCaption($pageName)
     {
         global $Language;
-        if ($pageName == "EquipotorneoView") {
+        if ($pageName == "equipotorneoview") {
             return $Language->phrase("View");
-        } elseif ($pageName == "EquipotorneoEdit") {
+        } elseif ($pageName == "equipotorneoedit") {
             return $Language->phrase("Edit");
-        } elseif ($pageName == "EquipotorneoAdd") {
+        } elseif ($pageName == "equipotorneoadd") {
             return $Language->phrase("Add");
         } else {
             return "";
@@ -1001,16 +1001,16 @@ class Equipotorneo extends DbTable
     // List URL
     public function getListUrl()
     {
-        return "EquipotorneoList";
+        return "equipotorneolist";
     }
 
     // View URL
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("EquipotorneoView", $this->getUrlParm($parm));
+            $url = $this->keyUrl("equipotorneoview", $this->getUrlParm($parm));
         } else {
-            $url = $this->keyUrl("EquipotorneoView", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("equipotorneoview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
         }
         return $this->addMasterUrl($url);
     }
@@ -1019,9 +1019,9 @@ class Equipotorneo extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "EquipotorneoAdd?" . $this->getUrlParm($parm);
+            $url = "equipotorneoadd?" . $this->getUrlParm($parm);
         } else {
-            $url = "EquipotorneoAdd";
+            $url = "equipotorneoadd";
         }
         return $this->addMasterUrl($url);
     }
@@ -1029,7 +1029,7 @@ class Equipotorneo extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("EquipotorneoEdit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("equipotorneoedit", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -1043,7 +1043,7 @@ class Equipotorneo extends DbTable
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("EquipotorneoAdd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("equipotorneoadd", $this->getUrlParm($parm));
         return $this->addMasterUrl($url);
     }
 
@@ -1057,7 +1057,7 @@ class Equipotorneo extends DbTable
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("EquipotorneoDelete", $this->getUrlParm());
+        return $this->keyUrl("equipotorneodelete", $this->getUrlParm());
     }
 
     // Add master url

@@ -320,7 +320,7 @@ class ParticipanteView extends Participante
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "ParticipanteView") {
+                    if ($pageName == "participanteview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -567,7 +567,7 @@ class ParticipanteView extends Participante
                 $this->ID_PARTICIPANTE->setQueryStringValue($keyValue);
                 $this->RecKey["ID_PARTICIPANTE"] = $this->ID_PARTICIPANTE->QueryStringValue;
             } elseif (!$loadCurrentRecord) {
-                $returnUrl = "ParticipanteList"; // Return to list
+                $returnUrl = "participantelist"; // Return to list
             }
 
             // Get action
@@ -590,12 +590,12 @@ class ParticipanteView extends Participante
                             if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
                                 $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                             }
-                            $returnUrl = "ParticipanteList"; // No matching record, return to list
+                            $returnUrl = "participantelist"; // No matching record, return to list
                         }
                     break;
             }
         } else {
-            $returnUrl = "ParticipanteList"; // Not page request, return to list
+            $returnUrl = "participantelist"; // Not page request, return to list
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -911,7 +911,7 @@ class ParticipanteView extends Participante
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("ParticipanteList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("participantelist"), "", $this->TableVar, true);
         $pageId = "view";
         $Breadcrumb->add("view", $pageId, $url);
     }

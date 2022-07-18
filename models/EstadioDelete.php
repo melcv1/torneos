@@ -424,7 +424,7 @@ class EstadioDelete extends Estadio
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("EstadioList"); // Prevent SQL injection, return to list
+            $this->terminate("estadiolist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -470,7 +470,7 @@ class EstadioDelete extends Estadio
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("EstadioList"); // Return to list
+                $this->terminate("estadiolist"); // Return to list
                 return;
             }
         }
@@ -811,7 +811,7 @@ class EstadioDelete extends Estadio
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EstadioList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("estadiolist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }

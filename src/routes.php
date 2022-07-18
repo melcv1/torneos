@@ -8,11 +8,11 @@ use Slim\Routing\RouteCollectorProxy;
 // Handle Routes
 return function (App $app) {
     // encuesta
-    $app->map(["GET","POST","OPTIONS"], '/EncuestaList[/{ID_ENCUESTA}]', EncuestaController::class . ':list')->add(PermissionMiddleware::class)->setName('EncuestaList-encuesta-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/EncuestaAdd[/{ID_ENCUESTA}]', EncuestaController::class . ':add')->add(PermissionMiddleware::class)->setName('EncuestaAdd-encuesta-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/EncuestaView[/{ID_ENCUESTA}]', EncuestaController::class . ':view')->add(PermissionMiddleware::class)->setName('EncuestaView-encuesta-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/EncuestaEdit[/{ID_ENCUESTA}]', EncuestaController::class . ':edit')->add(PermissionMiddleware::class)->setName('EncuestaEdit-encuesta-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/EncuestaDelete[/{ID_ENCUESTA}]', EncuestaController::class . ':delete')->add(PermissionMiddleware::class)->setName('EncuestaDelete-encuesta-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/encuestalist[/{ID_ENCUESTA}]', EncuestaController::class . ':list')->add(PermissionMiddleware::class)->setName('encuestalist-encuesta-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/encuestaadd[/{ID_ENCUESTA}]', EncuestaController::class . ':add')->add(PermissionMiddleware::class)->setName('encuestaadd-encuesta-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/encuestaview[/{ID_ENCUESTA}]', EncuestaController::class . ':view')->add(PermissionMiddleware::class)->setName('encuestaview-encuesta-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/encuestaedit[/{ID_ENCUESTA}]', EncuestaController::class . ':edit')->add(PermissionMiddleware::class)->setName('encuestaedit-encuesta-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/encuestadelete[/{ID_ENCUESTA}]', EncuestaController::class . ':delete')->add(PermissionMiddleware::class)->setName('encuestadelete-encuesta-delete'); // delete
     $app->group(
         '/encuesta',
         function (RouteCollectorProxy $group) {
@@ -25,11 +25,11 @@ return function (App $app) {
     );
 
     // equipo
-    $app->map(["GET","POST","OPTIONS"], '/EquipoList[/{ID_EQUIPO}]', EquipoController::class . ':list')->add(PermissionMiddleware::class)->setName('EquipoList-equipo-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/EquipoAdd[/{ID_EQUIPO}]', EquipoController::class . ':add')->add(PermissionMiddleware::class)->setName('EquipoAdd-equipo-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/EquipoView[/{ID_EQUIPO}]', EquipoController::class . ':view')->add(PermissionMiddleware::class)->setName('EquipoView-equipo-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/EquipoEdit[/{ID_EQUIPO}]', EquipoController::class . ':edit')->add(PermissionMiddleware::class)->setName('EquipoEdit-equipo-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/EquipoDelete[/{ID_EQUIPO}]', EquipoController::class . ':delete')->add(PermissionMiddleware::class)->setName('EquipoDelete-equipo-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/equipolist[/{ID_EQUIPO}]', EquipoController::class . ':list')->add(PermissionMiddleware::class)->setName('equipolist-equipo-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/equipoadd[/{ID_EQUIPO}]', EquipoController::class . ':add')->add(PermissionMiddleware::class)->setName('equipoadd-equipo-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/equipoview[/{ID_EQUIPO}]', EquipoController::class . ':view')->add(PermissionMiddleware::class)->setName('equipoview-equipo-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/equipoedit[/{ID_EQUIPO}]', EquipoController::class . ':edit')->add(PermissionMiddleware::class)->setName('equipoedit-equipo-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/equipodelete[/{ID_EQUIPO}]', EquipoController::class . ':delete')->add(PermissionMiddleware::class)->setName('equipodelete-equipo-delete'); // delete
     $app->group(
         '/equipo',
         function (RouteCollectorProxy $group) {
@@ -42,11 +42,11 @@ return function (App $app) {
     );
 
     // equipotorneo
-    $app->map(["GET","POST","OPTIONS"], '/EquipotorneoList[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':list')->add(PermissionMiddleware::class)->setName('EquipotorneoList-equipotorneo-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/EquipotorneoAdd[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':add')->add(PermissionMiddleware::class)->setName('EquipotorneoAdd-equipotorneo-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/EquipotorneoView[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':view')->add(PermissionMiddleware::class)->setName('EquipotorneoView-equipotorneo-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/EquipotorneoEdit[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':edit')->add(PermissionMiddleware::class)->setName('EquipotorneoEdit-equipotorneo-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/EquipotorneoDelete[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':delete')->add(PermissionMiddleware::class)->setName('EquipotorneoDelete-equipotorneo-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/equipotorneolist[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':list')->add(PermissionMiddleware::class)->setName('equipotorneolist-equipotorneo-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/equipotorneoadd[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':add')->add(PermissionMiddleware::class)->setName('equipotorneoadd-equipotorneo-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/equipotorneoview[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':view')->add(PermissionMiddleware::class)->setName('equipotorneoview-equipotorneo-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/equipotorneoedit[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':edit')->add(PermissionMiddleware::class)->setName('equipotorneoedit-equipotorneo-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/equipotorneodelete[/{ID_EQUIPO_TORNEO}]', EquipotorneoController::class . ':delete')->add(PermissionMiddleware::class)->setName('equipotorneodelete-equipotorneo-delete'); // delete
     $app->group(
         '/equipotorneo',
         function (RouteCollectorProxy $group) {
@@ -59,11 +59,11 @@ return function (App $app) {
     );
 
     // participante
-    $app->map(["GET","POST","OPTIONS"], '/ParticipanteList[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':list')->add(PermissionMiddleware::class)->setName('ParticipanteList-participante-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/ParticipanteAdd[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':add')->add(PermissionMiddleware::class)->setName('ParticipanteAdd-participante-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/ParticipanteView[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':view')->add(PermissionMiddleware::class)->setName('ParticipanteView-participante-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/ParticipanteEdit[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':edit')->add(PermissionMiddleware::class)->setName('ParticipanteEdit-participante-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/ParticipanteDelete[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':delete')->add(PermissionMiddleware::class)->setName('ParticipanteDelete-participante-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/participantelist[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':list')->add(PermissionMiddleware::class)->setName('participantelist-participante-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/participanteadd[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':add')->add(PermissionMiddleware::class)->setName('participanteadd-participante-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/participanteview[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':view')->add(PermissionMiddleware::class)->setName('participanteview-participante-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/participanteedit[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':edit')->add(PermissionMiddleware::class)->setName('participanteedit-participante-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/participantedelete[/{ID_PARTICIPANTE}]', ParticipanteController::class . ':delete')->add(PermissionMiddleware::class)->setName('participantedelete-participante-delete'); // delete
     $app->group(
         '/participante',
         function (RouteCollectorProxy $group) {
@@ -76,11 +76,11 @@ return function (App $app) {
     );
 
     // partidos
-    $app->map(["GET","POST","OPTIONS"], '/PartidosList[/{ID_PARTIDO}]', PartidosController::class . ':list')->add(PermissionMiddleware::class)->setName('PartidosList-partidos-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/PartidosAdd[/{ID_PARTIDO}]', PartidosController::class . ':add')->add(PermissionMiddleware::class)->setName('PartidosAdd-partidos-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/PartidosView[/{ID_PARTIDO}]', PartidosController::class . ':view')->add(PermissionMiddleware::class)->setName('PartidosView-partidos-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/PartidosEdit[/{ID_PARTIDO}]', PartidosController::class . ':edit')->add(PermissionMiddleware::class)->setName('PartidosEdit-partidos-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/PartidosDelete[/{ID_PARTIDO}]', PartidosController::class . ':delete')->add(PermissionMiddleware::class)->setName('PartidosDelete-partidos-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/partidoslist[/{ID_PARTIDO}]', PartidosController::class . ':list')->add(PermissionMiddleware::class)->setName('partidoslist-partidos-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/partidosadd[/{ID_PARTIDO}]', PartidosController::class . ':add')->add(PermissionMiddleware::class)->setName('partidosadd-partidos-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/partidosview[/{ID_PARTIDO}]', PartidosController::class . ':view')->add(PermissionMiddleware::class)->setName('partidosview-partidos-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/partidosedit[/{ID_PARTIDO}]', PartidosController::class . ':edit')->add(PermissionMiddleware::class)->setName('partidosedit-partidos-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/partidosdelete[/{ID_PARTIDO}]', PartidosController::class . ':delete')->add(PermissionMiddleware::class)->setName('partidosdelete-partidos-delete'); // delete
     $app->group(
         '/partidos',
         function (RouteCollectorProxy $group) {
@@ -93,11 +93,11 @@ return function (App $app) {
     );
 
     // torneo
-    $app->map(["GET","POST","OPTIONS"], '/TorneoList[/{ID_TORNEO}]', TorneoController::class . ':list')->add(PermissionMiddleware::class)->setName('TorneoList-torneo-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/TorneoAdd[/{ID_TORNEO}]', TorneoController::class . ':add')->add(PermissionMiddleware::class)->setName('TorneoAdd-torneo-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/TorneoView[/{ID_TORNEO}]', TorneoController::class . ':view')->add(PermissionMiddleware::class)->setName('TorneoView-torneo-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/TorneoEdit[/{ID_TORNEO}]', TorneoController::class . ':edit')->add(PermissionMiddleware::class)->setName('TorneoEdit-torneo-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/TorneoDelete[/{ID_TORNEO}]', TorneoController::class . ':delete')->add(PermissionMiddleware::class)->setName('TorneoDelete-torneo-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/torneolist[/{ID_TORNEO}]', TorneoController::class . ':list')->add(PermissionMiddleware::class)->setName('torneolist-torneo-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/torneoadd[/{ID_TORNEO}]', TorneoController::class . ':add')->add(PermissionMiddleware::class)->setName('torneoadd-torneo-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/torneoview[/{ID_TORNEO}]', TorneoController::class . ':view')->add(PermissionMiddleware::class)->setName('torneoview-torneo-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/torneoedit[/{ID_TORNEO}]', TorneoController::class . ':edit')->add(PermissionMiddleware::class)->setName('torneoedit-torneo-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/torneodelete[/{ID_TORNEO}]', TorneoController::class . ':delete')->add(PermissionMiddleware::class)->setName('torneodelete-torneo-delete'); // delete
     $app->group(
         '/torneo',
         function (RouteCollectorProxy $group) {
@@ -110,12 +110,12 @@ return function (App $app) {
     );
 
     // estadio
-    $app->map(["GET","POST","OPTIONS"], '/EstadioList[/{id_estadio}]', EstadioController::class . ':list')->add(PermissionMiddleware::class)->setName('EstadioList-estadio-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/EstadioAdd[/{id_estadio}]', EstadioController::class . ':add')->add(PermissionMiddleware::class)->setName('EstadioAdd-estadio-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/EstadioAddopt', EstadioController::class . ':addopt')->add(PermissionMiddleware::class)->setName('EstadioAddopt-estadio-addopt'); // addopt
-    $app->map(["GET","POST","OPTIONS"], '/EstadioView[/{id_estadio}]', EstadioController::class . ':view')->add(PermissionMiddleware::class)->setName('EstadioView-estadio-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/EstadioEdit[/{id_estadio}]', EstadioController::class . ':edit')->add(PermissionMiddleware::class)->setName('EstadioEdit-estadio-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/EstadioDelete[/{id_estadio}]', EstadioController::class . ':delete')->add(PermissionMiddleware::class)->setName('EstadioDelete-estadio-delete'); // delete
+    $app->map(["GET","POST","OPTIONS"], '/estadiolist[/{id_estadio}]', EstadioController::class . ':list')->add(PermissionMiddleware::class)->setName('estadiolist-estadio-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/estadioadd[/{id_estadio}]', EstadioController::class . ':add')->add(PermissionMiddleware::class)->setName('estadioadd-estadio-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/estadioaddopt', EstadioController::class . ':addopt')->add(PermissionMiddleware::class)->setName('estadioaddopt-estadio-addopt'); // addopt
+    $app->map(["GET","POST","OPTIONS"], '/estadioview[/{id_estadio}]', EstadioController::class . ':view')->add(PermissionMiddleware::class)->setName('estadioview-estadio-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/estadioedit[/{id_estadio}]', EstadioController::class . ':edit')->add(PermissionMiddleware::class)->setName('estadioedit-estadio-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/estadiodelete[/{id_estadio}]', EstadioController::class . ':delete')->add(PermissionMiddleware::class)->setName('estadiodelete-estadio-delete'); // delete
     $app->group(
         '/estadio',
         function (RouteCollectorProxy $group) {

@@ -179,12 +179,12 @@ class EstadioList extends Estadio
         $pageUrl = $this->pageUrl(false);
 
         // Initialize URLs
-        $this->AddUrl = "EstadioAdd";
+        $this->AddUrl = "estadioadd";
         $this->InlineAddUrl = $pageUrl . "action=add";
         $this->GridAddUrl = $pageUrl . "action=gridadd";
         $this->GridEditUrl = $pageUrl . "action=gridedit";
-        $this->MultiDeleteUrl = "EstadioDelete";
-        $this->MultiUpdateUrl = "EstadioUpdate";
+        $this->MultiDeleteUrl = "estadiodelete";
+        $this->MultiUpdateUrl = "estadioupdate";
 
         // Table name (for backward compatibility only)
         if (!defined(PROJECT_NAMESPACE . "TABLE_NAME")) {

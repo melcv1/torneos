@@ -292,7 +292,7 @@ class EncuestaEdit extends Encuesta
                 $pageName = GetPageName($url);
                 if ($pageName != $this->getListUrl()) { // Not List page
                     $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "EncuestaView") {
+                    if ($pageName == "encuestaview") {
                         $row["view"] = "1";
                     }
                 } else { // List page should not be shown as modal => error
@@ -621,13 +621,13 @@ class EncuestaEdit extends Encuesta
                         if ($this->getFailureMessage() == "") {
                             $this->setFailureMessage($Language->phrase("NoRecord")); // No record found
                         }
-                        $this->terminate("EncuestaList"); // No matching record, return to list
+                        $this->terminate("encuestalist"); // No matching record, return to list
                         return;
                     }
                 break;
             case "update": // Update
                 $returnUrl = $this->getReturnUrl();
-                if (GetPageName($returnUrl) == "EncuestaList") {
+                if (GetPageName($returnUrl) == "encuestalist") {
                     $returnUrl = $this->addMasterUrl($returnUrl); // List page, return to List page with correct master key if necessary
                 }
                 $this->SendEmail = true; // Send email on update success
@@ -1328,7 +1328,7 @@ class EncuestaEdit extends Encuesta
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EncuestaList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("encuestalist"), "", $this->TableVar, true);
         $pageId = "edit";
         $Breadcrumb->add("edit", $pageId, $url);
     }

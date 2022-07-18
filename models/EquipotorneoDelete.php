@@ -436,7 +436,7 @@ class EquipotorneoDelete extends Equipotorneo
         $this->RecKeys = $this->getRecordKeys(); // Load record keys
         $filter = $this->getFilterFromRecordKeys();
         if ($filter == "") {
-            $this->terminate("EquipotorneoList"); // Prevent SQL injection, return to list
+            $this->terminate("equipotorneolist"); // Prevent SQL injection, return to list
             return;
         }
 
@@ -482,7 +482,7 @@ class EquipotorneoDelete extends Equipotorneo
                 if ($this->Recordset) {
                     $this->Recordset->close();
                 }
-                $this->terminate("EquipotorneoList"); // Return to list
+                $this->terminate("equipotorneolist"); // Return to list
                 return;
             }
         }
@@ -958,7 +958,7 @@ class EquipotorneoDelete extends Equipotorneo
         global $Breadcrumb, $Language;
         $Breadcrumb = new Breadcrumb("index");
         $url = CurrentUrl();
-        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("EquipotorneoList"), "", $this->TableVar, true);
+        $Breadcrumb->add("list", $this->TableVar, $this->addMasterUrl("equipotorneolist"), "", $this->TableVar, true);
         $pageId = "delete";
         $Breadcrumb->add("delete", $pageId, $url);
     }
