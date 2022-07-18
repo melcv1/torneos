@@ -27,8 +27,8 @@ loadjs.ready(["wrapper", "head"], function () {
         ["CEDULA", [fields.CEDULA.visible && fields.CEDULA.required ? ew.Validators.required(fields.CEDULA.caption) : null], fields.CEDULA.isInvalid],
         ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
         ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid],
-        ["CREACION", [fields.CREACION.visible && fields.CREACION.required ? ew.Validators.required(fields.CREACION.caption) : null], fields.CREACION.isInvalid],
-        ["ACTUALIZACION", [fields.ACTUALIZACION.visible && fields.ACTUALIZACION.required ? ew.Validators.required(fields.ACTUALIZACION.caption) : null], fields.ACTUALIZACION.isInvalid]
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
     ]);
 
     // Form_CustomValidate
@@ -80,7 +80,7 @@ $Page->showMessage();
         <label id="elh_participante_NOMBRE" for="x_NOMBRE" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NOMBRE->caption() ?><?= $Page->NOMBRE->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NOMBRE->cellAttributes() ?>>
 <span id="el_participante_NOMBRE">
-<textarea data-table="participante" data-field="x_NOMBRE" name="x_NOMBRE" id="x_NOMBRE" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->NOMBRE->getPlaceHolder()) ?>"<?= $Page->NOMBRE->editAttributes() ?> aria-describedby="x_NOMBRE_help"><?= $Page->NOMBRE->EditValue ?></textarea>
+<textarea data-table="participante" data-field="x_NOMBRE" name="x_NOMBRE" id="x_NOMBRE" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOMBRE->getPlaceHolder()) ?>"<?= $Page->NOMBRE->editAttributes() ?> aria-describedby="x_NOMBRE_help"><?= $Page->NOMBRE->EditValue ?></textarea>
 <?= $Page->NOMBRE->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NOMBRE->getErrorMessage() ?></div>
 </span>
@@ -92,7 +92,7 @@ $Page->showMessage();
         <label id="elh_participante_APELLIDO" for="x_APELLIDO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->APELLIDO->caption() ?><?= $Page->APELLIDO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->APELLIDO->cellAttributes() ?>>
 <span id="el_participante_APELLIDO">
-<textarea data-table="participante" data-field="x_APELLIDO" name="x_APELLIDO" id="x_APELLIDO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->APELLIDO->getPlaceHolder()) ?>"<?= $Page->APELLIDO->editAttributes() ?> aria-describedby="x_APELLIDO_help"><?= $Page->APELLIDO->EditValue ?></textarea>
+<textarea data-table="participante" data-field="x_APELLIDO" name="x_APELLIDO" id="x_APELLIDO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->APELLIDO->getPlaceHolder()) ?>"<?= $Page->APELLIDO->editAttributes() ?> aria-describedby="x_APELLIDO_help"><?= $Page->APELLIDO->EditValue ?></textarea>
 <?= $Page->APELLIDO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->APELLIDO->getErrorMessage() ?></div>
 </span>
@@ -104,7 +104,7 @@ $Page->showMessage();
         <label id="elh_participante_FECHA_NACIMIENTO" for="x_FECHA_NACIMIENTO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->FECHA_NACIMIENTO->caption() ?><?= $Page->FECHA_NACIMIENTO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->FECHA_NACIMIENTO->cellAttributes() ?>>
 <span id="el_participante_FECHA_NACIMIENTO">
-<textarea data-table="participante" data-field="x_FECHA_NACIMIENTO" name="x_FECHA_NACIMIENTO" id="x_FECHA_NACIMIENTO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->FECHA_NACIMIENTO->getPlaceHolder()) ?>"<?= $Page->FECHA_NACIMIENTO->editAttributes() ?> aria-describedby="x_FECHA_NACIMIENTO_help"><?= $Page->FECHA_NACIMIENTO->EditValue ?></textarea>
+<textarea data-table="participante" data-field="x_FECHA_NACIMIENTO" name="x_FECHA_NACIMIENTO" id="x_FECHA_NACIMIENTO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->FECHA_NACIMIENTO->getPlaceHolder()) ?>"<?= $Page->FECHA_NACIMIENTO->editAttributes() ?> aria-describedby="x_FECHA_NACIMIENTO_help"><?= $Page->FECHA_NACIMIENTO->EditValue ?></textarea>
 <?= $Page->FECHA_NACIMIENTO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->FECHA_NACIMIENTO->getErrorMessage() ?></div>
 </span>
@@ -128,7 +128,7 @@ $Page->showMessage();
         <label id="elh_participante__EMAIL" for="x__EMAIL" class="<?= $Page->LeftColumnClass ?>"><?= $Page->_EMAIL->caption() ?><?= $Page->_EMAIL->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->_EMAIL->cellAttributes() ?>>
 <span id="el_participante__EMAIL">
-<textarea data-table="participante" data-field="x__EMAIL" name="x__EMAIL" id="x__EMAIL" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->_EMAIL->getPlaceHolder()) ?>"<?= $Page->_EMAIL->editAttributes() ?> aria-describedby="x__EMAIL_help"><?= $Page->_EMAIL->EditValue ?></textarea>
+<textarea data-table="participante" data-field="x__EMAIL" name="x__EMAIL" id="x__EMAIL" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->_EMAIL->getPlaceHolder()) ?>"<?= $Page->_EMAIL->editAttributes() ?> aria-describedby="x__EMAIL_help"><?= $Page->_EMAIL->EditValue ?></textarea>
 <?= $Page->_EMAIL->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->_EMAIL->getErrorMessage() ?></div>
 </span>
@@ -147,27 +147,27 @@ $Page->showMessage();
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->CREACION->Visible) { // CREACION ?>
-    <div id="r_CREACION"<?= $Page->CREACION->rowAttributes() ?>>
-        <label id="elh_participante_CREACION" for="x_CREACION" class="<?= $Page->LeftColumnClass ?>"><?= $Page->CREACION->caption() ?><?= $Page->CREACION->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->CREACION->cellAttributes() ?>>
-<span id="el_participante_CREACION">
-<textarea data-table="participante" data-field="x_CREACION" name="x_CREACION" id="x_CREACION" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->CREACION->getPlaceHolder()) ?>"<?= $Page->CREACION->editAttributes() ?> aria-describedby="x_CREACION_help"><?= $Page->CREACION->EditValue ?></textarea>
-<?= $Page->CREACION->getCustomMessage() ?>
-<div class="invalid-feedback"><?= $Page->CREACION->getErrorMessage() ?></div>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+    <div id="r_crea_dato"<?= $Page->crea_dato->rowAttributes() ?>>
+        <label id="elh_participante_crea_dato" for="x_crea_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->crea_dato->caption() ?><?= $Page->crea_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el_participante_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
 </span>
+<input type="hidden" data-table="participante" data-field="x_crea_dato" data-hidden="1" name="x_crea_dato" id="x_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->ACTUALIZACION->Visible) { // ACTUALIZACION ?>
-    <div id="r_ACTUALIZACION"<?= $Page->ACTUALIZACION->rowAttributes() ?>>
-        <label id="elh_participante_ACTUALIZACION" for="x_ACTUALIZACION" class="<?= $Page->LeftColumnClass ?>"><?= $Page->ACTUALIZACION->caption() ?><?= $Page->ACTUALIZACION->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->ACTUALIZACION->cellAttributes() ?>>
-<span id="el_participante_ACTUALIZACION">
-<textarea data-table="participante" data-field="x_ACTUALIZACION" name="x_ACTUALIZACION" id="x_ACTUALIZACION" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->ACTUALIZACION->getPlaceHolder()) ?>"<?= $Page->ACTUALIZACION->editAttributes() ?> aria-describedby="x_ACTUALIZACION_help"><?= $Page->ACTUALIZACION->EditValue ?></textarea>
-<?= $Page->ACTUALIZACION->getCustomMessage() ?>
-<div class="invalid-feedback"><?= $Page->ACTUALIZACION->getErrorMessage() ?></div>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+    <div id="r_modifica_dato"<?= $Page->modifica_dato->rowAttributes() ?>>
+        <label id="elh_participante_modifica_dato" for="x_modifica_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->modifica_dato->caption() ?><?= $Page->modifica_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el_participante_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
 </span>
+<input type="hidden" data-table="participante" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
 </div></div>
     </div>
 <?php } ?>

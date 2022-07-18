@@ -58,6 +58,14 @@ class EncuestaList extends Encuesta
     public $MultiDeleteUrl;
     public $MultiUpdateUrl;
 
+    // Audit Trail
+    public $AuditTrailOnAdd = true;
+    public $AuditTrailOnEdit = true;
+    public $AuditTrailOnDelete = true;
+    public $AuditTrailOnView = false;
+    public $AuditTrailOnViewData = false;
+    public $AuditTrailOnSearch = false;
+
     // Page headings
     public $Heading = "";
     public $Subheading = "";
@@ -594,6 +602,8 @@ class EncuestaList extends Encuesta
         $this->EQUIPO->setVisibility();
         $this->POSICION->setVisibility();
         $this->NUMERACION->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -777,6 +787,13 @@ class EncuestaList extends Encuesta
                     $this->setWarningMessage($Language->phrase("NoRecord"));
                 }
             }
+
+            // Audit trail on search
+            if ($this->AuditTrailOnSearch && $this->Command == "search" && !$this->RestoreSearch) {
+                $searchParm = ServerVar("QUERY_STRING");
+                $searchSql = $this->getSessionWhere();
+                $this->writeAuditTrailOnSearch($searchParm, $searchSql);
+            }
         }
 
         // Set up list action columns
@@ -904,6 +921,8 @@ class EncuestaList extends Encuesta
         $filterList = Concat($filterList, $this->EQUIPO->AdvancedSearch->toJson(), ","); // Field EQUIPO
         $filterList = Concat($filterList, $this->POSICION->AdvancedSearch->toJson(), ","); // Field POSICION
         $filterList = Concat($filterList, $this->NUMERACION->AdvancedSearch->toJson(), ","); // Field NUMERACION
+        $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
+        $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -991,6 +1010,22 @@ class EncuestaList extends Encuesta
         $this->NUMERACION->AdvancedSearch->SearchValue2 = @$filter["y_NUMERACION"];
         $this->NUMERACION->AdvancedSearch->SearchOperator2 = @$filter["w_NUMERACION"];
         $this->NUMERACION->AdvancedSearch->save();
+
+        // Field crea_dato
+        $this->crea_dato->AdvancedSearch->SearchValue = @$filter["x_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator = @$filter["z_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchCondition = @$filter["v_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchValue2 = @$filter["y_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator2 = @$filter["w_crea_dato"];
+        $this->crea_dato->AdvancedSearch->save();
+
+        // Field modifica_dato
+        $this->modifica_dato->AdvancedSearch->SearchValue = @$filter["x_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator = @$filter["z_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchCondition = @$filter["v_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1091,6 +1126,8 @@ class EncuestaList extends Encuesta
             $this->updateSort($this->EQUIPO); // EQUIPO
             $this->updateSort($this->POSICION); // POSICION
             $this->updateSort($this->NUMERACION); // NUMERACION
+            $this->updateSort($this->crea_dato); // crea_dato
+            $this->updateSort($this->modifica_dato); // modifica_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1121,6 +1158,8 @@ class EncuestaList extends Encuesta
                 $this->EQUIPO->setSort("");
                 $this->POSICION->setSort("");
                 $this->NUMERACION->setSort("");
+                $this->crea_dato->setSort("");
+                $this->modifica_dato->setSort("");
             }
 
             // Reset start position
@@ -1319,6 +1358,8 @@ class EncuestaList extends Encuesta
             $option->add("EQUIPO", $this->createColumnOption("EQUIPO"));
             $option->add("POSICION", $this->createColumnOption("POSICION"));
             $option->add("NUMERACION", $this->createColumnOption("NUMERACION"));
+            $option->add("crea_dato", $this->createColumnOption("crea_dato"));
+            $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
         }
 
         // Set up options default
@@ -1586,6 +1627,8 @@ class EncuestaList extends Encuesta
         $this->EQUIPO->setDbValue($row['EQUIPO']);
         $this->POSICION->setDbValue($row['POSICION']);
         $this->NUMERACION->setDbValue($row['NUMERACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -1598,6 +1641,8 @@ class EncuestaList extends Encuesta
         $row['EQUIPO'] = $this->EQUIPO->DefaultValue;
         $row['POSICION'] = $this->POSICION->DefaultValue;
         $row['NUMERACION'] = $this->NUMERACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -1646,6 +1691,10 @@ class EncuestaList extends Encuesta
         // POSICION
 
         // NUMERACION
+
+        // crea_dato
+
+        // modifica_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -1721,6 +1770,16 @@ class EncuestaList extends Encuesta
             $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
             $this->NUMERACION->ViewCustomAttributes = "";
 
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
+
             // ID_ENCUESTA
             $this->ID_ENCUESTA->LinkCustomAttributes = "";
             $this->ID_ENCUESTA->HrefValue = "";
@@ -1750,6 +1809,16 @@ class EncuestaList extends Encuesta
             $this->NUMERACION->LinkCustomAttributes = "";
             $this->NUMERACION->HrefValue = "";
             $this->NUMERACION->TooltipValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

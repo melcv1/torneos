@@ -595,6 +595,8 @@ class TorneoList extends Torneo
         $this->REGION_TORNEO->setVisibility();
         $this->DETALLE_TORNEO->setVisibility();
         $this->LOGO_TORNEO->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -901,6 +903,8 @@ class TorneoList extends Torneo
         $filterList = Concat($filterList, $this->PAIS_TORNEO->AdvancedSearch->toJson(), ","); // Field PAIS_TORNEO
         $filterList = Concat($filterList, $this->REGION_TORNEO->AdvancedSearch->toJson(), ","); // Field REGION_TORNEO
         $filterList = Concat($filterList, $this->DETALLE_TORNEO->AdvancedSearch->toJson(), ","); // Field DETALLE_TORNEO
+        $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
+        $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -988,6 +992,22 @@ class TorneoList extends Torneo
         $this->DETALLE_TORNEO->AdvancedSearch->SearchValue2 = @$filter["y_DETALLE_TORNEO"];
         $this->DETALLE_TORNEO->AdvancedSearch->SearchOperator2 = @$filter["w_DETALLE_TORNEO"];
         $this->DETALLE_TORNEO->AdvancedSearch->save();
+
+        // Field crea_dato
+        $this->crea_dato->AdvancedSearch->SearchValue = @$filter["x_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator = @$filter["z_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchCondition = @$filter["v_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchValue2 = @$filter["y_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator2 = @$filter["w_crea_dato"];
+        $this->crea_dato->AdvancedSearch->save();
+
+        // Field modifica_dato
+        $this->modifica_dato->AdvancedSearch->SearchValue = @$filter["x_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator = @$filter["z_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchCondition = @$filter["v_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1089,6 +1109,8 @@ class TorneoList extends Torneo
             $this->updateSort($this->PAIS_TORNEO); // PAIS_TORNEO
             $this->updateSort($this->REGION_TORNEO); // REGION_TORNEO
             $this->updateSort($this->DETALLE_TORNEO); // DETALLE_TORNEO
+            $this->updateSort($this->crea_dato); // crea_dato
+            $this->updateSort($this->modifica_dato); // modifica_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1119,6 +1141,8 @@ class TorneoList extends Torneo
                 $this->PAIS_TORNEO->setSort("");
                 $this->REGION_TORNEO->setSort("");
                 $this->DETALLE_TORNEO->setSort("");
+                $this->crea_dato->setSort("");
+                $this->modifica_dato->setSort("");
             }
 
             // Reset start position
@@ -1318,6 +1342,8 @@ class TorneoList extends Torneo
             $option->add("REGION_TORNEO", $this->createColumnOption("REGION_TORNEO"));
             $option->add("DETALLE_TORNEO", $this->createColumnOption("DETALLE_TORNEO"));
             $option->add("LOGO_TORNEO", $this->createColumnOption("LOGO_TORNEO"));
+            $option->add("crea_dato", $this->createColumnOption("crea_dato"));
+            $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
         }
 
         // Set up options default
@@ -1589,6 +1615,8 @@ class TorneoList extends Torneo
         if (is_resource($this->LOGO_TORNEO->Upload->DbValue) && get_resource_type($this->LOGO_TORNEO->Upload->DbValue) == "stream") { // Byte array
             $this->LOGO_TORNEO->Upload->DbValue = stream_get_contents($this->LOGO_TORNEO->Upload->DbValue);
         }
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -1602,6 +1630,8 @@ class TorneoList extends Torneo
         $row['REGION_TORNEO'] = $this->REGION_TORNEO->DefaultValue;
         $row['DETALLE_TORNEO'] = $this->DETALLE_TORNEO->DefaultValue;
         $row['LOGO_TORNEO'] = $this->LOGO_TORNEO->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -1653,6 +1683,10 @@ class TorneoList extends Torneo
 
         // LOGO_TORNEO
 
+        // crea_dato
+
+        // modifica_dato
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_TORNEO
@@ -1691,6 +1725,20 @@ class TorneoList extends Torneo
                 $this->LOGO_TORNEO->ViewValue = "";
             }
             $this->LOGO_TORNEO->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_TORNEO
             $this->ID_TORNEO->LinkCustomAttributes = "";
@@ -1745,6 +1793,16 @@ class TorneoList extends Torneo
                 $this->LOGO_TORNEO->LinkAttrs["data-rel"] = "torneo_x" . $this->RowCount . "_LOGO_TORNEO";
                 $this->LOGO_TORNEO->LinkAttrs->appendClass("ew-lightbox");
             }
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

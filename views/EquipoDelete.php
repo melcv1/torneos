@@ -68,6 +68,12 @@ $Page->showMessage();
 <?php if ($Page->NOM_ESTADIO->Visible) { // NOM_ESTADIO ?>
         <th class="<?= $Page->NOM_ESTADIO->headerCellClass() ?>"><span id="elh_equipo_NOM_ESTADIO" class="equipo_NOM_ESTADIO"><?= $Page->NOM_ESTADIO->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th class="<?= $Page->crea_dato->headerCellClass() ?>"><span id="elh_equipo_crea_dato" class="equipo_crea_dato"><?= $Page->crea_dato->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_equipo_modifica_dato" class="equipo_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -151,6 +157,22 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_equipo_NOM_ESTADIO" class="el_equipo_NOM_ESTADIO">
 <span<?= $Page->NOM_ESTADIO->viewAttributes() ?>>
 <?= $Page->NOM_ESTADIO->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipo_crea_dato" class="el_equipo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipo_modifica_dato" class="el_equipo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

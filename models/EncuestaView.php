@@ -52,6 +52,14 @@ class EncuestaView extends Encuesta
     public $MultiDeleteUrl;
     public $MultiUpdateUrl;
 
+    // Audit Trail
+    public $AuditTrailOnAdd = true;
+    public $AuditTrailOnEdit = true;
+    public $AuditTrailOnDelete = true;
+    public $AuditTrailOnView = false;
+    public $AuditTrailOnViewData = false;
+    public $AuditTrailOnSearch = false;
+
     // Page headings
     public $Heading = "";
     public $Subheading = "";
@@ -527,6 +535,8 @@ class EncuestaView extends Encuesta
         $this->EQUIPO->setVisibility();
         $this->POSICION->setVisibility();
         $this->NUMERACION->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -748,12 +758,17 @@ class EncuestaView extends Encuesta
 
         // Call Row Selected event
         $this->rowSelected($row);
+        if ($this->AuditTrailOnView) {
+            $this->writeAuditTrailOnView($row);
+        }
         $this->ID_ENCUESTA->setDbValue($row['ID_ENCUESTA']);
         $this->ID_PARTICIPANTE->setDbValue($row['ID_PARTICIPANTE']);
         $this->GRUPO->setDbValue($row['GRUPO']);
         $this->EQUIPO->setDbValue($row['EQUIPO']);
         $this->POSICION->setDbValue($row['POSICION']);
         $this->NUMERACION->setDbValue($row['NUMERACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -766,6 +781,8 @@ class EncuestaView extends Encuesta
         $row['EQUIPO'] = $this->EQUIPO->DefaultValue;
         $row['POSICION'] = $this->POSICION->DefaultValue;
         $row['NUMERACION'] = $this->NUMERACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -798,6 +815,10 @@ class EncuestaView extends Encuesta
         // POSICION
 
         // NUMERACION
+
+        // crea_dato
+
+        // modifica_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -873,6 +894,16 @@ class EncuestaView extends Encuesta
             $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
             $this->NUMERACION->ViewCustomAttributes = "";
 
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
+
             // ID_ENCUESTA
             $this->ID_ENCUESTA->LinkCustomAttributes = "";
             $this->ID_ENCUESTA->HrefValue = "";
@@ -902,6 +933,16 @@ class EncuestaView extends Encuesta
             $this->NUMERACION->LinkCustomAttributes = "";
             $this->NUMERACION->HrefValue = "";
             $this->NUMERACION->TooltipValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

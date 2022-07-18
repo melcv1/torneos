@@ -592,6 +592,8 @@ class UsuarioList extends Usuario
         $this->USER->setVisibility();
         $this->CONTRASENA->setVisibility();
         $this->nombre->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -896,6 +898,8 @@ class UsuarioList extends Usuario
         $filterList = Concat($filterList, $this->USER->AdvancedSearch->toJson(), ","); // Field USER
         $filterList = Concat($filterList, $this->CONTRASENA->AdvancedSearch->toJson(), ","); // Field CONTRASENA
         $filterList = Concat($filterList, $this->nombre->AdvancedSearch->toJson(), ","); // Field nombre
+        $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
+        $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -967,6 +971,22 @@ class UsuarioList extends Usuario
         $this->nombre->AdvancedSearch->SearchValue2 = @$filter["y_nombre"];
         $this->nombre->AdvancedSearch->SearchOperator2 = @$filter["w_nombre"];
         $this->nombre->AdvancedSearch->save();
+
+        // Field crea_dato
+        $this->crea_dato->AdvancedSearch->SearchValue = @$filter["x_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator = @$filter["z_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchCondition = @$filter["v_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchValue2 = @$filter["y_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator2 = @$filter["w_crea_dato"];
+        $this->crea_dato->AdvancedSearch->save();
+
+        // Field modifica_dato
+        $this->modifica_dato->AdvancedSearch->SearchValue = @$filter["x_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator = @$filter["z_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchCondition = @$filter["v_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1064,6 +1084,8 @@ class UsuarioList extends Usuario
             $this->updateSort($this->USER); // USER
             $this->updateSort($this->CONTRASENA); // CONTRASENA
             $this->updateSort($this->nombre); // nombre
+            $this->updateSort($this->crea_dato); // crea_dato
+            $this->updateSort($this->modifica_dato); // modifica_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1092,6 +1114,8 @@ class UsuarioList extends Usuario
                 $this->USER->setSort("");
                 $this->CONTRASENA->setSort("");
                 $this->nombre->setSort("");
+                $this->crea_dato->setSort("");
+                $this->modifica_dato->setSort("");
             }
 
             // Reset start position
@@ -1288,6 +1312,8 @@ class UsuarioList extends Usuario
             $option->add("USER", $this->createColumnOption("USER"));
             $option->add("CONTRASENA", $this->createColumnOption("CONTRASENA"));
             $option->add("nombre", $this->createColumnOption("nombre"));
+            $option->add("crea_dato", $this->createColumnOption("crea_dato"));
+            $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
         }
 
         // Set up options default
@@ -1571,6 +1597,8 @@ class UsuarioList extends Usuario
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
         $this->nombre->setDbValue($row['nombre']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -1581,6 +1609,8 @@ class UsuarioList extends Usuario
         $row['USER'] = $this->USER->DefaultValue;
         $row['CONTRASENA'] = $this->CONTRASENA->DefaultValue;
         $row['nombre'] = $this->nombre->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -1626,6 +1656,10 @@ class UsuarioList extends Usuario
 
         // nombre
 
+        // crea_dato
+
+        // modifica_dato
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_USUARIO
@@ -1643,6 +1677,16 @@ class UsuarioList extends Usuario
             // nombre
             $this->nombre->ViewValue = $this->nombre->CurrentValue;
             $this->nombre->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatNumber($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_USUARIO
             $this->ID_USUARIO->LinkCustomAttributes = "";
@@ -1663,6 +1707,16 @@ class UsuarioList extends Usuario
             $this->nombre->LinkCustomAttributes = "";
             $this->nombre->HrefValue = "";
             $this->nombre->TooltipValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

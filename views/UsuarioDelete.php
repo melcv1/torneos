@@ -56,6 +56,12 @@ $Page->showMessage();
 <?php if ($Page->nombre->Visible) { // nombre ?>
         <th class="<?= $Page->nombre->headerCellClass() ?>"><span id="elh_usuario_nombre" class="usuario_nombre"><?= $Page->nombre->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th class="<?= $Page->crea_dato->headerCellClass() ?>"><span id="elh_usuario_crea_dato" class="usuario_crea_dato"><?= $Page->crea_dato->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_usuario_modifica_dato" class="usuario_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -106,6 +112,22 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_usuario_nombre" class="el_usuario_nombre">
 <span<?= $Page->nombre->viewAttributes() ?>>
 <?= $Page->nombre->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_usuario_crea_dato" class="el_usuario_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_usuario_modifica_dato" class="el_usuario_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

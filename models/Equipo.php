@@ -39,6 +39,8 @@ class Equipo extends DbTable
     public $DETALLE_EQUIPO;
     public $ESCUDO_EQUIPO;
     public $NOM_ESTADIO;
+    public $crea_dato;
+    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -254,19 +256,80 @@ class Equipo extends DbTable
             'NOM_ESTADIO',
             '`NOM_ESTADIO`',
             '`NOM_ESTADIO`',
-            201,
-            256,
+            3,
+            11,
             -1,
             false,
-            '`NOM_ESTADIO`',
+            '`EV__NOM_ESTADIO`',
+            true,
+            true,
+            false,
+            'FORMATTED TEXT',
+            'SELECT'
+        );
+        $this->NOM_ESTADIO->InputTextType = "text";
+        $this->NOM_ESTADIO->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->NOM_ESTADIO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->NOM_ESTADIO->Lookup = new Lookup('NOM_ESTADIO', 'estadio', false, 'id_estadio', ["nombre_estadio","","",""], [], [], [], [], [], [], '', '', "`nombre_estadio`");
+                break;
+            default:
+                $this->NOM_ESTADIO->Lookup = new Lookup('NOM_ESTADIO', 'estadio', false, 'id_estadio', ["nombre_estadio","","",""], [], [], [], [], [], [], '', '', "`nombre_estadio`");
+                break;
+        }
+        $this->NOM_ESTADIO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->Fields['NOM_ESTADIO'] = &$this->NOM_ESTADIO;
+
+        // crea_dato
+        $this->crea_dato = new DbField(
+            'equipo',
+            'equipo',
+            'x_crea_dato',
+            'crea_dato',
+            '`crea_dato`',
+            CastDateFieldForLike("`crea_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`crea_dato`',
             false,
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'TEXT'
         );
-        $this->NOM_ESTADIO->InputTextType = "text";
-        $this->Fields['NOM_ESTADIO'] = &$this->NOM_ESTADIO;
+        $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Nullable = false; // NOT NULL field
+        $this->crea_dato->Required = true; // Required field
+        $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['crea_dato'] = &$this->crea_dato;
+
+        // modifica_dato
+        $this->modifica_dato = new DbField(
+            'equipo',
+            'equipo',
+            'x_modifica_dato',
+            'modifica_dato',
+            '`modifica_dato`',
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`modifica_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Nullable = false; // NOT NULL field
+        $this->modifica_dato->Required = true; // Required field
+        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -304,13 +367,16 @@ class Equipo extends DbTable
             }
             $orderBy = in_array($curSort, ["ASC", "DESC"]) ? $sortField . " " . $curSort : "";
             $this->setSessionOrderBy($orderBy); // Save to Session
+            $sortFieldList = ($fld->VirtualExpression != "") ? $fld->VirtualExpression : $sortField;
+            $orderBy = in_array($curSort, ["ASC", "DESC"]) ? $sortFieldList . " " . $curSort : "";
+            $this->setSessionOrderByList($orderBy); // Save to Session
         }
     }
 
     // Update field sort
     public function updateFieldSort()
     {
-        $orderBy = $this->getSessionOrderBy(); // Get ORDER BY from Session
+        $orderBy = $this->useVirtualFields() ? $this->getSessionOrderByList() : $this->getSessionOrderBy(); // Get ORDER BY from Session
         $flds = GetSortFields($orderBy);
         foreach ($this->Fields as $field) {
             $fldSort = "";
@@ -321,6 +387,17 @@ class Equipo extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Session ORDER BY for List page
+    public function getSessionOrderByList()
+    {
+        return Session(PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_ORDER_BY_LIST"));
+    }
+
+    public function setSessionOrderByList($v)
+    {
+        $_SESSION[PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_ORDER_BY_LIST")] = $v;
     }
 
     // Table level SQL
@@ -352,6 +429,25 @@ class Equipo extends DbTable
     public function setSqlSelect($v)
     {
         $this->SqlSelect = $v;
+    }
+
+    public function getSqlSelectList() // Select for List page
+    {
+        if ($this->SqlSelectList) {
+            return $this->SqlSelectList;
+        }
+        $from = "(SELECT *, (SELECT `nombre_estadio` FROM `estadio` `TMP_LOOKUPTABLE` WHERE `TMP_LOOKUPTABLE`.`id_estadio` = `equipo`.`NOM_ESTADIO` LIMIT 1) AS `EV__NOM_ESTADIO` FROM `equipo`)";
+        return $from . " `TMP_TABLE`";
+    }
+
+    public function sqlSelectList() // For backward compatibility
+    {
+        return $this->getSqlSelectList();
+    }
+
+    public function setSqlSelectList($v)
+    {
+        $this->SqlSelectList = $v;
     }
 
     public function getSqlWhere() // Where
@@ -526,9 +622,15 @@ class Equipo extends DbTable
         AddFilter($filter, $this->CurrentFilter);
         $filter = $this->applyUserIDFilters($filter);
         $this->recordsetSelecting($filter);
-        $select = $this->getSqlSelect();
-        $from = $this->getSqlFrom();
-        $sort = $this->UseSessionForListSql ? $this->getSessionOrderBy() : "";
+        if ($this->useVirtualFields()) {
+            $select = "*";
+            $from = $this->getSqlSelectList();
+            $sort = $this->UseSessionForListSql ? $this->getSessionOrderByList() : "";
+        } else {
+            $select = $this->getSqlSelect();
+            $from = $this->getSqlFrom();
+            $sort = $this->UseSessionForListSql ? $this->getSessionOrderBy() : "";
+        }
         $this->Sort = $sort;
         return $this->buildSelectSql(
             $select,
@@ -546,13 +648,33 @@ class Equipo extends DbTable
     public function getOrderBy()
     {
         $orderBy = $this->getSqlOrderBy();
-        $sort = $this->getSessionOrderBy();
+        $sort = ($this->useVirtualFields()) ? $this->getSessionOrderByList() : $this->getSessionOrderBy();
         if ($orderBy != "" && $sort != "") {
             $orderBy .= ", " . $sort;
         } elseif ($sort != "") {
             $orderBy = $sort;
         }
         return $orderBy;
+    }
+
+    // Check if virtual fields is used in SQL
+    protected function useVirtualFields()
+    {
+        $where = $this->UseSessionForListSql ? $this->getSessionWhere() : $this->CurrentFilter;
+        $orderBy = $this->UseSessionForListSql ? $this->getSessionOrderByList() : "";
+        if ($where != "") {
+            $where = " " . str_replace(["(", ")"], ["", ""], $where) . " ";
+        }
+        if ($orderBy != "") {
+            $orderBy = " " . str_replace(["(", ")"], ["", ""], $orderBy) . " ";
+        }
+        if ($this->BasicSearch->getKeyword() != "") {
+            return true;
+        }
+        if (ContainsString($orderBy, " " . $this->NOM_ESTADIO->VirtualExpression . " ")) {
+            return true;
+        }
+        return false;
     }
 
     // Get record count based on filter (for detail record count in master table pages)
@@ -580,7 +702,11 @@ class Equipo extends DbTable
         $select = $this->TableType == 'CUSTOMVIEW' ? $this->getSqlSelect() : $this->getQueryBuilder()->select("*");
         $groupBy = $this->TableType == 'CUSTOMVIEW' ? $this->getSqlGroupBy() : "";
         $having = $this->TableType == 'CUSTOMVIEW' ? $this->getSqlHaving() : "";
-        $sql = $this->buildSelectSql($select, $this->getSqlFrom(), $this->getSqlWhere(), $groupBy, $having, "", $filter, "");
+        if ($this->useVirtualFields()) {
+            $sql = $this->buildSelectSql("*", $this->getSqlSelectList(), $this->getSqlWhere(), $groupBy, $having, "", $filter, "");
+        } else {
+            $sql = $this->buildSelectSql($select, $this->getSqlFrom(), $this->getSqlWhere(), $groupBy, $having, "", $filter, "");
+        }
         $cnt = $this->getRecordCount($sql);
         return $cnt;
     }
@@ -706,6 +832,8 @@ class Equipo extends DbTable
         $this->DETALLE_EQUIPO->DbValue = $row['DETALLE_EQUIPO'];
         $this->ESCUDO_EQUIPO->Upload->DbValue = $row['ESCUDO_EQUIPO'];
         $this->NOM_ESTADIO->DbValue = $row['NOM_ESTADIO'];
+        $this->crea_dato->DbValue = $row['crea_dato'];
+        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -1032,6 +1160,8 @@ class Equipo extends DbTable
         $this->DETALLE_EQUIPO->setDbValue($row['DETALLE_EQUIPO']);
         $this->ESCUDO_EQUIPO->Upload->DbValue = $row['ESCUDO_EQUIPO'];
         $this->NOM_ESTADIO->setDbValue($row['NOM_ESTADIO']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1059,6 +1189,10 @@ class Equipo extends DbTable
         // ESCUDO_EQUIPO
 
         // NOM_ESTADIO
+
+        // crea_dato
+
+        // modifica_dato
 
         // ID_EQUIPO
         $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
@@ -1102,8 +1236,46 @@ class Equipo extends DbTable
         $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
         // NOM_ESTADIO
-        $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->CurrentValue;
+        if ($this->NOM_ESTADIO->VirtualValue != "") {
+            $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->VirtualValue;
+        } else {
+            $curVal = strval($this->NOM_ESTADIO->CurrentValue);
+            if ($curVal != "") {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
+                if ($this->NOM_ESTADIO->ViewValue === null) { // Lookup from database
+                    $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                    $conn = Conn();
+                    $config = $conn->getConfiguration();
+                    $config->setResultCacheImpl($this->Cache);
+                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                    $ari = count($rswrk);
+                    if ($ari > 0) { // Lookup values found
+                        $arwrk = $this->NOM_ESTADIO->Lookup->renderViewRow($rswrk[0]);
+                        $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->displayValue($arwrk);
+                    } else {
+                        $this->NOM_ESTADIO->ViewValue = FormatNumber($this->NOM_ESTADIO->CurrentValue, $this->NOM_ESTADIO->formatPattern());
+                    }
+                }
+            } else {
+                $this->NOM_ESTADIO->ViewValue = null;
+            }
+        }
         $this->NOM_ESTADIO->ViewCustomAttributes = "";
+
+        // crea_dato
+        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CssClass = "fst-italic";
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
 
         // ID_EQUIPO
         $this->ID_EQUIPO->LinkCustomAttributes = "";
@@ -1163,6 +1335,16 @@ class Equipo extends DbTable
         $this->NOM_ESTADIO->LinkCustomAttributes = "";
         $this->NOM_ESTADIO->HrefValue = "";
         $this->NOM_ESTADIO->TooltipValue = "";
+
+        // crea_dato
+        $this->crea_dato->LinkCustomAttributes = "";
+        $this->crea_dato->HrefValue = "";
+        $this->crea_dato->TooltipValue = "";
+
+        // modifica_dato
+        $this->modifica_dato->LinkCustomAttributes = "";
+        $this->modifica_dato->HrefValue = "";
+        $this->modifica_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1232,8 +1414,25 @@ class Equipo extends DbTable
         // NOM_ESTADIO
         $this->NOM_ESTADIO->setupEditAttributes();
         $this->NOM_ESTADIO->EditCustomAttributes = "";
-        $this->NOM_ESTADIO->EditValue = $this->NOM_ESTADIO->CurrentValue;
         $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
+
+        // crea_dato
+        $this->crea_dato->setupEditAttributes();
+        $this->crea_dato->EditCustomAttributes = "";
+        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CssClass = "fst-italic";
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->setupEditAttributes();
+        $this->modifica_dato->EditCustomAttributes = "";
+        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1271,8 +1470,12 @@ class Equipo extends DbTable
                     $doc->exportCaption($this->DETALLE_EQUIPO);
                     $doc->exportCaption($this->ESCUDO_EQUIPO);
                     $doc->exportCaption($this->NOM_ESTADIO);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->ID_EQUIPO);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1310,8 +1513,12 @@ class Equipo extends DbTable
                         $doc->exportField($this->DETALLE_EQUIPO);
                         $doc->exportField($this->ESCUDO_EQUIPO);
                         $doc->exportField($this->NOM_ESTADIO);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->ID_EQUIPO);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

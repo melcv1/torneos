@@ -420,6 +420,9 @@ class AdvancedSecurity
             $pwd = Session(PROJECT_NAME . "_Password");
             $autologin = $this->validateUser($usr, $pwd, true);
         }
+        if ($autologin) {
+            WriteAuditLog($usr, $GLOBALS["Language"]->phrase("AuditTrailAutoLogin"), CurrentUserIP(), "", "", "", "");
+        }
         return $autologin;
     }
 
@@ -531,6 +534,7 @@ class AdvancedSecurity
                         $retrycount++;
                         $UserProfile->setValue(Config("USER_PROFILE_LOGIN_RETRY_COUNT"), $retrycount);
                         $UserProfile->setValue(Config("USER_PROFILE_LAST_BAD_LOGIN_DATE_TIME"), StdCurrentDateTime());
+                        WriteAuditLog($usr, str_replace("%n", $retrycount, $Language->phrase("AuditTrailFailedAttempt")), CurrentUserIP(), "", "", "", "");
                     } else {
                         $UserProfile->setValue(Config("USER_PROFILE_LOGIN_RETRY_COUNT"), 0);
                     }

@@ -600,6 +600,8 @@ class EquipotorneoList extends Equipotorneo
         $this->GD->setVisibility();
         $this->GRUPO->setVisibility();
         $this->POSICION_EQUIPO_TORENO->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -915,6 +917,8 @@ class EquipotorneoList extends Equipotorneo
         $filterList = Concat($filterList, $this->GD->AdvancedSearch->toJson(), ","); // Field GD
         $filterList = Concat($filterList, $this->GRUPO->AdvancedSearch->toJson(), ","); // Field GRUPO
         $filterList = Concat($filterList, $this->POSICION_EQUIPO_TORENO->AdvancedSearch->toJson(), ","); // Field POSICION_EQUIPO_TORENO
+        $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
+        $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1050,6 +1054,22 @@ class EquipotorneoList extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->AdvancedSearch->SearchValue2 = @$filter["y_POSICION_EQUIPO_TORENO"];
         $this->POSICION_EQUIPO_TORENO->AdvancedSearch->SearchOperator2 = @$filter["w_POSICION_EQUIPO_TORENO"];
         $this->POSICION_EQUIPO_TORENO->AdvancedSearch->save();
+
+        // Field crea_dato
+        $this->crea_dato->AdvancedSearch->SearchValue = @$filter["x_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator = @$filter["z_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchCondition = @$filter["v_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchValue2 = @$filter["y_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator2 = @$filter["w_crea_dato"];
+        $this->crea_dato->AdvancedSearch->save();
+
+        // Field modifica_dato
+        $this->modifica_dato->AdvancedSearch->SearchValue = @$filter["x_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator = @$filter["z_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchCondition = @$filter["v_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1154,6 +1174,8 @@ class EquipotorneoList extends Equipotorneo
             $this->updateSort($this->GD); // GD
             $this->updateSort($this->GRUPO); // GRUPO
             $this->updateSort($this->POSICION_EQUIPO_TORENO); // POSICION_EQUIPO_TORENO
+            $this->updateSort($this->crea_dato); // crea_dato
+            $this->updateSort($this->modifica_dato); // modifica_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1190,6 +1212,8 @@ class EquipotorneoList extends Equipotorneo
                 $this->GD->setSort("");
                 $this->GRUPO->setSort("");
                 $this->POSICION_EQUIPO_TORENO->setSort("");
+                $this->crea_dato->setSort("");
+                $this->modifica_dato->setSort("");
             }
 
             // Reset start position
@@ -1394,6 +1418,8 @@ class EquipotorneoList extends Equipotorneo
             $option->add("GD", $this->createColumnOption("GD"));
             $option->add("GRUPO", $this->createColumnOption("GRUPO"));
             $option->add("POSICION_EQUIPO_TORENO", $this->createColumnOption("POSICION_EQUIPO_TORENO"));
+            $option->add("crea_dato", $this->createColumnOption("crea_dato"));
+            $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
         }
 
         // Set up options default
@@ -1667,6 +1693,8 @@ class EquipotorneoList extends Equipotorneo
         $this->GD->setDbValue($row['GD']);
         $this->GRUPO->setDbValue($row['GRUPO']);
         $this->POSICION_EQUIPO_TORENO->setDbValue($row['POSICION_EQUIPO_TORENO']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -1685,6 +1713,8 @@ class EquipotorneoList extends Equipotorneo
         $row['GD'] = $this->GD->DefaultValue;
         $row['GRUPO'] = $this->GRUPO->DefaultValue;
         $row['POSICION_EQUIPO_TORENO'] = $this->POSICION_EQUIPO_TORENO->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -1745,6 +1775,10 @@ class EquipotorneoList extends Equipotorneo
         // GRUPO
 
         // POSICION_EQUIPO_TORENO
+
+        // crea_dato
+
+        // modifica_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -1847,6 +1881,20 @@ class EquipotorneoList extends Equipotorneo
             $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
             $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
+
             // ID_EQUIPO_TORNEO
             $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
             $this->ID_EQUIPO_TORNEO->HrefValue = "";
@@ -1906,6 +1954,16 @@ class EquipotorneoList extends Equipotorneo
             $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
             $this->POSICION_EQUIPO_TORENO->HrefValue = "";
             $this->POSICION_EQUIPO_TORENO->TooltipValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

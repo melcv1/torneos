@@ -273,7 +273,7 @@ loadjs.ready("fequipotorneoadd", function() {
         <label id="elh_equipotorneo_POSICION_EQUIPO_TORENO" for="x_POSICION_EQUIPO_TORENO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->POSICION_EQUIPO_TORENO->caption() ?><?= $Page->POSICION_EQUIPO_TORENO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->POSICION_EQUIPO_TORENO->cellAttributes() ?>>
 <span id="el_equipotorneo_POSICION_EQUIPO_TORENO">
-<textarea data-table="equipotorneo" data-field="x_POSICION_EQUIPO_TORENO" name="x_POSICION_EQUIPO_TORENO" id="x_POSICION_EQUIPO_TORENO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->POSICION_EQUIPO_TORENO->getPlaceHolder()) ?>"<?= $Page->POSICION_EQUIPO_TORENO->editAttributes() ?> aria-describedby="x_POSICION_EQUIPO_TORENO_help"><?= $Page->POSICION_EQUIPO_TORENO->EditValue ?></textarea>
+<textarea data-table="equipotorneo" data-field="x_POSICION_EQUIPO_TORENO" name="x_POSICION_EQUIPO_TORENO" id="x_POSICION_EQUIPO_TORENO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->POSICION_EQUIPO_TORENO->getPlaceHolder()) ?>"<?= $Page->POSICION_EQUIPO_TORENO->editAttributes() ?> aria-describedby="x_POSICION_EQUIPO_TORENO_help"><?= $Page->POSICION_EQUIPO_TORENO->EditValue ?></textarea>
 <?= $Page->POSICION_EQUIPO_TORENO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->POSICION_EQUIPO_TORENO->getErrorMessage() ?></div>
 </span>

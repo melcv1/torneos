@@ -595,8 +595,8 @@ class ParticipanteList extends Participante
         $this->CEDULA->setVisibility();
         $this->_EMAIL->setVisibility();
         $this->TELEFONO->setVisibility();
-        $this->CREACION->setVisibility();
-        $this->ACTUALIZACION->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -904,8 +904,8 @@ class ParticipanteList extends Participante
         $filterList = Concat($filterList, $this->CEDULA->AdvancedSearch->toJson(), ","); // Field CEDULA
         $filterList = Concat($filterList, $this->_EMAIL->AdvancedSearch->toJson(), ","); // Field EMAIL
         $filterList = Concat($filterList, $this->TELEFONO->AdvancedSearch->toJson(), ","); // Field TELEFONO
-        $filterList = Concat($filterList, $this->CREACION->AdvancedSearch->toJson(), ","); // Field CREACION
-        $filterList = Concat($filterList, $this->ACTUALIZACION->AdvancedSearch->toJson(), ","); // Field ACTUALIZACION
+        $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
+        $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1002,21 +1002,21 @@ class ParticipanteList extends Participante
         $this->TELEFONO->AdvancedSearch->SearchOperator2 = @$filter["w_TELEFONO"];
         $this->TELEFONO->AdvancedSearch->save();
 
-        // Field CREACION
-        $this->CREACION->AdvancedSearch->SearchValue = @$filter["x_CREACION"];
-        $this->CREACION->AdvancedSearch->SearchOperator = @$filter["z_CREACION"];
-        $this->CREACION->AdvancedSearch->SearchCondition = @$filter["v_CREACION"];
-        $this->CREACION->AdvancedSearch->SearchValue2 = @$filter["y_CREACION"];
-        $this->CREACION->AdvancedSearch->SearchOperator2 = @$filter["w_CREACION"];
-        $this->CREACION->AdvancedSearch->save();
+        // Field crea_dato
+        $this->crea_dato->AdvancedSearch->SearchValue = @$filter["x_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator = @$filter["z_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchCondition = @$filter["v_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchValue2 = @$filter["y_crea_dato"];
+        $this->crea_dato->AdvancedSearch->SearchOperator2 = @$filter["w_crea_dato"];
+        $this->crea_dato->AdvancedSearch->save();
 
-        // Field ACTUALIZACION
-        $this->ACTUALIZACION->AdvancedSearch->SearchValue = @$filter["x_ACTUALIZACION"];
-        $this->ACTUALIZACION->AdvancedSearch->SearchOperator = @$filter["z_ACTUALIZACION"];
-        $this->ACTUALIZACION->AdvancedSearch->SearchCondition = @$filter["v_ACTUALIZACION"];
-        $this->ACTUALIZACION->AdvancedSearch->SearchValue2 = @$filter["y_ACTUALIZACION"];
-        $this->ACTUALIZACION->AdvancedSearch->SearchOperator2 = @$filter["w_ACTUALIZACION"];
-        $this->ACTUALIZACION->AdvancedSearch->save();
+        // Field modifica_dato
+        $this->modifica_dato->AdvancedSearch->SearchValue = @$filter["x_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator = @$filter["z_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchCondition = @$filter["v_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
+        $this->modifica_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1038,8 +1038,8 @@ class ParticipanteList extends Participante
         $searchFlds[] = &$this->CEDULA;
         $searchFlds[] = &$this->_EMAIL;
         $searchFlds[] = &$this->TELEFONO;
-        $searchFlds[] = &$this->CREACION;
-        $searchFlds[] = &$this->ACTUALIZACION;
+        $searchFlds[] = &$this->crea_dato;
+        $searchFlds[] = &$this->modifica_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1122,8 +1122,8 @@ class ParticipanteList extends Participante
             $this->updateSort($this->CEDULA); // CEDULA
             $this->updateSort($this->_EMAIL); // EMAIL
             $this->updateSort($this->TELEFONO); // TELEFONO
-            $this->updateSort($this->CREACION); // CREACION
-            $this->updateSort($this->ACTUALIZACION); // ACTUALIZACION
+            $this->updateSort($this->crea_dato); // crea_dato
+            $this->updateSort($this->modifica_dato); // modifica_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1155,8 +1155,8 @@ class ParticipanteList extends Participante
                 $this->CEDULA->setSort("");
                 $this->_EMAIL->setSort("");
                 $this->TELEFONO->setSort("");
-                $this->CREACION->setSort("");
-                $this->ACTUALIZACION->setSort("");
+                $this->crea_dato->setSort("");
+                $this->modifica_dato->setSort("");
             }
 
             // Reset start position
@@ -1356,8 +1356,8 @@ class ParticipanteList extends Participante
             $option->add("CEDULA", $this->createColumnOption("CEDULA"));
             $option->add("EMAIL", $this->createColumnOption("EMAIL"));
             $option->add("TELEFONO", $this->createColumnOption("TELEFONO"));
-            $option->add("CREACION", $this->createColumnOption("CREACION"));
-            $option->add("ACTUALIZACION", $this->createColumnOption("ACTUALIZACION"));
+            $option->add("crea_dato", $this->createColumnOption("crea_dato"));
+            $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
         }
 
         // Set up options default
@@ -1626,8 +1626,8 @@ class ParticipanteList extends Participante
         $this->CEDULA->setDbValue($row['CEDULA']);
         $this->_EMAIL->setDbValue($row['EMAIL']);
         $this->TELEFONO->setDbValue($row['TELEFONO']);
-        $this->CREACION->setDbValue($row['CREACION']);
-        $this->ACTUALIZACION->setDbValue($row['ACTUALIZACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -1641,8 +1641,8 @@ class ParticipanteList extends Participante
         $row['CEDULA'] = $this->CEDULA->DefaultValue;
         $row['EMAIL'] = $this->_EMAIL->DefaultValue;
         $row['TELEFONO'] = $this->TELEFONO->DefaultValue;
-        $row['CREACION'] = $this->CREACION->DefaultValue;
-        $row['ACTUALIZACION'] = $this->ACTUALIZACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -1694,9 +1694,9 @@ class ParticipanteList extends Participante
 
         // TELEFONO
 
-        // CREACION
+        // crea_dato
 
-        // ACTUALIZACION
+        // modifica_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -1728,13 +1728,18 @@ class ParticipanteList extends Participante
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
             $this->TELEFONO->ViewCustomAttributes = "";
 
-            // CREACION
-            $this->CREACION->ViewValue = $this->CREACION->CurrentValue;
-            $this->CREACION->ViewCustomAttributes = "";
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
 
-            // ACTUALIZACION
-            $this->ACTUALIZACION->ViewValue = $this->ACTUALIZACION->CurrentValue;
-            $this->ACTUALIZACION->ViewCustomAttributes = "";
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
@@ -1771,15 +1776,15 @@ class ParticipanteList extends Participante
             $this->TELEFONO->HrefValue = "";
             $this->TELEFONO->TooltipValue = "";
 
-            // CREACION
-            $this->CREACION->LinkCustomAttributes = "";
-            $this->CREACION->HrefValue = "";
-            $this->CREACION->TooltipValue = "";
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
 
-            // ACTUALIZACION
-            $this->ACTUALIZACION->LinkCustomAttributes = "";
-            $this->ACTUALIZACION->HrefValue = "";
-            $this->ACTUALIZACION->TooltipValue = "";
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

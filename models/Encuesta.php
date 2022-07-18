@@ -27,6 +27,14 @@ class Encuesta extends DbTable
     public $OffsetColumnClass = "col-sm-10 offset-sm-2";
     public $TableLeftColumnClass = "w-col-2";
 
+    // Audit trail
+    public $AuditTrailOnAdd = true;
+    public $AuditTrailOnEdit = true;
+    public $AuditTrailOnDelete = true;
+    public $AuditTrailOnView = false;
+    public $AuditTrailOnViewData = false;
+    public $AuditTrailOnSearch = false;
+
     // Export
     public $ExportDoc;
 
@@ -37,6 +45,8 @@ class Encuesta extends DbTable
     public $EQUIPO;
     public $POSICION;
     public $NUMERACION;
+    public $crea_dato;
+    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -252,6 +262,56 @@ class Encuesta extends DbTable
         );
         $this->NUMERACION->InputTextType = "text";
         $this->Fields['NUMERACION'] = &$this->NUMERACION;
+
+        // crea_dato
+        $this->crea_dato = new DbField(
+            'encuesta',
+            'encuesta',
+            'x_crea_dato',
+            'crea_dato',
+            '`crea_dato`',
+            CastDateFieldForLike("`crea_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`crea_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Nullable = false; // NOT NULL field
+        $this->crea_dato->Required = true; // Required field
+        $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['crea_dato'] = &$this->crea_dato;
+
+        // modifica_dato
+        $this->modifica_dato = new DbField(
+            'encuesta',
+            'encuesta',
+            'x_modifica_dato',
+            'modifica_dato',
+            '`modifica_dato`',
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`modifica_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Nullable = false; // NOT NULL field
+        $this->modifica_dato->Required = true; // Required field
+        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -599,6 +659,9 @@ class Encuesta extends DbTable
             // Get insert id if necessary
             $this->ID_ENCUESTA->setDbValue($conn->lastInsertId());
             $rs['ID_ENCUESTA'] = $this->ID_ENCUESTA->DbValue;
+            if ($this->AuditTrailOnAdd) {
+                $this->writeAuditTrailOnAdd($rs);
+            }
         }
         return $success;
     }
@@ -639,6 +702,14 @@ class Encuesta extends DbTable
         // If no field is updated, execute may return 0. Treat as success
         $success = $this->updateSql($rs, $where, $curfilter)->execute();
         $success = ($success > 0) ? $success : true;
+        if ($success && $this->AuditTrailOnEdit && $rsold) {
+            $rsaudit = $rs;
+            $fldname = 'ID_ENCUESTA';
+            if (!array_key_exists($fldname, $rsaudit)) {
+                $rsaudit[$fldname] = $rsold[$fldname];
+            }
+            $this->writeAuditTrailOnEdit($rsold, $rsaudit);
+        }
         return $success;
     }
 
@@ -674,6 +745,9 @@ class Encuesta extends DbTable
         if ($success) {
             $success = $this->deleteSql($rs, $where, $curfilter)->execute();
         }
+        if ($success && $this->AuditTrailOnDelete) {
+            $this->writeAuditTrailOnDelete($rs);
+        }
         return $success;
     }
 
@@ -689,6 +763,8 @@ class Encuesta extends DbTable
         $this->EQUIPO->DbValue = $row['EQUIPO'];
         $this->POSICION->DbValue = $row['POSICION'];
         $this->NUMERACION->DbValue = $row['NUMERACION'];
+        $this->crea_dato->DbValue = $row['crea_dato'];
+        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -1013,6 +1089,8 @@ class Encuesta extends DbTable
         $this->EQUIPO->setDbValue($row['EQUIPO']);
         $this->POSICION->setDbValue($row['POSICION']);
         $this->NUMERACION->setDbValue($row['NUMERACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1036,6 +1114,10 @@ class Encuesta extends DbTable
         // POSICION
 
         // NUMERACION
+
+        // crea_dato
+
+        // modifica_dato
 
         // ID_ENCUESTA
         $this->ID_ENCUESTA->ViewValue = $this->ID_ENCUESTA->CurrentValue;
@@ -1109,6 +1191,16 @@ class Encuesta extends DbTable
         $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
         $this->NUMERACION->ViewCustomAttributes = "";
 
+        // crea_dato
+        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->ViewCustomAttributes = "";
+
         // ID_ENCUESTA
         $this->ID_ENCUESTA->LinkCustomAttributes = "";
         $this->ID_ENCUESTA->HrefValue = "";
@@ -1138,6 +1230,16 @@ class Encuesta extends DbTable
         $this->NUMERACION->LinkCustomAttributes = "";
         $this->NUMERACION->HrefValue = "";
         $this->NUMERACION->TooltipValue = "";
+
+        // crea_dato
+        $this->crea_dato->LinkCustomAttributes = "";
+        $this->crea_dato->HrefValue = "";
+        $this->crea_dato->TooltipValue = "";
+
+        // modifica_dato
+        $this->modifica_dato->LinkCustomAttributes = "";
+        $this->modifica_dato->HrefValue = "";
+        $this->modifica_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1191,6 +1293,20 @@ class Encuesta extends DbTable
         $this->NUMERACION->EditValue = $this->NUMERACION->CurrentValue;
         $this->NUMERACION->PlaceHolder = RemoveHtml($this->NUMERACION->caption());
 
+        // crea_dato
+        $this->crea_dato->setupEditAttributes();
+        $this->crea_dato->EditCustomAttributes = "";
+        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->setupEditAttributes();
+        $this->modifica_dato->EditCustomAttributes = "";
+        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->ViewCustomAttributes = "";
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1225,11 +1341,15 @@ class Encuesta extends DbTable
                     $doc->exportCaption($this->EQUIPO);
                     $doc->exportCaption($this->POSICION);
                     $doc->exportCaption($this->NUMERACION);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->ID_ENCUESTA);
                     $doc->exportCaption($this->ID_PARTICIPANTE);
                     $doc->exportCaption($this->GRUPO);
                     $doc->exportCaption($this->NUMERACION);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1265,11 +1385,15 @@ class Encuesta extends DbTable
                         $doc->exportField($this->EQUIPO);
                         $doc->exportField($this->POSICION);
                         $doc->exportField($this->NUMERACION);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->ID_ENCUESTA);
                         $doc->exportField($this->ID_PARTICIPANTE);
                         $doc->exportField($this->GRUPO);
                         $doc->exportField($this->NUMERACION);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }
@@ -1293,6 +1417,140 @@ class Encuesta extends DbTable
 
         // No binary fields
         return false;
+    }
+
+    // Write Audit Trail start/end for grid update
+    public function writeAuditTrailDummy($typ)
+    {
+        $table = 'encuesta';
+        $usr = CurrentUserName();
+        WriteAuditLog($usr, $typ, $table, "", "", "", "");
+    }
+
+    // Write Audit Trail (add page)
+    public function writeAuditTrailOnAdd(&$rs)
+    {
+        global $Language;
+        if (!$this->AuditTrailOnAdd) {
+            return;
+        }
+        $table = 'encuesta';
+
+        // Get key value
+        $key = "";
+        if ($key != "") {
+            $key .= Config("COMPOSITE_KEY_SEPARATOR");
+        }
+        $key .= $rs['ID_ENCUESTA'];
+
+        // Write Audit Trail
+        $usr = CurrentUserName();
+        foreach (array_keys($rs) as $fldname) {
+            if (array_key_exists($fldname, $this->Fields) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
+                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") {
+                    $newvalue = $Language->phrase("PasswordMask"); // Password Field
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) {
+                    if (Config("AUDIT_TRAIL_TO_DATABASE")) {
+                        $newvalue = $rs[$fldname];
+                    } else {
+                        $newvalue = "[MEMO]"; // Memo Field
+                    }
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) {
+                    $newvalue = "[XML]"; // XML Field
+                } else {
+                    $newvalue = $rs[$fldname];
+                }
+                WriteAuditLog($usr, "A", $table, $fldname, $key, "", $newvalue);
+            }
+        }
+    }
+
+    // Write Audit Trail (edit page)
+    public function writeAuditTrailOnEdit(&$rsold, &$rsnew)
+    {
+        global $Language;
+        if (!$this->AuditTrailOnEdit) {
+            return;
+        }
+        $table = 'encuesta';
+
+        // Get key value
+        $key = "";
+        if ($key != "") {
+            $key .= Config("COMPOSITE_KEY_SEPARATOR");
+        }
+        $key .= $rsold['ID_ENCUESTA'];
+
+        // Write Audit Trail
+        $usr = CurrentUserName();
+        foreach (array_keys($rsnew) as $fldname) {
+            if (array_key_exists($fldname, $this->Fields) && array_key_exists($fldname, $rsold) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
+                if ($this->Fields[$fldname]->DataType == DATATYPE_DATE) { // DateTime field
+                    $modified = (FormatDateTime($rsold[$fldname], 0) != FormatDateTime($rsnew[$fldname], 0));
+                } else {
+                    $modified = !CompareValue($rsold[$fldname], $rsnew[$fldname]);
+                }
+                if ($modified) {
+                    if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") { // Password Field
+                        $oldvalue = $Language->phrase("PasswordMask");
+                        $newvalue = $Language->phrase("PasswordMask");
+                    } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo field
+                        if (Config("AUDIT_TRAIL_TO_DATABASE")) {
+                            $oldvalue = $rsold[$fldname];
+                            $newvalue = $rsnew[$fldname];
+                        } else {
+                            $oldvalue = "[MEMO]";
+                            $newvalue = "[MEMO]";
+                        }
+                    } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML field
+                        $oldvalue = "[XML]";
+                        $newvalue = "[XML]";
+                    } else {
+                        $oldvalue = $rsold[$fldname];
+                        $newvalue = $rsnew[$fldname];
+                    }
+                    WriteAuditLog($usr, "U", $table, $fldname, $key, $oldvalue, $newvalue);
+                }
+            }
+        }
+    }
+
+    // Write Audit Trail (delete page)
+    public function writeAuditTrailOnDelete(&$rs)
+    {
+        global $Language;
+        if (!$this->AuditTrailOnDelete) {
+            return;
+        }
+        $table = 'encuesta';
+
+        // Get key value
+        $key = "";
+        if ($key != "") {
+            $key .= Config("COMPOSITE_KEY_SEPARATOR");
+        }
+        $key .= $rs['ID_ENCUESTA'];
+
+        // Write Audit Trail
+        $curUser = CurrentUserName();
+        foreach (array_keys($rs) as $fldname) {
+            if (array_key_exists($fldname, $this->Fields) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
+                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") {
+                    $oldvalue = $Language->phrase("PasswordMask"); // Password Field
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) {
+                    if (Config("AUDIT_TRAIL_TO_DATABASE")) {
+                        $oldvalue = $rs[$fldname];
+                    } else {
+                        $oldvalue = "[MEMO]"; // Memo field
+                    }
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) {
+                    $oldvalue = "[XML]"; // XML field
+                } else {
+                    $oldvalue = $rs[$fldname];
+                }
+                WriteAuditLog($curUser, "D", $table, $fldname, $key, $oldvalue, "");
+            }
+        }
     }
 
     // Table level events

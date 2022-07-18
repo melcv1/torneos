@@ -80,6 +80,12 @@ $Page->showMessage();
 <?php if ($Page->POSICION_EQUIPO_TORENO->Visible) { // POSICION_EQUIPO_TORENO ?>
         <th class="<?= $Page->POSICION_EQUIPO_TORENO->headerCellClass() ?>"><span id="elh_equipotorneo_POSICION_EQUIPO_TORENO" class="equipotorneo_POSICION_EQUIPO_TORENO"><?= $Page->POSICION_EQUIPO_TORENO->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th class="<?= $Page->crea_dato->headerCellClass() ?>"><span id="elh_equipotorneo_crea_dato" class="equipotorneo_crea_dato"><?= $Page->crea_dato->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_equipotorneo_modifica_dato" class="equipotorneo_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -194,6 +200,22 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_equipotorneo_POSICION_EQUIPO_TORENO" class="el_equipotorneo_POSICION_EQUIPO_TORENO">
 <span<?= $Page->POSICION_EQUIPO_TORENO->viewAttributes() ?>>
 <?= $Page->POSICION_EQUIPO_TORENO->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_crea_dato" class="el_equipotorneo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_modifica_dato" class="el_equipotorneo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

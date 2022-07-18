@@ -31,13 +31,12 @@ class Partidos extends DbTable
     public $ExportDoc;
 
     // Fields
-    public $ID_EQUIPO2;
-    public $ID_EQUIPO1;
+    public $equipo_local;
+    public $equipo_visitante;
     public $ID_PARTIDO;
     public $ID_TORNEO;
     public $FECHA_PARTIDO;
     public $HORA_PARTIDO;
-    public $DIA_PARTIDO;
     public $ESTADIO;
     public $CIUDAD_PARTIDO;
     public $PAIS_PARTIDO;
@@ -48,6 +47,8 @@ class Partidos extends DbTable
     public $NOTA_PARTIDO;
     public $RESUMEN_PARTIDO;
     public $ESTADO_PARTIDO;
+    public $crea_dato;
+    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -86,71 +87,71 @@ class Partidos extends DbTable
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
         $this->BasicSearch = new BasicSearch($this->TableVar);
 
-        // ID_EQUIPO2
-        $this->ID_EQUIPO2 = new DbField(
+        // equipo_local
+        $this->equipo_local = new DbField(
             'partidos',
             'partidos',
-            'x_ID_EQUIPO2',
-            'ID_EQUIPO2',
-            '`ID_EQUIPO2`',
-            '`ID_EQUIPO2`',
+            'x_equipo_local',
+            'equipo_local',
+            '`equipo_local`',
+            '`equipo_local`',
             3,
             11,
             -1,
             false,
-            '`ID_EQUIPO2`',
+            '`equipo_local`',
             false,
             false,
             false,
             'FORMATTED TEXT',
             'SELECT'
         );
-        $this->ID_EQUIPO2->InputTextType = "text";
-        $this->ID_EQUIPO2->UsePleaseSelect = true; // Use PleaseSelect by default
-        $this->ID_EQUIPO2->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        $this->equipo_local->InputTextType = "text";
+        $this->equipo_local->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->equipo_local->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->ID_EQUIPO2->Lookup = new Lookup('ID_EQUIPO2', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->ID_EQUIPO2) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
+                $this->equipo_local->Lookup = new Lookup('equipo_local', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], ["x_ESTADIO","x_PAIS_PARTIDO"], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->equipo_local) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
                 break;
             default:
-                $this->ID_EQUIPO2->Lookup = new Lookup('ID_EQUIPO2', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->ID_EQUIPO2) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
+                $this->equipo_local->Lookup = new Lookup('equipo_local', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], ["x_ESTADIO","x_PAIS_PARTIDO"], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->equipo_local) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
                 break;
         }
-        $this->ID_EQUIPO2->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
-        $this->Fields['ID_EQUIPO2'] = &$this->ID_EQUIPO2;
+        $this->equipo_local->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->Fields['equipo_local'] = &$this->equipo_local;
 
-        // ID_EQUIPO1
-        $this->ID_EQUIPO1 = new DbField(
+        // equipo_visitante
+        $this->equipo_visitante = new DbField(
             'partidos',
             'partidos',
-            'x_ID_EQUIPO1',
-            'ID_EQUIPO1',
-            '`ID_EQUIPO1`',
-            '`ID_EQUIPO1`',
+            'x_equipo_visitante',
+            'equipo_visitante',
+            '`equipo_visitante`',
+            '`equipo_visitante`',
             3,
             11,
             -1,
             false,
-            '`ID_EQUIPO1`',
+            '`equipo_visitante`',
             false,
             false,
             false,
             'FORMATTED TEXT',
             'SELECT'
         );
-        $this->ID_EQUIPO1->InputTextType = "text";
-        $this->ID_EQUIPO1->UsePleaseSelect = true; // Use PleaseSelect by default
-        $this->ID_EQUIPO1->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        $this->equipo_visitante->InputTextType = "text";
+        $this->equipo_visitante->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->equipo_visitante->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->ID_EQUIPO1->Lookup = new Lookup('ID_EQUIPO1', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->ID_EQUIPO1) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
+                $this->equipo_visitante->Lookup = new Lookup('equipo_visitante', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->equipo_visitante) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
                 break;
             default:
-                $this->ID_EQUIPO1->Lookup = new Lookup('ID_EQUIPO1', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->ID_EQUIPO1) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
+                $this->equipo_visitante->Lookup = new Lookup('equipo_visitante', 'equipo', false, 'ID_EQUIPO', ["NOM_EQUIPO_CORTO","NOM_EQUIPO_LARGO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOM_EQUIPO_CORTO`, ''),'" . ValueSeparator(1, $this->equipo_visitante) . "',COALESCE(`NOM_EQUIPO_LARGO`,''))");
                 break;
         }
-        $this->ID_EQUIPO1->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
-        $this->Fields['ID_EQUIPO1'] = &$this->ID_EQUIPO1;
+        $this->equipo_visitante->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->Fields['equipo_visitante'] = &$this->equipo_visitante;
 
         // ID_PARTIDO
         $this->ID_PARTIDO = new DbField(
@@ -217,10 +218,10 @@ class Partidos extends DbTable
             'x_FECHA_PARTIDO',
             'FECHA_PARTIDO',
             '`FECHA_PARTIDO`',
-            CastDateFieldForLike("`FECHA_PARTIDO`", 0, "DB"),
+            CastDateFieldForLike("`FECHA_PARTIDO`", 14, "DB"),
             133,
             10,
-            0,
+            14,
             false,
             '`FECHA_PARTIDO`',
             false,
@@ -230,7 +231,7 @@ class Partidos extends DbTable
             'TEXT'
         );
         $this->FECHA_PARTIDO->InputTextType = "text";
-        $this->FECHA_PARTIDO->DefaultErrorMessage = str_replace("%s", $GLOBALS["DATE_FORMAT"], $Language->phrase("IncorrectDate"));
+        $this->FECHA_PARTIDO->DefaultErrorMessage = str_replace("%s", DateFormat(14), $Language->phrase("IncorrectDate"));
         $this->Fields['FECHA_PARTIDO'] = &$this->FECHA_PARTIDO;
 
         // HORA_PARTIDO
@@ -256,28 +257,6 @@ class Partidos extends DbTable
         $this->HORA_PARTIDO->DefaultErrorMessage = str_replace("%s", DateFormat(4), $Language->phrase("IncorrectTime"));
         $this->Fields['HORA_PARTIDO'] = &$this->HORA_PARTIDO;
 
-        // DIA_PARTIDO
-        $this->DIA_PARTIDO = new DbField(
-            'partidos',
-            'partidos',
-            'x_DIA_PARTIDO',
-            'DIA_PARTIDO',
-            '`DIA_PARTIDO`',
-            '`DIA_PARTIDO`',
-            201,
-            256,
-            -1,
-            false,
-            '`DIA_PARTIDO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
-        );
-        $this->DIA_PARTIDO->InputTextType = "text";
-        $this->Fields['DIA_PARTIDO'] = &$this->DIA_PARTIDO;
-
         // ESTADIO
         $this->ESTADIO = new DbField(
             'partidos',
@@ -286,8 +265,8 @@ class Partidos extends DbTable
             'ESTADIO',
             '`ESTADIO`',
             '`ESTADIO`',
-            201,
-            256,
+            3,
+            11,
             -1,
             false,
             '`ESTADIO`',
@@ -295,9 +274,20 @@ class Partidos extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'SELECT'
         );
         $this->ESTADIO->InputTextType = "text";
+        $this->ESTADIO->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->ESTADIO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->ESTADIO->Lookup = new Lookup('ESTADIO', 'equipo', false, 'NOM_ESTADIO', ["NOM_ESTADIO","","",""], ["x_equipo_local"], [], ["ID_EQUIPO"], ["x_ID_EQUIPO"], [], [], '', '', "`NOM_ESTADIO`");
+                break;
+            default:
+                $this->ESTADIO->Lookup = new Lookup('ESTADIO', 'equipo', false, 'NOM_ESTADIO', ["NOM_ESTADIO","","",""], ["x_equipo_local"], [], ["ID_EQUIPO"], ["x_ID_EQUIPO"], [], [], '', '', "`NOM_ESTADIO`");
+                break;
+        }
+        $this->ESTADIO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
         $this->Fields['ESTADIO'] = &$this->ESTADIO;
 
         // CIUDAD_PARTIDO
@@ -339,9 +329,19 @@ class Partidos extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'SELECT'
         );
         $this->PAIS_PARTIDO->InputTextType = "text";
+        $this->PAIS_PARTIDO->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->PAIS_PARTIDO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->PAIS_PARTIDO->Lookup = new Lookup('PAIS_PARTIDO', 'equipo', false, 'PAIS_EQUIPO', ["PAIS_EQUIPO","","",""], ["x_equipo_local"], [], ["ID_EQUIPO"], ["x_ID_EQUIPO"], [], [], '', '', "`PAIS_EQUIPO`");
+                break;
+            default:
+                $this->PAIS_PARTIDO->Lookup = new Lookup('PAIS_PARTIDO', 'equipo', false, 'PAIS_EQUIPO', ["PAIS_EQUIPO","","",""], ["x_equipo_local"], [], ["ID_EQUIPO"], ["x_ID_EQUIPO"], [], [], '', '', "`PAIS_EQUIPO`");
+                break;
+        }
         $this->Fields['PAIS_PARTIDO'] = &$this->PAIS_PARTIDO;
 
         // GOLES_EQUIPO1
@@ -497,10 +497,71 @@ class Partidos extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'SELECT'
         );
         $this->ESTADO_PARTIDO->InputTextType = "text";
+        $this->ESTADO_PARTIDO->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->ESTADO_PARTIDO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->ESTADO_PARTIDO->Lookup = new Lookup('ESTADO_PARTIDO', 'partidos', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                break;
+            default:
+                $this->ESTADO_PARTIDO->Lookup = new Lookup('ESTADO_PARTIDO', 'partidos', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                break;
+        }
+        $this->ESTADO_PARTIDO->OptionCount = 4;
         $this->Fields['ESTADO_PARTIDO'] = &$this->ESTADO_PARTIDO;
+
+        // crea_dato
+        $this->crea_dato = new DbField(
+            'partidos',
+            'partidos',
+            'x_crea_dato',
+            'crea_dato',
+            '`crea_dato`',
+            CastDateFieldForLike("`crea_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`crea_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Nullable = false; // NOT NULL field
+        $this->crea_dato->Required = true; // Required field
+        $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['crea_dato'] = &$this->crea_dato;
+
+        // modifica_dato
+        $this->modifica_dato = new DbField(
+            'partidos',
+            'partidos',
+            'x_modifica_dato',
+            'modifica_dato',
+            '`modifica_dato`',
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`modifica_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Nullable = false; // NOT NULL field
+        $this->modifica_dato->Required = true; // Required field
+        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -932,13 +993,12 @@ class Partidos extends DbTable
         if (!is_array($row)) {
             return;
         }
-        $this->ID_EQUIPO2->DbValue = $row['ID_EQUIPO2'];
-        $this->ID_EQUIPO1->DbValue = $row['ID_EQUIPO1'];
+        $this->equipo_local->DbValue = $row['equipo_local'];
+        $this->equipo_visitante->DbValue = $row['equipo_visitante'];
         $this->ID_PARTIDO->DbValue = $row['ID_PARTIDO'];
         $this->ID_TORNEO->DbValue = $row['ID_TORNEO'];
         $this->FECHA_PARTIDO->DbValue = $row['FECHA_PARTIDO'];
         $this->HORA_PARTIDO->DbValue = $row['HORA_PARTIDO'];
-        $this->DIA_PARTIDO->DbValue = $row['DIA_PARTIDO'];
         $this->ESTADIO->DbValue = $row['ESTADIO'];
         $this->CIUDAD_PARTIDO->DbValue = $row['CIUDAD_PARTIDO'];
         $this->PAIS_PARTIDO->DbValue = $row['PAIS_PARTIDO'];
@@ -949,6 +1009,8 @@ class Partidos extends DbTable
         $this->NOTA_PARTIDO->DbValue = $row['NOTA_PARTIDO'];
         $this->RESUMEN_PARTIDO->DbValue = $row['RESUMEN_PARTIDO'];
         $this->ESTADO_PARTIDO->DbValue = $row['ESTADO_PARTIDO'];
+        $this->crea_dato->DbValue = $row['crea_dato'];
+        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -1267,13 +1329,12 @@ class Partidos extends DbTable
         } else {
             return;
         }
-        $this->ID_EQUIPO2->setDbValue($row['ID_EQUIPO2']);
-        $this->ID_EQUIPO1->setDbValue($row['ID_EQUIPO1']);
+        $this->equipo_local->setDbValue($row['equipo_local']);
+        $this->equipo_visitante->setDbValue($row['equipo_visitante']);
         $this->ID_PARTIDO->setDbValue($row['ID_PARTIDO']);
         $this->ID_TORNEO->setDbValue($row['ID_TORNEO']);
         $this->FECHA_PARTIDO->setDbValue($row['FECHA_PARTIDO']);
         $this->HORA_PARTIDO->setDbValue($row['HORA_PARTIDO']);
-        $this->DIA_PARTIDO->setDbValue($row['DIA_PARTIDO']);
         $this->ESTADIO->setDbValue($row['ESTADIO']);
         $this->CIUDAD_PARTIDO->setDbValue($row['CIUDAD_PARTIDO']);
         $this->PAIS_PARTIDO->setDbValue($row['PAIS_PARTIDO']);
@@ -1284,6 +1345,8 @@ class Partidos extends DbTable
         $this->NOTA_PARTIDO->setDbValue($row['NOTA_PARTIDO']);
         $this->RESUMEN_PARTIDO->setDbValue($row['RESUMEN_PARTIDO']);
         $this->ESTADO_PARTIDO->setDbValue($row['ESTADO_PARTIDO']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1296,9 +1359,9 @@ class Partidos extends DbTable
 
         // Common render codes
 
-        // ID_EQUIPO2
+        // equipo_local
 
-        // ID_EQUIPO1
+        // equipo_visitante
 
         // ID_PARTIDO
 
@@ -1307,8 +1370,6 @@ class Partidos extends DbTable
         // FECHA_PARTIDO
 
         // HORA_PARTIDO
-
-        // DIA_PARTIDO
 
         // ESTADIO
 
@@ -1330,53 +1391,57 @@ class Partidos extends DbTable
 
         // ESTADO_PARTIDO
 
-        // ID_EQUIPO2
-        $curVal = strval($this->ID_EQUIPO2->CurrentValue);
-        if ($curVal != "") {
-            $this->ID_EQUIPO2->ViewValue = $this->ID_EQUIPO2->lookupCacheOption($curVal);
-            if ($this->ID_EQUIPO2->ViewValue === null) { // Lookup from database
-                $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                $sqlWrk = $this->ID_EQUIPO2->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                $conn = Conn();
-                $config = $conn->getConfiguration();
-                $config->setResultCacheImpl($this->Cache);
-                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                $ari = count($rswrk);
-                if ($ari > 0) { // Lookup values found
-                    $arwrk = $this->ID_EQUIPO2->Lookup->renderViewRow($rswrk[0]);
-                    $this->ID_EQUIPO2->ViewValue = $this->ID_EQUIPO2->displayValue($arwrk);
-                } else {
-                    $this->ID_EQUIPO2->ViewValue = FormatNumber($this->ID_EQUIPO2->CurrentValue, $this->ID_EQUIPO2->formatPattern());
-                }
-            }
-        } else {
-            $this->ID_EQUIPO2->ViewValue = null;
-        }
-        $this->ID_EQUIPO2->ViewCustomAttributes = "";
+        // crea_dato
 
-        // ID_EQUIPO1
-        $curVal = strval($this->ID_EQUIPO1->CurrentValue);
+        // modifica_dato
+
+        // equipo_local
+        $curVal = strval($this->equipo_local->CurrentValue);
         if ($curVal != "") {
-            $this->ID_EQUIPO1->ViewValue = $this->ID_EQUIPO1->lookupCacheOption($curVal);
-            if ($this->ID_EQUIPO1->ViewValue === null) { // Lookup from database
+            $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
+            if ($this->equipo_local->ViewValue === null) { // Lookup from database
                 $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                $sqlWrk = $this->ID_EQUIPO1->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                $sqlWrk = $this->equipo_local->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                 $conn = Conn();
                 $config = $conn->getConfiguration();
                 $config->setResultCacheImpl($this->Cache);
                 $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
                 $ari = count($rswrk);
                 if ($ari > 0) { // Lookup values found
-                    $arwrk = $this->ID_EQUIPO1->Lookup->renderViewRow($rswrk[0]);
-                    $this->ID_EQUIPO1->ViewValue = $this->ID_EQUIPO1->displayValue($arwrk);
+                    $arwrk = $this->equipo_local->Lookup->renderViewRow($rswrk[0]);
+                    $this->equipo_local->ViewValue = $this->equipo_local->displayValue($arwrk);
                 } else {
-                    $this->ID_EQUIPO1->ViewValue = FormatNumber($this->ID_EQUIPO1->CurrentValue, $this->ID_EQUIPO1->formatPattern());
+                    $this->equipo_local->ViewValue = FormatNumber($this->equipo_local->CurrentValue, $this->equipo_local->formatPattern());
                 }
             }
         } else {
-            $this->ID_EQUIPO1->ViewValue = null;
+            $this->equipo_local->ViewValue = null;
         }
-        $this->ID_EQUIPO1->ViewCustomAttributes = "";
+        $this->equipo_local->ViewCustomAttributes = "";
+
+        // equipo_visitante
+        $curVal = strval($this->equipo_visitante->CurrentValue);
+        if ($curVal != "") {
+            $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
+            if ($this->equipo_visitante->ViewValue === null) { // Lookup from database
+                $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                $sqlWrk = $this->equipo_visitante->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                if ($ari > 0) { // Lookup values found
+                    $arwrk = $this->equipo_visitante->Lookup->renderViewRow($rswrk[0]);
+                    $this->equipo_visitante->ViewValue = $this->equipo_visitante->displayValue($arwrk);
+                } else {
+                    $this->equipo_visitante->ViewValue = FormatNumber($this->equipo_visitante->CurrentValue, $this->equipo_visitante->formatPattern());
+                }
+            }
+        } else {
+            $this->equipo_visitante->ViewValue = null;
+        }
+        $this->equipo_visitante->ViewCustomAttributes = "";
 
         // ID_PARTIDO
         $this->ID_PARTIDO->ViewValue = $this->ID_PARTIDO->CurrentValue;
@@ -1416,12 +1481,28 @@ class Partidos extends DbTable
         $this->HORA_PARTIDO->ViewValue = FormatDateTime($this->HORA_PARTIDO->ViewValue, $this->HORA_PARTIDO->formatPattern());
         $this->HORA_PARTIDO->ViewCustomAttributes = "";
 
-        // DIA_PARTIDO
-        $this->DIA_PARTIDO->ViewValue = $this->DIA_PARTIDO->CurrentValue;
-        $this->DIA_PARTIDO->ViewCustomAttributes = "";
-
         // ESTADIO
-        $this->ESTADIO->ViewValue = $this->ESTADIO->CurrentValue;
+        $curVal = strval($this->ESTADIO->CurrentValue);
+        if ($curVal != "") {
+            $this->ESTADIO->ViewValue = $this->ESTADIO->lookupCacheOption($curVal);
+            if ($this->ESTADIO->ViewValue === null) { // Lookup from database
+                $filterWrk = "`NOM_ESTADIO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                $sqlWrk = $this->ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                if ($ari > 0) { // Lookup values found
+                    $arwrk = $this->ESTADIO->Lookup->renderViewRow($rswrk[0]);
+                    $this->ESTADIO->ViewValue = $this->ESTADIO->displayValue($arwrk);
+                } else {
+                    $this->ESTADIO->ViewValue = FormatNumber($this->ESTADIO->CurrentValue, $this->ESTADIO->formatPattern());
+                }
+            }
+        } else {
+            $this->ESTADIO->ViewValue = null;
+        }
         $this->ESTADIO->ViewCustomAttributes = "";
 
         // CIUDAD_PARTIDO
@@ -1429,7 +1510,27 @@ class Partidos extends DbTable
         $this->CIUDAD_PARTIDO->ViewCustomAttributes = "";
 
         // PAIS_PARTIDO
-        $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->CurrentValue;
+        $curVal = strval($this->PAIS_PARTIDO->CurrentValue);
+        if ($curVal != "") {
+            $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->lookupCacheOption($curVal);
+            if ($this->PAIS_PARTIDO->ViewValue === null) { // Lookup from database
+                $filterWrk = "`PAIS_EQUIPO`" . SearchString("=", $curVal, DATATYPE_MEMO, "");
+                $sqlWrk = $this->PAIS_PARTIDO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                if ($ari > 0) { // Lookup values found
+                    $arwrk = $this->PAIS_PARTIDO->Lookup->renderViewRow($rswrk[0]);
+                    $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->displayValue($arwrk);
+                } else {
+                    $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->CurrentValue;
+                }
+            }
+        } else {
+            $this->PAIS_PARTIDO->ViewValue = null;
+        }
         $this->PAIS_PARTIDO->ViewCustomAttributes = "";
 
         // GOLES_EQUIPO1
@@ -1461,18 +1562,32 @@ class Partidos extends DbTable
         $this->RESUMEN_PARTIDO->ViewCustomAttributes = "";
 
         // ESTADO_PARTIDO
-        $this->ESTADO_PARTIDO->ViewValue = $this->ESTADO_PARTIDO->CurrentValue;
+        if (strval($this->ESTADO_PARTIDO->CurrentValue) != "") {
+            $this->ESTADO_PARTIDO->ViewValue = $this->ESTADO_PARTIDO->optionCaption($this->ESTADO_PARTIDO->CurrentValue);
+        } else {
+            $this->ESTADO_PARTIDO->ViewValue = null;
+        }
         $this->ESTADO_PARTIDO->ViewCustomAttributes = "";
 
-        // ID_EQUIPO2
-        $this->ID_EQUIPO2->LinkCustomAttributes = "";
-        $this->ID_EQUIPO2->HrefValue = "";
-        $this->ID_EQUIPO2->TooltipValue = "";
+        // crea_dato
+        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->ViewCustomAttributes = "";
 
-        // ID_EQUIPO1
-        $this->ID_EQUIPO1->LinkCustomAttributes = "";
-        $this->ID_EQUIPO1->HrefValue = "";
-        $this->ID_EQUIPO1->TooltipValue = "";
+        // modifica_dato
+        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->ViewCustomAttributes = "";
+
+        // equipo_local
+        $this->equipo_local->LinkCustomAttributes = "";
+        $this->equipo_local->HrefValue = "";
+        $this->equipo_local->TooltipValue = "";
+
+        // equipo_visitante
+        $this->equipo_visitante->LinkCustomAttributes = "";
+        $this->equipo_visitante->HrefValue = "";
+        $this->equipo_visitante->TooltipValue = "";
 
         // ID_PARTIDO
         $this->ID_PARTIDO->LinkCustomAttributes = "";
@@ -1493,11 +1608,6 @@ class Partidos extends DbTable
         $this->HORA_PARTIDO->LinkCustomAttributes = "";
         $this->HORA_PARTIDO->HrefValue = "";
         $this->HORA_PARTIDO->TooltipValue = "";
-
-        // DIA_PARTIDO
-        $this->DIA_PARTIDO->LinkCustomAttributes = "";
-        $this->DIA_PARTIDO->HrefValue = "";
-        $this->DIA_PARTIDO->TooltipValue = "";
 
         // ESTADIO
         $this->ESTADIO->LinkCustomAttributes = "";
@@ -1549,6 +1659,16 @@ class Partidos extends DbTable
         $this->ESTADO_PARTIDO->HrefValue = "";
         $this->ESTADO_PARTIDO->TooltipValue = "";
 
+        // crea_dato
+        $this->crea_dato->LinkCustomAttributes = "";
+        $this->crea_dato->HrefValue = "";
+        $this->crea_dato->TooltipValue = "";
+
+        // modifica_dato
+        $this->modifica_dato->LinkCustomAttributes = "";
+        $this->modifica_dato->HrefValue = "";
+        $this->modifica_dato->TooltipValue = "";
+
         // Call Row Rendered event
         $this->rowRendered();
 
@@ -1564,15 +1684,15 @@ class Partidos extends DbTable
         // Call Row Rendering event
         $this->rowRendering();
 
-        // ID_EQUIPO2
-        $this->ID_EQUIPO2->setupEditAttributes();
-        $this->ID_EQUIPO2->EditCustomAttributes = "";
-        $this->ID_EQUIPO2->PlaceHolder = RemoveHtml($this->ID_EQUIPO2->caption());
+        // equipo_local
+        $this->equipo_local->setupEditAttributes();
+        $this->equipo_local->EditCustomAttributes = "";
+        $this->equipo_local->PlaceHolder = RemoveHtml($this->equipo_local->caption());
 
-        // ID_EQUIPO1
-        $this->ID_EQUIPO1->setupEditAttributes();
-        $this->ID_EQUIPO1->EditCustomAttributes = "";
-        $this->ID_EQUIPO1->PlaceHolder = RemoveHtml($this->ID_EQUIPO1->caption());
+        // equipo_visitante
+        $this->equipo_visitante->setupEditAttributes();
+        $this->equipo_visitante->EditCustomAttributes = "";
+        $this->equipo_visitante->PlaceHolder = RemoveHtml($this->equipo_visitante->caption());
 
         // ID_PARTIDO
         $this->ID_PARTIDO->setupEditAttributes();
@@ -1597,16 +1717,9 @@ class Partidos extends DbTable
         $this->HORA_PARTIDO->EditValue = FormatDateTime($this->HORA_PARTIDO->CurrentValue, $this->HORA_PARTIDO->formatPattern());
         $this->HORA_PARTIDO->PlaceHolder = RemoveHtml($this->HORA_PARTIDO->caption());
 
-        // DIA_PARTIDO
-        $this->DIA_PARTIDO->setupEditAttributes();
-        $this->DIA_PARTIDO->EditCustomAttributes = "";
-        $this->DIA_PARTIDO->EditValue = $this->DIA_PARTIDO->CurrentValue;
-        $this->DIA_PARTIDO->PlaceHolder = RemoveHtml($this->DIA_PARTIDO->caption());
-
         // ESTADIO
         $this->ESTADIO->setupEditAttributes();
         $this->ESTADIO->EditCustomAttributes = "";
-        $this->ESTADIO->EditValue = $this->ESTADIO->CurrentValue;
         $this->ESTADIO->PlaceHolder = RemoveHtml($this->ESTADIO->caption());
 
         // CIUDAD_PARTIDO
@@ -1618,7 +1731,6 @@ class Partidos extends DbTable
         // PAIS_PARTIDO
         $this->PAIS_PARTIDO->setupEditAttributes();
         $this->PAIS_PARTIDO->EditCustomAttributes = "";
-        $this->PAIS_PARTIDO->EditValue = $this->PAIS_PARTIDO->CurrentValue;
         $this->PAIS_PARTIDO->PlaceHolder = RemoveHtml($this->PAIS_PARTIDO->caption());
 
         // GOLES_EQUIPO1
@@ -1672,8 +1784,22 @@ class Partidos extends DbTable
         // ESTADO_PARTIDO
         $this->ESTADO_PARTIDO->setupEditAttributes();
         $this->ESTADO_PARTIDO->EditCustomAttributes = "";
-        $this->ESTADO_PARTIDO->EditValue = $this->ESTADO_PARTIDO->CurrentValue;
+        $this->ESTADO_PARTIDO->EditValue = $this->ESTADO_PARTIDO->options(true);
         $this->ESTADO_PARTIDO->PlaceHolder = RemoveHtml($this->ESTADO_PARTIDO->caption());
+
+        // crea_dato
+        $this->crea_dato->setupEditAttributes();
+        $this->crea_dato->EditCustomAttributes = "";
+        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->setupEditAttributes();
+        $this->modifica_dato->EditCustomAttributes = "";
+        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->ViewCustomAttributes = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1703,13 +1829,12 @@ class Partidos extends DbTable
             if ($doc->Horizontal) { // Horizontal format, write header
                 $doc->beginExportRow();
                 if ($exportPageType == "view") {
-                    $doc->exportCaption($this->ID_EQUIPO2);
-                    $doc->exportCaption($this->ID_EQUIPO1);
+                    $doc->exportCaption($this->equipo_local);
+                    $doc->exportCaption($this->equipo_visitante);
                     $doc->exportCaption($this->ID_PARTIDO);
                     $doc->exportCaption($this->ID_TORNEO);
                     $doc->exportCaption($this->FECHA_PARTIDO);
                     $doc->exportCaption($this->HORA_PARTIDO);
-                    $doc->exportCaption($this->DIA_PARTIDO);
                     $doc->exportCaption($this->ESTADIO);
                     $doc->exportCaption($this->CIUDAD_PARTIDO);
                     $doc->exportCaption($this->PAIS_PARTIDO);
@@ -1720,15 +1845,19 @@ class Partidos extends DbTable
                     $doc->exportCaption($this->NOTA_PARTIDO);
                     $doc->exportCaption($this->RESUMEN_PARTIDO);
                     $doc->exportCaption($this->ESTADO_PARTIDO);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 } else {
-                    $doc->exportCaption($this->ID_EQUIPO2);
-                    $doc->exportCaption($this->ID_EQUIPO1);
+                    $doc->exportCaption($this->equipo_local);
+                    $doc->exportCaption($this->equipo_visitante);
                     $doc->exportCaption($this->ID_PARTIDO);
                     $doc->exportCaption($this->ID_TORNEO);
                     $doc->exportCaption($this->GOLES_EQUIPO1);
                     $doc->exportCaption($this->GOLES_EQUIPO2);
                     $doc->exportCaption($this->GOLES_EXTRA_EQUIPO1);
                     $doc->exportCaption($this->GOLES_EXTRA_EQUIPO2);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1758,13 +1887,12 @@ class Partidos extends DbTable
                 if (!$doc->ExportCustom) {
                     $doc->beginExportRow($rowCnt); // Allow CSS styles if enabled
                     if ($exportPageType == "view") {
-                        $doc->exportField($this->ID_EQUIPO2);
-                        $doc->exportField($this->ID_EQUIPO1);
+                        $doc->exportField($this->equipo_local);
+                        $doc->exportField($this->equipo_visitante);
                         $doc->exportField($this->ID_PARTIDO);
                         $doc->exportField($this->ID_TORNEO);
                         $doc->exportField($this->FECHA_PARTIDO);
                         $doc->exportField($this->HORA_PARTIDO);
-                        $doc->exportField($this->DIA_PARTIDO);
                         $doc->exportField($this->ESTADIO);
                         $doc->exportField($this->CIUDAD_PARTIDO);
                         $doc->exportField($this->PAIS_PARTIDO);
@@ -1775,15 +1903,19 @@ class Partidos extends DbTable
                         $doc->exportField($this->NOTA_PARTIDO);
                         $doc->exportField($this->RESUMEN_PARTIDO);
                         $doc->exportField($this->ESTADO_PARTIDO);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     } else {
-                        $doc->exportField($this->ID_EQUIPO2);
-                        $doc->exportField($this->ID_EQUIPO1);
+                        $doc->exportField($this->equipo_local);
+                        $doc->exportField($this->equipo_visitante);
                         $doc->exportField($this->ID_PARTIDO);
                         $doc->exportField($this->ID_TORNEO);
                         $doc->exportField($this->GOLES_EQUIPO1);
                         $doc->exportField($this->GOLES_EQUIPO2);
                         $doc->exportField($this->GOLES_EXTRA_EQUIPO1);
                         $doc->exportField($this->GOLES_EXTRA_EQUIPO2);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

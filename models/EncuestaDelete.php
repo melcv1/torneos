@@ -35,6 +35,14 @@ class EncuestaDelete extends Encuesta
     // Rendering View
     public $RenderingView = false;
 
+    // Audit Trail
+    public $AuditTrailOnAdd = true;
+    public $AuditTrailOnEdit = true;
+    public $AuditTrailOnDelete = true;
+    public $AuditTrailOnView = false;
+    public $AuditTrailOnViewData = false;
+    public $AuditTrailOnSearch = false;
+
     // Page headings
     public $Heading = "";
     public $Subheading = "";
@@ -401,6 +409,8 @@ class EncuestaDelete extends Encuesta
         $this->EQUIPO->setVisibility();
         $this->POSICION->setVisibility();
         $this->NUMERACION->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -594,6 +604,8 @@ class EncuestaDelete extends Encuesta
         $this->EQUIPO->setDbValue($row['EQUIPO']);
         $this->POSICION->setDbValue($row['POSICION']);
         $this->NUMERACION->setDbValue($row['NUMERACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -606,6 +618,8 @@ class EncuestaDelete extends Encuesta
         $row['EQUIPO'] = $this->EQUIPO->DefaultValue;
         $row['POSICION'] = $this->POSICION->DefaultValue;
         $row['NUMERACION'] = $this->NUMERACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -632,6 +646,10 @@ class EncuestaDelete extends Encuesta
         // POSICION
 
         // NUMERACION
+
+        // crea_dato
+
+        // modifica_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -707,6 +725,16 @@ class EncuestaDelete extends Encuesta
             $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
             $this->NUMERACION->ViewCustomAttributes = "";
 
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
+
             // ID_ENCUESTA
             $this->ID_ENCUESTA->LinkCustomAttributes = "";
             $this->ID_ENCUESTA->HrefValue = "";
@@ -736,6 +764,16 @@ class EncuestaDelete extends Encuesta
             $this->NUMERACION->LinkCustomAttributes = "";
             $this->NUMERACION->HrefValue = "";
             $this->NUMERACION->TooltipValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event
@@ -761,6 +799,9 @@ class EncuestaDelete extends Encuesta
         }
         if ($this->UseTransaction) {
             $conn->beginTransaction();
+        }
+        if ($this->AuditTrailOnDelete) {
+            $this->writeAuditTrailDummy($Language->phrase("BatchDeleteBegin")); // Batch delete begin
         }
 
         // Clone old rows
@@ -818,9 +859,15 @@ class EncuestaDelete extends Encuesta
             if (count($failKeys) > 0) {
                 $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
             }
+            if ($this->AuditTrailOnDelete) {
+                $this->writeAuditTrailDummy($Language->phrase("BatchDeleteSuccess")); // Batch delete success
+            }
         } else {
             if ($this->UseTransaction) { // Rollback transaction
                 $conn->rollback();
+            }
+            if ($this->AuditTrailOnDelete) {
+                $this->writeAuditTrailDummy($Language->phrase("BatchDeleteRollback")); // Batch delete rollback
             }
         }
 

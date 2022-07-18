@@ -154,6 +154,12 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->POSICION_EQUIPO_TORENO->Visible) { // POSICION_EQUIPO_TORENO ?>
         <th data-name="POSICION_EQUIPO_TORENO" class="<?= $Page->POSICION_EQUIPO_TORENO->headerCellClass() ?>"><div id="elh_equipotorneo_POSICION_EQUIPO_TORENO" class="equipotorneo_POSICION_EQUIPO_TORENO"><?= $Page->renderFieldHeader($Page->POSICION_EQUIPO_TORENO) ?></div></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th data-name="crea_dato" class="<?= $Page->crea_dato->headerCellClass() ?>"><div id="elh_equipotorneo_crea_dato" class="equipotorneo_crea_dato"><?= $Page->renderFieldHeader($Page->crea_dato) ?></div></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th data-name="modifica_dato" class="<?= $Page->modifica_dato->headerCellClass() ?>"><div id="elh_equipotorneo_modifica_dato" class="equipotorneo_modifica_dato"><?= $Page->renderFieldHeader($Page->modifica_dato) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -322,6 +328,22 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_equipotorneo_POSICION_EQUIPO_TORENO" class="el_equipotorneo_POSICION_EQUIPO_TORENO">
 <span<?= $Page->POSICION_EQUIPO_TORENO->viewAttributes() ?>>
 <?= $Page->POSICION_EQUIPO_TORENO->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_crea_dato" class="el_equipotorneo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_modifica_dato" class="el_equipotorneo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
     <?php } ?>

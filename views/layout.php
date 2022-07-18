@@ -221,7 +221,7 @@ ew.ready("head", [
                     <a class="nav-link" data-widget="pushmenu" data-enable-remember="true" data-ew-action="none"><i class="fas fa-bars ew-icon"></i></a>
                 </li>
                 <a class="navbar-brand d-none d-md-block" href="#" data-ew-action="none">
-                    <span class="brand-text">Torneos</span>
+                    <span class="brand-text">Torneo</span>
                 </a>
             </ul>
             <!-- Right navbar links -->
@@ -234,7 +234,7 @@ ew.ready("head", [
         <div class="brand-container">
             <!-- Brand Logo //** Note: Only licensed users are allowed to change the logo ** -->
             <a href="#" class="brand-link">
-                <span class="brand-text">PHPMaker 2022</span>
+                <span class="brand-text">Torneo</span>
             </a>
             <?php if (preg_match('/\bsidebar-mini\b/', Config("BODY_CLASS"))) { ?>
             <a class="pushmenu mx-1" data-pushmenu="mini" role="button"><i class="fas fa-angle-double-left"></i></a>
@@ -379,12 +379,14 @@ loadjs.done("wrapper");
 </script>
 <!-- modal dialog -->
 <div id="ew-modal-dialog" class="modal" role="dialog" aria-hidden="true"><div class="modal-dialog modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $Language->phrase("CloseBtn") ?>"></div><div class="modal-body"></div><div class="modal-footer"></div></div></div></div>
+<!-- add option dialog -->
+<div id="ew-add-opt-dialog" class="modal" role="dialog" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5></div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-primary ew-btn"><?= $Language->phrase("AddBtn") ?></button><button type="button" class="btn btn-default ew-btn" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button></div></div></div></div>
 <!-- import dialog -->
 <div id="ew-import-dialog" class="modal" role="dialog" aria-hidden="true"><div class="modal-dialog modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5></div>
 <div class="modal-body">
     <div class="fileinput-button ew-file-drop-zone w-100">
         <input type="file" class="form-control ew-file-input" title="" id="importfiles" name="importfiles[]" multiple lang="<?= CurrentLanguageID() ?>">
-        <div class="text-muted ew-file-text">Drop file here or click to upload</div>
+        <div class="text-muted ew-file-text">Suelte el archivo aquí o haga clic para cargar</div>
     </div>
     <div class="message d-none mt-3"></div>
     <div class="progress d-none mt-3"><div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div></div>

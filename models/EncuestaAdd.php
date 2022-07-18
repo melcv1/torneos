@@ -35,6 +35,14 @@ class EncuestaAdd extends Encuesta
     // Rendering View
     public $RenderingView = false;
 
+    // Audit Trail
+    public $AuditTrailOnAdd = true;
+    public $AuditTrailOnEdit = true;
+    public $AuditTrailOnDelete = true;
+    public $AuditTrailOnView = false;
+    public $AuditTrailOnViewData = false;
+    public $AuditTrailOnSearch = false;
+
     // Page headings
     public $Heading = "";
     public $Subheading = "";
@@ -492,6 +500,8 @@ class EncuestaAdd extends Encuesta
         $this->EQUIPO->setVisibility();
         $this->POSICION->setVisibility();
         $this->NUMERACION->setVisibility();
+        $this->crea_dato->Visible = false;
+        $this->modifica_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -776,6 +786,8 @@ class EncuestaAdd extends Encuesta
         $this->EQUIPO->setDbValue($row['EQUIPO']);
         $this->POSICION->setDbValue($row['POSICION']);
         $this->NUMERACION->setDbValue($row['NUMERACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -788,6 +800,8 @@ class EncuestaAdd extends Encuesta
         $row['EQUIPO'] = $this->EQUIPO->DefaultValue;
         $row['POSICION'] = $this->POSICION->DefaultValue;
         $row['NUMERACION'] = $this->NUMERACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -836,6 +850,12 @@ class EncuestaAdd extends Encuesta
 
         // NUMERACION
         $this->NUMERACION->RowCssClass = "row";
+
+        // crea_dato
+        $this->crea_dato->RowCssClass = "row";
+
+        // modifica_dato
+        $this->modifica_dato->RowCssClass = "row";
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -910,6 +930,16 @@ class EncuestaAdd extends Encuesta
             // NUMERACION
             $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
             $this->NUMERACION->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->LinkCustomAttributes = "";

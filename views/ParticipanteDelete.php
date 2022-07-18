@@ -65,11 +65,11 @@ $Page->showMessage();
 <?php if ($Page->TELEFONO->Visible) { // TELEFONO ?>
         <th class="<?= $Page->TELEFONO->headerCellClass() ?>"><span id="elh_participante_TELEFONO" class="participante_TELEFONO"><?= $Page->TELEFONO->caption() ?></span></th>
 <?php } ?>
-<?php if ($Page->CREACION->Visible) { // CREACION ?>
-        <th class="<?= $Page->CREACION->headerCellClass() ?>"><span id="elh_participante_CREACION" class="participante_CREACION"><?= $Page->CREACION->caption() ?></span></th>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th class="<?= $Page->crea_dato->headerCellClass() ?>"><span id="elh_participante_crea_dato" class="participante_crea_dato"><?= $Page->crea_dato->caption() ?></span></th>
 <?php } ?>
-<?php if ($Page->ACTUALIZACION->Visible) { // ACTUALIZACION ?>
-        <th class="<?= $Page->ACTUALIZACION->headerCellClass() ?>"><span id="elh_participante_ACTUALIZACION" class="participante_ACTUALIZACION"><?= $Page->ACTUALIZACION->caption() ?></span></th>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_participante_modifica_dato" class="participante_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
 <?php } ?>
     </tr>
     </thead>
@@ -148,19 +148,19 @@ while (!$Page->Recordset->EOF) {
 </span>
 </td>
 <?php } ?>
-<?php if ($Page->CREACION->Visible) { // CREACION ?>
-        <td<?= $Page->CREACION->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_participante_CREACION" class="el_participante_CREACION">
-<span<?= $Page->CREACION->viewAttributes() ?>>
-<?= $Page->CREACION->getViewValue() ?></span>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_participante_crea_dato" class="el_participante_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($Page->ACTUALIZACION->Visible) { // ACTUALIZACION ?>
-        <td<?= $Page->ACTUALIZACION->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_participante_ACTUALIZACION" class="el_participante_ACTUALIZACION">
-<span<?= $Page->ACTUALIZACION->viewAttributes() ?>>
-<?= $Page->ACTUALIZACION->getViewValue() ?></span>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_participante_modifica_dato" class="el_participante_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

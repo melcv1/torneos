@@ -44,11 +44,11 @@ $Page->showMessage();
 <table class="table table-bordered table-hover table-sm ew-table">
     <thead>
     <tr class="ew-table-header">
-<?php if ($Page->ID_EQUIPO2->Visible) { // ID_EQUIPO2 ?>
-        <th class="<?= $Page->ID_EQUIPO2->headerCellClass() ?>"><span id="elh_partidos_ID_EQUIPO2" class="partidos_ID_EQUIPO2"><?= $Page->ID_EQUIPO2->caption() ?></span></th>
+<?php if ($Page->equipo_local->Visible) { // equipo_local ?>
+        <th class="<?= $Page->equipo_local->headerCellClass() ?>"><span id="elh_partidos_equipo_local" class="partidos_equipo_local"><?= $Page->equipo_local->caption() ?></span></th>
 <?php } ?>
-<?php if ($Page->ID_EQUIPO1->Visible) { // ID_EQUIPO1 ?>
-        <th class="<?= $Page->ID_EQUIPO1->headerCellClass() ?>"><span id="elh_partidos_ID_EQUIPO1" class="partidos_ID_EQUIPO1"><?= $Page->ID_EQUIPO1->caption() ?></span></th>
+<?php if ($Page->equipo_visitante->Visible) { // equipo_visitante ?>
+        <th class="<?= $Page->equipo_visitante->headerCellClass() ?>"><span id="elh_partidos_equipo_visitante" class="partidos_equipo_visitante"><?= $Page->equipo_visitante->caption() ?></span></th>
 <?php } ?>
 <?php if ($Page->ID_PARTIDO->Visible) { // ID_PARTIDO ?>
         <th class="<?= $Page->ID_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_ID_PARTIDO" class="partidos_ID_PARTIDO"><?= $Page->ID_PARTIDO->caption() ?></span></th>
@@ -61,9 +61,6 @@ $Page->showMessage();
 <?php } ?>
 <?php if ($Page->HORA_PARTIDO->Visible) { // HORA_PARTIDO ?>
         <th class="<?= $Page->HORA_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_HORA_PARTIDO" class="partidos_HORA_PARTIDO"><?= $Page->HORA_PARTIDO->caption() ?></span></th>
-<?php } ?>
-<?php if ($Page->DIA_PARTIDO->Visible) { // DIA_PARTIDO ?>
-        <th class="<?= $Page->DIA_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_DIA_PARTIDO" class="partidos_DIA_PARTIDO"><?= $Page->DIA_PARTIDO->caption() ?></span></th>
 <?php } ?>
 <?php if ($Page->ESTADIO->Visible) { // ESTADIO ?>
         <th class="<?= $Page->ESTADIO->headerCellClass() ?>"><span id="elh_partidos_ESTADIO" class="partidos_ESTADIO"><?= $Page->ESTADIO->caption() ?></span></th>
@@ -95,6 +92,12 @@ $Page->showMessage();
 <?php if ($Page->ESTADO_PARTIDO->Visible) { // ESTADO_PARTIDO ?>
         <th class="<?= $Page->ESTADO_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_ESTADO_PARTIDO" class="partidos_ESTADO_PARTIDO"><?= $Page->ESTADO_PARTIDO->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th class="<?= $Page->crea_dato->headerCellClass() ?>"><span id="elh_partidos_crea_dato" class="partidos_crea_dato"><?= $Page->crea_dato->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_partidos_modifica_dato" class="partidos_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -116,19 +119,19 @@ while (!$Page->Recordset->EOF) {
     $Page->renderRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
-<?php if ($Page->ID_EQUIPO2->Visible) { // ID_EQUIPO2 ?>
-        <td<?= $Page->ID_EQUIPO2->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_ID_EQUIPO2" class="el_partidos_ID_EQUIPO2">
-<span<?= $Page->ID_EQUIPO2->viewAttributes() ?>>
-<?= $Page->ID_EQUIPO2->getViewValue() ?></span>
+<?php if ($Page->equipo_local->Visible) { // equipo_local ?>
+        <td<?= $Page->equipo_local->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_equipo_local" class="el_partidos_equipo_local">
+<span<?= $Page->equipo_local->viewAttributes() ?>>
+<?= $Page->equipo_local->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($Page->ID_EQUIPO1->Visible) { // ID_EQUIPO1 ?>
-        <td<?= $Page->ID_EQUIPO1->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_ID_EQUIPO1" class="el_partidos_ID_EQUIPO1">
-<span<?= $Page->ID_EQUIPO1->viewAttributes() ?>>
-<?= $Page->ID_EQUIPO1->getViewValue() ?></span>
+<?php if ($Page->equipo_visitante->Visible) { // equipo_visitante ?>
+        <td<?= $Page->equipo_visitante->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_equipo_visitante" class="el_partidos_equipo_visitante">
+<span<?= $Page->equipo_visitante->viewAttributes() ?>>
+<?= $Page->equipo_visitante->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
@@ -161,14 +164,6 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_partidos_HORA_PARTIDO" class="el_partidos_HORA_PARTIDO">
 <span<?= $Page->HORA_PARTIDO->viewAttributes() ?>>
 <?= $Page->HORA_PARTIDO->getViewValue() ?></span>
-</span>
-</td>
-<?php } ?>
-<?php if ($Page->DIA_PARTIDO->Visible) { // DIA_PARTIDO ?>
-        <td<?= $Page->DIA_PARTIDO->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_DIA_PARTIDO" class="el_partidos_DIA_PARTIDO">
-<span<?= $Page->DIA_PARTIDO->viewAttributes() ?>>
-<?= $Page->DIA_PARTIDO->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
@@ -249,6 +244,22 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_partidos_ESTADO_PARTIDO" class="el_partidos_ESTADO_PARTIDO">
 <span<?= $Page->ESTADO_PARTIDO->viewAttributes() ?>>
 <?= $Page->ESTADO_PARTIDO->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_crea_dato" class="el_partidos_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_modifica_dato" class="el_partidos_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

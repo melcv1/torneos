@@ -40,6 +40,7 @@ loadjs.ready(["wrapper", "head"], function () {
 
     // Dynamic selection lists
     fequipoadd.lists.REGION_EQUIPO = <?= $Page->REGION_EQUIPO->toClientList($Page) ?>;
+    fequipoadd.lists.NOM_ESTADIO = <?= $Page->NOM_ESTADIO->toClientList($Page) ?>;
     loadjs.done("fequipoadd");
 });
 </script>
@@ -67,7 +68,7 @@ $Page->showMessage();
         <label id="elh_equipo_NOM_EQUIPO_CORTO" for="x_NOM_EQUIPO_CORTO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NOM_EQUIPO_CORTO->caption() ?><?= $Page->NOM_EQUIPO_CORTO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NOM_EQUIPO_CORTO->cellAttributes() ?>>
 <span id="el_equipo_NOM_EQUIPO_CORTO">
-<textarea data-table="equipo" data-field="x_NOM_EQUIPO_CORTO" name="x_NOM_EQUIPO_CORTO" id="x_NOM_EQUIPO_CORTO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->NOM_EQUIPO_CORTO->getPlaceHolder()) ?>"<?= $Page->NOM_EQUIPO_CORTO->editAttributes() ?> aria-describedby="x_NOM_EQUIPO_CORTO_help"><?= $Page->NOM_EQUIPO_CORTO->EditValue ?></textarea>
+<textarea data-table="equipo" data-field="x_NOM_EQUIPO_CORTO" name="x_NOM_EQUIPO_CORTO" id="x_NOM_EQUIPO_CORTO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOM_EQUIPO_CORTO->getPlaceHolder()) ?>"<?= $Page->NOM_EQUIPO_CORTO->editAttributes() ?> aria-describedby="x_NOM_EQUIPO_CORTO_help"><?= $Page->NOM_EQUIPO_CORTO->EditValue ?></textarea>
 <?= $Page->NOM_EQUIPO_CORTO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NOM_EQUIPO_CORTO->getErrorMessage() ?></div>
 </span>
@@ -79,7 +80,7 @@ $Page->showMessage();
         <label id="elh_equipo_NOM_EQUIPO_LARGO" for="x_NOM_EQUIPO_LARGO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NOM_EQUIPO_LARGO->caption() ?><?= $Page->NOM_EQUIPO_LARGO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NOM_EQUIPO_LARGO->cellAttributes() ?>>
 <span id="el_equipo_NOM_EQUIPO_LARGO">
-<textarea data-table="equipo" data-field="x_NOM_EQUIPO_LARGO" name="x_NOM_EQUIPO_LARGO" id="x_NOM_EQUIPO_LARGO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->NOM_EQUIPO_LARGO->getPlaceHolder()) ?>"<?= $Page->NOM_EQUIPO_LARGO->editAttributes() ?> aria-describedby="x_NOM_EQUIPO_LARGO_help"><?= $Page->NOM_EQUIPO_LARGO->EditValue ?></textarea>
+<textarea data-table="equipo" data-field="x_NOM_EQUIPO_LARGO" name="x_NOM_EQUIPO_LARGO" id="x_NOM_EQUIPO_LARGO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOM_EQUIPO_LARGO->getPlaceHolder()) ?>"<?= $Page->NOM_EQUIPO_LARGO->editAttributes() ?> aria-describedby="x_NOM_EQUIPO_LARGO_help"><?= $Page->NOM_EQUIPO_LARGO->EditValue ?></textarea>
 <?= $Page->NOM_EQUIPO_LARGO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NOM_EQUIPO_LARGO->getErrorMessage() ?></div>
 </span>
@@ -91,7 +92,7 @@ $Page->showMessage();
         <label id="elh_equipo_PAIS_EQUIPO" for="x_PAIS_EQUIPO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->PAIS_EQUIPO->caption() ?><?= $Page->PAIS_EQUIPO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->PAIS_EQUIPO->cellAttributes() ?>>
 <span id="el_equipo_PAIS_EQUIPO">
-<textarea data-table="equipo" data-field="x_PAIS_EQUIPO" name="x_PAIS_EQUIPO" id="x_PAIS_EQUIPO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->PAIS_EQUIPO->getPlaceHolder()) ?>"<?= $Page->PAIS_EQUIPO->editAttributes() ?> aria-describedby="x_PAIS_EQUIPO_help"><?= $Page->PAIS_EQUIPO->EditValue ?></textarea>
+<textarea data-table="equipo" data-field="x_PAIS_EQUIPO" name="x_PAIS_EQUIPO" id="x_PAIS_EQUIPO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->PAIS_EQUIPO->getPlaceHolder()) ?>"<?= $Page->PAIS_EQUIPO->editAttributes() ?> aria-describedby="x_PAIS_EQUIPO_help"><?= $Page->PAIS_EQUIPO->EditValue ?></textarea>
 <?= $Page->PAIS_EQUIPO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->PAIS_EQUIPO->getErrorMessage() ?></div>
 </span>
@@ -141,7 +142,7 @@ loadjs.ready("fequipoadd", function() {
         <label id="elh_equipo_DETALLE_EQUIPO" for="x_DETALLE_EQUIPO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->DETALLE_EQUIPO->caption() ?><?= $Page->DETALLE_EQUIPO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->DETALLE_EQUIPO->cellAttributes() ?>>
 <span id="el_equipo_DETALLE_EQUIPO">
-<textarea data-table="equipo" data-field="x_DETALLE_EQUIPO" name="x_DETALLE_EQUIPO" id="x_DETALLE_EQUIPO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->DETALLE_EQUIPO->getPlaceHolder()) ?>"<?= $Page->DETALLE_EQUIPO->editAttributes() ?> aria-describedby="x_DETALLE_EQUIPO_help"><?= $Page->DETALLE_EQUIPO->EditValue ?></textarea>
+<textarea data-table="equipo" data-field="x_DETALLE_EQUIPO" name="x_DETALLE_EQUIPO" id="x_DETALLE_EQUIPO" cols="35" rows="2" placeholder="<?= HtmlEncode($Page->DETALLE_EQUIPO->getPlaceHolder()) ?>"<?= $Page->DETALLE_EQUIPO->editAttributes() ?> aria-describedby="x_DETALLE_EQUIPO_help"><?= $Page->DETALLE_EQUIPO->EditValue ?></textarea>
 <?= $Page->DETALLE_EQUIPO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->DETALLE_EQUIPO->getErrorMessage() ?></div>
 </span>
@@ -174,9 +175,39 @@ loadjs.ready("fequipoadd", function() {
         <label id="elh_equipo_NOM_ESTADIO" for="x_NOM_ESTADIO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NOM_ESTADIO->caption() ?><?= $Page->NOM_ESTADIO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NOM_ESTADIO->cellAttributes() ?>>
 <span id="el_equipo_NOM_ESTADIO">
-<textarea data-table="equipo" data-field="x_NOM_ESTADIO" name="x_NOM_ESTADIO" id="x_NOM_ESTADIO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->NOM_ESTADIO->getPlaceHolder()) ?>"<?= $Page->NOM_ESTADIO->editAttributes() ?> aria-describedby="x_NOM_ESTADIO_help"><?= $Page->NOM_ESTADIO->EditValue ?></textarea>
+<div class="input-group flex-nowrap">
+    <select
+        id="x_NOM_ESTADIO"
+        name="x_NOM_ESTADIO"
+        class="form-select ew-select<?= $Page->NOM_ESTADIO->isInvalidClass() ?>"
+        data-select2-id="fequipoadd_x_NOM_ESTADIO"
+        data-table="equipo"
+        data-field="x_NOM_ESTADIO"
+        data-value-separator="<?= $Page->NOM_ESTADIO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->NOM_ESTADIO->getPlaceHolder()) ?>"
+        <?= $Page->NOM_ESTADIO->editAttributes() ?>>
+        <?= $Page->NOM_ESTADIO->selectOptionListHtml("x_NOM_ESTADIO") ?>
+    </select>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_NOM_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->NOM_ESTADIO->caption() ?>" data-title="<?= $Page->NOM_ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x_NOM_ESTADIO" data-url="<?= GetUrl("EstadioAddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
 <?= $Page->NOM_ESTADIO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NOM_ESTADIO->getErrorMessage() ?></div>
+<?= $Page->NOM_ESTADIO->Lookup->getParamTag($Page, "p_x_NOM_ESTADIO") ?>
+<script>
+loadjs.ready("fequipoadd", function() {
+    var options = { name: "x_NOM_ESTADIO", selectId: "fequipoadd_x_NOM_ESTADIO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipoadd.lists.NOM_ESTADIO.lookupOptions.length) {
+        options.data = { id: "x_NOM_ESTADIO", form: "fequipoadd" };
+    } else {
+        options.ajax = { id: "x_NOM_ESTADIO", form: "fequipoadd", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.NOM_ESTADIO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
 </span>
 </div></div>
     </div>

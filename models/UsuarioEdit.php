@@ -495,6 +495,8 @@ class UsuarioEdit extends Usuario
         $this->USER->setVisibility();
         $this->CONTRASENA->setVisibility();
         $this->nombre->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -715,6 +717,27 @@ class UsuarioEdit extends Usuario
                 $this->nombre->setFormValue($val);
             }
         }
+
+        // Check field name 'crea_dato' first before field var 'x_crea_dato'
+        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
+        if (!$this->crea_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->crea_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->crea_dato->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
+        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
+        if (!$this->modifica_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->modifica_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->modifica_dato->setFormValue($val, true, $validate);
+            }
+            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        }
     }
 
     // Restore form values
@@ -725,6 +748,9 @@ class UsuarioEdit extends Usuario
         $this->USER->CurrentValue = $this->USER->FormValue;
         $this->CONTRASENA->CurrentValue = $this->CONTRASENA->FormValue;
         $this->nombre->CurrentValue = $this->nombre->FormValue;
+        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
+        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
+        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
     }
 
     /**
@@ -778,6 +804,8 @@ class UsuarioEdit extends Usuario
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
         $this->nombre->setDbValue($row['nombre']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -788,6 +816,8 @@ class UsuarioEdit extends Usuario
         $row['USER'] = $this->USER->DefaultValue;
         $row['CONTRASENA'] = $this->CONTRASENA->DefaultValue;
         $row['nombre'] = $this->nombre->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -831,6 +861,12 @@ class UsuarioEdit extends Usuario
         // nombre
         $this->nombre->RowCssClass = "row";
 
+        // crea_dato
+        $this->crea_dato->RowCssClass = "row";
+
+        // modifica_dato
+        $this->modifica_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_USUARIO
@@ -849,6 +885,16 @@ class UsuarioEdit extends Usuario
             $this->nombre->ViewValue = $this->nombre->CurrentValue;
             $this->nombre->ViewCustomAttributes = "";
 
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatNumber($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
+
             // ID_USUARIO
             $this->ID_USUARIO->LinkCustomAttributes = "";
             $this->ID_USUARIO->HrefValue = "";
@@ -864,6 +910,14 @@ class UsuarioEdit extends Usuario
             // nombre
             $this->nombre->LinkCustomAttributes = "";
             $this->nombre->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_USUARIO
             $this->ID_USUARIO->setupEditAttributes();
@@ -889,6 +943,21 @@ class UsuarioEdit extends Usuario
             $this->nombre->EditValue = HtmlEncode($this->nombre->CurrentValue);
             $this->nombre->PlaceHolder = RemoveHtml($this->nombre->caption());
 
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = HtmlEncode($this->crea_dato->CurrentValue);
+            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+            if (strval($this->crea_dato->EditValue) != "" && is_numeric($this->crea_dato->EditValue)) {
+                $this->crea_dato->EditValue = FormatNumber($this->crea_dato->EditValue, null);
+            }
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
+            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+
             // Edit refer script
 
             // ID_USUARIO
@@ -906,6 +975,14 @@ class UsuarioEdit extends Usuario
             // nombre
             $this->nombre->LinkCustomAttributes = "";
             $this->nombre->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -946,6 +1023,22 @@ class UsuarioEdit extends Usuario
             if (!$this->nombre->IsDetailKey && EmptyValue($this->nombre->FormValue)) {
                 $this->nombre->addErrorMessage(str_replace("%s", $this->nombre->caption(), $this->nombre->RequiredErrorMessage));
             }
+        }
+        if ($this->crea_dato->Required) {
+            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
+                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->crea_dato->FormValue)) {
+            $this->crea_dato->addErrorMessage($this->crea_dato->getErrorMessage(false));
+        }
+        if ($this->modifica_dato->Required) {
+            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
+                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+        if (!CheckDate($this->modifica_dato->FormValue, $this->modifica_dato->formatPattern())) {
+            $this->modifica_dato->addErrorMessage($this->modifica_dato->getErrorMessage(false));
         }
 
         // Return validate result
@@ -991,6 +1084,12 @@ class UsuarioEdit extends Usuario
 
         // nombre
         $this->nombre->setDbValueDef($rsnew, $this->nombre->CurrentValue, "", $this->nombre->ReadOnly);
+
+        // crea_dato
+        $this->crea_dato->setDbValueDef($rsnew, $this->crea_dato->CurrentValue, 0, $this->crea_dato->ReadOnly);
+
+        // modifica_dato
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), $this->modifica_dato->ReadOnly);
 
         // Update current values
         $this->setCurrentValues($rsnew);

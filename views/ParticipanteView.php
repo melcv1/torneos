@@ -121,24 +121,24 @@ $Page->showMessage();
 </td>
     </tr>
 <?php } ?>
-<?php if ($Page->CREACION->Visible) { // CREACION ?>
-    <tr id="r_CREACION"<?= $Page->CREACION->rowAttributes() ?>>
-        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_participante_CREACION"><?= $Page->CREACION->caption() ?></span></td>
-        <td data-name="CREACION"<?= $Page->CREACION->cellAttributes() ?>>
-<span id="el_participante_CREACION">
-<span<?= $Page->CREACION->viewAttributes() ?>>
-<?= $Page->CREACION->getViewValue() ?></span>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+    <tr id="r_crea_dato"<?= $Page->crea_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_participante_crea_dato"><?= $Page->crea_dato->caption() ?></span></td>
+        <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el_participante_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
 </span>
 </td>
     </tr>
 <?php } ?>
-<?php if ($Page->ACTUALIZACION->Visible) { // ACTUALIZACION ?>
-    <tr id="r_ACTUALIZACION"<?= $Page->ACTUALIZACION->rowAttributes() ?>>
-        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_participante_ACTUALIZACION"><?= $Page->ACTUALIZACION->caption() ?></span></td>
-        <td data-name="ACTUALIZACION"<?= $Page->ACTUALIZACION->cellAttributes() ?>>
-<span id="el_participante_ACTUALIZACION">
-<span<?= $Page->ACTUALIZACION->viewAttributes() ?>>
-<?= $Page->ACTUALIZACION->getViewValue() ?></span>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+    <tr id="r_modifica_dato"<?= $Page->modifica_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_participante_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></td>
+        <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el_participante_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
     </tr>

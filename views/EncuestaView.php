@@ -110,6 +110,28 @@ $Page->showMessage();
 </td>
     </tr>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+    <tr id="r_crea_dato"<?= $Page->crea_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_encuesta_crea_dato"><?= $Page->crea_dato->caption() ?></span></td>
+        <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el_encuesta_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+    <tr id="r_modifica_dato"<?= $Page->modifica_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_encuesta_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></td>
+        <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el_encuesta_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
 </table>
 </form>
 <?php

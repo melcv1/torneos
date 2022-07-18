@@ -494,6 +494,8 @@ class EquipoAdd extends Equipo
         $this->DETALLE_EQUIPO->setVisibility();
         $this->ESCUDO_EQUIPO->setVisibility();
         $this->NOM_ESTADIO->setVisibility();
+        $this->crea_dato->Visible = false;
+        $this->modifica_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -511,6 +513,7 @@ class EquipoAdd extends Equipo
 
         // Set up lookup cache
         $this->setupLookupOptions($this->REGION_EQUIPO);
+        $this->setupLookupOptions($this->NOM_ESTADIO);
 
         // Load default values for add
         $this->loadDefaultValues();
@@ -794,6 +797,13 @@ class EquipoAdd extends Equipo
             $this->ESCUDO_EQUIPO->Upload->DbValue = stream_get_contents($this->ESCUDO_EQUIPO->Upload->DbValue);
         }
         $this->NOM_ESTADIO->setDbValue($row['NOM_ESTADIO']);
+        if (array_key_exists('EV__NOM_ESTADIO', $row)) {
+            $this->NOM_ESTADIO->VirtualValue = $row['EV__NOM_ESTADIO']; // Set up virtual field value
+        } else {
+            $this->NOM_ESTADIO->VirtualValue = ""; // Clear value
+        }
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -808,6 +818,8 @@ class EquipoAdd extends Equipo
         $row['DETALLE_EQUIPO'] = $this->DETALLE_EQUIPO->DefaultValue;
         $row['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->DefaultValue;
         $row['NOM_ESTADIO'] = $this->NOM_ESTADIO->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -863,6 +875,12 @@ class EquipoAdd extends Equipo
         // NOM_ESTADIO
         $this->NOM_ESTADIO->RowCssClass = "row";
 
+        // crea_dato
+        $this->crea_dato->RowCssClass = "row";
+
+        // modifica_dato
+        $this->modifica_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_EQUIPO
@@ -907,8 +925,46 @@ class EquipoAdd extends Equipo
             $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_ESTADIO
-            $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->CurrentValue;
+            if ($this->NOM_ESTADIO->VirtualValue != "") {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->VirtualValue;
+            } else {
+                $curVal = strval($this->NOM_ESTADIO->CurrentValue);
+                if ($curVal != "") {
+                    $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
+                    if ($this->NOM_ESTADIO->ViewValue === null) { // Lookup from database
+                        $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                        $conn = Conn();
+                        $config = $conn->getConfiguration();
+                        $config->setResultCacheImpl($this->Cache);
+                        $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                        $ari = count($rswrk);
+                        if ($ari > 0) { // Lookup values found
+                            $arwrk = $this->NOM_ESTADIO->Lookup->renderViewRow($rswrk[0]);
+                            $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->displayValue($arwrk);
+                        } else {
+                            $this->NOM_ESTADIO->ViewValue = FormatNumber($this->NOM_ESTADIO->CurrentValue, $this->NOM_ESTADIO->formatPattern());
+                        }
+                    }
+                } else {
+                    $this->NOM_ESTADIO->ViewValue = null;
+                }
+            }
             $this->NOM_ESTADIO->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_CORTO
             $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
@@ -1000,7 +1056,29 @@ class EquipoAdd extends Equipo
             // NOM_ESTADIO
             $this->NOM_ESTADIO->setupEditAttributes();
             $this->NOM_ESTADIO->EditCustomAttributes = "";
-            $this->NOM_ESTADIO->EditValue = HtmlEncode($this->NOM_ESTADIO->CurrentValue);
+            $curVal = trim(strval($this->NOM_ESTADIO->CurrentValue));
+            if ($curVal != "") {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
+            } else {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->Lookup !== null && is_array($this->NOM_ESTADIO->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->NOM_ESTADIO->ViewValue !== null) { // Load from cache
+                $this->NOM_ESTADIO->EditValue = array_values($this->NOM_ESTADIO->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`id_estadio`" . SearchString("=", $this->NOM_ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->NOM_ESTADIO->EditValue = $arwrk;
+            }
             $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
 
             // Add refer script
@@ -1218,6 +1296,8 @@ class EquipoAdd extends Equipo
             // Set up lookup SQL and connection
             switch ($fld->FieldVar) {
                 case "x_REGION_EQUIPO":
+                    break;
+                case "x_NOM_ESTADIO":
                     break;
                 default:
                     $lookupFilter = "";

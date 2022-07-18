@@ -38,8 +38,8 @@ class Participante extends DbTable
     public $CEDULA;
     public $_EMAIL;
     public $TELEFONO;
-    public $CREACION;
-    public $ACTUALIZACION;
+    public $crea_dato;
+    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -235,49 +235,55 @@ class Participante extends DbTable
         $this->TELEFONO->InputTextType = "text";
         $this->Fields['TELEFONO'] = &$this->TELEFONO;
 
-        // CREACION
-        $this->CREACION = new DbField(
+        // crea_dato
+        $this->crea_dato = new DbField(
             'participante',
             'participante',
-            'x_CREACION',
-            'CREACION',
-            '`CREACION`',
-            '`CREACION`',
-            201,
-            256,
-            -1,
+            'x_crea_dato',
+            'crea_dato',
+            '`crea_dato`',
+            CastDateFieldForLike("`crea_dato`", 15, "DB"),
+            135,
+            19,
+            15,
             false,
-            '`CREACION`',
+            '`crea_dato`',
             false,
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'TEXT'
         );
-        $this->CREACION->InputTextType = "text";
-        $this->Fields['CREACION'] = &$this->CREACION;
+        $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Nullable = false; // NOT NULL field
+        $this->crea_dato->Required = true; // Required field
+        $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['crea_dato'] = &$this->crea_dato;
 
-        // ACTUALIZACION
-        $this->ACTUALIZACION = new DbField(
+        // modifica_dato
+        $this->modifica_dato = new DbField(
             'participante',
             'participante',
-            'x_ACTUALIZACION',
-            'ACTUALIZACION',
-            '`ACTUALIZACION`',
-            '`ACTUALIZACION`',
-            201,
-            256,
-            -1,
+            'x_modifica_dato',
+            'modifica_dato',
+            '`modifica_dato`',
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
+            135,
+            19,
+            15,
             false,
-            '`ACTUALIZACION`',
+            '`modifica_dato`',
             false,
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'TEXT'
         );
-        $this->ACTUALIZACION->InputTextType = "text";
-        $this->Fields['ACTUALIZACION'] = &$this->ACTUALIZACION;
+        $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Nullable = false; // NOT NULL field
+        $this->modifica_dato->Required = true; // Required field
+        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -716,8 +722,8 @@ class Participante extends DbTable
         $this->CEDULA->DbValue = $row['CEDULA'];
         $this->_EMAIL->DbValue = $row['EMAIL'];
         $this->TELEFONO->DbValue = $row['TELEFONO'];
-        $this->CREACION->DbValue = $row['CREACION'];
-        $this->ACTUALIZACION->DbValue = $row['ACTUALIZACION'];
+        $this->crea_dato->DbValue = $row['crea_dato'];
+        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -1043,8 +1049,8 @@ class Participante extends DbTable
         $this->CEDULA->setDbValue($row['CEDULA']);
         $this->_EMAIL->setDbValue($row['EMAIL']);
         $this->TELEFONO->setDbValue($row['TELEFONO']);
-        $this->CREACION->setDbValue($row['CREACION']);
-        $this->ACTUALIZACION->setDbValue($row['ACTUALIZACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1071,9 +1077,9 @@ class Participante extends DbTable
 
         // TELEFONO
 
-        // CREACION
+        // crea_dato
 
-        // ACTUALIZACION
+        // modifica_dato
 
         // ID_PARTICIPANTE
         $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->CurrentValue;
@@ -1103,13 +1109,18 @@ class Participante extends DbTable
         $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
         $this->TELEFONO->ViewCustomAttributes = "";
 
-        // CREACION
-        $this->CREACION->ViewValue = $this->CREACION->CurrentValue;
-        $this->CREACION->ViewCustomAttributes = "";
+        // crea_dato
+        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
 
-        // ACTUALIZACION
-        $this->ACTUALIZACION->ViewValue = $this->ACTUALIZACION->CurrentValue;
-        $this->ACTUALIZACION->ViewCustomAttributes = "";
+        // modifica_dato
+        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
 
         // ID_PARTICIPANTE
         $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
@@ -1146,15 +1157,15 @@ class Participante extends DbTable
         $this->TELEFONO->HrefValue = "";
         $this->TELEFONO->TooltipValue = "";
 
-        // CREACION
-        $this->CREACION->LinkCustomAttributes = "";
-        $this->CREACION->HrefValue = "";
-        $this->CREACION->TooltipValue = "";
+        // crea_dato
+        $this->crea_dato->LinkCustomAttributes = "";
+        $this->crea_dato->HrefValue = "";
+        $this->crea_dato->TooltipValue = "";
 
-        // ACTUALIZACION
-        $this->ACTUALIZACION->LinkCustomAttributes = "";
-        $this->ACTUALIZACION->HrefValue = "";
-        $this->ACTUALIZACION->TooltipValue = "";
+        // modifica_dato
+        $this->modifica_dato->LinkCustomAttributes = "";
+        $this->modifica_dato->HrefValue = "";
+        $this->modifica_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1219,17 +1230,22 @@ class Participante extends DbTable
         $this->TELEFONO->EditValue = $this->TELEFONO->CurrentValue;
         $this->TELEFONO->PlaceHolder = RemoveHtml($this->TELEFONO->caption());
 
-        // CREACION
-        $this->CREACION->setupEditAttributes();
-        $this->CREACION->EditCustomAttributes = "";
-        $this->CREACION->EditValue = $this->CREACION->CurrentValue;
-        $this->CREACION->PlaceHolder = RemoveHtml($this->CREACION->caption());
+        // crea_dato
+        $this->crea_dato->setupEditAttributes();
+        $this->crea_dato->EditCustomAttributes = "";
+        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
 
-        // ACTUALIZACION
-        $this->ACTUALIZACION->setupEditAttributes();
-        $this->ACTUALIZACION->EditCustomAttributes = "";
-        $this->ACTUALIZACION->EditValue = $this->ACTUALIZACION->CurrentValue;
-        $this->ACTUALIZACION->PlaceHolder = RemoveHtml($this->ACTUALIZACION->caption());
+        // modifica_dato
+        $this->modifica_dato->setupEditAttributes();
+        $this->modifica_dato->EditCustomAttributes = "";
+        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1266,8 +1282,8 @@ class Participante extends DbTable
                     $doc->exportCaption($this->CEDULA);
                     $doc->exportCaption($this->_EMAIL);
                     $doc->exportCaption($this->TELEFONO);
-                    $doc->exportCaption($this->CREACION);
-                    $doc->exportCaption($this->ACTUALIZACION);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->ID_PARTICIPANTE);
                     $doc->exportCaption($this->CEDULA);
@@ -1308,8 +1324,8 @@ class Participante extends DbTable
                         $doc->exportField($this->CEDULA);
                         $doc->exportField($this->_EMAIL);
                         $doc->exportField($this->TELEFONO);
-                        $doc->exportField($this->CREACION);
-                        $doc->exportField($this->ACTUALIZACION);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->ID_PARTICIPANTE);
                         $doc->exportField($this->CEDULA);

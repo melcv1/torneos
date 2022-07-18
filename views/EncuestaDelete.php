@@ -62,6 +62,12 @@ $Page->showMessage();
 <?php if ($Page->NUMERACION->Visible) { // NUMERACION ?>
         <th class="<?= $Page->NUMERACION->headerCellClass() ?>"><span id="elh_encuesta_NUMERACION" class="encuesta_NUMERACION"><?= $Page->NUMERACION->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th class="<?= $Page->crea_dato->headerCellClass() ?>"><span id="elh_encuesta_crea_dato" class="encuesta_crea_dato"><?= $Page->crea_dato->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_encuesta_modifica_dato" class="encuesta_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -128,6 +134,22 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_encuesta_NUMERACION" class="el_encuesta_NUMERACION">
 <span<?= $Page->NUMERACION->viewAttributes() ?>>
 <?= $Page->NUMERACION->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_encuesta_crea_dato" class="el_encuesta_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_encuesta_modifica_dato" class="el_encuesta_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

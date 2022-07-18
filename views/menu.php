@@ -14,6 +14,7 @@ if ($Language && function_exists(PROJECT_NAMESPACE . "Config") && $Language->Lan
 
 // Navbar menu
 $topMenu = new Menu("navbar", true, true);
+$topMenu->addMenuItem(9, "mi_estadio", $MenuLanguage->MenuPhrase("9", "MenuText"), $MenuRelativePath . "EstadioList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}estadio'), false, false, "", "", true, false);
 $topMenu->addMenuItem(2, "mi_encuesta", $MenuLanguage->MenuPhrase("2", "MenuText"), $MenuRelativePath . "EncuestaList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}encuesta'), false, false, "", "", true, false);
 $topMenu->addMenuItem(3, "mi_equipo", $MenuLanguage->MenuPhrase("3", "MenuText"), $MenuRelativePath . "EquipoList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}equipo'), false, false, "", "", true, false);
 $topMenu->addMenuItem(4, "mi_equipotorneo", $MenuLanguage->MenuPhrase("4", "MenuText"), $MenuRelativePath . "EquipotorneoList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}equipotorneo'), false, false, "", "", true, false);
@@ -24,6 +25,7 @@ echo $topMenu->toScript();
 
 // Sidebar menu
 $sideMenu = new Menu("menu", true, false);
+$sideMenu->addMenuItem(9, "mi_estadio", $MenuLanguage->MenuPhrase("9", "MenuText"), $MenuRelativePath . "EstadioList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}estadio'), false, false, "", "", true, true);
 $sideMenu->addMenuItem(2, "mi_encuesta", $MenuLanguage->MenuPhrase("2", "MenuText"), $MenuRelativePath . "EncuestaList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}encuesta'), false, false, "", "", true, true);
 $sideMenu->addMenuItem(3, "mi_equipo", $MenuLanguage->MenuPhrase("3", "MenuText"), $MenuRelativePath . "EquipoList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}equipo'), false, false, "", "", true, true);
 $sideMenu->addMenuItem(4, "mi_equipotorneo", $MenuLanguage->MenuPhrase("4", "MenuText"), $MenuRelativePath . "EquipotorneoList", -1, "", IsLoggedIn() || AllowListMenu('{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}equipotorneo'), false, false, "", "", true, true);

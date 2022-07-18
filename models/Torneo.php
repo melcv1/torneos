@@ -38,6 +38,8 @@ class Torneo extends DbTable
     public $REGION_TORNEO;
     public $DETALLE_TORNEO;
     public $LOGO_TORNEO;
+    public $crea_dato;
+    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -233,6 +235,56 @@ class Torneo extends DbTable
         $this->LOGO_TORNEO->InputTextType = "text";
         $this->LOGO_TORNEO->Sortable = false; // Allow sort
         $this->Fields['LOGO_TORNEO'] = &$this->LOGO_TORNEO;
+
+        // crea_dato
+        $this->crea_dato = new DbField(
+            'torneo',
+            'torneo',
+            'x_crea_dato',
+            'crea_dato',
+            '`crea_dato`',
+            CastDateFieldForLike("`crea_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`crea_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Nullable = false; // NOT NULL field
+        $this->crea_dato->Required = true; // Required field
+        $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['crea_dato'] = &$this->crea_dato;
+
+        // modifica_dato
+        $this->modifica_dato = new DbField(
+            'torneo',
+            'torneo',
+            'x_modifica_dato',
+            'modifica_dato',
+            '`modifica_dato`',
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`modifica_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Nullable = false; // NOT NULL field
+        $this->modifica_dato->Required = true; // Required field
+        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -671,6 +723,8 @@ class Torneo extends DbTable
         $this->REGION_TORNEO->DbValue = $row['REGION_TORNEO'];
         $this->DETALLE_TORNEO->DbValue = $row['DETALLE_TORNEO'];
         $this->LOGO_TORNEO->Upload->DbValue = $row['LOGO_TORNEO'];
+        $this->crea_dato->DbValue = $row['crea_dato'];
+        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -996,6 +1050,8 @@ class Torneo extends DbTable
         $this->REGION_TORNEO->setDbValue($row['REGION_TORNEO']);
         $this->DETALLE_TORNEO->setDbValue($row['DETALLE_TORNEO']);
         $this->LOGO_TORNEO->Upload->DbValue = $row['LOGO_TORNEO'];
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1021,6 +1077,10 @@ class Torneo extends DbTable
         // DETALLE_TORNEO
 
         // LOGO_TORNEO
+
+        // crea_dato
+
+        // modifica_dato
 
         // ID_TORNEO
         $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
@@ -1058,6 +1118,20 @@ class Torneo extends DbTable
             $this->LOGO_TORNEO->ViewValue = "";
         }
         $this->LOGO_TORNEO->ViewCustomAttributes = "";
+
+        // crea_dato
+        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CssClass = "fst-italic";
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
 
         // ID_TORNEO
         $this->ID_TORNEO->LinkCustomAttributes = "";
@@ -1112,6 +1186,16 @@ class Torneo extends DbTable
             $this->LOGO_TORNEO->LinkAttrs["data-rel"] = "torneo_x_LOGO_TORNEO";
             $this->LOGO_TORNEO->LinkAttrs->appendClass("ew-lightbox");
         }
+
+        // crea_dato
+        $this->crea_dato->LinkCustomAttributes = "";
+        $this->crea_dato->HrefValue = "";
+        $this->crea_dato->TooltipValue = "";
+
+        // modifica_dato
+        $this->modifica_dato->LinkCustomAttributes = "";
+        $this->modifica_dato->HrefValue = "";
+        $this->modifica_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1178,6 +1262,24 @@ class Torneo extends DbTable
             $this->LOGO_TORNEO->EditValue = "";
         }
 
+        // crea_dato
+        $this->crea_dato->setupEditAttributes();
+        $this->crea_dato->EditCustomAttributes = "";
+        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CssClass = "fst-italic";
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->setupEditAttributes();
+        $this->modifica_dato->EditCustomAttributes = "";
+        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1213,8 +1315,12 @@ class Torneo extends DbTable
                     $doc->exportCaption($this->REGION_TORNEO);
                     $doc->exportCaption($this->DETALLE_TORNEO);
                     $doc->exportCaption($this->LOGO_TORNEO);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->ID_TORNEO);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1251,8 +1357,12 @@ class Torneo extends DbTable
                         $doc->exportField($this->REGION_TORNEO);
                         $doc->exportField($this->DETALLE_TORNEO);
                         $doc->exportField($this->LOGO_TORNEO);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->ID_TORNEO);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

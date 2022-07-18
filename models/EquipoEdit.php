@@ -499,7 +499,11 @@ class EquipoEdit extends Equipo
         $this->DETALLE_EQUIPO->setVisibility();
         $this->ESCUDO_EQUIPO->setVisibility();
         $this->NOM_ESTADIO->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
+        $this->crea_dato->Required = false;
+        $this->modifica_dato->Required = false;
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -516,6 +520,7 @@ class EquipoEdit extends Equipo
 
         // Set up lookup cache
         $this->setupLookupOptions($this->REGION_EQUIPO);
+        $this->setupLookupOptions($this->NOM_ESTADIO);
 
         // Check modal
         if ($this->IsModal) {
@@ -752,6 +757,28 @@ class EquipoEdit extends Equipo
                 $this->NOM_ESTADIO->setFormValue($val);
             }
         }
+
+        // Check field name 'crea_dato' first before field var 'x_crea_dato'
+        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
+        if (!$this->crea_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->crea_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->crea_dato->setFormValue($val);
+            }
+            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        }
+
+        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
+        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
+        if (!$this->modifica_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->modifica_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->modifica_dato->setFormValue($val);
+            }
+            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        }
         $this->getUploadFiles(); // Get upload files
     }
 
@@ -766,6 +793,10 @@ class EquipoEdit extends Equipo
         $this->REGION_EQUIPO->CurrentValue = $this->REGION_EQUIPO->FormValue;
         $this->DETALLE_EQUIPO->CurrentValue = $this->DETALLE_EQUIPO->FormValue;
         $this->NOM_ESTADIO->CurrentValue = $this->NOM_ESTADIO->FormValue;
+        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
+        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
+        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
     }
 
     /**
@@ -826,6 +857,13 @@ class EquipoEdit extends Equipo
             $this->ESCUDO_EQUIPO->Upload->DbValue = stream_get_contents($this->ESCUDO_EQUIPO->Upload->DbValue);
         }
         $this->NOM_ESTADIO->setDbValue($row['NOM_ESTADIO']);
+        if (array_key_exists('EV__NOM_ESTADIO', $row)) {
+            $this->NOM_ESTADIO->VirtualValue = $row['EV__NOM_ESTADIO']; // Set up virtual field value
+        } else {
+            $this->NOM_ESTADIO->VirtualValue = ""; // Clear value
+        }
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -840,6 +878,8 @@ class EquipoEdit extends Equipo
         $row['DETALLE_EQUIPO'] = $this->DETALLE_EQUIPO->DefaultValue;
         $row['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->DefaultValue;
         $row['NOM_ESTADIO'] = $this->NOM_ESTADIO->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -895,6 +935,12 @@ class EquipoEdit extends Equipo
         // NOM_ESTADIO
         $this->NOM_ESTADIO->RowCssClass = "row";
 
+        // crea_dato
+        $this->crea_dato->RowCssClass = "row";
+
+        // modifica_dato
+        $this->modifica_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_EQUIPO
@@ -939,8 +985,46 @@ class EquipoEdit extends Equipo
             $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_ESTADIO
-            $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->CurrentValue;
+            if ($this->NOM_ESTADIO->VirtualValue != "") {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->VirtualValue;
+            } else {
+                $curVal = strval($this->NOM_ESTADIO->CurrentValue);
+                if ($curVal != "") {
+                    $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
+                    if ($this->NOM_ESTADIO->ViewValue === null) { // Lookup from database
+                        $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                        $conn = Conn();
+                        $config = $conn->getConfiguration();
+                        $config->setResultCacheImpl($this->Cache);
+                        $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                        $ari = count($rswrk);
+                        if ($ari > 0) { // Lookup values found
+                            $arwrk = $this->NOM_ESTADIO->Lookup->renderViewRow($rswrk[0]);
+                            $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->displayValue($arwrk);
+                        } else {
+                            $this->NOM_ESTADIO->ViewValue = FormatNumber($this->NOM_ESTADIO->CurrentValue, $this->NOM_ESTADIO->formatPattern());
+                        }
+                    }
+                } else {
+                    $this->NOM_ESTADIO->ViewValue = null;
+                }
+            }
             $this->NOM_ESTADIO->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_EQUIPO
             $this->ID_EQUIPO->LinkCustomAttributes = "";
@@ -985,6 +1069,16 @@ class EquipoEdit extends Equipo
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_EQUIPO
             $this->ID_EQUIPO->setupEditAttributes();
@@ -1042,8 +1136,48 @@ class EquipoEdit extends Equipo
             // NOM_ESTADIO
             $this->NOM_ESTADIO->setupEditAttributes();
             $this->NOM_ESTADIO->EditCustomAttributes = "";
-            $this->NOM_ESTADIO->EditValue = HtmlEncode($this->NOM_ESTADIO->CurrentValue);
+            $curVal = trim(strval($this->NOM_ESTADIO->CurrentValue));
+            if ($curVal != "") {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
+            } else {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->Lookup !== null && is_array($this->NOM_ESTADIO->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->NOM_ESTADIO->ViewValue !== null) { // Load from cache
+                $this->NOM_ESTADIO->EditValue = array_values($this->NOM_ESTADIO->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`id_estadio`" . SearchString("=", $this->NOM_ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->NOM_ESTADIO->EditValue = $arwrk;
+            }
             $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // Edit refer script
 
@@ -1090,6 +1224,16 @@ class EquipoEdit extends Equipo
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1149,6 +1293,16 @@ class EquipoEdit extends Equipo
         if ($this->NOM_ESTADIO->Required) {
             if (!$this->NOM_ESTADIO->IsDetailKey && EmptyValue($this->NOM_ESTADIO->FormValue)) {
                 $this->NOM_ESTADIO->addErrorMessage(str_replace("%s", $this->NOM_ESTADIO->caption(), $this->NOM_ESTADIO->RequiredErrorMessage));
+            }
+        }
+        if ($this->crea_dato->Required) {
+            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
+                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->modifica_dato->Required) {
+            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
+                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
             }
         }
 
@@ -1284,6 +1438,8 @@ class EquipoEdit extends Equipo
             // Set up lookup SQL and connection
             switch ($fld->FieldVar) {
                 case "x_REGION_EQUIPO":
+                    break;
+                case "x_NOM_ESTADIO":
                     break;
                 default:
                     $lookupFilter = "";

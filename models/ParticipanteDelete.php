@@ -402,8 +402,8 @@ class ParticipanteDelete extends Participante
         $this->CEDULA->setVisibility();
         $this->_EMAIL->setVisibility();
         $this->TELEFONO->setVisibility();
-        $this->CREACION->setVisibility();
-        $this->ACTUALIZACION->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -594,8 +594,8 @@ class ParticipanteDelete extends Participante
         $this->CEDULA->setDbValue($row['CEDULA']);
         $this->_EMAIL->setDbValue($row['EMAIL']);
         $this->TELEFONO->setDbValue($row['TELEFONO']);
-        $this->CREACION->setDbValue($row['CREACION']);
-        $this->ACTUALIZACION->setDbValue($row['ACTUALIZACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -609,8 +609,8 @@ class ParticipanteDelete extends Participante
         $row['CEDULA'] = $this->CEDULA->DefaultValue;
         $row['EMAIL'] = $this->_EMAIL->DefaultValue;
         $row['TELEFONO'] = $this->TELEFONO->DefaultValue;
-        $row['CREACION'] = $this->CREACION->DefaultValue;
-        $row['ACTUALIZACION'] = $this->ACTUALIZACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -640,9 +640,9 @@ class ParticipanteDelete extends Participante
 
         // TELEFONO
 
-        // CREACION
+        // crea_dato
 
-        // ACTUALIZACION
+        // modifica_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -674,13 +674,18 @@ class ParticipanteDelete extends Participante
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
             $this->TELEFONO->ViewCustomAttributes = "";
 
-            // CREACION
-            $this->CREACION->ViewValue = $this->CREACION->CurrentValue;
-            $this->CREACION->ViewCustomAttributes = "";
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
 
-            // ACTUALIZACION
-            $this->ACTUALIZACION->ViewValue = $this->ACTUALIZACION->CurrentValue;
-            $this->ACTUALIZACION->ViewCustomAttributes = "";
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
@@ -717,15 +722,15 @@ class ParticipanteDelete extends Participante
             $this->TELEFONO->HrefValue = "";
             $this->TELEFONO->TooltipValue = "";
 
-            // CREACION
-            $this->CREACION->LinkCustomAttributes = "";
-            $this->CREACION->HrefValue = "";
-            $this->CREACION->TooltipValue = "";
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
 
-            // ACTUALIZACION
-            $this->ACTUALIZACION->LinkCustomAttributes = "";
-            $this->ACTUALIZACION->HrefValue = "";
-            $this->ACTUALIZACION->TooltipValue = "";
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

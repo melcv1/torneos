@@ -142,6 +142,12 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->NOM_ESTADIO->Visible) { // NOM_ESTADIO ?>
         <th data-name="NOM_ESTADIO" class="<?= $Page->NOM_ESTADIO->headerCellClass() ?>"><div id="elh_equipo_NOM_ESTADIO" class="equipo_NOM_ESTADIO"><?= $Page->renderFieldHeader($Page->NOM_ESTADIO) ?></div></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th data-name="crea_dato" class="<?= $Page->crea_dato->headerCellClass() ?>"><div id="elh_equipo_crea_dato" class="equipo_crea_dato"><?= $Page->renderFieldHeader($Page->crea_dato) ?></div></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th data-name="modifica_dato" class="<?= $Page->modifica_dato->headerCellClass() ?>"><div id="elh_equipo_modifica_dato" class="equipo_modifica_dato"><?= $Page->renderFieldHeader($Page->modifica_dato) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -279,6 +285,22 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_equipo_NOM_ESTADIO" class="el_equipo_NOM_ESTADIO">
 <span<?= $Page->NOM_ESTADIO->viewAttributes() ?>>
 <?= $Page->NOM_ESTADIO->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipo_crea_dato" class="el_equipo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipo_modifica_dato" class="el_equipo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
     <?php } ?>

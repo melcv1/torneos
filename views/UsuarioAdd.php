@@ -22,7 +22,9 @@ loadjs.ready(["wrapper", "head"], function () {
     fusuarioadd.addFields([
         ["USER", [fields.USER.visible && fields.USER.required ? ew.Validators.required(fields.USER.caption) : null], fields.USER.isInvalid],
         ["CONTRASENA", [fields.CONTRASENA.visible && fields.CONTRASENA.required ? ew.Validators.required(fields.CONTRASENA.caption) : null], fields.CONTRASENA.isInvalid],
-        ["nombre", [fields.nombre.visible && fields.nombre.required ? ew.Validators.required(fields.nombre.caption) : null], fields.nombre.isInvalid]
+        ["nombre", [fields.nombre.visible && fields.nombre.required ? ew.Validators.required(fields.nombre.caption) : null], fields.nombre.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null, ew.Validators.integer], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null, ew.Validators.datetime(fields.modifica_dato.clientFormatPattern)], fields.modifica_dato.isInvalid]
     ]);
 
     // Form_CustomValidate
@@ -89,6 +91,58 @@ $Page->showMessage();
 <textarea data-table="usuario" data-field="x_nombre" name="x_nombre" id="x_nombre" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->nombre->getPlaceHolder()) ?>"<?= $Page->nombre->editAttributes() ?> aria-describedby="x_nombre_help"><?= $Page->nombre->EditValue ?></textarea>
 <?= $Page->nombre->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->nombre->getErrorMessage() ?></div>
+</span>
+</div></div>
+    </div>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+    <div id="r_crea_dato"<?= $Page->crea_dato->rowAttributes() ?>>
+        <label id="elh_usuario_crea_dato" for="x_crea_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->crea_dato->caption() ?><?= $Page->crea_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el_usuario_crea_dato">
+<input type="<?= $Page->crea_dato->getInputTextType() ?>" name="x_crea_dato" id="x_crea_dato" data-table="usuario" data-field="x_crea_dato" value="<?= $Page->crea_dato->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->crea_dato->getPlaceHolder()) ?>"<?= $Page->crea_dato->editAttributes() ?> aria-describedby="x_crea_dato_help">
+<?= $Page->crea_dato->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->crea_dato->getErrorMessage() ?></div>
+</span>
+</div></div>
+    </div>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+    <div id="r_modifica_dato"<?= $Page->modifica_dato->rowAttributes() ?>>
+        <label id="elh_usuario_modifica_dato" for="x_modifica_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->modifica_dato->caption() ?><?= $Page->modifica_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el_usuario_modifica_dato">
+<input type="<?= $Page->modifica_dato->getInputTextType() ?>" name="x_modifica_dato" id="x_modifica_dato" data-table="usuario" data-field="x_modifica_dato" value="<?= $Page->modifica_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->modifica_dato->getPlaceHolder()) ?>"<?= $Page->modifica_dato->editAttributes() ?> aria-describedby="x_modifica_dato_help">
+<?= $Page->modifica_dato->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->modifica_dato->getErrorMessage() ?></div>
+<?php if (!$Page->modifica_dato->ReadOnly && !$Page->modifica_dato->Disabled && !isset($Page->modifica_dato->EditAttrs["readonly"]) && !isset($Page->modifica_dato->EditAttrs["disabled"])) { ?>
+<script>
+loadjs.ready(["fusuarioadd", "datetimepicker"], function () {
+    let format = "<?= DateFormat(0) ?>",
+        options = {
+            localization: {
+                locale: ew.LANGUAGE_ID + "-u-nu-" + ew.getNumberingSystem()
+            },
+            display: {
+                icons: {
+                    previous: ew.IS_RTL ? "fas fa-chevron-right" : "fas fa-chevron-left",
+                    next: ew.IS_RTL ? "fas fa-chevron-left" : "fas fa-chevron-right"
+                },
+                components: {
+                    hours: !!format.match(/h/i),
+                    minutes: !!format.match(/m/),
+                    seconds: !!format.match(/s/i),
+                    useTwentyfourHour: !!format.match(/H/)
+                }
+            },
+            meta: {
+                format
+            }
+        };
+    ew.createDateTimePicker("fusuarioadd", "x_modifica_dato", jQuery.extend(true, {"useCurrent":false}, options));
+});
+</script>
+<?php } ?>
 </span>
 </div></div>
     </div>

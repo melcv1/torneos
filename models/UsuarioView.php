@@ -525,6 +525,8 @@ class UsuarioView extends Usuario
         $this->USER->setVisibility();
         $this->CONTRASENA->setVisibility();
         $this->nombre->setVisibility();
+        $this->crea_dato->setVisibility();
+        $this->modifica_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -746,6 +748,8 @@ class UsuarioView extends Usuario
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
         $this->nombre->setDbValue($row['nombre']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -756,6 +760,8 @@ class UsuarioView extends Usuario
         $row['USER'] = $this->USER->DefaultValue;
         $row['CONTRASENA'] = $this->CONTRASENA->DefaultValue;
         $row['nombre'] = $this->nombre->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -785,6 +791,10 @@ class UsuarioView extends Usuario
 
         // nombre
 
+        // crea_dato
+
+        // modifica_dato
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_USUARIO
@@ -802,6 +812,16 @@ class UsuarioView extends Usuario
             // nombre
             $this->nombre->ViewValue = $this->nombre->CurrentValue;
             $this->nombre->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatNumber($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_USUARIO
             $this->ID_USUARIO->LinkCustomAttributes = "";
@@ -822,6 +842,16 @@ class UsuarioView extends Usuario
             $this->nombre->LinkCustomAttributes = "";
             $this->nombre->HrefValue = "";
             $this->nombre->TooltipValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

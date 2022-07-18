@@ -493,8 +493,8 @@ class ParticipanteAdd extends Participante
         $this->CEDULA->setVisibility();
         $this->_EMAIL->setVisibility();
         $this->TELEFONO->setVisibility();
-        $this->CREACION->setVisibility();
-        $this->ACTUALIZACION->setVisibility();
+        $this->crea_dato->Visible = false;
+        $this->modifica_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -717,26 +717,6 @@ class ParticipanteAdd extends Participante
             }
         }
 
-        // Check field name 'CREACION' first before field var 'x_CREACION'
-        $val = $CurrentForm->hasValue("CREACION") ? $CurrentForm->getValue("CREACION") : $CurrentForm->getValue("x_CREACION");
-        if (!$this->CREACION->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->CREACION->Visible = false; // Disable update for API request
-            } else {
-                $this->CREACION->setFormValue($val);
-            }
-        }
-
-        // Check field name 'ACTUALIZACION' first before field var 'x_ACTUALIZACION'
-        $val = $CurrentForm->hasValue("ACTUALIZACION") ? $CurrentForm->getValue("ACTUALIZACION") : $CurrentForm->getValue("x_ACTUALIZACION");
-        if (!$this->ACTUALIZACION->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->ACTUALIZACION->Visible = false; // Disable update for API request
-            } else {
-                $this->ACTUALIZACION->setFormValue($val);
-            }
-        }
-
         // Check field name 'ID_PARTICIPANTE' first before field var 'x_ID_PARTICIPANTE'
         $val = $CurrentForm->hasValue("ID_PARTICIPANTE") ? $CurrentForm->getValue("ID_PARTICIPANTE") : $CurrentForm->getValue("x_ID_PARTICIPANTE");
     }
@@ -751,8 +731,6 @@ class ParticipanteAdd extends Participante
         $this->CEDULA->CurrentValue = $this->CEDULA->FormValue;
         $this->_EMAIL->CurrentValue = $this->_EMAIL->FormValue;
         $this->TELEFONO->CurrentValue = $this->TELEFONO->FormValue;
-        $this->CREACION->CurrentValue = $this->CREACION->FormValue;
-        $this->ACTUALIZACION->CurrentValue = $this->ACTUALIZACION->FormValue;
     }
 
     /**
@@ -809,8 +787,8 @@ class ParticipanteAdd extends Participante
         $this->CEDULA->setDbValue($row['CEDULA']);
         $this->_EMAIL->setDbValue($row['EMAIL']);
         $this->TELEFONO->setDbValue($row['TELEFONO']);
-        $this->CREACION->setDbValue($row['CREACION']);
-        $this->ACTUALIZACION->setDbValue($row['ACTUALIZACION']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -824,8 +802,8 @@ class ParticipanteAdd extends Participante
         $row['CEDULA'] = $this->CEDULA->DefaultValue;
         $row['EMAIL'] = $this->_EMAIL->DefaultValue;
         $row['TELEFONO'] = $this->TELEFONO->DefaultValue;
-        $row['CREACION'] = $this->CREACION->DefaultValue;
-        $row['ACTUALIZACION'] = $this->ACTUALIZACION->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -878,11 +856,11 @@ class ParticipanteAdd extends Participante
         // TELEFONO
         $this->TELEFONO->RowCssClass = "row";
 
-        // CREACION
-        $this->CREACION->RowCssClass = "row";
+        // crea_dato
+        $this->crea_dato->RowCssClass = "row";
 
-        // ACTUALIZACION
-        $this->ACTUALIZACION->RowCssClass = "row";
+        // modifica_dato
+        $this->modifica_dato->RowCssClass = "row";
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -914,14 +892,6 @@ class ParticipanteAdd extends Participante
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
             $this->TELEFONO->ViewCustomAttributes = "";
 
-            // CREACION
-            $this->CREACION->ViewValue = $this->CREACION->CurrentValue;
-            $this->CREACION->ViewCustomAttributes = "";
-
-            // ACTUALIZACION
-            $this->ACTUALIZACION->ViewValue = $this->ACTUALIZACION->CurrentValue;
-            $this->ACTUALIZACION->ViewCustomAttributes = "";
-
             // NOMBRE
             $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
@@ -945,14 +915,6 @@ class ParticipanteAdd extends Participante
             // TELEFONO
             $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
-
-            // CREACION
-            $this->CREACION->LinkCustomAttributes = "";
-            $this->CREACION->HrefValue = "";
-
-            // ACTUALIZACION
-            $this->ACTUALIZACION->LinkCustomAttributes = "";
-            $this->ACTUALIZACION->HrefValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // NOMBRE
             $this->NOMBRE->setupEditAttributes();
@@ -996,18 +958,6 @@ class ParticipanteAdd extends Participante
             $this->TELEFONO->EditValue = HtmlEncode($this->TELEFONO->CurrentValue);
             $this->TELEFONO->PlaceHolder = RemoveHtml($this->TELEFONO->caption());
 
-            // CREACION
-            $this->CREACION->setupEditAttributes();
-            $this->CREACION->EditCustomAttributes = "";
-            $this->CREACION->EditValue = HtmlEncode($this->CREACION->CurrentValue);
-            $this->CREACION->PlaceHolder = RemoveHtml($this->CREACION->caption());
-
-            // ACTUALIZACION
-            $this->ACTUALIZACION->setupEditAttributes();
-            $this->ACTUALIZACION->EditCustomAttributes = "";
-            $this->ACTUALIZACION->EditValue = HtmlEncode($this->ACTUALIZACION->CurrentValue);
-            $this->ACTUALIZACION->PlaceHolder = RemoveHtml($this->ACTUALIZACION->caption());
-
             // Add refer script
 
             // NOMBRE
@@ -1033,14 +983,6 @@ class ParticipanteAdd extends Participante
             // TELEFONO
             $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
-
-            // CREACION
-            $this->CREACION->LinkCustomAttributes = "";
-            $this->CREACION->HrefValue = "";
-
-            // ACTUALIZACION
-            $this->ACTUALIZACION->LinkCustomAttributes = "";
-            $this->ACTUALIZACION->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1092,16 +1034,6 @@ class ParticipanteAdd extends Participante
                 $this->TELEFONO->addErrorMessage(str_replace("%s", $this->TELEFONO->caption(), $this->TELEFONO->RequiredErrorMessage));
             }
         }
-        if ($this->CREACION->Required) {
-            if (!$this->CREACION->IsDetailKey && EmptyValue($this->CREACION->FormValue)) {
-                $this->CREACION->addErrorMessage(str_replace("%s", $this->CREACION->caption(), $this->CREACION->RequiredErrorMessage));
-            }
-        }
-        if ($this->ACTUALIZACION->Required) {
-            if (!$this->ACTUALIZACION->IsDetailKey && EmptyValue($this->ACTUALIZACION->FormValue)) {
-                $this->ACTUALIZACION->addErrorMessage(str_replace("%s", $this->ACTUALIZACION->caption(), $this->ACTUALIZACION->RequiredErrorMessage));
-            }
-        }
 
         // Return validate result
         $validateForm = $validateForm && !$this->hasInvalidFields();
@@ -1140,12 +1072,6 @@ class ParticipanteAdd extends Participante
 
         // TELEFONO
         $this->TELEFONO->setDbValueDef($rsnew, $this->TELEFONO->CurrentValue, null, false);
-
-        // CREACION
-        $this->CREACION->setDbValueDef($rsnew, $this->CREACION->CurrentValue, null, false);
-
-        // ACTUALIZACION
-        $this->ACTUALIZACION->setDbValueDef($rsnew, $this->ACTUALIZACION->CurrentValue, null, false);
 
         // Update current values
         $this->setCurrentValues($rsnew);

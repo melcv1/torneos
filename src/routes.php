@@ -7,23 +7,6 @@ use Slim\Routing\RouteCollectorProxy;
 
 // Handle Routes
 return function (App $app) {
-    // audittrail
-    $app->map(["GET","POST","OPTIONS"], '/AudittrailList[/{id}]', AudittrailController::class . ':list')->add(PermissionMiddleware::class)->setName('AudittrailList-audittrail-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/AudittrailAdd[/{id}]', AudittrailController::class . ':add')->add(PermissionMiddleware::class)->setName('AudittrailAdd-audittrail-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/AudittrailView[/{id}]', AudittrailController::class . ':view')->add(PermissionMiddleware::class)->setName('AudittrailView-audittrail-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/AudittrailEdit[/{id}]', AudittrailController::class . ':edit')->add(PermissionMiddleware::class)->setName('AudittrailEdit-audittrail-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/AudittrailDelete[/{id}]', AudittrailController::class . ':delete')->add(PermissionMiddleware::class)->setName('AudittrailDelete-audittrail-delete'); // delete
-    $app->group(
-        '/audittrail',
-        function (RouteCollectorProxy $group) {
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("LIST_ACTION") . '[/{id}]', AudittrailController::class . ':list')->add(PermissionMiddleware::class)->setName('audittrail/list-audittrail-list-2'); // list
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("ADD_ACTION") . '[/{id}]', AudittrailController::class . ':add')->add(PermissionMiddleware::class)->setName('audittrail/add-audittrail-add-2'); // add
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("VIEW_ACTION") . '[/{id}]', AudittrailController::class . ':view')->add(PermissionMiddleware::class)->setName('audittrail/view-audittrail-view-2'); // view
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("EDIT_ACTION") . '[/{id}]', AudittrailController::class . ':edit')->add(PermissionMiddleware::class)->setName('audittrail/edit-audittrail-edit-2'); // edit
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("DELETE_ACTION") . '[/{id}]', AudittrailController::class . ':delete')->add(PermissionMiddleware::class)->setName('audittrail/delete-audittrail-delete-2'); // delete
-        }
-    );
-
     // encuesta
     $app->map(["GET","POST","OPTIONS"], '/EncuestaList[/{ID_ENCUESTA}]', EncuestaController::class . ':list')->add(PermissionMiddleware::class)->setName('EncuestaList-encuesta-list'); // list
     $app->map(["GET","POST","OPTIONS"], '/EncuestaAdd[/{ID_ENCUESTA}]', EncuestaController::class . ':add')->add(PermissionMiddleware::class)->setName('EncuestaAdd-encuesta-add'); // add
@@ -126,20 +109,22 @@ return function (App $app) {
         }
     );
 
-    // usuario
-    $app->map(["GET","POST","OPTIONS"], '/UsuarioList[/{ID_USUARIO}]', UsuarioController::class . ':list')->add(PermissionMiddleware::class)->setName('UsuarioList-usuario-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/UsuarioAdd[/{ID_USUARIO}]', UsuarioController::class . ':add')->add(PermissionMiddleware::class)->setName('UsuarioAdd-usuario-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/UsuarioView[/{ID_USUARIO}]', UsuarioController::class . ':view')->add(PermissionMiddleware::class)->setName('UsuarioView-usuario-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/UsuarioEdit[/{ID_USUARIO}]', UsuarioController::class . ':edit')->add(PermissionMiddleware::class)->setName('UsuarioEdit-usuario-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/UsuarioDelete[/{ID_USUARIO}]', UsuarioController::class . ':delete')->add(PermissionMiddleware::class)->setName('UsuarioDelete-usuario-delete'); // delete
+    // estadio
+    $app->map(["GET","POST","OPTIONS"], '/EstadioList[/{id_estadio}]', EstadioController::class . ':list')->add(PermissionMiddleware::class)->setName('EstadioList-estadio-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/EstadioAdd[/{id_estadio}]', EstadioController::class . ':add')->add(PermissionMiddleware::class)->setName('EstadioAdd-estadio-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/EstadioAddopt', EstadioController::class . ':addopt')->add(PermissionMiddleware::class)->setName('EstadioAddopt-estadio-addopt'); // addopt
+    $app->map(["GET","POST","OPTIONS"], '/EstadioView[/{id_estadio}]', EstadioController::class . ':view')->add(PermissionMiddleware::class)->setName('EstadioView-estadio-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/EstadioEdit[/{id_estadio}]', EstadioController::class . ':edit')->add(PermissionMiddleware::class)->setName('EstadioEdit-estadio-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/EstadioDelete[/{id_estadio}]', EstadioController::class . ':delete')->add(PermissionMiddleware::class)->setName('EstadioDelete-estadio-delete'); // delete
     $app->group(
-        '/usuario',
+        '/estadio',
         function (RouteCollectorProxy $group) {
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("LIST_ACTION") . '[/{ID_USUARIO}]', UsuarioController::class . ':list')->add(PermissionMiddleware::class)->setName('usuario/list-usuario-list-2'); // list
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("ADD_ACTION") . '[/{ID_USUARIO}]', UsuarioController::class . ':add')->add(PermissionMiddleware::class)->setName('usuario/add-usuario-add-2'); // add
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("VIEW_ACTION") . '[/{ID_USUARIO}]', UsuarioController::class . ':view')->add(PermissionMiddleware::class)->setName('usuario/view-usuario-view-2'); // view
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("EDIT_ACTION") . '[/{ID_USUARIO}]', UsuarioController::class . ':edit')->add(PermissionMiddleware::class)->setName('usuario/edit-usuario-edit-2'); // edit
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("DELETE_ACTION") . '[/{ID_USUARIO}]', UsuarioController::class . ':delete')->add(PermissionMiddleware::class)->setName('usuario/delete-usuario-delete-2'); // delete
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("LIST_ACTION") . '[/{id_estadio}]', EstadioController::class . ':list')->add(PermissionMiddleware::class)->setName('estadio/list-estadio-list-2'); // list
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("ADD_ACTION") . '[/{id_estadio}]', EstadioController::class . ':add')->add(PermissionMiddleware::class)->setName('estadio/add-estadio-add-2'); // add
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("ADDOPT_ACTION") . '', EstadioController::class . ':addopt')->add(PermissionMiddleware::class)->setName('estadio/addopt-estadio-addopt-2'); // addopt
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("VIEW_ACTION") . '[/{id_estadio}]', EstadioController::class . ':view')->add(PermissionMiddleware::class)->setName('estadio/view-estadio-view-2'); // view
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("EDIT_ACTION") . '[/{id_estadio}]', EstadioController::class . ':edit')->add(PermissionMiddleware::class)->setName('estadio/edit-estadio-edit-2'); // edit
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("DELETE_ACTION") . '[/{id_estadio}]', EstadioController::class . ':delete')->add(PermissionMiddleware::class)->setName('estadio/delete-estadio-delete-2'); // delete
         }
     );
 

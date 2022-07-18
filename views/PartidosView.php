@@ -44,24 +44,24 @@ $Page->showMessage();
 <input type="hidden" name="t" value="partidos">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
 <table class="table table-striped table-bordered table-hover table-sm ew-view-table">
-<?php if ($Page->ID_EQUIPO2->Visible) { // ID_EQUIPO2 ?>
-    <tr id="r_ID_EQUIPO2"<?= $Page->ID_EQUIPO2->rowAttributes() ?>>
-        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_ID_EQUIPO2"><?= $Page->ID_EQUIPO2->caption() ?></span></td>
-        <td data-name="ID_EQUIPO2"<?= $Page->ID_EQUIPO2->cellAttributes() ?>>
-<span id="el_partidos_ID_EQUIPO2">
-<span<?= $Page->ID_EQUIPO2->viewAttributes() ?>>
-<?= $Page->ID_EQUIPO2->getViewValue() ?></span>
+<?php if ($Page->equipo_local->Visible) { // equipo_local ?>
+    <tr id="r_equipo_local"<?= $Page->equipo_local->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_equipo_local"><?= $Page->equipo_local->caption() ?></span></td>
+        <td data-name="equipo_local"<?= $Page->equipo_local->cellAttributes() ?>>
+<span id="el_partidos_equipo_local">
+<span<?= $Page->equipo_local->viewAttributes() ?>>
+<?= $Page->equipo_local->getViewValue() ?></span>
 </span>
 </td>
     </tr>
 <?php } ?>
-<?php if ($Page->ID_EQUIPO1->Visible) { // ID_EQUIPO1 ?>
-    <tr id="r_ID_EQUIPO1"<?= $Page->ID_EQUIPO1->rowAttributes() ?>>
-        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_ID_EQUIPO1"><?= $Page->ID_EQUIPO1->caption() ?></span></td>
-        <td data-name="ID_EQUIPO1"<?= $Page->ID_EQUIPO1->cellAttributes() ?>>
-<span id="el_partidos_ID_EQUIPO1">
-<span<?= $Page->ID_EQUIPO1->viewAttributes() ?>>
-<?= $Page->ID_EQUIPO1->getViewValue() ?></span>
+<?php if ($Page->equipo_visitante->Visible) { // equipo_visitante ?>
+    <tr id="r_equipo_visitante"<?= $Page->equipo_visitante->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_equipo_visitante"><?= $Page->equipo_visitante->caption() ?></span></td>
+        <td data-name="equipo_visitante"<?= $Page->equipo_visitante->cellAttributes() ?>>
+<span id="el_partidos_equipo_visitante">
+<span<?= $Page->equipo_visitante->viewAttributes() ?>>
+<?= $Page->equipo_visitante->getViewValue() ?></span>
 </span>
 </td>
     </tr>
@@ -106,17 +106,6 @@ $Page->showMessage();
 <span id="el_partidos_HORA_PARTIDO">
 <span<?= $Page->HORA_PARTIDO->viewAttributes() ?>>
 <?= $Page->HORA_PARTIDO->getViewValue() ?></span>
-</span>
-</td>
-    </tr>
-<?php } ?>
-<?php if ($Page->DIA_PARTIDO->Visible) { // DIA_PARTIDO ?>
-    <tr id="r_DIA_PARTIDO"<?= $Page->DIA_PARTIDO->rowAttributes() ?>>
-        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_DIA_PARTIDO"><?= $Page->DIA_PARTIDO->caption() ?></span></td>
-        <td data-name="DIA_PARTIDO"<?= $Page->DIA_PARTIDO->cellAttributes() ?>>
-<span id="el_partidos_DIA_PARTIDO">
-<span<?= $Page->DIA_PARTIDO->viewAttributes() ?>>
-<?= $Page->DIA_PARTIDO->getViewValue() ?></span>
 </span>
 </td>
     </tr>
@@ -227,6 +216,28 @@ $Page->showMessage();
 <span id="el_partidos_ESTADO_PARTIDO">
 <span<?= $Page->ESTADO_PARTIDO->viewAttributes() ?>>
 <?= $Page->ESTADO_PARTIDO->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+    <tr id="r_crea_dato"<?= $Page->crea_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_crea_dato"><?= $Page->crea_dato->caption() ?></span></td>
+        <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el_partidos_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+    <tr id="r_modifica_dato"<?= $Page->modifica_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></td>
+        <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el_partidos_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
     </tr>

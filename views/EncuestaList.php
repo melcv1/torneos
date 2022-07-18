@@ -136,6 +136,12 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->NUMERACION->Visible) { // NUMERACION ?>
         <th data-name="NUMERACION" class="<?= $Page->NUMERACION->headerCellClass() ?>"><div id="elh_encuesta_NUMERACION" class="encuesta_NUMERACION"><?= $Page->renderFieldHeader($Page->NUMERACION) ?></div></th>
 <?php } ?>
+<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <th data-name="crea_dato" class="<?= $Page->crea_dato->headerCellClass() ?>"><div id="elh_encuesta_crea_dato" class="encuesta_crea_dato"><?= $Page->renderFieldHeader($Page->crea_dato) ?></div></th>
+<?php } ?>
+<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <th data-name="modifica_dato" class="<?= $Page->modifica_dato->headerCellClass() ?>"><div id="elh_encuesta_modifica_dato" class="encuesta_modifica_dato"><?= $Page->renderFieldHeader($Page->modifica_dato) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -256,6 +262,22 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_encuesta_NUMERACION" class="el_encuesta_NUMERACION">
 <span<?= $Page->NUMERACION->viewAttributes() ?>>
 <?= $Page->NUMERACION->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
+        <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_encuesta_crea_dato" class="el_encuesta_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<?= $Page->crea_dato->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
+        <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_encuesta_modifica_dato" class="el_encuesta_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
 </td>
     <?php } ?>

@@ -43,6 +43,8 @@ class Equipotorneo extends DbTable
     public $GD;
     public $GRUPO;
     public $POSICION_EQUIPO_TORENO;
+    public $crea_dato;
+    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -387,6 +389,56 @@ class Equipotorneo extends DbTable
         );
         $this->POSICION_EQUIPO_TORENO->InputTextType = "text";
         $this->Fields['POSICION_EQUIPO_TORENO'] = &$this->POSICION_EQUIPO_TORENO;
+
+        // crea_dato
+        $this->crea_dato = new DbField(
+            'equipotorneo',
+            'equipotorneo',
+            'x_crea_dato',
+            'crea_dato',
+            '`crea_dato`',
+            CastDateFieldForLike("`crea_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`crea_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Nullable = false; // NOT NULL field
+        $this->crea_dato->Required = true; // Required field
+        $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['crea_dato'] = &$this->crea_dato;
+
+        // modifica_dato
+        $this->modifica_dato = new DbField(
+            'equipotorneo',
+            'equipotorneo',
+            'x_modifica_dato',
+            'modifica_dato',
+            '`modifica_dato`',
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
+            135,
+            19,
+            15,
+            false,
+            '`modifica_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Nullable = false; // NOT NULL field
+        $this->modifica_dato->Required = true; // Required field
+        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -830,6 +882,8 @@ class Equipotorneo extends DbTable
         $this->GD->DbValue = $row['GD'];
         $this->GRUPO->DbValue = $row['GRUPO'];
         $this->POSICION_EQUIPO_TORENO->DbValue = $row['POSICION_EQUIPO_TORENO'];
+        $this->crea_dato->DbValue = $row['crea_dato'];
+        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -1160,6 +1214,8 @@ class Equipotorneo extends DbTable
         $this->GD->setDbValue($row['GD']);
         $this->GRUPO->setDbValue($row['GRUPO']);
         $this->POSICION_EQUIPO_TORENO->setDbValue($row['POSICION_EQUIPO_TORENO']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1195,6 +1251,10 @@ class Equipotorneo extends DbTable
         // GRUPO
 
         // POSICION_EQUIPO_TORENO
+
+        // crea_dato
+
+        // modifica_dato
 
         // ID_EQUIPO_TORNEO
         $this->ID_EQUIPO_TORNEO->ViewValue = $this->ID_EQUIPO_TORNEO->CurrentValue;
@@ -1295,6 +1355,20 @@ class Equipotorneo extends DbTable
         $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
         $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
+        // crea_dato
+        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CssClass = "fst-italic";
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
+
         // ID_EQUIPO_TORNEO
         $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
         $this->ID_EQUIPO_TORNEO->HrefValue = "";
@@ -1354,6 +1428,16 @@ class Equipotorneo extends DbTable
         $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
         $this->POSICION_EQUIPO_TORENO->HrefValue = "";
         $this->POSICION_EQUIPO_TORENO->TooltipValue = "";
+
+        // crea_dato
+        $this->crea_dato->LinkCustomAttributes = "";
+        $this->crea_dato->HrefValue = "";
+        $this->crea_dato->TooltipValue = "";
+
+        // modifica_dato
+        $this->modifica_dato->LinkCustomAttributes = "";
+        $this->modifica_dato->HrefValue = "";
+        $this->modifica_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1461,6 +1545,24 @@ class Equipotorneo extends DbTable
         $this->POSICION_EQUIPO_TORENO->EditValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
         $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
 
+        // crea_dato
+        $this->crea_dato->setupEditAttributes();
+        $this->crea_dato->EditCustomAttributes = "";
+        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+        $this->crea_dato->CssClass = "fst-italic";
+        $this->crea_dato->CellCssStyle .= "text-align: right;";
+        $this->crea_dato->ViewCustomAttributes = "";
+
+        // modifica_dato
+        $this->modifica_dato->setupEditAttributes();
+        $this->modifica_dato->EditCustomAttributes = "";
+        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+        $this->modifica_dato->CssClass = "fst-italic";
+        $this->modifica_dato->CellCssStyle .= "text-align: right;";
+        $this->modifica_dato->ViewCustomAttributes = "";
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1501,6 +1603,8 @@ class Equipotorneo extends DbTable
                     $doc->exportCaption($this->GD);
                     $doc->exportCaption($this->GRUPO);
                     $doc->exportCaption($this->POSICION_EQUIPO_TORENO);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->ID_EQUIPO_TORNEO);
                     $doc->exportCaption($this->ID_TORNEO);
@@ -1512,6 +1616,8 @@ class Equipotorneo extends DbTable
                     $doc->exportCaption($this->GF);
                     $doc->exportCaption($this->GC);
                     $doc->exportCaption($this->GD);
+                    $doc->exportCaption($this->crea_dato);
+                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1553,6 +1659,8 @@ class Equipotorneo extends DbTable
                         $doc->exportField($this->GD);
                         $doc->exportField($this->GRUPO);
                         $doc->exportField($this->POSICION_EQUIPO_TORENO);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->ID_EQUIPO_TORNEO);
                         $doc->exportField($this->ID_TORNEO);
@@ -1564,6 +1672,8 @@ class Equipotorneo extends DbTable
                         $doc->exportField($this->GF);
                         $doc->exportField($this->GC);
                         $doc->exportField($this->GD);
+                        $doc->exportField($this->crea_dato);
+                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }
