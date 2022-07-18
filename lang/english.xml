@@ -475,7 +475,7 @@
     <!-- v2018 -->
     <phrase id="logingoogle" value="Login with Google" />
     <!-- v2018 -->
-    <phrase id="loginmsg" value="Sign in to start your session" />
+    <phrase id="loginmsg" value="Inicia sesión" />
     <!-- v2019 -->
     <phrase id="loginoptions" value="Options" />
     <!-- v11 -->
@@ -858,7 +858,7 @@
     <phrase id="userlevelidincorrect" value="User defined user level ID must be larger than 0" client="1" />
     <phrase id="userlevelnameincorrect" value="User defined user level name cannot be 'Anonymous', 'Administrator' or 'Default'" client="1" />
     <phrase id="userloggedin" value="User '%u' already logged in" />
-    <phrase id="username" value="User Name" client="1" />
+    <phrase id="username" value="Usuario" client="1" />
     <!-- v2021 -->
     <phrase id="usernotfound" value="User '%u' not found" />
     <!-- v2018 -->
