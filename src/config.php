@@ -127,26 +127,26 @@ require_once __DIR__ . "/userlevelsettings.php";
 $CONFIG = [
 
     // Debug
-    "DEBUG" => false, // Enabled
+    "DEBUG" => true, // Enabled
     "REPORT_ALL_ERRORS" => false, // Treat PHP warnings and notices as errors
-    "LOG_ERROR_TO_FILE" => false, // Log error to file
+    "LOG_ERROR_TO_FILE" => true, // Log error to file
     "DEBUG_MESSAGE_TEMPLATE" => '<div class="card card-danger ew-debug"><div class="card-header">' .
         '<h3 class="card-title">%t</h3>' .
         '<div class="card-tools"><button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button></div>' .
         '</div><div class="card-body">%s</div></div>', // Debug message template
 
     // Environment
-    "ENVIRONMENT" => "development",
+    "ENVIRONMENT" => "production",
 
     // Container
     "COMPILE_CONTAINER" => false,
 
     // Use route cache
-    "USE_ROUTE_CACHE" => false,
+    "USE_ROUTE_CACHE" => true,
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'jvnjl7Ls8MVPSsek', // Random key for encryption
+    "RANDOM_KEY" => 'giZtXM7vuExw0vJ6', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project1.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
@@ -374,10 +374,10 @@ $CONFIG = [
     "REMOTE_FILE_PATTERN" => '/^((https?\:)?|s3:)\/\//i',
 
     // File upload
-    "UPLOAD_TEMP_PATH" => "", // Upload temp path (absolute local physical path)
+    "UPLOAD_TEMP_PATH" => "/imagee", // Upload temp path (absolute local physical path)
     "UPLOAD_TEMP_HREF_PATH" => "", // Upload temp href path (absolute URL path for download)
     "UPLOAD_DEST_PATH" => "imagenes/", // Upload destination path (relative to app root)
-    "UPLOAD_HREF_PATH" => "", // Upload file href path (URL for download)
+    "UPLOAD_HREF_PATH" => "/image", // Upload file href path (URL for download)
     "UPLOAD_TEMP_FOLDER_PREFIX" => "temp__", // Upload temp folders prefix
     "UPLOAD_TEMP_FOLDER_TIME_LIMIT" => 1440, // Upload temp folder time limit (minutes)
     "UPLOAD_THUMBNAIL_FOLDER" => "thumbnail", // Temporary thumbnail folder

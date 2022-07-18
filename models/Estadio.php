@@ -1137,6 +1137,7 @@ class Estadio extends DbTable
                     $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->id_estadio);
+                    $doc->exportCaption($this->foto_estadio);
                     $doc->exportCaption($this->crea_dato);
                     $doc->exportCaption($this->modifica_dato);
                 }
@@ -1175,6 +1176,7 @@ class Estadio extends DbTable
                         $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->id_estadio);
+                        $doc->exportField($this->foto_estadio);
                         $doc->exportField($this->crea_dato);
                         $doc->exportField($this->modifica_dato);
                     }

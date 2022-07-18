@@ -221,7 +221,7 @@ ew.ready("head", [
                     <a class="nav-link" data-widget="pushmenu" data-enable-remember="true" data-ew-action="none"><i class="fas fa-bars ew-icon"></i></a>
                 </li>
                 <a class="navbar-brand d-none d-md-block" href="#" data-ew-action="none">
-                    <span class="brand-text">Torneo</span>
+                    <span class="brand-text">PHPMaker 2022</span>
                 </a>
             </ul>
             <!-- Right navbar links -->
@@ -234,7 +234,7 @@ ew.ready("head", [
         <div class="brand-container">
             <!-- Brand Logo //** Note: Only licensed users are allowed to change the logo ** -->
             <a href="#" class="brand-link">
-                <span class="brand-text">Torneo</span>
+                <span class="brand-text">PHPMaker 2022</span>
             </a>
             <?php if (preg_match('/\bsidebar-mini\b/', Config("BODY_CLASS"))) { ?>
             <a class="pushmenu mx-1" data-pushmenu="mini" role="button"><i class="fas fa-angle-double-left"></i></a>
@@ -386,7 +386,7 @@ loadjs.done("wrapper");
 <div class="modal-body">
     <div class="fileinput-button ew-file-drop-zone w-100">
         <input type="file" class="form-control ew-file-input" title="" id="importfiles" name="importfiles[]" multiple lang="<?= CurrentLanguageID() ?>">
-        <div class="text-muted ew-file-text">Suelte el archivo aquí o haga clic para cargar</div>
+        <div class="text-muted ew-file-text">Drop file here or click to upload</div>
     </div>
     <div class="message d-none mt-3"></div>
     <div class="progress d-none mt-3"><div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div></div>

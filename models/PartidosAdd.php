@@ -665,6 +665,10 @@ class PartidosAdd extends Partidos
     {
         $this->FECHA_PARTIDO->DefaultValue = "07/01/2022";
         $this->HORA_PARTIDO->DefaultValue = "00:00";
+        $this->GOLES_EQUIPO1->DefaultValue = 0;
+        $this->GOLES_EQUIPO2->DefaultValue = 0;
+        $this->GOLES_EXTRA_EQUIPO1->DefaultValue = 0;
+        $this->GOLES_EXTRA_EQUIPO2->DefaultValue = 0;
     }
 
     // Load form values
