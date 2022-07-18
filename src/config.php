@@ -136,7 +136,7 @@ $CONFIG = [
         '</div><div class="card-body">%s</div></div>', // Debug message template
 
     // Environment
-    "ENVIRONMENT" => "development",
+    "ENVIRONMENT" => "production",
 
     // Container
     "COMPILE_CONTAINER" => false,
@@ -146,7 +146,7 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'PG3QrKQC6BIlfn2x', // Random key for encryption
+    "RANDOM_KEY" => 'LMEMaP7Mh5oqFVt4', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project1.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
