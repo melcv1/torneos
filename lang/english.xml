@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ew-language version="18.12.0" id="en-US" name="English (US)" desc="English (US)" author="e.World Technology Limited" date="2022/7/15">
+<ew-language version="18.12.0" id="en-US" name="English (US)" desc="English (US)" author="e.World Technology Limited" date="2022/7/20">
   <!--
     IMPORTANT NOTES:
     1. Language ID must be RFC 4646 language tags (which use hyphen, not underscore), e.g. en-US, fr-CA, fr-FR,
@@ -23,10 +23,10 @@
     <phrase id="actionupdated" value="Actualizado" />
     <phrase id="actionupdatedgridedit" value="Actualizado (Grid-Edit)" />
     <phrase id="actionupdatedmultiupdate" value="Actualizado (Multi-Update)" />
-    <phrase id="activateaccount" value="Tu cuenta está activada" />
-    <phrase id="activatefailed" value="Activación fallida" />
+    <phrase id="activateaccount" value="Your account is activated" />
+    <phrase id="activatefailed" value="Activation failed" />
     <phrase id="add" value="Agregar" />
-    <phrase id="addblankrow" value="Agregar fila en blanco" class="fas fa-plus ew-icon" />
+    <phrase id="addblankrow" value="Add Blank Row" class="fas fa-plus ew-icon" />
     <!-- v2019 -->
     <phrase id="addbtn" value="Agregar" client="1" />
     <!-- v2018 -->
@@ -49,20 +49,20 @@
     <phrase id="apititle" value="REST API" />
     <!-- v2021 -->
     <phrase id="audittrailautologin" value="autologin" />
-    <phrase id="audittrailfailedattempt" value="intento fallido: %n" />
-    <phrase id="audittrailuserloggedin" value="el usuario ya esta conectado" />
-    <phrase id="audittrailpasswordexpired" value="la contraseña expiró" />
+    <phrase id="audittrailfailedattempt" value="failed attempt: %n" />
+    <phrase id="audittrailuserloggedin" value="user already logged in" />
+    <phrase id="audittrailpasswordexpired" value="password expired" />
     <phrase id="audittraillogin" value="login" />
-    <phrase id="audittraillogout" value="cerrar sesión" />
-    <phrase id="autologinfailed" value="Inicio de sesión automático fallido" />
+    <phrase id="audittraillogout" value="logout" />
+    <phrase id="autologinfailed" value="Auto login failed" />
     <!-- v2018 -->
-    <phrase id="average" value="Promedio" />
-    <phrase id="backtolist" value="Volver a la lista" />
-    <phrase id="backtologin" value="Volver a la página de inicio de sesión" />
+    <phrase id="average" value="Average" />
+    <phrase id="backtolist" value="Back to List" />
+    <phrase id="backtologin" value="Back to login page" />
     <phrase id="backtomasterrecordpage" value="Back to master table" />
     <phrase id="backupcodes" value="Backup codes (2FA)" client="1" />
     <!-- v2022 -->
-    <phrase id="backupcodesmsg" value="Guarde sus códigos de respaldo en un lugar seguro pero accesible. Solo puede usar cada código de respaldo una vez." client="1" />
+    <phrase id="backupcodesmsg" value="Save your backup codes somewhere safe but accessible. You can only use each backup code once." client="1" />
     <!-- v2022 -->
     <phrase id="batchdeletebegin" value="*** Batch delete begin ***" />
     <phrase id="batchdeleterollback" value="*** Batch delete rollback ***" />
@@ -99,19 +99,19 @@
     <!-- v2017 -->
     <phrase id="cancellink" value="Cancelar" class="fas fa-times ew-icon" />
     <!-- v2019 -->
-    <phrase id="changepassword" value="Cambiar la contraseña" client="1" />
+    <phrase id="changepassword" value="Change Password" client="1" />
     <!-- v2020 -->
-    <phrase id="changepasswordmessage" value="Cambiar la contraseña" />
+    <phrase id="changepasswordmessage" value="Change Password" />
     <!-- v2019 -->
-    <phrase id="changepasswordpage" value="Cambiar la contraseña" />
-    <phrase id="changepasswordbtn" value="Cambiar" />
+    <phrase id="changepasswordpage" value="Change Password" />
+    <phrase id="changepasswordbtn" value="Change" />
     <phrase id="chartexporterrmsg1" value="Unable to get %t image from %e." />
     <!-- v2021 -->
-    <phrase id="chartexporterrmsg2" value="Missing file name." />
+    <phrase id="chartexporterrmsg2" value="Falta el nombre del archivo." />
     <!-- v2021 -->
-    <phrase id="chartexporterrmsg3" value="Upload folder does not exist." />
+    <phrase id="chartexporterrmsg3" value="La carpeta de carga no existe." />
     <!-- v2021 -->
-    <phrase id="chartexporterrmsg4" value="Upload folder is not writable." />
+    <phrase id="chartexporterrmsg4" value="La carpeta de carga no se puede escribir." />
     <!-- v2021 -->
     <phrase id="chartorder" value="Order by" />
     <!-- v2020 -->
@@ -123,7 +123,7 @@
     <!-- v2020 -->
     <phrase id="chartorderydesc" value="Values Descending" />
     <!-- v2020 -->
-    <phrase id="choosefilebtn" value="Choose..." />
+    <phrase id="choosefilebtn" value="Seleccionar..." />
     <!-- v11 -->
     <phrase id="choosefile" value="Suelte el archivo aquí o haga clic para cargar" />
     <!-- v2022 -->
@@ -158,14 +158,14 @@
     <!-- v11 -->
     <phrase id="copytoclipboard" value="Copiar al portapapeles" client="1" />
     <!-- v2022 -->
-    <phrase id="copiedtoclipboard" value="Copiar al portapapeles" client="1" />
+    <phrase id="copiedtoclipboard" value="Copiado al portapapeles" client="1" />
     <!-- v2022 -->
-    <phrase id="count" value="Count" />
+    <phrase id="count" value="Contar" />
     <phrase id="countselected" value="%s seleccionado" client="1" />
     <!-- v12 -->
     <phrase id="ctbsumhead" value="Summary" />
     <!-- v2020 -->
-    <phrase id="currentfilters" value="Current filters:" />
+    <phrase id="currentfilters" value="Filtros actuales:" />
     <!-- v2020 -->
     <phrase id="currentpassword" value="Current password: " client="1" />
     <!-- v12 -->
@@ -184,21 +184,21 @@
     <phrase id="deletebtn" value="Eliminar" />
     <phrase id="deletecancelled" value="Eliminar cancelado" />
     <phrase id="deleteconfirmmsg" value="¿Estás seguro de que quieres eliminar?" client="1" />
-    <phrase id="deletefilter" value="Eliminar filtro" />
+    <phrase id="deletefilter" value="Delete filter" />
     <!-- v12 -->
-    <phrase id="deletefilterconfirm" value="Eliminar filtro %s?" client="1" />
+    <phrase id="deletefilterconfirm" value="Delete filter %s?" client="1" />
     <!-- v12 -->
-    <phrase id="deletelink" value="Delete" class="fas fa-trash ew-icon" />
+    <phrase id="deletelink" value="Eliminar" class="fas fa-trash ew-icon" />
     <!-- v2019 -->
-    <phrase id="deleteselectedlink" value="Delete Selected Records" class="fas fa-trash ew-icon" />
+    <phrase id="deleteselectedlink" value="Eliminar registros seleccionados" class="fas fa-trash ew-icon" />
     <!-- v2019 -->
-    <phrase id="deletesomerecordsfailed" value="Delete failed for records with keys: %k" />
+    <phrase id="deletesomerecordsfailed" value="Error al eliminar registros con claves: %k" />
     <!-- v2022 -->
     <phrase id="deletesuccess" value="Borrado exitosamente" />
     <phrase id="detaillink" value="" />
     <phrase id="detailcount" value="&lt;span class='badge bg-primary ew-detail-count-%c'&gt;%c&lt;/span&gt;" />
     <!-- v2022 -->
-    <phrase id="details" value="Details" client="1" />
+    <phrase id="details" value="Detalles" client="1" />
     <!-- v2022 -->
     <phrase id="disable2fa" value="Disable two factor authentication" />
     <!-- v2022 -->
@@ -212,7 +212,7 @@
     <!-- v2019 -->
     <phrase id="drilldownallrecords" value="Todos los registros" />
     <!-- v2020 -->
-    <phrase id="drilldownfilters" value="Drill down filters:" />
+    <phrase id="drilldownfilters" value="Filtros detallados:" />
     <!-- v2020 -->
     <phrase id="dupindex" value="Duplicate value '%v' for unique index '%f'" />
     <phrase id="dupkey" value="Duplicate primary key: '%f'" />
@@ -242,13 +242,13 @@
     <!-- v12 -->
     <phrase id="enternewpassword" value="Please enter new password" client="1" />
     <phrase id="enteroldpassword" value="Please enter old password" client="1" />
-    <phrase id="enterpassword" value="Please enter password" client="1" />
-    <phrase id="enterrequiredfield" value="Please enter required field - %s" client="1" />
+    <phrase id="enterpassword" value="Por favor, ingrese contraseña" client="1" />
+    <phrase id="enterrequiredfield" value="Por favor ingrese el campo requerido - %s" client="1" />
     <!-- v2021 -->
     <phrase id="entersearchcriteria" value="Please enter search criteria" />
     <phrase id="entersecuritycode" value="Please enter security code from the Google Authenticator (or backup code)" client="1" />
     <!-- v2022 -->
-    <phrase id="enterusername" value="Please enter username" client="1" />
+    <phrase id="enterusername" value="Por favor ingrese nombre de usuario" client="1" />
     <phrase id="entervalidatecode" value="Please enter validation code" client="1" />
     <!-- v11 -->
     <phrase id="enterpropersenderemail" value="Exceed maximum sender email count or email address incorrect" client="1" />
@@ -277,49 +277,49 @@
     <!-- v2018 -->
     <phrase id="exportingchart" value="Exporting chart (%c of %t), please wait..." client="1" />
     <!-- v2020 -->
-    <phrase id="exporttocsv" value="Export to CSV" class="icon-csv ew-icon" />
+    <phrase id="exporttocsv" value="Exportar a CSV" class="icon-csv ew-icon" />
     <!-- v11 -->
     <phrase id="exporttocsvtext" value="CSV" />
     <phrase id="exporttoemail" value="Email" class="icon-email ew-icon" />
     <!-- v11 -->
     <phrase id="exporttoemailtext" value="Email" client="1" />
-    <phrase id="exporttoexcel" value="Export to Excel" class="icon-excel ew-icon" />
+    <phrase id="exporttoexcel" value="Exportar a Excel" class="icon-excel ew-icon" />
     <!-- v11 -->
     <phrase id="exporttoexceltext" value="Excel" />
-    <phrase id="exporttohtml" value="Export to HTML" class="icon-html ew-icon" />
+    <phrase id="exporttohtml" value="Exportar a HTML" class="icon-html ew-icon" />
     <!-- v11 -->
     <phrase id="exporttohtmltext" value="HTML" />
-    <phrase id="exporttopdf" value="Export to PDF" class="icon-pdf ew-icon" />
+    <phrase id="exporttopdf" value="Exportar a PDF" class="icon-pdf ew-icon" />
     <!-- v11 -->
     <phrase id="exporttopdftext" value="PDF" />
     <phrase id="exporttoprinttext" value="Printer Friendly" />
     <!-- v2022 -->
-    <phrase id="exporttoword" value="Export to Word" class="icon-word ew-icon" />
+    <phrase id="exporttoword" value="Exportar a Word" class="icon-word ew-icon" />
     <!-- v11 -->
     <phrase id="exporttowordtext" value="Word" />
-    <phrase id="exporttoxml" value="Export to XML" class="icon-xml ew-icon" />
+    <phrase id="exporttoxml" value="Exportar a XML" class="icon-xml ew-icon" />
     <!-- v11 -->
     <phrase id="exporttoxmltext" value="XML" />
-    <phrase id="failedtoexport" value="Failed to Export" client="1" />
+    <phrase id="failedtoexport" value="No se pudo exportar" client="1" />
     <!-- v2018 -->
     <phrase id="failedtosendmail" value="Failed to send mail. " />
     <phrase id="fieldname" value="Field Name" />
     <phrase id="fieldrequiredindicator" class="fas fa-asterisk ew-required" />
     <!-- v2019 -->
-    <phrase id="filenotfound" value="File not found" />
-    <phrase id="filter" value="Filter" class="fas fa-filter" />
+    <phrase id="filenotfound" value="Archivo no encontrado" />
+    <phrase id="filter" value="Filtrar" class="fas fa-filter" />
     <!-- v2022 -->
-    <phrase id="filterallrecords" value="All records" client="1" />
+    <phrase id="filterallrecords" value="Todos los registros" client="1" />
     <!-- v2022 -->
     <phrase id="filtercancel" value="Cancelar" client="1" />
     <!-- v2022 -->
-    <phrase id="filtername" value="Filter name" client="1" />
+    <phrase id="filtername" value="Nombre del filtro" client="1" />
     <!-- v12 -->
-    <phrase id="filternovalue" value="No value selected" client="1" />
+    <phrase id="filternovalue" value="Ningún valor seleccionado" client="1" />
     <!-- v2022 -->
     <phrase id="filterok" value="OK" client="1" />
     <!-- v2022 -->
-    <phrase id="filters" value="Filters" class="fas fa-filter ew-icon" />
+    <phrase id="filters" value="Flitros" class="fas fa-filter ew-icon" />
     <!-- v2022 -->
     <phrase id="resetpasswordresponse" value="You will receive password recovery instructions shortly if your email address is registered." />
     <!-- v2019 -->
@@ -329,12 +329,12 @@
     <!-- v2019 -->
     <phrase id="getnewcodes" value="Get new codes" client="1" />
     <!-- v2022 -->
-    <phrase id="goback" value="Go Back" />
+    <phrase id="goback" value="Regresar" />
     <phrase id="gridaddcancelled" value="Grid add cancelled" />
     <!-- v11 -->
     <phrase id="gridaddlink" value="Grid Add" class="icon-grid-add ew-icon" />
     <!-- v11 -->
-    <phrase id="gridcancellink" value="Cancel" class="fas fa-times ew-icon" />
+    <phrase id="gridcancellink" value="Cancelar" class="fas fa-times ew-icon" />
     <!-- v2019 -->
     <phrase id="grideditcancelled" value="Grid edit cancelled" />
     <!-- v11 -->
@@ -366,11 +366,11 @@
     <!-- v2019 -->
     <phrase id="importmessageerror4" value="log file: %l" client="1" />
     <!-- v2019 -->
-    <phrase id="importmessageinvalidfileextension" value="Invalid file extension '%e'" />
+    <phrase id="importmessageinvalidfileextension" value="Extensión de archivo inválida '%e'" />
     <!-- v2019 -->
-    <phrase id="importmessageinvalidfieldname" value="Invalid field name: %f" />
+    <phrase id="importmessageinvalidfieldname" value="Nombre de campo no válido: %f" />
     <!-- v2019 -->
-    <phrase id="importmessageinvalidfieldvalue" value="Invalid field value (field name %f): %v" />
+    <phrase id="importmessageinvalidfieldvalue" value="Valor de campo no válido (field name %f): %v" />
     <!-- v2019 -->
     <phrase id="importmessagemore" value="(%s more)" client="1" />
     <!-- v2019 -->
@@ -382,11 +382,11 @@
     <!-- v2019 -->
     <phrase id="importmessagesuccess" value="Imported %c of %t records from %f successfully" client="1" />
     <!-- v2019 -->
-    <phrase id="importmessageuploaderror" value="Failed to upload %f: %s" client="1" />
+    <phrase id="importmessageuploaderror" value="Error al cargar %f: %s" client="1" />
     <!-- v2019 -->
-    <phrase id="importmessageuploadcomplete" value="Upload completed" client="1" />
+    <phrase id="importmessageuploadcomplete" value="Carga completada" client="1" />
     <!-- v2019 -->
-    <phrase id="importmessageuploadprogress" value="Uploading...(p%)" client="1" />
+    <phrase id="importmessageuploadprogress" value="Cargando...(p%)" client="1" />
     <!-- v2019 -->
     <phrase id="importmessagepleaseselect" value="Please select file" client="1" />
     <!-- v2019 -->
@@ -398,7 +398,7 @@
     <!-- v2021 -->
     <phrase id="incorrectdate" value="Incorrect date (%s)" client="1" />
     <!-- v2021 -->
-    <phrase id="incorrectemail" value="Email incorrecto" client="1" />
+    <phrase id="incorrectemail" value="Incorrect email" client="1" />
     <phrase id="incorrectfield" value="Incorrect field value" client="1" />
     <phrase id="incorrectfloat" value="Incorrect floating point number" client="1" />
     <phrase id="incorrectguid" value="Incorrect GUID" client="1" />
@@ -451,11 +451,11 @@
     <phrase id="lightboxcurrent" value="image {current} of {total}" client="1" />
     <!-- Note: DO NOT translate "{current}" and "{total}" -->
     <!-- v11 -->
-    <phrase id="lightboxprevious" value="anterior" client="1" />
+    <phrase id="lightboxprevious" value="previous" client="1" />
     <!-- v11 -->
-    <phrase id="lightboxnext" value="siguiente" client="1" />
+    <phrase id="lightboxnext" value="next" client="1" />
     <!-- v11 -->
-    <phrase id="lightboxclose" value="cerrar" client="1" />
+    <phrase id="lightboxclose" value="close" client="1" />
     <!-- v11 -->
     <phrase id="lightboxxhrerror" value="This content failed to load." client="1" />
     <!-- v11 -->
@@ -475,16 +475,16 @@
     <!-- v2018 -->
     <phrase id="logingoogle" value="Login with Google" />
     <!-- v2018 -->
-    <phrase id="loginmsg" value="Sign in to start your session" />
+    <phrase id="loginmsg" value="Iniciar sesión" />
     <!-- v2019 -->
     <phrase id="loginoptions" value="Options" />
     <!-- v11 -->
     <phrase id="loginor" value="- OR -" />
     <!-- v2018 -->
-    <phrase id="loginpage" value="Iniciar sesión" />
+    <phrase id="loginpage" value="Login" />
     <phrase id="login2fapage" value="Login (Two factor authentication)" />
     <!-- v2022 -->
-    <phrase id="logout" class="fas fa-sign-out-alt ew-icon" value="Logout" />
+    <phrase id="logout" class="fas fa-sign-out-alt ew-icon" value="Cerrar sesión" />
     <!-- v2022 -->
     <phrase id="lookuptitle" value="Lookup - %s" client="1" />
     <!-- v2022 -->
@@ -560,14 +560,14 @@
     <phrase id="overwritebtn" value="Overwrite" client="1" />
     <!-- v2017 -->
     <phrase id="overwritelink" value="Overwrite" />
-    <phrase id="page" value="Página" client="1" />
+    <phrase id="page" value="Page" client="1" />
     <!-- v2017 -->
     <phrase id="pagenotfound" value="Route '%p' not found." />
     <!-- v2021 -->
-    <phrase id="pagerfirst" value="Primero" />
-    <phrase id="pagerlast" value="Último" />
-    <phrase id="pagernext" value="Siguiente" />
-    <phrase id="pagerprevious" value="Anterior" />
+    <phrase id="pagerfirst" value="First" />
+    <phrase id="pagerlast" value="Last" />
+    <phrase id="pagernext" value="Next" />
+    <phrase id="pagerprevious" value="Previous" />
     <phrase id="password" value="Contraseña" client="1" />
     <!-- v2021 -->
     <phrase id="passwordmask" value="********" />
@@ -585,25 +585,25 @@
     <!-- v2020 -->
     <phrase id="permissionadmin" value="Admin" client="1" />
     <!-- v2019 -->
-    <phrase id="permissiondelete" value="Eliminar" client="1" />
+    <phrase id="permissiondelete" value="Delete" client="1" />
     <!-- v2018 -->
-    <phrase id="permissionedit" value="Editar" client="1" />
+    <phrase id="permissionedit" value="Edit" client="1" />
     <!-- v2018 -->
-    <phrase id="permissionimport" value="Importar" client="1" />
+    <phrase id="permissionimport" value="Import" client="1" />
     <!-- v2020 -->
-    <phrase id="permissionlistsearchview" value="Listar/Buscar/Ver" client="1" />
+    <phrase id="permissionlistsearchview" value="List/Search/View" client="1" />
     <!-- v2018 -->
-    <phrase id="permissionlist" value="Listar" client="1" />
+    <phrase id="permissionlist" value="List" client="1" />
     <!-- v2018 -->
     <phrase id="permissionlookup" value="Lookup" client="1" />
     <!-- v2020 -->
-    <phrase id="permissionsearch" value="Buscar" client="1" />
+    <phrase id="permissionsearch" value="Search" client="1" />
     <!-- v2018 -->
-    <phrase id="permissionview" value="Vista" client="1" />
+    <phrase id="permissionview" value="View" client="1" />
     <!-- v2018 -->
-    <phrase id="personaldatabtn" value="Personal Data" />
+    <phrase id="personaldatabtn" value="Información personal" />
     <!-- v2019 -->
-    <phrase id="personaldatacontent" value="Your account contains personal data that you have given us. This page allows you to download or delete that data." />
+    <phrase id="personaldatacontent" value="Su cuenta contiene datos personales que nos ha proporcionado. Esta página le permite descargar o eliminar esos datos." />
     <!-- v2019 -->
     <phrase id="personaldatadeletefailure" value="Unexpected error occurred deleting user" />
     <!-- v2019 -->
@@ -611,11 +611,11 @@
     <!-- v2019 -->
     <phrase id="personaldatatitle" value="Personal Data" />
     <!-- v2019 -->
-    <phrase id="personaldatawarning" value="Deleting this data will permanently remove your account, and this cannot be recovered." />
+    <phrase id="personaldatawarning" value="Eliminar estos datos eliminará permanentemente su cuenta y no se podrá recuperar." />
     <!-- v2019 -->
     <phrase id="pleaseselect" value="Please select" client="1" />
     <!-- v12 -->
-    <phrase id="prev" value="Anterior" client="1" />
+    <phrase id="prev" value="Prev" client="1" />
     <!-- v12 -->
     <phrase id="primarykeyunspecified" value="Primary key unspecified" />
     <phrase id="printerfriendly" value="Printer Friendly" class="icon-print ew-icon" />
@@ -640,27 +640,27 @@
     <!-- v11 -->
     <phrase id="quicksearchautoshort" value="" client="1" />
     <!-- v11 -->
-    <phrase id="quicksearchall" value="Todas las palabras clave" client="1" />
+    <phrase id="quicksearchall" value="All keywords" client="1" />
     <!-- v11 -->
     <phrase id="quicksearchallshort" value="All" client="1" />
     <!-- v11 -->
-    <phrase id="quicksearchany" value="Cualquier palabra clave" client="1" />
+    <phrase id="quicksearchany" value="Any keywords" client="1" />
     <!-- v11 -->
-    <phrase id="quicksearchanyshort" value="Cualquiera" client="1" />
+    <phrase id="quicksearchanyshort" value="Any" client="1" />
     <!-- v11 -->
-    <phrase id="quicksearchexact" value="Coincidencia exacta" client="1" />
+    <phrase id="quicksearchexact" value="Exact match" client="1" />
     <!-- v11 -->
-    <phrase id="quicksearchexactshort" value="Exacto" client="1" />
+    <phrase id="quicksearchexactshort" value="Exact" client="1" />
     <!-- v11 -->
     <phrase id="recipient" value="Recipient(s)" client="1" />
     <!-- v2021 -->
-    <phrase id="record" value="Registro" client="1" />
+    <phrase id="record" value="Record" client="1" />
     <!-- v2022 -->
     <phrase id="recordchangedbyotheruser" value="Data has been changed by other user. Click [Reload] to retrieve the changed data (your data in the form will be overwritten) or click [Overwrite] to overwrite the changed data." />
-    <phrase id="recorddeleted" value="registros eliminados" />
-    <phrase id="recordinserted" value="registros insertados" />
-    <phrase id="recordupdated" value="registros actualizados" />
-    <phrase id="recordsperpage" value="Tamaño de página" client="1" />
+    <phrase id="recorddeleted" value="record(s) deleted" />
+    <phrase id="recordinserted" value="record(s) inserted" />
+    <phrase id="recordupdated" value="record(s) updated" />
+    <phrase id="recordsperpage" value="Page size" client="1" />
     <!-- v2017 -->
     <phrase id="register" value="Register" client="1" />
     <!-- v2020 -->
@@ -674,8 +674,8 @@
     <!-- v2017 -->
     <phrase id="reloadlink" value="Reload" />
     <phrase id="rememberme" value="Remember me" />
-    <phrase id="remove" value="Remover" />
-    <phrase id="replace" value="Reemplazar" />
+    <phrase id="remove" value="Remove" />
+    <phrase id="replace" value="Replace" />
     <phrase id="report" value="Report" />
     <phrase id="resetpwd" value="Reset Password" />
     <!-- v2020 -->
@@ -749,7 +749,7 @@
     <!-- v2022 -->
     <phrase id="selectall" value="Seleccionar todo" />
     <!-- v2022 -->
-    <phrase id="selectbtn" value="Seleccionar" client="1" />
+    <phrase id="selectbtn" value="Seleccione" client="1" />
     <!-- v2017 -->
     <phrase id="sendemailbtn" value="Send" />
     <phrase id="sendemailsuccess" value="Email sent successfully" client="1" />
@@ -806,14 +806,14 @@
     <phrase id="unauthorizedmasteruserid" value="The current user (%c) is not authorized to insert the record. Master filter: %f" />
     <phrase id="unsupportedbrowser" value="Your browser is not supported by this page" client="1" />
     <!-- v2021 -->
-    <phrase id="update" value="Actualizar" />
-    <phrase id="updatebtn" value="Actualizar" client="1" />
+    <phrase id="update" value="Update" />
+    <phrase id="updatebtn" value="Update" client="1" />
     <!-- v2017 -->
-    <phrase id="updatecancelled" value="Actualización cancelada" />
-    <phrase id="updatefailed" value="Actualización fallida" />
-    <phrase id="updatelink" value="Actualizar" class="fas fa-check ew-icon" />
+    <phrase id="updatecancelled" value="Update cancelled" />
+    <phrase id="updatefailed" value="Update failed" />
+    <phrase id="updatelink" value="Update" class="fas fa-check ew-icon" />
     <!-- v2019 -->
-    <phrase id="updateselectedlink" value="Actualizar registros seleccionados" class="icon-edit ew-icon" />
+    <phrase id="updateselectedlink" value="Update Selected Records" class="icon-edit ew-icon" />
     <!-- v11 -->
     <phrase id="updatesomerecordsfailed" value="Update failed for records with keys: %k" />
     <!-- v2022 -->
@@ -831,10 +831,10 @@
     <phrase id="uploaderrmsg7" value="Failed to write file to disk" />
     <phrase id="uploaderrmsg8" value="A PHP extension stopped the file upload" />
     <phrase id="uploaderrmsgpostmaxsize" value="The uploaded file size exceeds the post_max_size directive in php.ini" />
-    <phrase id="uploaderrmsgmaxfilesize" value="El archivo es demasiado grande" client="1" />
-    <phrase id="uploaderrmsgminfilesize" value="El archivo es demasiado pequeño" client="1" />
-    <phrase id="uploaderrmsgacceptfiletypes" value="Tipo de archivo no permitido" client="1" />
-    <phrase id="uploaderrmsgmaxnumberoffiles" value="Número máximo de archivos excedido" client="1" />
+    <phrase id="uploaderrmsgmaxfilesize" value="File is too big" client="1" />
+    <phrase id="uploaderrmsgminfilesize" value="File is too small" client="1" />
+    <phrase id="uploaderrmsgacceptfiletypes" value="File type not allowed" client="1" />
+    <phrase id="uploaderrmsgmaxnumberoffiles" value="Maximum number of files exceeded" client="1" />
     <phrase id="uploaderrmsgmaxwidth" value="Image exceeds maximum width" />
     <phrase id="uploaderrmsgminwidth" value="Image requires a minimum width" />
     <phrase id="uploaderrmsgmaxheight" value="Image exceeds maximum height" />
@@ -858,7 +858,7 @@
     <phrase id="userlevelidincorrect" value="User defined user level ID must be larger than 0" client="1" />
     <phrase id="userlevelnameincorrect" value="User defined user level name cannot be 'Anonymous', 'Administrator' or 'Default'" client="1" />
     <phrase id="userloggedin" value="User '%u' already logged in" />
-    <phrase id="username" value="User Name" client="1" />
+    <phrase id="username" value="Usuario" client="1" />
     <!-- v2021 -->
     <phrase id="usernotfound" value="User '%u' not found" />
     <!-- v2018 -->
@@ -872,21 +872,21 @@
     <!-- v12 -->
     <phrase id="viewlink" value="Vista" class="icon-view ew-icon" />
     <!-- v11 -->
-    <phrase id="viewpageaddlink" value="Agregar" class="fas fa-plus ew-icon" />
+    <phrase id="viewpageaddlink" value="Add" class="fas fa-plus ew-icon" />
     <!-- v2019 -->
-    <phrase id="viewpagecopylink" value="Copiar" class="icon-copy ew-icon" />
+    <phrase id="viewpagecopylink" value="Copy" class="icon-copy ew-icon" />
     <!-- v11 -->
-    <phrase id="viewpagedeletelink" value="Eliminar" class="fas fa-trash ew-icon" />
+    <phrase id="viewpagedeletelink" value="Delete" class="fas fa-trash ew-icon" />
     <!-- v2019 -->
     <phrase id="viewpagedetaillink" value="" />
-    <phrase id="viewpageeditlink" value="Editar" class="icon-edit ew-icon" />
+    <phrase id="viewpageeditlink" value="Edit" class="icon-edit ew-icon" />
     <!-- v11 -->
     <phrase id="warning" value="Advertencia" client="1" />
     <!-- v2020 -->
     <phrase id="week" value="Week" />
     <!-- v2020 -->
-    <phrase id="wrongfiletype" value="El tipo de archivo no está permitido." client="1" />
-    <phrase id="year" value="Año" />
+    <phrase id="wrongfiletype" value="File type is not allowed." client="1" />
+    <phrase id="year" value="Year" />
     <!-- v2020 -->
     <phrase id="=" value="&amp;nbsp;" />
     <!-- v12 -->
@@ -917,9 +917,9 @@
     <phrase id="next14days" value="Next 14 days" />
     <phrase id="next30days" value="Next 30 days" />
     <phrase id="next7days" value="Next 7 days" />
-    <phrase id="today" value="Hoy" />
-    <phrase id="tomorrow" value="Mañana" />
-    <phrase id="yesterday" value="Ayer" />
+    <phrase id="today" value="Today" />
+    <phrase id="tomorrow" value="Tomorrow" />
+    <phrase id="yesterday" value="Yesterday" />
     <phrase id="lastmonth" value="Last month" />
     <phrase id="nextmonth" value="Next month" />
     <phrase id="thismonth" value="This month" />
@@ -933,16 +933,16 @@
     <phrase id="thisyear" value="This year" />
     <!-- Exceptions -->
     <!-- v2021 -->
-    <phrase id="400" value="Solicitud incorrecta" />
-    <phrase id="400desc" value="El servidor no puede o no procesará la solicitud debido a un aparente error del cliente." />
-    <phrase id="401" value="No autorizado" />
+    <phrase id="400" value="Bad Request" />
+    <phrase id="400desc" value="The server cannot or will not process the request due to an apparent client error." />
+    <phrase id="401" value="Unauthorized" />
     <phrase id="401desc" value="The request requires valid user authentication." />
-    <phrase id="403" value="Prohibido" />
+    <phrase id="403" value="Forbidden" />
     <phrase id="403desc" value="You are not permitted to perform the requested operation." />
-    <phrase id="404" value="No encontrado" />
+    <phrase id="404" value="Not Found" />
     <phrase id="404desc" value="The requested resource could not be found. Please verify the URI and try again." />
     <phrase id="405" value="Method Not Allowed" />
-    <phrase id="405desc" value="El método de solicitud no es compatible con el recurso solicitado." />
+    <phrase id="405desc" value="The request method is not supported for the requested resource." />
     <phrase id="500" value="Internal Server Error" />
     <phrase id="500desc" value="Unexpected condition encountered preventing server from fulfilling request." />
     <phrase id="501" value="Not Implemented" />
@@ -955,9 +955,9 @@
     <phrase id="loadingmore" value="Loading more..." class="spinner-border spinner-border-sm text-primary" client="1" />
     <phrase id="maximumselected" value="You can only select %s item(s)" client="1" />
     <phrase id="noresults" value="No results found" client="1" />
-    <phrase id="searching" value="Buscando..." class="spinner-border spinner-border-sm text-primary" client="1" />
-    <phrase id="removeallitems" value="Eliminar todos los elementos" client="1" />
-    <phrase id="removeitem" value="Remover item" client="1" />
+    <phrase id="searching" value="Searching..." class="spinner-border spinner-border-sm text-primary" client="1" />
+    <phrase id="removeallitems" value="Remove all items" client="1" />
+    <phrase id="removeitem" value="Remove item" client="1" />
   </global>
   <project>
     <phrase id="bodytitle" value="Torneo" />

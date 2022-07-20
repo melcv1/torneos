@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 // Base path
 $basePath = BasePath(true);
@@ -221,7 +221,7 @@ ew.ready("head", [
                     <a class="nav-link" data-widget="pushmenu" data-enable-remember="true" data-ew-action="none"><i class="fas fa-bars ew-icon"></i></a>
                 </li>
                 <a class="navbar-brand d-none d-md-block" href="#" data-ew-action="none">
-                    <span class="brand-text">PHPMaker 2022</span>
+                    <span class="brand-text">Torneo</span>
                 </a>
             </ul>
             <!-- Right navbar links -->
@@ -234,7 +234,7 @@ ew.ready("head", [
         <div class="brand-container">
             <!-- Brand Logo //** Note: Only licensed users are allowed to change the logo ** -->
             <a href="#" class="brand-link">
-                <span class="brand-text">PHPMaker 2022</span>
+                <span class="brand-text">Torneo</span>
             </a>
             <?php if (preg_match('/\bsidebar-mini\b/', Config("BODY_CLASS"))) { ?>
             <a class="pushmenu mx-1" data-pushmenu="mini" role="button"><i class="fas fa-angle-double-left"></i></a>

@@ -1,7 +1,7 @@
-<?php namespace PHPMaker2022\project1; ?>
+<?php namespace PHPMaker2022\project11; ?>
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 // Page object
 $Login = &$Page;

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 // Page object
 $TorneoAdd = &$Page;
@@ -133,7 +133,7 @@ $Page->showMessage();
 <div class="invalid-feedback"><?= $Page->LOGO_TORNEO->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x_LOGO_TORNEO" id= "fn_x_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->Upload->FileName ?>">
 <input type="hidden" name="fa_x_LOGO_TORNEO" id= "fa_x_LOGO_TORNEO" value="0">
-<input type="hidden" name="fs_x_LOGO_TORNEO" id= "fs_x_LOGO_TORNEO" value="0">
+<input type="hidden" name="fs_x_LOGO_TORNEO" id= "fs_x_LOGO_TORNEO" value="1024">
 <input type="hidden" name="fx_x_LOGO_TORNEO" id= "fx_x_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->UploadAllowedFileExt ?>">
 <input type="hidden" name="fm_x_LOGO_TORNEO" id= "fm_x_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->UploadMaxFileSize ?>">
 <table id="ft_x_LOGO_TORNEO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>

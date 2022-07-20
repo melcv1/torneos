@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -233,8 +233,8 @@ class Equipo extends DbTable
             'ESCUDO_EQUIPO',
             '`ESCUDO_EQUIPO`',
             '`ESCUDO_EQUIPO`',
-            205,
-            0,
+            201,
+            1024,
             -1,
             true,
             '`ESCUDO_EQUIPO`',
@@ -245,7 +245,6 @@ class Equipo extends DbTable
             'FILE'
         );
         $this->ESCUDO_EQUIPO->InputTextType = "text";
-        $this->ESCUDO_EQUIPO->Sortable = false; // Allow sort
         $this->Fields['ESCUDO_EQUIPO'] = &$this->ESCUDO_EQUIPO;
 
         // NOM_ESTADIO
@@ -840,6 +839,12 @@ class Equipo extends DbTable
     public function deleteUploadedFiles($row)
     {
         $this->loadDbValues($row);
+        $oldFiles = EmptyValue($row['ESCUDO_EQUIPO']) ? [] : [$row['ESCUDO_EQUIPO']];
+        foreach ($oldFiles as $oldFile) {
+            if (file_exists($this->ESCUDO_EQUIPO->oldPhysicalUploadPath() . $oldFile)) {
+                @unlink($this->ESCUDO_EQUIPO->oldPhysicalUploadPath() . $oldFile);
+            }
+        }
     }
 
     // Record filter WHERE clause
@@ -1228,8 +1233,7 @@ class Equipo extends DbTable
             $this->ESCUDO_EQUIPO->ImageHeight = 0;
             $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
             $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
-            $this->ESCUDO_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
-            $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+            $this->ESCUDO_EQUIPO->ViewValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
         } else {
             $this->ESCUDO_EQUIPO->ViewValue = "";
         }
@@ -1309,19 +1313,16 @@ class Equipo extends DbTable
 
         // ESCUDO_EQUIPO
         $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
-        if (!empty($this->ESCUDO_EQUIPO->Upload->DbValue)) {
-            $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
-            $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "";
-            if ($this->ESCUDO_EQUIPO->IsBlobImage && empty($this->ESCUDO_EQUIPO->LinkAttrs["target"])) {
-                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "_blank";
-            }
+        if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+            $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
+            $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
             if ($this->isExport()) {
                 $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
             }
         } else {
             $this->ESCUDO_EQUIPO->HrefValue = "";
         }
-        $this->ESCUDO_EQUIPO->ExportHrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
+        $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
         $this->ESCUDO_EQUIPO->TooltipValue = "";
         if ($this->ESCUDO_EQUIPO->UseColorbox) {
             if (EmptyValue($this->ESCUDO_EQUIPO->TooltipValue)) {
@@ -1405,10 +1406,12 @@ class Equipo extends DbTable
             $this->ESCUDO_EQUIPO->ImageHeight = 0;
             $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
             $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
-            $this->ESCUDO_EQUIPO->EditValue = $this->ID_EQUIPO->CurrentValue;
-            $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+            $this->ESCUDO_EQUIPO->EditValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
         } else {
             $this->ESCUDO_EQUIPO->EditValue = "";
+        }
+        if (!EmptyValue($this->ESCUDO_EQUIPO->CurrentValue)) {
+            $this->ESCUDO_EQUIPO->Upload->FileName = $this->ESCUDO_EQUIPO->CurrentValue;
         }
 
         // NOM_ESTADIO
@@ -1548,6 +1551,7 @@ class Equipo extends DbTable
         $fileTypeFld = "";
         if ($fldparm == 'ESCUDO_EQUIPO') {
             $fldName = "ESCUDO_EQUIPO";
+            $fileNameFld = "ESCUDO_EQUIPO";
         } else {
             return false; // Incorrect field
         }

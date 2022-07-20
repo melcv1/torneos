@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -129,8 +129,8 @@ class Estadio extends DbTable
             'foto_estadio',
             '`foto_estadio`',
             '`foto_estadio`',
-            205,
-            0,
+            201,
+            1024,
             -1,
             true,
             '`foto_estadio`',
@@ -141,7 +141,6 @@ class Estadio extends DbTable
             'FILE'
         );
         $this->foto_estadio->InputTextType = "text";
-        $this->foto_estadio->Sortable = false; // Allow sort
         $this->Fields['foto_estadio'] = &$this->foto_estadio;
 
         // crea_dato
@@ -631,6 +630,12 @@ class Estadio extends DbTable
     public function deleteUploadedFiles($row)
     {
         $this->loadDbValues($row);
+        $oldFiles = EmptyValue($row['foto_estadio']) ? [] : [$row['foto_estadio']];
+        foreach ($oldFiles as $oldFile) {
+            if (file_exists($this->foto_estadio->oldPhysicalUploadPath() . $oldFile)) {
+                @unlink($this->foto_estadio->oldPhysicalUploadPath() . $oldFile);
+            }
+        }
     }
 
     // Record filter WHERE clause
@@ -986,8 +991,7 @@ class Estadio extends DbTable
             $this->foto_estadio->ImageHeight = 0;
             $this->foto_estadio->ImageAlt = $this->foto_estadio->alt();
             $this->foto_estadio->ImageCssClass = "ew-image";
-            $this->foto_estadio->ViewValue = $this->id_estadio->CurrentValue;
-            $this->foto_estadio->IsBlobImage = IsImageFile(ContentExtension($this->foto_estadio->Upload->DbValue));
+            $this->foto_estadio->ViewValue = $this->foto_estadio->Upload->DbValue;
         } else {
             $this->foto_estadio->ViewValue = "";
         }
@@ -1019,19 +1023,16 @@ class Estadio extends DbTable
 
         // foto_estadio
         $this->foto_estadio->LinkCustomAttributes = "";
-        if (!empty($this->foto_estadio->Upload->DbValue)) {
-            $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
-            $this->foto_estadio->LinkAttrs["target"] = "";
-            if ($this->foto_estadio->IsBlobImage && empty($this->foto_estadio->LinkAttrs["target"])) {
-                $this->foto_estadio->LinkAttrs["target"] = "_blank";
-            }
+        if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
+            $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
+            $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
             if ($this->isExport()) {
                 $this->foto_estadio->HrefValue = FullUrl($this->foto_estadio->HrefValue, "href");
             }
         } else {
             $this->foto_estadio->HrefValue = "";
         }
-        $this->foto_estadio->ExportHrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
+        $this->foto_estadio->ExportHrefValue = $this->foto_estadio->UploadPath . $this->foto_estadio->Upload->DbValue;
         $this->foto_estadio->TooltipValue = "";
         if ($this->foto_estadio->UseColorbox) {
             if (EmptyValue($this->foto_estadio->TooltipValue)) {
@@ -1086,10 +1087,12 @@ class Estadio extends DbTable
             $this->foto_estadio->ImageHeight = 0;
             $this->foto_estadio->ImageAlt = $this->foto_estadio->alt();
             $this->foto_estadio->ImageCssClass = "ew-image";
-            $this->foto_estadio->EditValue = $this->id_estadio->CurrentValue;
-            $this->foto_estadio->IsBlobImage = IsImageFile(ContentExtension($this->foto_estadio->Upload->DbValue));
+            $this->foto_estadio->EditValue = $this->foto_estadio->Upload->DbValue;
         } else {
             $this->foto_estadio->EditValue = "";
+        }
+        if (!EmptyValue($this->foto_estadio->CurrentValue)) {
+            $this->foto_estadio->Upload->FileName = $this->foto_estadio->CurrentValue;
         }
 
         // crea_dato
@@ -1208,6 +1211,7 @@ class Estadio extends DbTable
         $fileTypeFld = "";
         if ($fldparm == 'foto_estadio') {
             $fldName = "foto_estadio";
+            $fileNameFld = "foto_estadio";
         } else {
             return false; // Incorrect field
         }

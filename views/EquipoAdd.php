@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 // Page object
 $EquipoAdd = &$Page;
@@ -162,7 +162,7 @@ loadjs.ready("fequipoadd", function() {
 <div class="invalid-feedback"><?= $Page->ESCUDO_EQUIPO->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x_ESCUDO_EQUIPO" id= "fn_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->Upload->FileName ?>">
 <input type="hidden" name="fa_x_ESCUDO_EQUIPO" id= "fa_x_ESCUDO_EQUIPO" value="0">
-<input type="hidden" name="fs_x_ESCUDO_EQUIPO" id= "fs_x_ESCUDO_EQUIPO" value="0">
+<input type="hidden" name="fs_x_ESCUDO_EQUIPO" id= "fs_x_ESCUDO_EQUIPO" value="1024">
 <input type="hidden" name="fx_x_ESCUDO_EQUIPO" id= "fx_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadAllowedFileExt ?>">
 <input type="hidden" name="fm_x_ESCUDO_EQUIPO" id= "fm_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>">
 <table id="ft_x_ESCUDO_EQUIPO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>

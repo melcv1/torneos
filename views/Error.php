@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 $trace = @$Error["error"]["trace"];
 if ($trace) {
     $card = preg_replace('/<button.+><\/button>/i', "", Config("DEBUG_MESSAGE_TEMPLATE"));

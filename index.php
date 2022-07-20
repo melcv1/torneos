@@ -1,8 +1,8 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
-use PHPMaker2022\project1\{UserProfile, Language, AdvancedSecurity, Timer, HttpErrorHandler};
+use PHPMaker2022\project11\{UserProfile, Language, AdvancedSecurity, Timer, HttpErrorHandler};
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Container\ContainerInterface;

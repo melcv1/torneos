@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -120,16 +120,20 @@ function Route_Action($app)
     // });
 }
 
-// API Action event
-function Api_Action($app)
-{
-    // Example:
-    // $app->get('/myaction', function ($request, $response, $args) {
-    //    return $response->withJson(["name" => "myaction"]); // Note: Always return Psr\Http\Message\ResponseInterface object
-    // });
-    // $app->get('/myaction2', function ($request, $response, $args) {
-    //    return $response->withJson(["name" => "myaction2"]); // Note: Always return Psr\Http\Message\ResponseInterface object
-    // });
+function Api_Action($app) {
+$GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
+ $app->get('/v1/equipos', function ($request, $response, $args) {
+        $myArray="todo ok";
+         $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.GRUPO FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO"));
+        return $response;
+    });
+      $app->post('/v1/agregar', function ($request, $response, $args) {
+      	$data = $request->getParsedBody();
+        $conn = Conn();
+          $conn = getConnection();
+               var_dump($conn);
+      		return $response;
+    });
 }
 
 // Container Build event

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -221,8 +221,8 @@ class Torneo extends DbTable
             'LOGO_TORNEO',
             '`LOGO_TORNEO`',
             '`LOGO_TORNEO`',
-            205,
-            0,
+            201,
+            1024,
             -1,
             true,
             '`LOGO_TORNEO`',
@@ -233,7 +233,6 @@ class Torneo extends DbTable
             'FILE'
         );
         $this->LOGO_TORNEO->InputTextType = "text";
-        $this->LOGO_TORNEO->Sortable = false; // Allow sort
         $this->Fields['LOGO_TORNEO'] = &$this->LOGO_TORNEO;
 
         // crea_dato
@@ -731,6 +730,12 @@ class Torneo extends DbTable
     public function deleteUploadedFiles($row)
     {
         $this->loadDbValues($row);
+        $oldFiles = EmptyValue($row['LOGO_TORNEO']) ? [] : [$row['LOGO_TORNEO']];
+        foreach ($oldFiles as $oldFile) {
+            if (file_exists($this->LOGO_TORNEO->oldPhysicalUploadPath() . $oldFile)) {
+                @unlink($this->LOGO_TORNEO->oldPhysicalUploadPath() . $oldFile);
+            }
+        }
     }
 
     // Record filter WHERE clause
@@ -1112,8 +1117,7 @@ class Torneo extends DbTable
             $this->LOGO_TORNEO->ImageHeight = 0;
             $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
             $this->LOGO_TORNEO->ImageCssClass = "ew-image";
-            $this->LOGO_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
-            $this->LOGO_TORNEO->IsBlobImage = IsImageFile(ContentExtension($this->LOGO_TORNEO->Upload->DbValue));
+            $this->LOGO_TORNEO->ViewValue = $this->LOGO_TORNEO->Upload->DbValue;
         } else {
             $this->LOGO_TORNEO->ViewValue = "";
         }
@@ -1165,19 +1169,16 @@ class Torneo extends DbTable
 
         // LOGO_TORNEO
         $this->LOGO_TORNEO->LinkCustomAttributes = "";
-        if (!empty($this->LOGO_TORNEO->Upload->DbValue)) {
-            $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
-            $this->LOGO_TORNEO->LinkAttrs["target"] = "";
-            if ($this->LOGO_TORNEO->IsBlobImage && empty($this->LOGO_TORNEO->LinkAttrs["target"])) {
-                $this->LOGO_TORNEO->LinkAttrs["target"] = "_blank";
-            }
+        if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+            $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
+            $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
             if ($this->isExport()) {
                 $this->LOGO_TORNEO->HrefValue = FullUrl($this->LOGO_TORNEO->HrefValue, "href");
             }
         } else {
             $this->LOGO_TORNEO->HrefValue = "";
         }
-        $this->LOGO_TORNEO->ExportHrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
+        $this->LOGO_TORNEO->ExportHrefValue = $this->LOGO_TORNEO->UploadPath . $this->LOGO_TORNEO->Upload->DbValue;
         $this->LOGO_TORNEO->TooltipValue = "";
         if ($this->LOGO_TORNEO->UseColorbox) {
             if (EmptyValue($this->LOGO_TORNEO->TooltipValue)) {
@@ -1256,10 +1257,12 @@ class Torneo extends DbTable
             $this->LOGO_TORNEO->ImageHeight = 0;
             $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
             $this->LOGO_TORNEO->ImageCssClass = "ew-image";
-            $this->LOGO_TORNEO->EditValue = $this->ID_TORNEO->CurrentValue;
-            $this->LOGO_TORNEO->IsBlobImage = IsImageFile(ContentExtension($this->LOGO_TORNEO->Upload->DbValue));
+            $this->LOGO_TORNEO->EditValue = $this->LOGO_TORNEO->Upload->DbValue;
         } else {
             $this->LOGO_TORNEO->EditValue = "";
+        }
+        if (!EmptyValue($this->LOGO_TORNEO->CurrentValue)) {
+            $this->LOGO_TORNEO->Upload->FileName = $this->LOGO_TORNEO->CurrentValue;
         }
 
         // crea_dato
@@ -1392,6 +1395,7 @@ class Torneo extends DbTable
         $fileTypeFld = "";
         if ($fldparm == 'LOGO_TORNEO') {
             $fldName = "LOGO_TORNEO";
+            $fileNameFld = "LOGO_TORNEO";
         } else {
             return false; // Incorrect field
         }

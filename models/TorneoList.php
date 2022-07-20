@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -1109,6 +1109,7 @@ class TorneoList extends Torneo
             $this->updateSort($this->PAIS_TORNEO); // PAIS_TORNEO
             $this->updateSort($this->REGION_TORNEO); // REGION_TORNEO
             $this->updateSort($this->DETALLE_TORNEO); // DETALLE_TORNEO
+            $this->updateSort($this->LOGO_TORNEO); // LOGO_TORNEO
             $this->updateSort($this->crea_dato); // crea_dato
             $this->updateSort($this->modifica_dato); // modifica_dato
             $this->setStartRecordNumber(1); // Reset start position
@@ -1141,6 +1142,7 @@ class TorneoList extends Torneo
                 $this->PAIS_TORNEO->setSort("");
                 $this->REGION_TORNEO->setSort("");
                 $this->DETALLE_TORNEO->setSort("");
+                $this->LOGO_TORNEO->setSort("");
                 $this->crea_dato->setSort("");
                 $this->modifica_dato->setSort("");
             }
@@ -1612,9 +1614,7 @@ class TorneoList extends Torneo
         $this->REGION_TORNEO->setDbValue($row['REGION_TORNEO']);
         $this->DETALLE_TORNEO->setDbValue($row['DETALLE_TORNEO']);
         $this->LOGO_TORNEO->Upload->DbValue = $row['LOGO_TORNEO'];
-        if (is_resource($this->LOGO_TORNEO->Upload->DbValue) && get_resource_type($this->LOGO_TORNEO->Upload->DbValue) == "stream") { // Byte array
-            $this->LOGO_TORNEO->Upload->DbValue = stream_get_contents($this->LOGO_TORNEO->Upload->DbValue);
-        }
+        $this->LOGO_TORNEO->setDbValue($this->LOGO_TORNEO->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
@@ -1719,8 +1719,7 @@ class TorneoList extends Torneo
                 $this->LOGO_TORNEO->ImageHeight = 0;
                 $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
                 $this->LOGO_TORNEO->ImageCssClass = "ew-image";
-                $this->LOGO_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
-                $this->LOGO_TORNEO->IsBlobImage = IsImageFile(ContentExtension($this->LOGO_TORNEO->Upload->DbValue));
+                $this->LOGO_TORNEO->ViewValue = $this->LOGO_TORNEO->Upload->DbValue;
             } else {
                 $this->LOGO_TORNEO->ViewValue = "";
             }
@@ -1772,19 +1771,16 @@ class TorneoList extends Torneo
 
             // LOGO_TORNEO
             $this->LOGO_TORNEO->LinkCustomAttributes = "";
-            if (!empty($this->LOGO_TORNEO->Upload->DbValue)) {
-                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
-                $this->LOGO_TORNEO->LinkAttrs["target"] = "";
-                if ($this->LOGO_TORNEO->IsBlobImage && empty($this->LOGO_TORNEO->LinkAttrs["target"])) {
-                    $this->LOGO_TORNEO->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
+                $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->LOGO_TORNEO->HrefValue = FullUrl($this->LOGO_TORNEO->HrefValue, "href");
                 }
             } else {
                 $this->LOGO_TORNEO->HrefValue = "";
             }
-            $this->LOGO_TORNEO->ExportHrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
+            $this->LOGO_TORNEO->ExportHrefValue = $this->LOGO_TORNEO->UploadPath . $this->LOGO_TORNEO->Upload->DbValue;
             $this->LOGO_TORNEO->TooltipValue = "";
             if ($this->LOGO_TORNEO->UseColorbox) {
                 if (EmptyValue($this->LOGO_TORNEO->TooltipValue)) {

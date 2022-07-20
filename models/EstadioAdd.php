@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -641,6 +641,7 @@ class EstadioAdd extends Estadio
         global $CurrentForm, $Language;
         $this->foto_estadio->Upload->Index = $CurrentForm->Index;
         $this->foto_estadio->Upload->uploadFile();
+        $this->foto_estadio->CurrentValue = $this->foto_estadio->Upload->FileName;
     }
 
     // Load default values
@@ -727,9 +728,7 @@ class EstadioAdd extends Estadio
         $this->id_estadio->setDbValue($row['id_estadio']);
         $this->nombre_estadio->setDbValue($row['nombre_estadio']);
         $this->foto_estadio->Upload->DbValue = $row['foto_estadio'];
-        if (is_resource($this->foto_estadio->Upload->DbValue) && get_resource_type($this->foto_estadio->Upload->DbValue) == "stream") { // Byte array
-            $this->foto_estadio->Upload->DbValue = stream_get_contents($this->foto_estadio->Upload->DbValue);
-        }
+        $this->foto_estadio->setDbValue($this->foto_estadio->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
@@ -805,8 +804,7 @@ class EstadioAdd extends Estadio
                 $this->foto_estadio->ImageHeight = 0;
                 $this->foto_estadio->ImageAlt = $this->foto_estadio->alt();
                 $this->foto_estadio->ImageCssClass = "ew-image";
-                $this->foto_estadio->ViewValue = $this->id_estadio->CurrentValue;
-                $this->foto_estadio->IsBlobImage = IsImageFile(ContentExtension($this->foto_estadio->Upload->DbValue));
+                $this->foto_estadio->ViewValue = $this->foto_estadio->Upload->DbValue;
             } else {
                 $this->foto_estadio->ViewValue = "";
             }
@@ -832,19 +830,16 @@ class EstadioAdd extends Estadio
 
             // foto_estadio
             $this->foto_estadio->LinkCustomAttributes = "";
-            if (!empty($this->foto_estadio->Upload->DbValue)) {
-                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
-                $this->foto_estadio->LinkAttrs["target"] = "";
-                if ($this->foto_estadio->IsBlobImage && empty($this->foto_estadio->LinkAttrs["target"])) {
-                    $this->foto_estadio->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
+                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
+                $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->foto_estadio->HrefValue = FullUrl($this->foto_estadio->HrefValue, "href");
                 }
             } else {
                 $this->foto_estadio->HrefValue = "";
             }
-            $this->foto_estadio->ExportHrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
+            $this->foto_estadio->ExportHrefValue = $this->foto_estadio->UploadPath . $this->foto_estadio->Upload->DbValue;
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // nombre_estadio
             $this->nombre_estadio->setupEditAttributes();
@@ -860,10 +855,12 @@ class EstadioAdd extends Estadio
                 $this->foto_estadio->ImageHeight = 0;
                 $this->foto_estadio->ImageAlt = $this->foto_estadio->alt();
                 $this->foto_estadio->ImageCssClass = "ew-image";
-                $this->foto_estadio->EditValue = $this->id_estadio->CurrentValue;
-                $this->foto_estadio->IsBlobImage = IsImageFile(ContentExtension($this->foto_estadio->Upload->DbValue));
+                $this->foto_estadio->EditValue = $this->foto_estadio->Upload->DbValue;
             } else {
                 $this->foto_estadio->EditValue = "";
+            }
+            if (!EmptyValue($this->foto_estadio->CurrentValue)) {
+                $this->foto_estadio->Upload->FileName = $this->foto_estadio->CurrentValue;
             }
             if ($this->isShow() || $this->isCopy()) {
                 RenderUploadField($this->foto_estadio);
@@ -877,19 +874,16 @@ class EstadioAdd extends Estadio
 
             // foto_estadio
             $this->foto_estadio->LinkCustomAttributes = "";
-            if (!empty($this->foto_estadio->Upload->DbValue)) {
-                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
-                $this->foto_estadio->LinkAttrs["target"] = "";
-                if ($this->foto_estadio->IsBlobImage && empty($this->foto_estadio->LinkAttrs["target"])) {
-                    $this->foto_estadio->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
+                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
+                $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->foto_estadio->HrefValue = FullUrl($this->foto_estadio->HrefValue, "href");
                 }
             } else {
                 $this->foto_estadio->HrefValue = "";
             }
-            $this->foto_estadio->ExportHrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
+            $this->foto_estadio->ExportHrefValue = $this->foto_estadio->UploadPath . $this->foto_estadio->Upload->DbValue;
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -947,10 +941,52 @@ class EstadioAdd extends Estadio
 
         // foto_estadio
         if ($this->foto_estadio->Visible && !$this->foto_estadio->Upload->KeepFile) {
-            if ($this->foto_estadio->Upload->Value === null) {
+            $this->foto_estadio->Upload->DbValue = ""; // No need to delete old file
+            if ($this->foto_estadio->Upload->FileName == "") {
                 $rsnew['foto_estadio'] = null;
             } else {
-                $rsnew['foto_estadio'] = $this->foto_estadio->Upload->Value;
+                $rsnew['foto_estadio'] = $this->foto_estadio->Upload->FileName;
+            }
+        }
+        if ($this->foto_estadio->Visible && !$this->foto_estadio->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->foto_estadio->Upload->DbValue) ? [] : [$this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)];
+            if (!EmptyValue($this->foto_estadio->Upload->FileName)) {
+                $newFiles = [$this->foto_estadio->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->foto_estadio, $this->foto_estadio->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->foto_estadio->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->foto_estadio->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->foto_estadio->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->foto_estadio->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->foto_estadio->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->foto_estadio->setDbValueDef($rsnew, $this->foto_estadio->Upload->FileName, null, false);
             }
         }
 
@@ -968,6 +1004,37 @@ class EstadioAdd extends Estadio
         if ($insertRow) {
             $addRow = $this->insert($rsnew);
             if ($addRow) {
+                if ($this->foto_estadio->Visible && !$this->foto_estadio->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->foto_estadio->Upload->DbValue) ? [] : [$this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)];
+                    if (!EmptyValue($this->foto_estadio->Upload->FileName)) {
+                        $newFiles = [$this->foto_estadio->Upload->FileName];
+                        $newFiles2 = [$this->foto_estadio->htmlDecode($rsnew['foto_estadio'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->foto_estadio, $this->foto_estadio->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->foto_estadio->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->foto_estadio->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
             }
         } else {
             if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {

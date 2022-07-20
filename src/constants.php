@@ -4,7 +4,7 @@
  * PHPMaker 2022 constants
  */
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 /**
  * Constants
@@ -80,8 +80,8 @@ define(PROJECT_NAMESPACE . "ALLOW_ALL", 1023); // All (1 + 2 + 4 + 8 + 16 + 32 +
 define(PROJECT_NAMESPACE . "PRODUCT_VERSION", "18.12.0");
 
 // Project
-define(PROJECT_NAMESPACE . "PROJECT_NAME", "project1"); // Project name
-define(PROJECT_NAMESPACE . "PROJECT_ID", "{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}"); // Project ID
+define(PROJECT_NAMESPACE . "PROJECT_NAME", "project11"); // Project name
+define(PROJECT_NAMESPACE . "PROJECT_ID", "{1FEE5CED-11BB-4991-94A0-946354AE0202}"); // Project ID
 
 /**
  * Character encoding

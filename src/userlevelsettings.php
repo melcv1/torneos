@@ -2,27 +2,27 @@
 /**
  * PHPMaker 2022 user level settings
  */
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 // User level info
 $USER_LEVELS = [["-2","Anonymous"]];
 // User level priv info
-$USER_LEVEL_PRIVS = [["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}audittrail","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}encuesta","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}equipo","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}equipotorneo","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}participante","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}partidos","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}torneo","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}usuario","-2","0"],
-    ["{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}estadio","-2","0"]];
+$USER_LEVEL_PRIVS = [["{1FEE5CED-11BB-4991-94A0-946354AE0202}audittrail","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}encuesta","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}equipo","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}equipotorneo","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}participante","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}partidos","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}torneo","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}usuario","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}estadio","-2","0"]];
 // User level table info
-$USER_LEVEL_TABLES = [["audittrail","audittrail","audittrail",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}",""],
-    ["encuesta","encuesta","Encuesta",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","encuestalist"],
-    ["equipo","equipo","Equipo",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","equipolist"],
-    ["equipotorneo","equipotorneo","Equipo Torneo",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","equipotorneolist"],
-    ["participante","participante","Participante",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","participantelist"],
-    ["partidos","partidos","Partidos",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","partidoslist"],
-    ["torneo","torneo","Torneo",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","torneolist"],
-    ["usuario","usuario","usuario",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}",""],
-    ["estadio","estadio","Estadio",true,"{E0BE5F69-72DF-4732-B801-A5C48B4AD2BD}","estadiolist"]];
+$USER_LEVEL_TABLES = [["audittrail","audittrail","audittrail",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}",""],
+    ["encuesta","encuesta","Encuesta",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","encuestalist"],
+    ["equipo","equipo","Equipo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","equipolist"],
+    ["equipotorneo","equipotorneo","Equipo Torneo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","equipotorneolist"],
+    ["participante","participante","Participante",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","participantelist"],
+    ["partidos","partidos","Partidos",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","partidoslist"],
+    ["torneo","torneo","Torneo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","torneolist"],
+    ["usuario","usuario","usuario",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}",""],
+    ["estadio","estadio","Estadio",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","estadiolist"]];

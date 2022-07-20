@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -645,6 +645,7 @@ class TorneoAdd extends Torneo
         global $CurrentForm, $Language;
         $this->LOGO_TORNEO->Upload->Index = $CurrentForm->Index;
         $this->LOGO_TORNEO->Upload->uploadFile();
+        $this->LOGO_TORNEO->CurrentValue = $this->LOGO_TORNEO->Upload->FileName;
     }
 
     // Load default values
@@ -779,9 +780,7 @@ class TorneoAdd extends Torneo
         $this->REGION_TORNEO->setDbValue($row['REGION_TORNEO']);
         $this->DETALLE_TORNEO->setDbValue($row['DETALLE_TORNEO']);
         $this->LOGO_TORNEO->Upload->DbValue = $row['LOGO_TORNEO'];
-        if (is_resource($this->LOGO_TORNEO->Upload->DbValue) && get_resource_type($this->LOGO_TORNEO->Upload->DbValue) == "stream") { // Byte array
-            $this->LOGO_TORNEO->Upload->DbValue = stream_get_contents($this->LOGO_TORNEO->Upload->DbValue);
-        }
+        $this->LOGO_TORNEO->setDbValue($this->LOGO_TORNEO->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
@@ -889,8 +888,7 @@ class TorneoAdd extends Torneo
                 $this->LOGO_TORNEO->ImageHeight = 0;
                 $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
                 $this->LOGO_TORNEO->ImageCssClass = "ew-image";
-                $this->LOGO_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
-                $this->LOGO_TORNEO->IsBlobImage = IsImageFile(ContentExtension($this->LOGO_TORNEO->Upload->DbValue));
+                $this->LOGO_TORNEO->ViewValue = $this->LOGO_TORNEO->Upload->DbValue;
             } else {
                 $this->LOGO_TORNEO->ViewValue = "";
             }
@@ -932,19 +930,16 @@ class TorneoAdd extends Torneo
 
             // LOGO_TORNEO
             $this->LOGO_TORNEO->LinkCustomAttributes = "";
-            if (!empty($this->LOGO_TORNEO->Upload->DbValue)) {
-                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
-                $this->LOGO_TORNEO->LinkAttrs["target"] = "";
-                if ($this->LOGO_TORNEO->IsBlobImage && empty($this->LOGO_TORNEO->LinkAttrs["target"])) {
-                    $this->LOGO_TORNEO->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
+                $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->LOGO_TORNEO->HrefValue = FullUrl($this->LOGO_TORNEO->HrefValue, "href");
                 }
             } else {
                 $this->LOGO_TORNEO->HrefValue = "";
             }
-            $this->LOGO_TORNEO->ExportHrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
+            $this->LOGO_TORNEO->ExportHrefValue = $this->LOGO_TORNEO->UploadPath . $this->LOGO_TORNEO->Upload->DbValue;
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // NOM_TORNEO_CORTO
             $this->NOM_TORNEO_CORTO->setupEditAttributes();
@@ -984,10 +979,12 @@ class TorneoAdd extends Torneo
                 $this->LOGO_TORNEO->ImageHeight = 0;
                 $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
                 $this->LOGO_TORNEO->ImageCssClass = "ew-image";
-                $this->LOGO_TORNEO->EditValue = $this->ID_TORNEO->CurrentValue;
-                $this->LOGO_TORNEO->IsBlobImage = IsImageFile(ContentExtension($this->LOGO_TORNEO->Upload->DbValue));
+                $this->LOGO_TORNEO->EditValue = $this->LOGO_TORNEO->Upload->DbValue;
             } else {
                 $this->LOGO_TORNEO->EditValue = "";
+            }
+            if (!EmptyValue($this->LOGO_TORNEO->CurrentValue)) {
+                $this->LOGO_TORNEO->Upload->FileName = $this->LOGO_TORNEO->CurrentValue;
             }
             if ($this->isShow() || $this->isCopy()) {
                 RenderUploadField($this->LOGO_TORNEO);
@@ -1017,19 +1014,16 @@ class TorneoAdd extends Torneo
 
             // LOGO_TORNEO
             $this->LOGO_TORNEO->LinkCustomAttributes = "";
-            if (!empty($this->LOGO_TORNEO->Upload->DbValue)) {
-                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
-                $this->LOGO_TORNEO->LinkAttrs["target"] = "";
-                if ($this->LOGO_TORNEO->IsBlobImage && empty($this->LOGO_TORNEO->LinkAttrs["target"])) {
-                    $this->LOGO_TORNEO->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
+                $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->LOGO_TORNEO->HrefValue = FullUrl($this->LOGO_TORNEO->HrefValue, "href");
                 }
             } else {
                 $this->LOGO_TORNEO->HrefValue = "";
             }
-            $this->LOGO_TORNEO->ExportHrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->ID_TORNEO->CurrentValue);
+            $this->LOGO_TORNEO->ExportHrefValue = $this->LOGO_TORNEO->UploadPath . $this->LOGO_TORNEO->Upload->DbValue;
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1119,10 +1113,52 @@ class TorneoAdd extends Torneo
 
         // LOGO_TORNEO
         if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
-            if ($this->LOGO_TORNEO->Upload->Value === null) {
+            $this->LOGO_TORNEO->Upload->DbValue = ""; // No need to delete old file
+            if ($this->LOGO_TORNEO->Upload->FileName == "") {
                 $rsnew['LOGO_TORNEO'] = null;
             } else {
-                $rsnew['LOGO_TORNEO'] = $this->LOGO_TORNEO->Upload->Value;
+                $rsnew['LOGO_TORNEO'] = $this->LOGO_TORNEO->Upload->FileName;
+            }
+        }
+        if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {
+                $newFiles = [$this->LOGO_TORNEO->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->LOGO_TORNEO->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->LOGO_TORNEO->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->LOGO_TORNEO->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->LOGO_TORNEO->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->LOGO_TORNEO->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->LOGO_TORNEO->setDbValueDef($rsnew, $this->LOGO_TORNEO->Upload->FileName, null, false);
             }
         }
 
@@ -1140,6 +1176,37 @@ class TorneoAdd extends Torneo
         if ($insertRow) {
             $addRow = $this->insert($rsnew);
             if ($addRow) {
+                if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
+                    if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {
+                        $newFiles = [$this->LOGO_TORNEO->Upload->FileName];
+                        $newFiles2 = [$this->LOGO_TORNEO->htmlDecode($rsnew['LOGO_TORNEO'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->LOGO_TORNEO->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->LOGO_TORNEO->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
             }
         } else {
             if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {

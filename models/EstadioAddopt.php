@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -520,6 +520,7 @@ class EstadioAddopt extends Estadio
         global $CurrentForm, $Language;
         $this->foto_estadio->Upload->Index = $CurrentForm->Index;
         $this->foto_estadio->Upload->uploadFile();
+        $this->foto_estadio->CurrentValue = $this->foto_estadio->Upload->FileName;
     }
 
     // Load default values
@@ -620,9 +621,7 @@ class EstadioAddopt extends Estadio
         $this->id_estadio->setDbValue($row['id_estadio']);
         $this->nombre_estadio->setDbValue($row['nombre_estadio']);
         $this->foto_estadio->Upload->DbValue = $row['foto_estadio'];
-        if (is_resource($this->foto_estadio->Upload->DbValue) && get_resource_type($this->foto_estadio->Upload->DbValue) == "stream") { // Byte array
-            $this->foto_estadio->Upload->DbValue = stream_get_contents($this->foto_estadio->Upload->DbValue);
-        }
+        $this->foto_estadio->setDbValue($this->foto_estadio->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
@@ -682,8 +681,7 @@ class EstadioAddopt extends Estadio
                 $this->foto_estadio->ImageHeight = 0;
                 $this->foto_estadio->ImageAlt = $this->foto_estadio->alt();
                 $this->foto_estadio->ImageCssClass = "ew-image";
-                $this->foto_estadio->ViewValue = $this->id_estadio->CurrentValue;
-                $this->foto_estadio->IsBlobImage = IsImageFile(ContentExtension($this->foto_estadio->Upload->DbValue));
+                $this->foto_estadio->ViewValue = $this->foto_estadio->Upload->DbValue;
             } else {
                 $this->foto_estadio->ViewValue = "";
             }
@@ -710,19 +708,16 @@ class EstadioAddopt extends Estadio
 
             // foto_estadio
             $this->foto_estadio->LinkCustomAttributes = "";
-            if (!empty($this->foto_estadio->Upload->DbValue)) {
-                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
-                $this->foto_estadio->LinkAttrs["target"] = "";
-                if ($this->foto_estadio->IsBlobImage && empty($this->foto_estadio->LinkAttrs["target"])) {
-                    $this->foto_estadio->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
+                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
+                $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->foto_estadio->HrefValue = FullUrl($this->foto_estadio->HrefValue, "href");
                 }
             } else {
                 $this->foto_estadio->HrefValue = "";
             }
-            $this->foto_estadio->ExportHrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
+            $this->foto_estadio->ExportHrefValue = $this->foto_estadio->UploadPath . $this->foto_estadio->Upload->DbValue;
             $this->foto_estadio->TooltipValue = "";
             if ($this->foto_estadio->UseColorbox) {
                 if (EmptyValue($this->foto_estadio->TooltipValue)) {
@@ -756,10 +751,12 @@ class EstadioAddopt extends Estadio
                 $this->foto_estadio->ImageHeight = 0;
                 $this->foto_estadio->ImageAlt = $this->foto_estadio->alt();
                 $this->foto_estadio->ImageCssClass = "ew-image";
-                $this->foto_estadio->EditValue = $this->id_estadio->CurrentValue;
-                $this->foto_estadio->IsBlobImage = IsImageFile(ContentExtension($this->foto_estadio->Upload->DbValue));
+                $this->foto_estadio->EditValue = $this->foto_estadio->Upload->DbValue;
             } else {
                 $this->foto_estadio->EditValue = "";
+            }
+            if (!EmptyValue($this->foto_estadio->CurrentValue)) {
+                $this->foto_estadio->Upload->FileName = $this->foto_estadio->CurrentValue;
             }
             if ($this->isShow()) {
                 RenderUploadField($this->foto_estadio);
@@ -783,19 +780,16 @@ class EstadioAddopt extends Estadio
 
             // foto_estadio
             $this->foto_estadio->LinkCustomAttributes = "";
-            if (!empty($this->foto_estadio->Upload->DbValue)) {
-                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
-                $this->foto_estadio->LinkAttrs["target"] = "";
-                if ($this->foto_estadio->IsBlobImage && empty($this->foto_estadio->LinkAttrs["target"])) {
-                    $this->foto_estadio->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
+                $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
+                $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->foto_estadio->HrefValue = FullUrl($this->foto_estadio->HrefValue, "href");
                 }
             } else {
                 $this->foto_estadio->HrefValue = "";
             }
-            $this->foto_estadio->ExportHrefValue = GetFileUploadUrl($this->foto_estadio, $this->id_estadio->CurrentValue);
+            $this->foto_estadio->ExportHrefValue = $this->foto_estadio->UploadPath . $this->foto_estadio->Upload->DbValue;
 
             // crea_dato
             $this->crea_dato->LinkCustomAttributes = "";

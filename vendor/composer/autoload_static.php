@@ -39,7 +39,7 @@ class ComposerStaticInitb188af99161e96548e0c3245cb23792f
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
             'PhpDocReader\\' => 13,
-            'PHPMaker2022\\project1\\' => 22,
+            'PHPMaker2022\\project11\\' => 23,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
         'N' => 
@@ -156,7 +156,7 @@ class ComposerStaticInitb188af99161e96548e0c3245cb23792f
         array (
             0 => __DIR__ . '/..' . '/php-di/phpdoc-reader/src/PhpDocReader',
         ),
-        'PHPMaker2022\\project1\\' => 
+        'PHPMaker2022\\project11\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
             1 => __DIR__ . '/../..' . '/models',

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 // Page object
 $EstadioAdd = &$Page;
@@ -81,7 +81,7 @@ $Page->showMessage();
 <div class="invalid-feedback"><?= $Page->foto_estadio->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x_foto_estadio" id= "fn_x_foto_estadio" value="<?= $Page->foto_estadio->Upload->FileName ?>">
 <input type="hidden" name="fa_x_foto_estadio" id= "fa_x_foto_estadio" value="0">
-<input type="hidden" name="fs_x_foto_estadio" id= "fs_x_foto_estadio" value="0">
+<input type="hidden" name="fs_x_foto_estadio" id= "fs_x_foto_estadio" value="1024">
 <input type="hidden" name="fx_x_foto_estadio" id= "fx_x_foto_estadio" value="<?= $Page->foto_estadio->UploadAllowedFileExt ?>">
 <input type="hidden" name="fm_x_foto_estadio" id= "fm_x_foto_estadio" value="<?= $Page->foto_estadio->UploadMaxFileSize ?>">
 <table id="ft_x_foto_estadio" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>

@@ -4,7 +4,7 @@
  * PHPMaker 2022 configuration file
  */
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 /**
  * Locale settings
@@ -146,9 +146,9 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'jKaLMF0TnydO6o5y', // Random key for encryption
+    "RANDOM_KEY" => '3obCChlJjTAqX2U9', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
-    "PROJECT_STYLESHEET_FILENAME" => "css/project1.css", // Project stylesheet file name
+    "PROJECT_STYLESHEET_FILENAME" => "css/project11.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
     "PROJECT_CHARSET" => "utf-8", // Project charset
     "IS_UTF8" => true, // Project charset

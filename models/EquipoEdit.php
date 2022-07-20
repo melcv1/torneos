@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -683,6 +683,7 @@ class EquipoEdit extends Equipo
         global $CurrentForm, $Language;
         $this->ESCUDO_EQUIPO->Upload->Index = $CurrentForm->Index;
         $this->ESCUDO_EQUIPO->Upload->uploadFile();
+        $this->ESCUDO_EQUIPO->CurrentValue = $this->ESCUDO_EQUIPO->Upload->FileName;
     }
 
     // Load form values
@@ -853,9 +854,7 @@ class EquipoEdit extends Equipo
         $this->REGION_EQUIPO->setDbValue($row['REGION_EQUIPO']);
         $this->DETALLE_EQUIPO->setDbValue($row['DETALLE_EQUIPO']);
         $this->ESCUDO_EQUIPO->Upload->DbValue = $row['ESCUDO_EQUIPO'];
-        if (is_resource($this->ESCUDO_EQUIPO->Upload->DbValue) && get_resource_type($this->ESCUDO_EQUIPO->Upload->DbValue) == "stream") { // Byte array
-            $this->ESCUDO_EQUIPO->Upload->DbValue = stream_get_contents($this->ESCUDO_EQUIPO->Upload->DbValue);
-        }
+        $this->ESCUDO_EQUIPO->setDbValue($this->ESCUDO_EQUIPO->Upload->DbValue);
         $this->NOM_ESTADIO->setDbValue($row['NOM_ESTADIO']);
         if (array_key_exists('EV__NOM_ESTADIO', $row)) {
             $this->NOM_ESTADIO->VirtualValue = $row['EV__NOM_ESTADIO']; // Set up virtual field value
@@ -977,8 +976,7 @@ class EquipoEdit extends Equipo
                 $this->ESCUDO_EQUIPO->ImageHeight = 0;
                 $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
                 $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
-                $this->ESCUDO_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
-                $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+                $this->ESCUDO_EQUIPO->ViewValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
             } else {
                 $this->ESCUDO_EQUIPO->ViewValue = "";
             }
@@ -1052,19 +1050,16 @@ class EquipoEdit extends Equipo
 
             // ESCUDO_EQUIPO
             $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
-            if (!empty($this->ESCUDO_EQUIPO->Upload->DbValue)) {
-                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
-                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "";
-                if ($this->ESCUDO_EQUIPO->IsBlobImage && empty($this->ESCUDO_EQUIPO->LinkAttrs["target"])) {
-                    $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
                 }
             } else {
                 $this->ESCUDO_EQUIPO->HrefValue = "";
             }
-            $this->ESCUDO_EQUIPO->ExportHrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
+            $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
@@ -1124,10 +1119,12 @@ class EquipoEdit extends Equipo
                 $this->ESCUDO_EQUIPO->ImageHeight = 0;
                 $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
                 $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
-                $this->ESCUDO_EQUIPO->EditValue = $this->ID_EQUIPO->CurrentValue;
-                $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+                $this->ESCUDO_EQUIPO->EditValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
             } else {
                 $this->ESCUDO_EQUIPO->EditValue = "";
+            }
+            if (!EmptyValue($this->ESCUDO_EQUIPO->CurrentValue)) {
+                $this->ESCUDO_EQUIPO->Upload->FileName = $this->ESCUDO_EQUIPO->CurrentValue;
             }
             if ($this->isShow()) {
                 RenderUploadField($this->ESCUDO_EQUIPO);
@@ -1207,19 +1204,16 @@ class EquipoEdit extends Equipo
 
             // ESCUDO_EQUIPO
             $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
-            if (!empty($this->ESCUDO_EQUIPO->Upload->DbValue)) {
-                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
-                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "";
-                if ($this->ESCUDO_EQUIPO->IsBlobImage && empty($this->ESCUDO_EQUIPO->LinkAttrs["target"])) {
-                    $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
                 }
             } else {
                 $this->ESCUDO_EQUIPO->HrefValue = "";
             }
-            $this->ESCUDO_EQUIPO->ExportHrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
+            $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
@@ -1358,10 +1352,11 @@ class EquipoEdit extends Equipo
 
         // ESCUDO_EQUIPO
         if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->ReadOnly && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
-            if ($this->ESCUDO_EQUIPO->Upload->Value === null) {
+            $this->ESCUDO_EQUIPO->Upload->DbValue = $rsold['ESCUDO_EQUIPO']; // Get original value
+            if ($this->ESCUDO_EQUIPO->Upload->FileName == "") {
                 $rsnew['ESCUDO_EQUIPO'] = null;
             } else {
-                $rsnew['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->Upload->Value;
+                $rsnew['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->Upload->FileName;
             }
         }
 
@@ -1370,6 +1365,47 @@ class EquipoEdit extends Equipo
 
         // Update current values
         $this->setCurrentValues($rsnew);
+        if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {
+                $newFiles = [$this->ESCUDO_EQUIPO->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->ESCUDO_EQUIPO->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->ESCUDO_EQUIPO->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->ESCUDO_EQUIPO->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->ESCUDO_EQUIPO->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->ESCUDO_EQUIPO->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->ESCUDO_EQUIPO->setDbValueDef($rsnew, $this->ESCUDO_EQUIPO->Upload->FileName, null, $this->ESCUDO_EQUIPO->ReadOnly);
+            }
+        }
 
         // Call Row Updating event
         $updateRow = $this->rowUpdating($rsold, $rsnew);
@@ -1381,6 +1417,37 @@ class EquipoEdit extends Equipo
                 $editRow = true; // No field to update
             }
             if ($editRow) {
+                if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
+                    if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {
+                        $newFiles = [$this->ESCUDO_EQUIPO->Upload->FileName];
+                        $newFiles2 = [$this->ESCUDO_EQUIPO->htmlDecode($rsnew['ESCUDO_EQUIPO'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->ESCUDO_EQUIPO->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->ESCUDO_EQUIPO->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
             }
         } else {
             if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {

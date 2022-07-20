@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -597,9 +597,7 @@ class EquipoDelete extends Equipo
         $this->REGION_EQUIPO->setDbValue($row['REGION_EQUIPO']);
         $this->DETALLE_EQUIPO->setDbValue($row['DETALLE_EQUIPO']);
         $this->ESCUDO_EQUIPO->Upload->DbValue = $row['ESCUDO_EQUIPO'];
-        if (is_resource($this->ESCUDO_EQUIPO->Upload->DbValue) && get_resource_type($this->ESCUDO_EQUIPO->Upload->DbValue) == "stream") { // Byte array
-            $this->ESCUDO_EQUIPO->Upload->DbValue = stream_get_contents($this->ESCUDO_EQUIPO->Upload->DbValue);
-        }
+        $this->ESCUDO_EQUIPO->setDbValue($this->ESCUDO_EQUIPO->Upload->DbValue);
         $this->NOM_ESTADIO->setDbValue($row['NOM_ESTADIO']);
         if (array_key_exists('EV__NOM_ESTADIO', $row)) {
             $this->NOM_ESTADIO->VirtualValue = $row['EV__NOM_ESTADIO']; // Set up virtual field value
@@ -695,8 +693,7 @@ class EquipoDelete extends Equipo
                 $this->ESCUDO_EQUIPO->ImageHeight = 0;
                 $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
                 $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
-                $this->ESCUDO_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
-                $this->ESCUDO_EQUIPO->IsBlobImage = IsImageFile(ContentExtension($this->ESCUDO_EQUIPO->Upload->DbValue));
+                $this->ESCUDO_EQUIPO->ViewValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
             } else {
                 $this->ESCUDO_EQUIPO->ViewValue = "";
             }
@@ -776,19 +773,16 @@ class EquipoDelete extends Equipo
 
             // ESCUDO_EQUIPO
             $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
-            if (!empty($this->ESCUDO_EQUIPO->Upload->DbValue)) {
-                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
-                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "";
-                if ($this->ESCUDO_EQUIPO->IsBlobImage && empty($this->ESCUDO_EQUIPO->LinkAttrs["target"])) {
-                    $this->ESCUDO_EQUIPO->LinkAttrs["target"] = "_blank";
-                }
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
                 if ($this->isExport()) {
                     $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
                 }
             } else {
                 $this->ESCUDO_EQUIPO->HrefValue = "";
             }
-            $this->ESCUDO_EQUIPO->ExportHrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ID_EQUIPO->CurrentValue);
+            $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
             $this->ESCUDO_EQUIPO->TooltipValue = "";
             if ($this->ESCUDO_EQUIPO->UseColorbox) {
                 if (EmptyValue($this->ESCUDO_EQUIPO->TooltipValue)) {

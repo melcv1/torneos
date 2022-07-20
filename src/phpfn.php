@@ -5,7 +5,7 @@
  * Copyright (c) e.World Technology Limited. All rights reserved.
 */
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;

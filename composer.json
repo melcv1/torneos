@@ -41,7 +41,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"PHPMaker2022\\project1\\": [
+			"PHPMaker2022\\project11\\": [
 				"src/",
 				"models/",
 				"controllers/"
