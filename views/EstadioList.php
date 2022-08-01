@@ -18,6 +18,29 @@ loadjs.ready(["wrapper", "head"], function () {
     currentPageID = ew.PAGE_ID = "list";
     currentForm = festadiolist;
     festadiolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+
+    // Add fields
+    var fields = currentTable.fields;
+    festadiolist.addFields([
+        ["id_estadio", [fields.id_estadio.visible && fields.id_estadio.required ? ew.Validators.required(fields.id_estadio.caption) : null], fields.id_estadio.isInvalid],
+        ["id_torneo", [fields.id_torneo.visible && fields.id_torneo.required ? ew.Validators.required(fields.id_torneo.caption) : null], fields.id_torneo.isInvalid],
+        ["nombre_estadio", [fields.nombre_estadio.visible && fields.nombre_estadio.required ? ew.Validators.required(fields.nombre_estadio.caption) : null], fields.nombre_estadio.isInvalid],
+        ["foto_estadio", [fields.foto_estadio.visible && fields.foto_estadio.required ? ew.Validators.fileRequired(fields.foto_estadio.caption) : null], fields.foto_estadio.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+    ]);
+
+    // Form_CustomValidate
+    festadiolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    festadiolist.validateRequired = ew.CLIENT_VALIDATE;
+
+    // Dynamic selection lists
+    festadiolist.lists.id_torneo = <?= $Page->id_torneo->toClientList($Page) ?>;
     loadjs.done("festadiolist");
 });
 var festadiosrch, currentSearchForm, currentAdvancedSearchForm;
@@ -121,6 +144,9 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->id_estadio->Visible) { // id_estadio ?>
         <th data-name="id_estadio" class="<?= $Page->id_estadio->headerCellClass() ?>"><div id="elh_estadio_id_estadio" class="estadio_id_estadio"><?= $Page->renderFieldHeader($Page->id_estadio) ?></div></th>
 <?php } ?>
+<?php if ($Page->id_torneo->Visible) { // id_torneo ?>
+        <th data-name="id_torneo" class="<?= $Page->id_torneo->headerCellClass() ?>"><div id="elh_estadio_id_torneo" class="estadio_id_torneo"><?= $Page->renderFieldHeader($Page->id_torneo) ?></div></th>
+<?php } ?>
 <?php if ($Page->nombre_estadio->Visible) { // nombre_estadio ?>
         <th data-name="nombre_estadio" class="<?= $Page->nombre_estadio->headerCellClass() ?>"><div id="elh_estadio_nombre_estadio" class="estadio_nombre_estadio"><?= $Page->renderFieldHeader($Page->nombre_estadio) ?></div></th>
 <?php } ?>
@@ -151,6 +177,15 @@ if ($Page->ExportAll && $Page->isExport()) {
         $Page->StopRecord = $Page->TotalRecords;
     }
 }
+
+// Restore number of post back records
+if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
+    $CurrentForm->Index = -1;
+    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
+        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
+        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
+    }
+}
 $Page->RecordCount = $Page->StartRecord - 1;
 if ($Page->Recordset && !$Page->Recordset->EOF) {
     // Nothing to do
@@ -162,6 +197,10 @@ if ($Page->Recordset && !$Page->Recordset->EOF) {
 $Page->RowType = ROWTYPE_AGGREGATEINIT;
 $Page->resetAttributes();
 $Page->renderRow();
+$Page->EditRowCount = 0;
+if ($Page->isEdit()) {
+    $Page->RowIndex = 1;
+}
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
@@ -185,6 +224,18 @@ while ($Page->RecordCount < $Page->StopRecord) {
             }
         }
         $Page->RowType = ROWTYPE_VIEW; // Render view
+        if ($Page->isEdit()) {
+            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
+                $Page->RowType = ROWTYPE_EDIT; // Render edit
+            }
+        }
+        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $Page->restoreFormValues(); // Restore form values
+        }
+        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
+            $Page->EditRowCount++;
+        }
 
         // Set up row attributes
         $Page->RowAttrs->merge([
@@ -210,43 +261,136 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
     <?php if ($Page->id_estadio->Visible) { // id_estadio ?>
         <td data-name="id_estadio"<?= $Page->id_estadio->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_id_estadio" class="el_estadio_id_estadio">
+<span<?= $Page->id_estadio->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->id_estadio->getDisplayValue($Page->id_estadio->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="estadio" data-field="x_id_estadio" data-hidden="1" name="x<?= $Page->RowIndex ?>_id_estadio" id="x<?= $Page->RowIndex ?>_id_estadio" value="<?= HtmlEncode($Page->id_estadio->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_id_estadio" class="el_estadio_id_estadio">
 <span<?= $Page->id_estadio->viewAttributes() ?>>
 <?= $Page->id_estadio->getViewValue() ?></span>
 </span>
+<?php } ?>
+</td>
+    <?php } else { ?>
+            <input type="hidden" data-table="estadio" data-field="x_id_estadio" data-hidden="1" name="x<?= $Page->RowIndex ?>_id_estadio" id="x<?= $Page->RowIndex ?>_id_estadio" value="<?= HtmlEncode($Page->id_estadio->CurrentValue) ?>">
+    <?php } ?>
+    <?php if ($Page->id_torneo->Visible) { // id_torneo ?>
+        <td data-name="id_torneo"<?= $Page->id_torneo->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_id_torneo" class="el_estadio_id_torneo">
+    <select
+        id="x<?= $Page->RowIndex ?>_id_torneo"
+        name="x<?= $Page->RowIndex ?>_id_torneo"
+        class="form-select ew-select<?= $Page->id_torneo->isInvalidClass() ?>"
+        data-select2-id="festadiolist_x<?= $Page->RowIndex ?>_id_torneo"
+        data-table="estadio"
+        data-field="x_id_torneo"
+        data-value-separator="<?= $Page->id_torneo->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->id_torneo->getPlaceHolder()) ?>"
+        <?= $Page->id_torneo->editAttributes() ?>>
+        <?= $Page->id_torneo->selectOptionListHtml("x{$Page->RowIndex}_id_torneo") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->id_torneo->getErrorMessage() ?></div>
+<?= $Page->id_torneo->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_id_torneo") ?>
+<script>
+loadjs.ready("festadiolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_id_torneo", selectId: "festadiolist_x<?= $Page->RowIndex ?>_id_torneo" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (festadiolist.lists.id_torneo.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_id_torneo", form: "festadiolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_id_torneo", form: "festadiolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.estadio.fields.id_torneo.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_id_torneo" class="el_estadio_id_torneo">
+<span<?= $Page->id_torneo->viewAttributes() ?>>
+<?= $Page->id_torneo->getViewValue() ?></span>
+</span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->nombre_estadio->Visible) { // nombre_estadio ?>
         <td data-name="nombre_estadio"<?= $Page->nombre_estadio->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_nombre_estadio" class="el_estadio_nombre_estadio">
+<textarea data-table="estadio" data-field="x_nombre_estadio" name="x<?= $Page->RowIndex ?>_nombre_estadio" id="x<?= $Page->RowIndex ?>_nombre_estadio" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->nombre_estadio->getPlaceHolder()) ?>"<?= $Page->nombre_estadio->editAttributes() ?>><?= $Page->nombre_estadio->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->nombre_estadio->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_nombre_estadio" class="el_estadio_nombre_estadio">
 <span<?= $Page->nombre_estadio->viewAttributes() ?>>
 <?= $Page->nombre_estadio->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->foto_estadio->Visible) { // foto_estadio ?>
         <td data-name="foto_estadio"<?= $Page->foto_estadio->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_foto_estadio" class="el_estadio_foto_estadio">
+<div id="fd_x<?= $Page->RowIndex ?>_foto_estadio" class="fileinput-button ew-file-drop-zone">
+    <input type="file" class="form-control ew-file-input" title="<?= $Page->foto_estadio->title() ?>" data-table="estadio" data-field="x_foto_estadio" name="x<?= $Page->RowIndex ?>_foto_estadio" id="x<?= $Page->RowIndex ?>_foto_estadio" lang="<?= CurrentLanguageID() ?>"<?= $Page->foto_estadio->editAttributes() ?><?= ($Page->foto_estadio->ReadOnly || $Page->foto_estadio->Disabled) ? " disabled" : "" ?>>
+    <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
+</div>
+<div class="invalid-feedback"><?= $Page->foto_estadio->getErrorMessage() ?></div>
+<input type="hidden" name="fn_x<?= $Page->RowIndex ?>_foto_estadio" id= "fn_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= $Page->foto_estadio->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?= $Page->RowIndex ?>_foto_estadio" id= "fa_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= (Post("fa_x<?= $Page->RowIndex ?>_foto_estadio") == "0") ? "0" : "1" ?>">
+<input type="hidden" name="fs_x<?= $Page->RowIndex ?>_foto_estadio" id= "fs_x<?= $Page->RowIndex ?>_foto_estadio" value="1024">
+<input type="hidden" name="fx_x<?= $Page->RowIndex ?>_foto_estadio" id= "fx_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= $Page->foto_estadio->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?= $Page->RowIndex ?>_foto_estadio" id= "fm_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= $Page->foto_estadio->UploadMaxFileSize ?>">
+<table id="ft_x<?= $Page->RowIndex ?>_foto_estadio" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_foto_estadio" class="el_estadio_foto_estadio">
 <span>
 <?= GetFileViewTag($Page->foto_estadio, $Page->foto_estadio->getViewValue(), false) ?>
 </span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_crea_dato" class="el_estadio_crea_dato">
+<input type="hidden" data-table="estadio" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_crea_dato" class="el_estadio_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_estadio_modifica_dato" class="el_estadio_modifica_dato">
+<input type="hidden" data-table="estadio" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_modifica_dato" class="el_estadio_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -254,6 +398,11 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
+<?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
+<script>
+loadjs.ready(["festadiolist","load"], () => festadiolist.updateLists(<?= $Page->RowIndex ?>));
+</script>
+<?php } ?>
 <?php
     }
     if (!$Page->isGridAdd()) {
@@ -265,6 +414,10 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 </table><!-- /.ew-table -->
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
+<?php if ($Page->isEdit()) { ?>
+<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
+<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
+<?php } ?>
 <?php if (!$Page->CurrentAction) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>

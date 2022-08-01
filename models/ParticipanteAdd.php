@@ -495,6 +495,7 @@ class ParticipanteAdd extends Participante
         $this->TELEFONO->setVisibility();
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -648,6 +649,7 @@ class ParticipanteAdd extends Participante
     // Load default values
     protected function loadDefaultValues()
     {
+        $this->usuario_dato->DefaultValue = "admin";
     }
 
     // Load form values
@@ -789,6 +791,7 @@ class ParticipanteAdd extends Participante
         $this->TELEFONO->setDbValue($row['TELEFONO']);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -804,6 +807,7 @@ class ParticipanteAdd extends Participante
         $row['TELEFONO'] = $this->TELEFONO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -862,6 +866,9 @@ class ParticipanteAdd extends Participante
         // modifica_dato
         $this->modifica_dato->RowCssClass = "row";
 
+        // usuario_dato
+        $this->usuario_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_PARTICIPANTE
@@ -891,6 +898,23 @@ class ParticipanteAdd extends Participante
             // TELEFONO
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
             $this->TELEFONO->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
 
             // NOMBRE
             $this->NOMBRE->LinkCustomAttributes = "";

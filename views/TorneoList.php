@@ -18,6 +18,32 @@ loadjs.ready(["wrapper", "head"], function () {
     currentPageID = ew.PAGE_ID = "list";
     currentForm = ftorneolist;
     ftorneolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+
+    // Add fields
+    var fields = currentTable.fields;
+    ftorneolist.addFields([
+        ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
+        ["NOM_TORNEO_CORTO", [fields.NOM_TORNEO_CORTO.visible && fields.NOM_TORNEO_CORTO.required ? ew.Validators.required(fields.NOM_TORNEO_CORTO.caption) : null], fields.NOM_TORNEO_CORTO.isInvalid],
+        ["NOM_TORNEO_LARGO", [fields.NOM_TORNEO_LARGO.visible && fields.NOM_TORNEO_LARGO.required ? ew.Validators.required(fields.NOM_TORNEO_LARGO.caption) : null], fields.NOM_TORNEO_LARGO.isInvalid],
+        ["PAIS_TORNEO", [fields.PAIS_TORNEO.visible && fields.PAIS_TORNEO.required ? ew.Validators.required(fields.PAIS_TORNEO.caption) : null], fields.PAIS_TORNEO.isInvalid],
+        ["REGION_TORNEO", [fields.REGION_TORNEO.visible && fields.REGION_TORNEO.required ? ew.Validators.required(fields.REGION_TORNEO.caption) : null], fields.REGION_TORNEO.isInvalid],
+        ["DETALLE_TORNEO", [fields.DETALLE_TORNEO.visible && fields.DETALLE_TORNEO.required ? ew.Validators.required(fields.DETALLE_TORNEO.caption) : null], fields.DETALLE_TORNEO.isInvalid],
+        ["LOGO_TORNEO", [fields.LOGO_TORNEO.visible && fields.LOGO_TORNEO.required ? ew.Validators.fileRequired(fields.LOGO_TORNEO.caption) : null], fields.LOGO_TORNEO.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+    ]);
+
+    // Form_CustomValidate
+    ftorneolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    ftorneolist.validateRequired = ew.CLIENT_VALIDATE;
+
+    // Dynamic selection lists
     loadjs.done("ftorneolist");
 });
 var ftorneosrch, currentSearchForm, currentAdvancedSearchForm;
@@ -145,6 +171,9 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <th data-name="modifica_dato" class="<?= $Page->modifica_dato->headerCellClass() ?>"><div id="elh_torneo_modifica_dato" class="torneo_modifica_dato"><?= $Page->renderFieldHeader($Page->modifica_dato) ?></div></th>
 <?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <th data-name="usuario_dato" class="<?= $Page->usuario_dato->headerCellClass() ?>"><div id="elh_torneo_usuario_dato" class="torneo_usuario_dato"><?= $Page->renderFieldHeader($Page->usuario_dato) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -163,6 +192,15 @@ if ($Page->ExportAll && $Page->isExport()) {
         $Page->StopRecord = $Page->TotalRecords;
     }
 }
+
+// Restore number of post back records
+if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
+    $CurrentForm->Index = -1;
+    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
+        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
+        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
+    }
+}
 $Page->RecordCount = $Page->StartRecord - 1;
 if ($Page->Recordset && !$Page->Recordset->EOF) {
     // Nothing to do
@@ -174,6 +212,10 @@ if ($Page->Recordset && !$Page->Recordset->EOF) {
 $Page->RowType = ROWTYPE_AGGREGATEINIT;
 $Page->resetAttributes();
 $Page->renderRow();
+$Page->EditRowCount = 0;
+if ($Page->isEdit()) {
+    $Page->RowIndex = 1;
+}
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
@@ -197,6 +239,18 @@ while ($Page->RecordCount < $Page->StopRecord) {
             }
         }
         $Page->RowType = ROWTYPE_VIEW; // Render view
+        if ($Page->isEdit()) {
+            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
+                $Page->RowType = ROWTYPE_EDIT; // Render edit
+            }
+        }
+        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $Page->restoreFormValues(); // Restore form values
+        }
+        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
+            $Page->EditRowCount++;
+        }
 
         // Set up row attributes
         $Page->RowAttrs->merge([
@@ -222,75 +276,178 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
     <?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
         <td data-name="ID_TORNEO"<?= $Page->ID_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_ID_TORNEO" class="el_torneo_ID_TORNEO">
+<span<?= $Page->ID_TORNEO->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_TORNEO->getDisplayValue($Page->ID_TORNEO->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="torneo" data-field="x_ID_TORNEO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_TORNEO" id="x<?= $Page->RowIndex ?>_ID_TORNEO" value="<?= HtmlEncode($Page->ID_TORNEO->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_ID_TORNEO" class="el_torneo_ID_TORNEO">
 <span<?= $Page->ID_TORNEO->viewAttributes() ?>>
 <?= $Page->ID_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
+    <?php } else { ?>
+            <input type="hidden" data-table="torneo" data-field="x_ID_TORNEO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_TORNEO" id="x<?= $Page->RowIndex ?>_ID_TORNEO" value="<?= HtmlEncode($Page->ID_TORNEO->CurrentValue) ?>">
     <?php } ?>
     <?php if ($Page->NOM_TORNEO_CORTO->Visible) { // NOM_TORNEO_CORTO ?>
         <td data-name="NOM_TORNEO_CORTO"<?= $Page->NOM_TORNEO_CORTO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_NOM_TORNEO_CORTO" class="el_torneo_NOM_TORNEO_CORTO">
+<textarea data-table="torneo" data-field="x_NOM_TORNEO_CORTO" name="x<?= $Page->RowIndex ?>_NOM_TORNEO_CORTO" id="x<?= $Page->RowIndex ?>_NOM_TORNEO_CORTO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->NOM_TORNEO_CORTO->getPlaceHolder()) ?>"<?= $Page->NOM_TORNEO_CORTO->editAttributes() ?>><?= $Page->NOM_TORNEO_CORTO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->NOM_TORNEO_CORTO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_NOM_TORNEO_CORTO" class="el_torneo_NOM_TORNEO_CORTO">
 <span<?= $Page->NOM_TORNEO_CORTO->viewAttributes() ?>>
 <?= $Page->NOM_TORNEO_CORTO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->NOM_TORNEO_LARGO->Visible) { // NOM_TORNEO_LARGO ?>
         <td data-name="NOM_TORNEO_LARGO"<?= $Page->NOM_TORNEO_LARGO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_NOM_TORNEO_LARGO" class="el_torneo_NOM_TORNEO_LARGO">
+<textarea data-table="torneo" data-field="x_NOM_TORNEO_LARGO" name="x<?= $Page->RowIndex ?>_NOM_TORNEO_LARGO" id="x<?= $Page->RowIndex ?>_NOM_TORNEO_LARGO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOM_TORNEO_LARGO->getPlaceHolder()) ?>"<?= $Page->NOM_TORNEO_LARGO->editAttributes() ?>><?= $Page->NOM_TORNEO_LARGO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->NOM_TORNEO_LARGO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_NOM_TORNEO_LARGO" class="el_torneo_NOM_TORNEO_LARGO">
 <span<?= $Page->NOM_TORNEO_LARGO->viewAttributes() ?>>
 <?= $Page->NOM_TORNEO_LARGO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PAIS_TORNEO->Visible) { // PAIS_TORNEO ?>
         <td data-name="PAIS_TORNEO"<?= $Page->PAIS_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_PAIS_TORNEO" class="el_torneo_PAIS_TORNEO">
+<textarea data-table="torneo" data-field="x_PAIS_TORNEO" name="x<?= $Page->RowIndex ?>_PAIS_TORNEO" id="x<?= $Page->RowIndex ?>_PAIS_TORNEO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->PAIS_TORNEO->getPlaceHolder()) ?>"<?= $Page->PAIS_TORNEO->editAttributes() ?>><?= $Page->PAIS_TORNEO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->PAIS_TORNEO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_PAIS_TORNEO" class="el_torneo_PAIS_TORNEO">
 <span<?= $Page->PAIS_TORNEO->viewAttributes() ?>>
 <?= $Page->PAIS_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->REGION_TORNEO->Visible) { // REGION_TORNEO ?>
         <td data-name="REGION_TORNEO"<?= $Page->REGION_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_REGION_TORNEO" class="el_torneo_REGION_TORNEO">
+<textarea data-table="torneo" data-field="x_REGION_TORNEO" name="x<?= $Page->RowIndex ?>_REGION_TORNEO" id="x<?= $Page->RowIndex ?>_REGION_TORNEO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->REGION_TORNEO->getPlaceHolder()) ?>"<?= $Page->REGION_TORNEO->editAttributes() ?>><?= $Page->REGION_TORNEO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->REGION_TORNEO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_REGION_TORNEO" class="el_torneo_REGION_TORNEO">
 <span<?= $Page->REGION_TORNEO->viewAttributes() ?>>
 <?= $Page->REGION_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->DETALLE_TORNEO->Visible) { // DETALLE_TORNEO ?>
         <td data-name="DETALLE_TORNEO"<?= $Page->DETALLE_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_DETALLE_TORNEO" class="el_torneo_DETALLE_TORNEO">
+<textarea data-table="torneo" data-field="x_DETALLE_TORNEO" name="x<?= $Page->RowIndex ?>_DETALLE_TORNEO" id="x<?= $Page->RowIndex ?>_DETALLE_TORNEO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->DETALLE_TORNEO->getPlaceHolder()) ?>"<?= $Page->DETALLE_TORNEO->editAttributes() ?>><?= $Page->DETALLE_TORNEO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->DETALLE_TORNEO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_DETALLE_TORNEO" class="el_torneo_DETALLE_TORNEO">
 <span<?= $Page->DETALLE_TORNEO->viewAttributes() ?>>
 <?= $Page->DETALLE_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->LOGO_TORNEO->Visible) { // LOGO_TORNEO ?>
         <td data-name="LOGO_TORNEO"<?= $Page->LOGO_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_LOGO_TORNEO" class="el_torneo_LOGO_TORNEO">
+<div id="fd_x<?= $Page->RowIndex ?>_LOGO_TORNEO" class="fileinput-button ew-file-drop-zone">
+    <input type="file" class="form-control ew-file-input" title="<?= $Page->LOGO_TORNEO->title() ?>" data-table="torneo" data-field="x_LOGO_TORNEO" name="x<?= $Page->RowIndex ?>_LOGO_TORNEO" id="x<?= $Page->RowIndex ?>_LOGO_TORNEO" lang="<?= CurrentLanguageID() ?>"<?= $Page->LOGO_TORNEO->editAttributes() ?><?= ($Page->LOGO_TORNEO->ReadOnly || $Page->LOGO_TORNEO->Disabled) ? " disabled" : "" ?>>
+    <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
+</div>
+<div class="invalid-feedback"><?= $Page->LOGO_TORNEO->getErrorMessage() ?></div>
+<input type="hidden" name="fn_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fn_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fa_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= (Post("fa_x<?= $Page->RowIndex ?>_LOGO_TORNEO") == "0") ? "0" : "1" ?>">
+<input type="hidden" name="fs_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fs_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="1024">
+<input type="hidden" name="fx_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fx_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fm_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->UploadMaxFileSize ?>">
+<table id="ft_x<?= $Page->RowIndex ?>_LOGO_TORNEO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_LOGO_TORNEO" class="el_torneo_LOGO_TORNEO">
 <span>
 <?= GetFileViewTag($Page->LOGO_TORNEO, $Page->LOGO_TORNEO->getViewValue(), false) ?>
 </span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_crea_dato" class="el_torneo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="torneo" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_crea_dato" class="el_torneo_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_modifica_dato" class="el_torneo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="torneo" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_modifica_dato" class="el_torneo_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_usuario_dato" class="el_torneo_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="torneo" data-field="x_usuario_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_usuario_dato" id="x<?= $Page->RowIndex ?>_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_torneo_usuario_dato" class="el_torneo_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -298,6 +455,11 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
+<?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
+<script>
+loadjs.ready(["ftorneolist","load"], () => ftorneolist.updateLists(<?= $Page->RowIndex ?>));
+</script>
+<?php } ?>
 <?php
     }
     if (!$Page->isGridAdd()) {
@@ -309,6 +471,10 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 </table><!-- /.ew-table -->
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
+<?php if ($Page->isEdit()) { ?>
+<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
+<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
+<?php } ?>
 <?php if (!$Page->CurrentAction) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>

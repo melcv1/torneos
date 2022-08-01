@@ -18,6 +18,35 @@ loadjs.ready(["wrapper", "head"], function () {
     currentPageID = ew.PAGE_ID = "list";
     currentForm = fequipolist;
     fequipolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+
+    // Add fields
+    var fields = currentTable.fields;
+    fequipolist.addFields([
+        ["ID_EQUIPO", [fields.ID_EQUIPO.visible && fields.ID_EQUIPO.required ? ew.Validators.required(fields.ID_EQUIPO.caption) : null], fields.ID_EQUIPO.isInvalid],
+        ["NOM_EQUIPO_CORTO", [fields.NOM_EQUIPO_CORTO.visible && fields.NOM_EQUIPO_CORTO.required ? ew.Validators.required(fields.NOM_EQUIPO_CORTO.caption) : null], fields.NOM_EQUIPO_CORTO.isInvalid],
+        ["NOM_EQUIPO_LARGO", [fields.NOM_EQUIPO_LARGO.visible && fields.NOM_EQUIPO_LARGO.required ? ew.Validators.required(fields.NOM_EQUIPO_LARGO.caption) : null], fields.NOM_EQUIPO_LARGO.isInvalid],
+        ["PAIS_EQUIPO", [fields.PAIS_EQUIPO.visible && fields.PAIS_EQUIPO.required ? ew.Validators.required(fields.PAIS_EQUIPO.caption) : null], fields.PAIS_EQUIPO.isInvalid],
+        ["REGION_EQUIPO", [fields.REGION_EQUIPO.visible && fields.REGION_EQUIPO.required ? ew.Validators.required(fields.REGION_EQUIPO.caption) : null], fields.REGION_EQUIPO.isInvalid],
+        ["DETALLE_EQUIPO", [fields.DETALLE_EQUIPO.visible && fields.DETALLE_EQUIPO.required ? ew.Validators.required(fields.DETALLE_EQUIPO.caption) : null], fields.DETALLE_EQUIPO.isInvalid],
+        ["ESCUDO_EQUIPO", [fields.ESCUDO_EQUIPO.visible && fields.ESCUDO_EQUIPO.required ? ew.Validators.fileRequired(fields.ESCUDO_EQUIPO.caption) : null], fields.ESCUDO_EQUIPO.isInvalid],
+        ["NOM_ESTADIO", [fields.NOM_ESTADIO.visible && fields.NOM_ESTADIO.required ? ew.Validators.required(fields.NOM_ESTADIO.caption) : null], fields.NOM_ESTADIO.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+    ]);
+
+    // Form_CustomValidate
+    fequipolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    fequipolist.validateRequired = ew.CLIENT_VALIDATE;
+
+    // Dynamic selection lists
+    fequipolist.lists.REGION_EQUIPO = <?= $Page->REGION_EQUIPO->toClientList($Page) ?>;
+    fequipolist.lists.NOM_ESTADIO = <?= $Page->NOM_ESTADIO->toClientList($Page) ?>;
     loadjs.done("fequipolist");
 });
 var fequiposrch, currentSearchForm, currentAdvancedSearchForm;
@@ -148,6 +177,9 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <th data-name="modifica_dato" class="<?= $Page->modifica_dato->headerCellClass() ?>"><div id="elh_equipo_modifica_dato" class="equipo_modifica_dato"><?= $Page->renderFieldHeader($Page->modifica_dato) ?></div></th>
 <?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <th data-name="usuario_dato" class="<?= $Page->usuario_dato->headerCellClass() ?>"><div id="elh_equipo_usuario_dato" class="equipo_usuario_dato"><?= $Page->renderFieldHeader($Page->usuario_dato) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -166,6 +198,15 @@ if ($Page->ExportAll && $Page->isExport()) {
         $Page->StopRecord = $Page->TotalRecords;
     }
 }
+
+// Restore number of post back records
+if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
+    $CurrentForm->Index = -1;
+    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
+        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
+        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
+    }
+}
 $Page->RecordCount = $Page->StartRecord - 1;
 if ($Page->Recordset && !$Page->Recordset->EOF) {
     // Nothing to do
@@ -177,6 +218,10 @@ if ($Page->Recordset && !$Page->Recordset->EOF) {
 $Page->RowType = ROWTYPE_AGGREGATEINIT;
 $Page->resetAttributes();
 $Page->renderRow();
+$Page->EditRowCount = 0;
+if ($Page->isEdit()) {
+    $Page->RowIndex = 1;
+}
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
@@ -200,6 +245,18 @@ while ($Page->RecordCount < $Page->StopRecord) {
             }
         }
         $Page->RowType = ROWTYPE_VIEW; // Render view
+        if ($Page->isEdit()) {
+            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
+                $Page->RowType = ROWTYPE_EDIT; // Render edit
+            }
+        }
+        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $Page->restoreFormValues(); // Restore form values
+        }
+        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
+            $Page->EditRowCount++;
+        }
 
         // Set up row attributes
         $Page->RowAttrs->merge([
@@ -225,83 +282,250 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
     <?php if ($Page->ID_EQUIPO->Visible) { // ID_EQUIPO ?>
         <td data-name="ID_EQUIPO"<?= $Page->ID_EQUIPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_ID_EQUIPO" class="el_equipo_ID_EQUIPO">
+<span<?= $Page->ID_EQUIPO->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_EQUIPO->getDisplayValue($Page->ID_EQUIPO->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipo" data-field="x_ID_EQUIPO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_EQUIPO" id="x<?= $Page->RowIndex ?>_ID_EQUIPO" value="<?= HtmlEncode($Page->ID_EQUIPO->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_ID_EQUIPO" class="el_equipo_ID_EQUIPO">
 <span<?= $Page->ID_EQUIPO->viewAttributes() ?>>
 <?= $Page->ID_EQUIPO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
+    <?php } else { ?>
+            <input type="hidden" data-table="equipo" data-field="x_ID_EQUIPO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_EQUIPO" id="x<?= $Page->RowIndex ?>_ID_EQUIPO" value="<?= HtmlEncode($Page->ID_EQUIPO->CurrentValue) ?>">
     <?php } ?>
     <?php if ($Page->NOM_EQUIPO_CORTO->Visible) { // NOM_EQUIPO_CORTO ?>
         <td data-name="NOM_EQUIPO_CORTO"<?= $Page->NOM_EQUIPO_CORTO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_NOM_EQUIPO_CORTO" class="el_equipo_NOM_EQUIPO_CORTO">
+<textarea data-table="equipo" data-field="x_NOM_EQUIPO_CORTO" name="x<?= $Page->RowIndex ?>_NOM_EQUIPO_CORTO" id="x<?= $Page->RowIndex ?>_NOM_EQUIPO_CORTO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOM_EQUIPO_CORTO->getPlaceHolder()) ?>"<?= $Page->NOM_EQUIPO_CORTO->editAttributes() ?>><?= $Page->NOM_EQUIPO_CORTO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->NOM_EQUIPO_CORTO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_NOM_EQUIPO_CORTO" class="el_equipo_NOM_EQUIPO_CORTO">
 <span<?= $Page->NOM_EQUIPO_CORTO->viewAttributes() ?>>
 <?= $Page->NOM_EQUIPO_CORTO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->NOM_EQUIPO_LARGO->Visible) { // NOM_EQUIPO_LARGO ?>
         <td data-name="NOM_EQUIPO_LARGO"<?= $Page->NOM_EQUIPO_LARGO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_NOM_EQUIPO_LARGO" class="el_equipo_NOM_EQUIPO_LARGO">
+<textarea data-table="equipo" data-field="x_NOM_EQUIPO_LARGO" name="x<?= $Page->RowIndex ?>_NOM_EQUIPO_LARGO" id="x<?= $Page->RowIndex ?>_NOM_EQUIPO_LARGO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOM_EQUIPO_LARGO->getPlaceHolder()) ?>"<?= $Page->NOM_EQUIPO_LARGO->editAttributes() ?>><?= $Page->NOM_EQUIPO_LARGO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->NOM_EQUIPO_LARGO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_NOM_EQUIPO_LARGO" class="el_equipo_NOM_EQUIPO_LARGO">
 <span<?= $Page->NOM_EQUIPO_LARGO->viewAttributes() ?>>
 <?= $Page->NOM_EQUIPO_LARGO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PAIS_EQUIPO->Visible) { // PAIS_EQUIPO ?>
         <td data-name="PAIS_EQUIPO"<?= $Page->PAIS_EQUIPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_PAIS_EQUIPO" class="el_equipo_PAIS_EQUIPO">
+<textarea data-table="equipo" data-field="x_PAIS_EQUIPO" name="x<?= $Page->RowIndex ?>_PAIS_EQUIPO" id="x<?= $Page->RowIndex ?>_PAIS_EQUIPO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->PAIS_EQUIPO->getPlaceHolder()) ?>"<?= $Page->PAIS_EQUIPO->editAttributes() ?>><?= $Page->PAIS_EQUIPO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->PAIS_EQUIPO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_PAIS_EQUIPO" class="el_equipo_PAIS_EQUIPO">
 <span<?= $Page->PAIS_EQUIPO->viewAttributes() ?>>
 <?= $Page->PAIS_EQUIPO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->REGION_EQUIPO->Visible) { // REGION_EQUIPO ?>
         <td data-name="REGION_EQUIPO"<?= $Page->REGION_EQUIPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_REGION_EQUIPO" class="el_equipo_REGION_EQUIPO">
+    <select
+        id="x<?= $Page->RowIndex ?>_REGION_EQUIPO"
+        name="x<?= $Page->RowIndex ?>_REGION_EQUIPO"
+        class="form-select ew-select<?= $Page->REGION_EQUIPO->isInvalidClass() ?>"
+        data-select2-id="fequipolist_x<?= $Page->RowIndex ?>_REGION_EQUIPO"
+        data-table="equipo"
+        data-field="x_REGION_EQUIPO"
+        data-value-separator="<?= $Page->REGION_EQUIPO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->REGION_EQUIPO->getPlaceHolder()) ?>"
+        <?= $Page->REGION_EQUIPO->editAttributes() ?>>
+        <?= $Page->REGION_EQUIPO->selectOptionListHtml("x{$Page->RowIndex}_REGION_EQUIPO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->REGION_EQUIPO->getErrorMessage() ?></div>
+<script>
+loadjs.ready("fequipolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", selectId: "fequipolist_x<?= $Page->RowIndex ?>_REGION_EQUIPO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipolist.lists.REGION_EQUIPO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", form: "fequipolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", form: "fequipolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.REGION_EQUIPO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_REGION_EQUIPO" class="el_equipo_REGION_EQUIPO">
 <span<?= $Page->REGION_EQUIPO->viewAttributes() ?>>
 <?= $Page->REGION_EQUIPO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->DETALLE_EQUIPO->Visible) { // DETALLE_EQUIPO ?>
         <td data-name="DETALLE_EQUIPO"<?= $Page->DETALLE_EQUIPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_DETALLE_EQUIPO" class="el_equipo_DETALLE_EQUIPO">
+<textarea data-table="equipo" data-field="x_DETALLE_EQUIPO" name="x<?= $Page->RowIndex ?>_DETALLE_EQUIPO" id="x<?= $Page->RowIndex ?>_DETALLE_EQUIPO" cols="35" rows="2" placeholder="<?= HtmlEncode($Page->DETALLE_EQUIPO->getPlaceHolder()) ?>"<?= $Page->DETALLE_EQUIPO->editAttributes() ?>><?= $Page->DETALLE_EQUIPO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->DETALLE_EQUIPO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_DETALLE_EQUIPO" class="el_equipo_DETALLE_EQUIPO">
 <span<?= $Page->DETALLE_EQUIPO->viewAttributes() ?>>
 <?= $Page->DETALLE_EQUIPO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->ESCUDO_EQUIPO->Visible) { // ESCUDO_EQUIPO ?>
         <td data-name="ESCUDO_EQUIPO"<?= $Page->ESCUDO_EQUIPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_ESCUDO_EQUIPO" class="el_equipo_ESCUDO_EQUIPO">
+<div id="fd_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" class="fileinput-button ew-file-drop-zone">
+    <input type="file" class="form-control ew-file-input" title="<?= $Page->ESCUDO_EQUIPO->title() ?>" data-table="equipo" data-field="x_ESCUDO_EQUIPO" name="x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id="x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" lang="<?= CurrentLanguageID() ?>"<?= $Page->ESCUDO_EQUIPO->editAttributes() ?><?= ($Page->ESCUDO_EQUIPO->ReadOnly || $Page->ESCUDO_EQUIPO->Disabled) ? " disabled" : "" ?>>
+    <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
+</div>
+<div class="invalid-feedback"><?= $Page->ESCUDO_EQUIPO->getErrorMessage() ?></div>
+<input type="hidden" name="fn_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fn_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fa_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= (Post("fa_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO") == "0") ? "0" : "1" ?>">
+<input type="hidden" name="fs_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fs_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="1024">
+<input type="hidden" name="fx_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fx_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fm_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>">
+<table id="ft_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_ESCUDO_EQUIPO" class="el_equipo_ESCUDO_EQUIPO">
 <span>
 <?= GetFileViewTag($Page->ESCUDO_EQUIPO, $Page->ESCUDO_EQUIPO->getViewValue(), false) ?>
 </span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->NOM_ESTADIO->Visible) { // NOM_ESTADIO ?>
         <td data-name="NOM_ESTADIO"<?= $Page->NOM_ESTADIO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_NOM_ESTADIO" class="el_equipo_NOM_ESTADIO">
+<div class="input-group flex-nowrap">
+    <select
+        id="x<?= $Page->RowIndex ?>_NOM_ESTADIO"
+        name="x<?= $Page->RowIndex ?>_NOM_ESTADIO"
+        class="form-select ew-select<?= $Page->NOM_ESTADIO->isInvalidClass() ?>"
+        data-select2-id="fequipolist_x<?= $Page->RowIndex ?>_NOM_ESTADIO"
+        data-table="equipo"
+        data-field="x_NOM_ESTADIO"
+        data-value-separator="<?= $Page->NOM_ESTADIO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->NOM_ESTADIO->getPlaceHolder()) ?>"
+        <?= $Page->NOM_ESTADIO->editAttributes() ?>>
+        <?= $Page->NOM_ESTADIO->selectOptionListHtml("x{$Page->RowIndex}_NOM_ESTADIO") ?>
+    </select>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_NOM_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->NOM_ESTADIO->caption() ?>" data-title="<?= $Page->NOM_ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_NOM_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<div class="invalid-feedback"><?= $Page->NOM_ESTADIO->getErrorMessage() ?></div>
+<?= $Page->NOM_ESTADIO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_NOM_ESTADIO") ?>
+<script>
+loadjs.ready("fequipolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", selectId: "fequipolist_x<?= $Page->RowIndex ?>_NOM_ESTADIO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipolist.lists.NOM_ESTADIO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", form: "fequipolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", form: "fequipolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.NOM_ESTADIO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_NOM_ESTADIO" class="el_equipo_NOM_ESTADIO">
 <span<?= $Page->NOM_ESTADIO->viewAttributes() ?>>
 <?= $Page->NOM_ESTADIO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_crea_dato" class="el_equipo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipo" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_crea_dato" class="el_equipo_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_modifica_dato" class="el_equipo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipo" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_modifica_dato" class="el_equipo_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_usuario_dato" class="el_equipo_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipo" data-field="x_usuario_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_usuario_dato" id="x<?= $Page->RowIndex ?>_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_equipo_usuario_dato" class="el_equipo_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -309,6 +533,11 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
+<?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
+<script>
+loadjs.ready(["fequipolist","load"], () => fequipolist.updateLists(<?= $Page->RowIndex ?>));
+</script>
+<?php } ?>
 <?php
     }
     if (!$Page->isGridAdd()) {
@@ -320,6 +549,10 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 </table><!-- /.ew-table -->
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
+<?php if ($Page->isEdit()) { ?>
+<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
+<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
+<?php } ?>
 <?php if (!$Page->CurrentAction) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>

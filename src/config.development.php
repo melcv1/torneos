@@ -6,7 +6,7 @@
 
 return [
     "Databases" => [
-        "DB" => ["id" => "DB", "type" => "MYSQL", "qs" => "`", "qe" => "`", "host" => "localhost", "port" => "3306", "user" => "root", "password" => "GqZ2UZvbsur1xE65", "dbname" => "torneo"]
+        "DB" => ["id" => "DB", "type" => "MYSQL", "qs" => "`", "qe" => "`", "host" => "localhost", "port" => "3306", "user" => "root", "password" => "", "dbname" => "torneo"]
     ],
     "SMTP" => [
         "PHPMAILER_MAILER" => "smtp", // PHPMailer mailer
@@ -17,7 +17,7 @@ return [
         "SERVER_PASSWORD" => "", // SMTP server password
     ],
     "JWT" => [
-        "SECRET_KEY" => "ZgP5qpH2wb9XJd8Z", // API Secret Key
+        "SECRET_KEY" => "gXf8jT8ThT1k243C", // API Secret Key
         "ALGORITHM" => "HS512", // API Algorithm
         "AUTH_HEADER" => "X-Authorization", // API Auth Header (Note: The "Authorization" header is removed by IIS, use "X-Authorization" instead.)
         "NOT_BEFORE_TIME" => 0, // API access time before login

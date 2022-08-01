@@ -500,6 +500,7 @@ class EquipotorneoAdd extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setVisibility();
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -659,6 +660,7 @@ class EquipotorneoAdd extends Equipotorneo
         $this->GF->DefaultValue = 0;
         $this->GC->DefaultValue = 0;
         $this->GD->DefaultValue = 0;
+        $this->usuario_dato->DefaultValue = "admin";
     }
 
     // Load form values
@@ -860,6 +862,7 @@ class EquipotorneoAdd extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setDbValue($row['POSICION_EQUIPO_TORENO']);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -880,6 +883,7 @@ class EquipotorneoAdd extends Equipotorneo
         $row['POSICION_EQUIPO_TORENO'] = $this->POSICION_EQUIPO_TORENO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -952,6 +956,9 @@ class EquipotorneoAdd extends Equipotorneo
 
         // modifica_dato
         $this->modifica_dato->RowCssClass = "row";
+
+        // usuario_dato
+        $this->usuario_dato->RowCssClass = "row";
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {

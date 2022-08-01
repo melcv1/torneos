@@ -18,6 +18,31 @@ loadjs.ready(["wrapper", "head"], function () {
     currentPageID = ew.PAGE_ID = "list";
     currentForm = fparticipantelist;
     fparticipantelist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+
+    // Add fields
+    var fields = currentTable.fields;
+    fparticipantelist.addFields([
+        ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
+        ["NOMBRE", [fields.NOMBRE.visible && fields.NOMBRE.required ? ew.Validators.required(fields.NOMBRE.caption) : null], fields.NOMBRE.isInvalid],
+        ["APELLIDO", [fields.APELLIDO.visible && fields.APELLIDO.required ? ew.Validators.required(fields.APELLIDO.caption) : null], fields.APELLIDO.isInvalid],
+        ["FECHA_NACIMIENTO", [fields.FECHA_NACIMIENTO.visible && fields.FECHA_NACIMIENTO.required ? ew.Validators.required(fields.FECHA_NACIMIENTO.caption) : null], fields.FECHA_NACIMIENTO.isInvalid],
+        ["CEDULA", [fields.CEDULA.visible && fields.CEDULA.required ? ew.Validators.required(fields.CEDULA.caption) : null], fields.CEDULA.isInvalid],
+        ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
+        ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+    ]);
+
+    // Form_CustomValidate
+    fparticipantelist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    fparticipantelist.validateRequired = ew.CLIENT_VALIDATE;
+
+    // Dynamic selection lists
     loadjs.done("fparticipantelist");
 });
 var fparticipantesrch, currentSearchForm, currentAdvancedSearchForm;
@@ -163,6 +188,15 @@ if ($Page->ExportAll && $Page->isExport()) {
         $Page->StopRecord = $Page->TotalRecords;
     }
 }
+
+// Restore number of post back records
+if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
+    $CurrentForm->Index = -1;
+    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
+        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
+        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
+    }
+}
 $Page->RecordCount = $Page->StartRecord - 1;
 if ($Page->Recordset && !$Page->Recordset->EOF) {
     // Nothing to do
@@ -174,6 +208,10 @@ if ($Page->Recordset && !$Page->Recordset->EOF) {
 $Page->RowType = ROWTYPE_AGGREGATEINIT;
 $Page->resetAttributes();
 $Page->renderRow();
+$Page->EditRowCount = 0;
+if ($Page->isEdit()) {
+    $Page->RowIndex = 1;
+}
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
@@ -197,6 +235,18 @@ while ($Page->RecordCount < $Page->StopRecord) {
             }
         }
         $Page->RowType = ROWTYPE_VIEW; // Render view
+        if ($Page->isEdit()) {
+            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
+                $Page->RowType = ROWTYPE_EDIT; // Render edit
+            }
+        }
+        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $Page->restoreFormValues(); // Restore form values
+        }
+        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
+            $Page->EditRowCount++;
+        }
 
         // Set up row attributes
         $Page->RowAttrs->merge([
@@ -222,74 +272,151 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
     <?php if ($Page->ID_PARTICIPANTE->Visible) { // ID_PARTICIPANTE ?>
         <td data-name="ID_PARTICIPANTE"<?= $Page->ID_PARTICIPANTE->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_ID_PARTICIPANTE" class="el_participante_ID_PARTICIPANTE">
+<span<?= $Page->ID_PARTICIPANTE->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_PARTICIPANTE->getDisplayValue($Page->ID_PARTICIPANTE->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="participante" data-field="x_ID_PARTICIPANTE" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" id="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" value="<?= HtmlEncode($Page->ID_PARTICIPANTE->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_ID_PARTICIPANTE" class="el_participante_ID_PARTICIPANTE">
 <span<?= $Page->ID_PARTICIPANTE->viewAttributes() ?>>
 <?= $Page->ID_PARTICIPANTE->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
+    <?php } else { ?>
+            <input type="hidden" data-table="participante" data-field="x_ID_PARTICIPANTE" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" id="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" value="<?= HtmlEncode($Page->ID_PARTICIPANTE->CurrentValue) ?>">
     <?php } ?>
     <?php if ($Page->NOMBRE->Visible) { // NOMBRE ?>
         <td data-name="NOMBRE"<?= $Page->NOMBRE->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_NOMBRE" class="el_participante_NOMBRE">
+<textarea data-table="participante" data-field="x_NOMBRE" name="x<?= $Page->RowIndex ?>_NOMBRE" id="x<?= $Page->RowIndex ?>_NOMBRE" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOMBRE->getPlaceHolder()) ?>"<?= $Page->NOMBRE->editAttributes() ?>><?= $Page->NOMBRE->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->NOMBRE->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_NOMBRE" class="el_participante_NOMBRE">
 <span<?= $Page->NOMBRE->viewAttributes() ?>>
 <?= $Page->NOMBRE->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->APELLIDO->Visible) { // APELLIDO ?>
         <td data-name="APELLIDO"<?= $Page->APELLIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_APELLIDO" class="el_participante_APELLIDO">
+<textarea data-table="participante" data-field="x_APELLIDO" name="x<?= $Page->RowIndex ?>_APELLIDO" id="x<?= $Page->RowIndex ?>_APELLIDO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->APELLIDO->getPlaceHolder()) ?>"<?= $Page->APELLIDO->editAttributes() ?>><?= $Page->APELLIDO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->APELLIDO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_APELLIDO" class="el_participante_APELLIDO">
 <span<?= $Page->APELLIDO->viewAttributes() ?>>
 <?= $Page->APELLIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->FECHA_NACIMIENTO->Visible) { // FECHA_NACIMIENTO ?>
         <td data-name="FECHA_NACIMIENTO"<?= $Page->FECHA_NACIMIENTO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_FECHA_NACIMIENTO" class="el_participante_FECHA_NACIMIENTO">
+<textarea data-table="participante" data-field="x_FECHA_NACIMIENTO" name="x<?= $Page->RowIndex ?>_FECHA_NACIMIENTO" id="x<?= $Page->RowIndex ?>_FECHA_NACIMIENTO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->FECHA_NACIMIENTO->getPlaceHolder()) ?>"<?= $Page->FECHA_NACIMIENTO->editAttributes() ?>><?= $Page->FECHA_NACIMIENTO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->FECHA_NACIMIENTO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_FECHA_NACIMIENTO" class="el_participante_FECHA_NACIMIENTO">
 <span<?= $Page->FECHA_NACIMIENTO->viewAttributes() ?>>
 <?= $Page->FECHA_NACIMIENTO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->CEDULA->Visible) { // CEDULA ?>
         <td data-name="CEDULA"<?= $Page->CEDULA->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_CEDULA" class="el_participante_CEDULA">
+<input type="<?= $Page->CEDULA->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_CEDULA" id="x<?= $Page->RowIndex ?>_CEDULA" data-table="participante" data-field="x_CEDULA" value="<?= $Page->CEDULA->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->CEDULA->getPlaceHolder()) ?>"<?= $Page->CEDULA->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->CEDULA->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_CEDULA" class="el_participante_CEDULA">
 <span<?= $Page->CEDULA->viewAttributes() ?>>
 <?= $Page->CEDULA->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->_EMAIL->Visible) { // EMAIL ?>
         <td data-name="_EMAIL"<?= $Page->_EMAIL->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante__EMAIL" class="el_participante__EMAIL">
+<textarea data-table="participante" data-field="x__EMAIL" name="x<?= $Page->RowIndex ?>__EMAIL" id="x<?= $Page->RowIndex ?>__EMAIL" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->_EMAIL->getPlaceHolder()) ?>"<?= $Page->_EMAIL->editAttributes() ?>><?= $Page->_EMAIL->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->_EMAIL->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante__EMAIL" class="el_participante__EMAIL">
 <span<?= $Page->_EMAIL->viewAttributes() ?>>
 <?= $Page->_EMAIL->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->TELEFONO->Visible) { // TELEFONO ?>
         <td data-name="TELEFONO"<?= $Page->TELEFONO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_TELEFONO" class="el_participante_TELEFONO">
+<input type="<?= $Page->TELEFONO->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_TELEFONO" id="x<?= $Page->RowIndex ?>_TELEFONO" data-table="participante" data-field="x_TELEFONO" value="<?= $Page->TELEFONO->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->TELEFONO->getPlaceHolder()) ?>"<?= $Page->TELEFONO->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->TELEFONO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_TELEFONO" class="el_participante_TELEFONO">
 <span<?= $Page->TELEFONO->viewAttributes() ?>>
 <?= $Page->TELEFONO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_crea_dato" class="el_participante_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="participante" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_crea_dato" class="el_participante_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_participante_modifica_dato" class="el_participante_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="participante" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_modifica_dato" class="el_participante_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -297,6 +424,11 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
+<?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
+<script>
+loadjs.ready(["fparticipantelist","load"], () => fparticipantelist.updateLists(<?= $Page->RowIndex ?>));
+</script>
+<?php } ?>
 <?php
     }
     if (!$Page->isGridAdd()) {
@@ -308,6 +440,10 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 </table><!-- /.ew-table -->
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
+<?php if ($Page->isEdit()) { ?>
+<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
+<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
+<?php } ?>
 <?php if (!$Page->CurrentAction) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>

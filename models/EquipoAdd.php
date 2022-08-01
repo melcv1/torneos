@@ -496,6 +496,7 @@ class EquipoAdd extends Equipo
         $this->NOM_ESTADIO->setVisibility();
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -654,6 +655,7 @@ class EquipoAdd extends Equipo
     // Load default values
     protected function loadDefaultValues()
     {
+        $this->usuario_dato->DefaultValue = "admin";
     }
 
     // Load form values
@@ -803,6 +805,7 @@ class EquipoAdd extends Equipo
         }
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -819,6 +822,7 @@ class EquipoAdd extends Equipo
         $row['NOM_ESTADIO'] = $this->NOM_ESTADIO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -879,6 +883,9 @@ class EquipoAdd extends Equipo
 
         // modifica_dato
         $this->modifica_dato->RowCssClass = "row";
+
+        // usuario_dato
+        $this->usuario_dato->RowCssClass = "row";
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -963,6 +970,10 @@ class EquipoAdd extends Equipo
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_CORTO
             $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";

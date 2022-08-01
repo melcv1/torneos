@@ -144,6 +144,17 @@ $Page->showMessage();
 </td>
     </tr>
 <?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+    <tr id="r_usuario_dato"<?= $Page->usuario_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_torneo_usuario_dato"><?= $Page->usuario_dato->caption() ?></span></td>
+        <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
+<span id="el_torneo_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
 </table>
 </form>
 <?php

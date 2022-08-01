@@ -44,6 +44,9 @@ $Page->showMessage();
 <table class="table table-bordered table-hover table-sm ew-table">
     <thead>
     <tr class="ew-table-header">
+<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
+        <th class="<?= $Page->ID_TORNEO->headerCellClass() ?>"><span id="elh_partidos_ID_TORNEO" class="partidos_ID_TORNEO"><?= $Page->ID_TORNEO->caption() ?></span></th>
+<?php } ?>
 <?php if ($Page->equipo_local->Visible) { // equipo_local ?>
         <th class="<?= $Page->equipo_local->headerCellClass() ?>"><span id="elh_partidos_equipo_local" class="partidos_equipo_local"><?= $Page->equipo_local->caption() ?></span></th>
 <?php } ?>
@@ -52,9 +55,6 @@ $Page->showMessage();
 <?php } ?>
 <?php if ($Page->ID_PARTIDO->Visible) { // ID_PARTIDO ?>
         <th class="<?= $Page->ID_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_ID_PARTIDO" class="partidos_ID_PARTIDO"><?= $Page->ID_PARTIDO->caption() ?></span></th>
-<?php } ?>
-<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
-        <th class="<?= $Page->ID_TORNEO->headerCellClass() ?>"><span id="elh_partidos_ID_TORNEO" class="partidos_ID_TORNEO"><?= $Page->ID_TORNEO->caption() ?></span></th>
 <?php } ?>
 <?php if ($Page->FECHA_PARTIDO->Visible) { // FECHA_PARTIDO ?>
         <th class="<?= $Page->FECHA_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_FECHA_PARTIDO" class="partidos_FECHA_PARTIDO"><?= $Page->FECHA_PARTIDO->caption() ?></span></th>
@@ -71,11 +71,11 @@ $Page->showMessage();
 <?php if ($Page->PAIS_PARTIDO->Visible) { // PAIS_PARTIDO ?>
         <th class="<?= $Page->PAIS_PARTIDO->headerCellClass() ?>"><span id="elh_partidos_PAIS_PARTIDO" class="partidos_PAIS_PARTIDO"><?= $Page->PAIS_PARTIDO->caption() ?></span></th>
 <?php } ?>
-<?php if ($Page->GOLES_EQUIPO1->Visible) { // GOLES_EQUIPO1 ?>
-        <th class="<?= $Page->GOLES_EQUIPO1->headerCellClass() ?>"><span id="elh_partidos_GOLES_EQUIPO1" class="partidos_GOLES_EQUIPO1"><?= $Page->GOLES_EQUIPO1->caption() ?></span></th>
+<?php if ($Page->GOLES_LOCAL->Visible) { // GOLES_LOCAL ?>
+        <th class="<?= $Page->GOLES_LOCAL->headerCellClass() ?>"><span id="elh_partidos_GOLES_LOCAL" class="partidos_GOLES_LOCAL"><?= $Page->GOLES_LOCAL->caption() ?></span></th>
 <?php } ?>
-<?php if ($Page->GOLES_EQUIPO2->Visible) { // GOLES_EQUIPO2 ?>
-        <th class="<?= $Page->GOLES_EQUIPO2->headerCellClass() ?>"><span id="elh_partidos_GOLES_EQUIPO2" class="partidos_GOLES_EQUIPO2"><?= $Page->GOLES_EQUIPO2->caption() ?></span></th>
+<?php if ($Page->GOLES_VISITANTE->Visible) { // GOLES_VISITANTE ?>
+        <th class="<?= $Page->GOLES_VISITANTE->headerCellClass() ?>"><span id="elh_partidos_GOLES_VISITANTE" class="partidos_GOLES_VISITANTE"><?= $Page->GOLES_VISITANTE->caption() ?></span></th>
 <?php } ?>
 <?php if ($Page->GOLES_EXTRA_EQUIPO1->Visible) { // GOLES_EXTRA_EQUIPO1 ?>
         <th class="<?= $Page->GOLES_EXTRA_EQUIPO1->headerCellClass() ?>"><span id="elh_partidos_GOLES_EXTRA_EQUIPO1" class="partidos_GOLES_EXTRA_EQUIPO1"><?= $Page->GOLES_EXTRA_EQUIPO1->caption() ?></span></th>
@@ -98,6 +98,15 @@ $Page->showMessage();
 <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_partidos_modifica_dato" class="partidos_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <th class="<?= $Page->usuario_dato->headerCellClass() ?>"><span id="elh_partidos_usuario_dato" class="partidos_usuario_dato"><?= $Page->usuario_dato->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->automatico->Visible) { // automatico ?>
+        <th class="<?= $Page->automatico->headerCellClass() ?>"><span id="elh_partidos_automatico" class="partidos_automatico"><?= $Page->automatico->caption() ?></span></th>
+<?php } ?>
+<?php if ($Page->actualizado->Visible) { // actualizado ?>
+        <th class="<?= $Page->actualizado->headerCellClass() ?>"><span id="elh_partidos_actualizado" class="partidos_actualizado"><?= $Page->actualizado->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -119,6 +128,14 @@ while (!$Page->Recordset->EOF) {
     $Page->renderRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
+<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
+        <td<?= $Page->ID_TORNEO->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_ID_TORNEO" class="el_partidos_ID_TORNEO">
+<span<?= $Page->ID_TORNEO->viewAttributes() ?>>
+<?= $Page->ID_TORNEO->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
 <?php if ($Page->equipo_local->Visible) { // equipo_local ?>
         <td<?= $Page->equipo_local->cellAttributes() ?>>
 <span id="el<?= $Page->RowCount ?>_partidos_equipo_local" class="el_partidos_equipo_local">
@@ -140,14 +157,6 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_partidos_ID_PARTIDO" class="el_partidos_ID_PARTIDO">
 <span<?= $Page->ID_PARTIDO->viewAttributes() ?>>
 <?= $Page->ID_PARTIDO->getViewValue() ?></span>
-</span>
-</td>
-<?php } ?>
-<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
-        <td<?= $Page->ID_TORNEO->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_ID_TORNEO" class="el_partidos_ID_TORNEO">
-<span<?= $Page->ID_TORNEO->viewAttributes() ?>>
-<?= $Page->ID_TORNEO->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
@@ -191,19 +200,19 @@ while (!$Page->Recordset->EOF) {
 </span>
 </td>
 <?php } ?>
-<?php if ($Page->GOLES_EQUIPO1->Visible) { // GOLES_EQUIPO1 ?>
-        <td<?= $Page->GOLES_EQUIPO1->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_GOLES_EQUIPO1" class="el_partidos_GOLES_EQUIPO1">
-<span<?= $Page->GOLES_EQUIPO1->viewAttributes() ?>>
-<?= $Page->GOLES_EQUIPO1->getViewValue() ?></span>
+<?php if ($Page->GOLES_LOCAL->Visible) { // GOLES_LOCAL ?>
+        <td<?= $Page->GOLES_LOCAL->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_LOCAL" class="el_partidos_GOLES_LOCAL">
+<span<?= $Page->GOLES_LOCAL->viewAttributes() ?>>
+<?= $Page->GOLES_LOCAL->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($Page->GOLES_EQUIPO2->Visible) { // GOLES_EQUIPO2 ?>
-        <td<?= $Page->GOLES_EQUIPO2->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_GOLES_EQUIPO2" class="el_partidos_GOLES_EQUIPO2">
-<span<?= $Page->GOLES_EQUIPO2->viewAttributes() ?>>
-<?= $Page->GOLES_EQUIPO2->getViewValue() ?></span>
+<?php if ($Page->GOLES_VISITANTE->Visible) { // GOLES_VISITANTE ?>
+        <td<?= $Page->GOLES_VISITANTE->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_VISITANTE" class="el_partidos_GOLES_VISITANTE">
+<span<?= $Page->GOLES_VISITANTE->viewAttributes() ?>>
+<?= $Page->GOLES_VISITANTE->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
@@ -260,6 +269,33 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_partidos_modifica_dato" class="el_partidos_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <td<?= $Page->usuario_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_usuario_dato" class="el_partidos_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->automatico->Visible) { // automatico ?>
+        <td<?= $Page->automatico->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_automatico" class="el_partidos_automatico">
+<span<?= $Page->automatico->viewAttributes() ?>>
+<div class="form-check d-inline-block">
+    <input type="checkbox" id="x_automatico_<?= $Page->RowCount ?>" class="form-check-input" value="<?= $Page->automatico->getViewValue() ?>" disabled<?php if (ConvertToBool($Page->automatico->CurrentValue)) { ?> checked<?php } ?>>
+    <label class="form-check-label" for="x_automatico_<?= $Page->RowCount ?>"></label>
+</div></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->actualizado->Visible) { // actualizado ?>
+        <td<?= $Page->actualizado->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_partidos_actualizado" class="el_partidos_actualizado">
+<span<?= $Page->actualizado->viewAttributes() ?>>
+<?= $Page->actualizado->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

@@ -18,6 +18,39 @@ loadjs.ready(["wrapper", "head"], function () {
     currentPageID = ew.PAGE_ID = "list";
     currentForm = fequipotorneolist;
     fequipotorneolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+
+    // Add fields
+    var fields = currentTable.fields;
+    fequipotorneolist.addFields([
+        ["ID_EQUIPO_TORNEO", [fields.ID_EQUIPO_TORNEO.visible && fields.ID_EQUIPO_TORNEO.required ? ew.Validators.required(fields.ID_EQUIPO_TORNEO.caption) : null], fields.ID_EQUIPO_TORNEO.isInvalid],
+        ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
+        ["ID_EQUIPO", [fields.ID_EQUIPO.visible && fields.ID_EQUIPO.required ? ew.Validators.required(fields.ID_EQUIPO.caption) : null], fields.ID_EQUIPO.isInvalid],
+        ["PARTIDOS_JUGADOS", [fields.PARTIDOS_JUGADOS.visible && fields.PARTIDOS_JUGADOS.required ? ew.Validators.required(fields.PARTIDOS_JUGADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_JUGADOS.isInvalid],
+        ["PARTIDOS_GANADOS", [fields.PARTIDOS_GANADOS.visible && fields.PARTIDOS_GANADOS.required ? ew.Validators.required(fields.PARTIDOS_GANADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_GANADOS.isInvalid],
+        ["PARTIDOS_EMPATADOS", [fields.PARTIDOS_EMPATADOS.visible && fields.PARTIDOS_EMPATADOS.required ? ew.Validators.required(fields.PARTIDOS_EMPATADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_EMPATADOS.isInvalid],
+        ["PARTIDOS_PERDIDOS", [fields.PARTIDOS_PERDIDOS.visible && fields.PARTIDOS_PERDIDOS.required ? ew.Validators.required(fields.PARTIDOS_PERDIDOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_PERDIDOS.isInvalid],
+        ["GF", [fields.GF.visible && fields.GF.required ? ew.Validators.required(fields.GF.caption) : null, ew.Validators.integer], fields.GF.isInvalid],
+        ["GC", [fields.GC.visible && fields.GC.required ? ew.Validators.required(fields.GC.caption) : null, ew.Validators.integer], fields.GC.isInvalid],
+        ["GD", [fields.GD.visible && fields.GD.required ? ew.Validators.required(fields.GD.caption) : null, ew.Validators.integer], fields.GD.isInvalid],
+        ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
+        ["POSICION_EQUIPO_TORENO", [fields.POSICION_EQUIPO_TORENO.visible && fields.POSICION_EQUIPO_TORENO.required ? ew.Validators.required(fields.POSICION_EQUIPO_TORENO.caption) : null], fields.POSICION_EQUIPO_TORENO.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+    ]);
+
+    // Form_CustomValidate
+    fequipotorneolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    fequipotorneolist.validateRequired = ew.CLIENT_VALIDATE;
+
+    // Dynamic selection lists
+    fequipotorneolist.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
+    fequipotorneolist.lists.ID_EQUIPO = <?= $Page->ID_EQUIPO->toClientList($Page) ?>;
+    fequipotorneolist.lists.GRUPO = <?= $Page->GRUPO->toClientList($Page) ?>;
     loadjs.done("fequipotorneolist");
 });
 var fequipotorneosrch, currentSearchForm, currentAdvancedSearchForm;
@@ -178,6 +211,15 @@ if ($Page->ExportAll && $Page->isExport()) {
         $Page->StopRecord = $Page->TotalRecords;
     }
 }
+
+// Restore number of post back records
+if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
+    $CurrentForm->Index = -1;
+    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
+        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
+        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
+    }
+}
 $Page->RecordCount = $Page->StartRecord - 1;
 if ($Page->Recordset && !$Page->Recordset->EOF) {
     // Nothing to do
@@ -189,6 +231,10 @@ if ($Page->Recordset && !$Page->Recordset->EOF) {
 $Page->RowType = ROWTYPE_AGGREGATEINIT;
 $Page->resetAttributes();
 $Page->renderRow();
+$Page->EditRowCount = 0;
+if ($Page->isEdit()) {
+    $Page->RowIndex = 1;
+}
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
@@ -212,6 +258,18 @@ while ($Page->RecordCount < $Page->StopRecord) {
             }
         }
         $Page->RowType = ROWTYPE_VIEW; // Render view
+        if ($Page->isEdit()) {
+            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
+                $Page->RowType = ROWTYPE_EDIT; // Render edit
+            }
+        }
+        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $Page->restoreFormValues(); // Restore form values
+        }
+        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
+            $Page->EditRowCount++;
+        }
 
         // Set up row attributes
         $Page->RowAttrs->merge([
@@ -237,114 +295,311 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
     <?php if ($Page->ID_EQUIPO_TORNEO->Visible) { // ID_EQUIPO_TORNEO ?>
         <td data-name="ID_EQUIPO_TORNEO"<?= $Page->ID_EQUIPO_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO_TORNEO" class="el_equipotorneo_ID_EQUIPO_TORNEO">
+<span<?= $Page->ID_EQUIPO_TORNEO->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_EQUIPO_TORNEO->getDisplayValue($Page->ID_EQUIPO_TORNEO->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipotorneo" data-field="x_ID_EQUIPO_TORNEO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_EQUIPO_TORNEO" id="x<?= $Page->RowIndex ?>_ID_EQUIPO_TORNEO" value="<?= HtmlEncode($Page->ID_EQUIPO_TORNEO->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO_TORNEO" class="el_equipotorneo_ID_EQUIPO_TORNEO">
 <span<?= $Page->ID_EQUIPO_TORNEO->viewAttributes() ?>>
 <?= $Page->ID_EQUIPO_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
+    <?php } else { ?>
+            <input type="hidden" data-table="equipotorneo" data-field="x_ID_EQUIPO_TORNEO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_EQUIPO_TORNEO" id="x<?= $Page->RowIndex ?>_ID_EQUIPO_TORNEO" value="<?= HtmlEncode($Page->ID_EQUIPO_TORNEO->CurrentValue) ?>">
     <?php } ?>
     <?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
         <td data-name="ID_TORNEO"<?= $Page->ID_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_ID_TORNEO" class="el_equipotorneo_ID_TORNEO">
+    <select
+        id="x<?= $Page->RowIndex ?>_ID_TORNEO"
+        name="x<?= $Page->RowIndex ?>_ID_TORNEO"
+        class="form-select ew-select<?= $Page->ID_TORNEO->isInvalidClass() ?>"
+        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_ID_TORNEO"
+        data-table="equipotorneo"
+        data-field="x_ID_TORNEO"
+        data-value-separator="<?= $Page->ID_TORNEO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->ID_TORNEO->getPlaceHolder()) ?>"
+        <?= $Page->ID_TORNEO->editAttributes() ?>>
+        <?= $Page->ID_TORNEO->selectOptionListHtml("x{$Page->RowIndex}_ID_TORNEO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->ID_TORNEO->getErrorMessage() ?></div>
+<?= $Page->ID_TORNEO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_TORNEO") ?>
+<script>
+loadjs.ready("fequipotorneolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ID_TORNEO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_ID_TORNEO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipotorneolist.lists.ID_TORNEO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "fequipotorneolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.ID_TORNEO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_ID_TORNEO" class="el_equipotorneo_ID_TORNEO">
 <span<?= $Page->ID_TORNEO->viewAttributes() ?>>
 <?= $Page->ID_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->ID_EQUIPO->Visible) { // ID_EQUIPO ?>
         <td data-name="ID_EQUIPO"<?= $Page->ID_EQUIPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO" class="el_equipotorneo_ID_EQUIPO">
+    <select
+        id="x<?= $Page->RowIndex ?>_ID_EQUIPO"
+        name="x<?= $Page->RowIndex ?>_ID_EQUIPO"
+        class="form-select ew-select<?= $Page->ID_EQUIPO->isInvalidClass() ?>"
+        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_ID_EQUIPO"
+        data-table="equipotorneo"
+        data-field="x_ID_EQUIPO"
+        data-value-separator="<?= $Page->ID_EQUIPO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->ID_EQUIPO->getPlaceHolder()) ?>"
+        <?= $Page->ID_EQUIPO->editAttributes() ?>>
+        <?= $Page->ID_EQUIPO->selectOptionListHtml("x{$Page->RowIndex}_ID_EQUIPO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->ID_EQUIPO->getErrorMessage() ?></div>
+<?= $Page->ID_EQUIPO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_EQUIPO") ?>
+<script>
+loadjs.ready("fequipotorneolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ID_EQUIPO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_ID_EQUIPO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipotorneolist.lists.ID_EQUIPO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ID_EQUIPO", form: "fequipotorneolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_EQUIPO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.ID_EQUIPO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO" class="el_equipotorneo_ID_EQUIPO">
 <span<?= $Page->ID_EQUIPO->viewAttributes() ?>>
 <?= $Page->ID_EQUIPO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PARTIDOS_JUGADOS->Visible) { // PARTIDOS_JUGADOS ?>
         <td data-name="PARTIDOS_JUGADOS"<?= $Page->PARTIDOS_JUGADOS->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_JUGADOS" class="el_equipotorneo_PARTIDOS_JUGADOS">
+<input type="<?= $Page->PARTIDOS_JUGADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_JUGADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_JUGADOS" data-table="equipotorneo" data-field="x_PARTIDOS_JUGADOS" value="<?= $Page->PARTIDOS_JUGADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_JUGADOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_JUGADOS->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->PARTIDOS_JUGADOS->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_JUGADOS" class="el_equipotorneo_PARTIDOS_JUGADOS">
 <span<?= $Page->PARTIDOS_JUGADOS->viewAttributes() ?>>
 <?= $Page->PARTIDOS_JUGADOS->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PARTIDOS_GANADOS->Visible) { // PARTIDOS_GANADOS ?>
         <td data-name="PARTIDOS_GANADOS"<?= $Page->PARTIDOS_GANADOS->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_GANADOS" class="el_equipotorneo_PARTIDOS_GANADOS">
+<input type="<?= $Page->PARTIDOS_GANADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_GANADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_GANADOS" data-table="equipotorneo" data-field="x_PARTIDOS_GANADOS" value="<?= $Page->PARTIDOS_GANADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_GANADOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_GANADOS->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->PARTIDOS_GANADOS->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_GANADOS" class="el_equipotorneo_PARTIDOS_GANADOS">
 <span<?= $Page->PARTIDOS_GANADOS->viewAttributes() ?>>
 <?= $Page->PARTIDOS_GANADOS->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PARTIDOS_EMPATADOS->Visible) { // PARTIDOS_EMPATADOS ?>
         <td data-name="PARTIDOS_EMPATADOS"<?= $Page->PARTIDOS_EMPATADOS->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_EMPATADOS" class="el_equipotorneo_PARTIDOS_EMPATADOS">
+<input type="<?= $Page->PARTIDOS_EMPATADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_EMPATADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_EMPATADOS" data-table="equipotorneo" data-field="x_PARTIDOS_EMPATADOS" value="<?= $Page->PARTIDOS_EMPATADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_EMPATADOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_EMPATADOS->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->PARTIDOS_EMPATADOS->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_EMPATADOS" class="el_equipotorneo_PARTIDOS_EMPATADOS">
 <span<?= $Page->PARTIDOS_EMPATADOS->viewAttributes() ?>>
 <?= $Page->PARTIDOS_EMPATADOS->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PARTIDOS_PERDIDOS->Visible) { // PARTIDOS_PERDIDOS ?>
         <td data-name="PARTIDOS_PERDIDOS"<?= $Page->PARTIDOS_PERDIDOS->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_PERDIDOS" class="el_equipotorneo_PARTIDOS_PERDIDOS">
+<input type="<?= $Page->PARTIDOS_PERDIDOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_PERDIDOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_PERDIDOS" data-table="equipotorneo" data-field="x_PARTIDOS_PERDIDOS" value="<?= $Page->PARTIDOS_PERDIDOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_PERDIDOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_PERDIDOS->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->PARTIDOS_PERDIDOS->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_PERDIDOS" class="el_equipotorneo_PARTIDOS_PERDIDOS">
 <span<?= $Page->PARTIDOS_PERDIDOS->viewAttributes() ?>>
 <?= $Page->PARTIDOS_PERDIDOS->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->GF->Visible) { // GF ?>
         <td data-name="GF"<?= $Page->GF->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_GF" class="el_equipotorneo_GF">
+<input type="<?= $Page->GF->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GF" id="x<?= $Page->RowIndex ?>_GF" data-table="equipotorneo" data-field="x_GF" value="<?= $Page->GF->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GF->getPlaceHolder()) ?>"<?= $Page->GF->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GF->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GF" class="el_equipotorneo_GF">
 <span<?= $Page->GF->viewAttributes() ?>>
 <?= $Page->GF->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->GC->Visible) { // GC ?>
         <td data-name="GC"<?= $Page->GC->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_GC" class="el_equipotorneo_GC">
+<input type="<?= $Page->GC->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GC" id="x<?= $Page->RowIndex ?>_GC" data-table="equipotorneo" data-field="x_GC" value="<?= $Page->GC->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GC->getPlaceHolder()) ?>"<?= $Page->GC->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GC->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GC" class="el_equipotorneo_GC">
 <span<?= $Page->GC->viewAttributes() ?>>
 <?= $Page->GC->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->GD->Visible) { // GD ?>
         <td data-name="GD"<?= $Page->GD->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_GD" class="el_equipotorneo_GD">
+<input type="<?= $Page->GD->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GD" id="x<?= $Page->RowIndex ?>_GD" data-table="equipotorneo" data-field="x_GD" value="<?= $Page->GD->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GD->getPlaceHolder()) ?>"<?= $Page->GD->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GD->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GD" class="el_equipotorneo_GD">
 <span<?= $Page->GD->viewAttributes() ?>>
 <?= $Page->GD->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->GRUPO->Visible) { // GRUPO ?>
         <td data-name="GRUPO"<?= $Page->GRUPO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_GRUPO" class="el_equipotorneo_GRUPO">
+    <select
+        id="x<?= $Page->RowIndex ?>_GRUPO"
+        name="x<?= $Page->RowIndex ?>_GRUPO"
+        class="form-select ew-select<?= $Page->GRUPO->isInvalidClass() ?>"
+        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_GRUPO"
+        data-table="equipotorneo"
+        data-field="x_GRUPO"
+        data-value-separator="<?= $Page->GRUPO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->GRUPO->getPlaceHolder()) ?>"
+        <?= $Page->GRUPO->editAttributes() ?>>
+        <?= $Page->GRUPO->selectOptionListHtml("x{$Page->RowIndex}_GRUPO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->GRUPO->getErrorMessage() ?></div>
+<script>
+loadjs.ready("fequipotorneolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_GRUPO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_GRUPO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipotorneolist.lists.GRUPO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "fequipotorneolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.GRUPO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GRUPO" class="el_equipotorneo_GRUPO">
 <span<?= $Page->GRUPO->viewAttributes() ?>>
 <?= $Page->GRUPO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->POSICION_EQUIPO_TORENO->Visible) { // POSICION_EQUIPO_TORENO ?>
         <td data-name="POSICION_EQUIPO_TORENO"<?= $Page->POSICION_EQUIPO_TORENO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_POSICION_EQUIPO_TORENO" class="el_equipotorneo_POSICION_EQUIPO_TORENO">
+<textarea data-table="equipotorneo" data-field="x_POSICION_EQUIPO_TORENO" name="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" id="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->POSICION_EQUIPO_TORENO->getPlaceHolder()) ?>"<?= $Page->POSICION_EQUIPO_TORENO->editAttributes() ?>><?= $Page->POSICION_EQUIPO_TORENO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->POSICION_EQUIPO_TORENO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_POSICION_EQUIPO_TORENO" class="el_equipotorneo_POSICION_EQUIPO_TORENO">
 <span<?= $Page->POSICION_EQUIPO_TORENO->viewAttributes() ?>>
 <?= $Page->POSICION_EQUIPO_TORENO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_crea_dato" class="el_equipotorneo_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipotorneo" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_crea_dato" class="el_equipotorneo_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_equipotorneo_modifica_dato" class="el_equipotorneo_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="equipotorneo" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_modifica_dato" class="el_equipotorneo_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -352,6 +607,11 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
+<?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
+<script>
+loadjs.ready(["fequipotorneolist","load"], () => fequipotorneolist.updateLists(<?= $Page->RowIndex ?>));
+</script>
+<?php } ?>
 <?php
     }
     if (!$Page->isGridAdd()) {
@@ -363,6 +623,10 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 </table><!-- /.ew-table -->
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
+<?php if ($Page->isEdit()) { ?>
+<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
+<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
+<?php } ?>
 <?php if (!$Page->CurrentAction) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>

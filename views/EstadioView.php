@@ -55,6 +55,17 @@ $Page->showMessage();
 </td>
     </tr>
 <?php } ?>
+<?php if ($Page->id_torneo->Visible) { // id_torneo ?>
+    <tr id="r_id_torneo"<?= $Page->id_torneo->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_estadio_id_torneo"><?= $Page->id_torneo->caption() ?></span></td>
+        <td data-name="id_torneo"<?= $Page->id_torneo->cellAttributes() ?>>
+<span id="el_estadio_id_torneo">
+<span<?= $Page->id_torneo->viewAttributes() ?>>
+<?= $Page->id_torneo->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
 <?php if ($Page->nombre_estadio->Visible) { // nombre_estadio ?>
     <tr id="r_nombre_estadio"<?= $Page->nombre_estadio->rowAttributes() ?>>
         <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_estadio_nombre_estadio"><?= $Page->nombre_estadio->caption() ?></span></td>
@@ -96,6 +107,17 @@ $Page->showMessage();
 <span id="el_estadio_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+    <tr id="r_usuario_dato"<?= $Page->usuario_dato->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_estadio_usuario_dato"><?= $Page->usuario_dato->caption() ?></span></td>
+        <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
+<span id="el_estadio_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
 </span>
 </td>
     </tr>

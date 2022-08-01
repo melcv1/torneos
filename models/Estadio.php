@@ -32,10 +32,12 @@ class Estadio extends DbTable
 
     // Fields
     public $id_estadio;
+    public $id_torneo;
     public $nombre_estadio;
     public $foto_estadio;
     public $crea_dato;
     public $modifica_dato;
+    public $usuario_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -98,6 +100,39 @@ class Estadio extends DbTable
         $this->id_estadio->IsPrimaryKey = true; // Primary key field
         $this->id_estadio->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
         $this->Fields['id_estadio'] = &$this->id_estadio;
+
+        // id_torneo
+        $this->id_torneo = new DbField(
+            'estadio',
+            'estadio',
+            'x_id_torneo',
+            'id_torneo',
+            '`id_torneo`',
+            '`id_torneo`',
+            3,
+            11,
+            -1,
+            false,
+            '`id_torneo`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'SELECT'
+        );
+        $this->id_torneo->InputTextType = "text";
+        $this->id_torneo->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->id_torneo->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->id_torneo->Lookup = new Lookup('id_torneo', 'torneo', false, 'ID_TORNEO', ["NOM_TORNEO_CORTO","","",""], [], [], [], [], [], [], '', '', "`NOM_TORNEO_CORTO`");
+                break;
+            default:
+                $this->id_torneo->Lookup = new Lookup('id_torneo', 'torneo', false, 'ID_TORNEO', ["NOM_TORNEO_CORTO","","",""], [], [], [], [], [], [], '', '', "`NOM_TORNEO_CORTO`");
+                break;
+        }
+        $this->id_torneo->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->Fields['id_torneo'] = &$this->id_torneo;
 
         // nombre_estadio
         $this->nombre_estadio = new DbField(
@@ -188,6 +223,28 @@ class Estadio extends DbTable
         $this->modifica_dato->InputTextType = "text";
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
+
+        // usuario_dato
+        $this->usuario_dato = new DbField(
+            'estadio',
+            'estadio',
+            'x_usuario_dato',
+            'usuario_dato',
+            '`usuario_dato`',
+            '`usuario_dato`',
+            201,
+            256,
+            -1,
+            false,
+            '`usuario_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->usuario_dato->InputTextType = "text";
+        $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -620,10 +677,12 @@ class Estadio extends DbTable
             return;
         }
         $this->id_estadio->DbValue = $row['id_estadio'];
+        $this->id_torneo->DbValue = $row['id_torneo'];
         $this->nombre_estadio->DbValue = $row['nombre_estadio'];
         $this->foto_estadio->Upload->DbValue = $row['foto_estadio'];
         $this->crea_dato->DbValue = $row['crea_dato'];
         $this->modifica_dato->DbValue = $row['modifica_dato'];
+        $this->usuario_dato->DbValue = $row['usuario_dato'];
     }
 
     // Delete uploaded files
@@ -949,10 +1008,12 @@ class Estadio extends DbTable
             return;
         }
         $this->id_estadio->setDbValue($row['id_estadio']);
+        $this->id_torneo->setDbValue($row['id_torneo']);
         $this->nombre_estadio->setDbValue($row['nombre_estadio']);
         $this->foto_estadio->Upload->DbValue = $row['foto_estadio'];
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Render list row values
@@ -967,6 +1028,8 @@ class Estadio extends DbTable
 
         // id_estadio
 
+        // id_torneo
+
         // nombre_estadio
 
         // foto_estadio
@@ -977,9 +1040,35 @@ class Estadio extends DbTable
         // modifica_dato
         $this->modifica_dato->CellCssStyle = "white-space: nowrap;";
 
+        // usuario_dato
+
         // id_estadio
         $this->id_estadio->ViewValue = $this->id_estadio->CurrentValue;
         $this->id_estadio->ViewCustomAttributes = "";
+
+        // id_torneo
+        $curVal = strval($this->id_torneo->CurrentValue);
+        if ($curVal != "") {
+            $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
+            if ($this->id_torneo->ViewValue === null) { // Lookup from database
+                $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                $sqlWrk = $this->id_torneo->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                if ($ari > 0) { // Lookup values found
+                    $arwrk = $this->id_torneo->Lookup->renderViewRow($rswrk[0]);
+                    $this->id_torneo->ViewValue = $this->id_torneo->displayValue($arwrk);
+                } else {
+                    $this->id_torneo->ViewValue = FormatNumber($this->id_torneo->CurrentValue, $this->id_torneo->formatPattern());
+                }
+            }
+        } else {
+            $this->id_torneo->ViewValue = null;
+        }
+        $this->id_torneo->ViewCustomAttributes = "";
 
         // nombre_estadio
         $this->nombre_estadio->ViewValue = $this->nombre_estadio->CurrentValue;
@@ -1011,10 +1100,19 @@ class Estadio extends DbTable
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
         $this->modifica_dato->ViewCustomAttributes = "";
 
+        // usuario_dato
+        $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+        $this->usuario_dato->ViewCustomAttributes = "";
+
         // id_estadio
         $this->id_estadio->LinkCustomAttributes = "";
         $this->id_estadio->HrefValue = "";
         $this->id_estadio->TooltipValue = "";
+
+        // id_torneo
+        $this->id_torneo->LinkCustomAttributes = "";
+        $this->id_torneo->HrefValue = "";
+        $this->id_torneo->TooltipValue = "";
 
         // nombre_estadio
         $this->nombre_estadio->LinkCustomAttributes = "";
@@ -1052,6 +1150,11 @@ class Estadio extends DbTable
         $this->modifica_dato->HrefValue = "";
         $this->modifica_dato->TooltipValue = "";
 
+        // usuario_dato
+        $this->usuario_dato->LinkCustomAttributes = "";
+        $this->usuario_dato->HrefValue = "";
+        $this->usuario_dato->TooltipValue = "";
+
         // Call Row Rendered event
         $this->rowRendered();
 
@@ -1072,6 +1175,11 @@ class Estadio extends DbTable
         $this->id_estadio->EditCustomAttributes = "";
         $this->id_estadio->EditValue = $this->id_estadio->CurrentValue;
         $this->id_estadio->ViewCustomAttributes = "";
+
+        // id_torneo
+        $this->id_torneo->setupEditAttributes();
+        $this->id_torneo->EditCustomAttributes = "";
+        $this->id_torneo->PlaceHolder = RemoveHtml($this->id_torneo->caption());
 
         // nombre_estadio
         $this->nombre_estadio->setupEditAttributes();
@@ -1105,6 +1213,12 @@ class Estadio extends DbTable
         $this->modifica_dato->EditCustomAttributes = "";
         $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
+        // usuario_dato
+        $this->usuario_dato->setupEditAttributes();
+        $this->usuario_dato->EditCustomAttributes = "";
+        $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
+        $this->usuario_dato->ViewCustomAttributes = "";
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1134,15 +1248,20 @@ class Estadio extends DbTable
                 $doc->beginExportRow();
                 if ($exportPageType == "view") {
                     $doc->exportCaption($this->id_estadio);
+                    $doc->exportCaption($this->id_torneo);
                     $doc->exportCaption($this->nombre_estadio);
                     $doc->exportCaption($this->foto_estadio);
                     $doc->exportCaption($this->crea_dato);
                     $doc->exportCaption($this->modifica_dato);
+                    $doc->exportCaption($this->usuario_dato);
                 } else {
                     $doc->exportCaption($this->id_estadio);
+                    $doc->exportCaption($this->id_torneo);
+                    $doc->exportCaption($this->nombre_estadio);
                     $doc->exportCaption($this->foto_estadio);
                     $doc->exportCaption($this->crea_dato);
                     $doc->exportCaption($this->modifica_dato);
+                    $doc->exportCaption($this->usuario_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1173,15 +1292,20 @@ class Estadio extends DbTable
                     $doc->beginExportRow($rowCnt); // Allow CSS styles if enabled
                     if ($exportPageType == "view") {
                         $doc->exportField($this->id_estadio);
+                        $doc->exportField($this->id_torneo);
                         $doc->exportField($this->nombre_estadio);
                         $doc->exportField($this->foto_estadio);
                         $doc->exportField($this->crea_dato);
                         $doc->exportField($this->modifica_dato);
+                        $doc->exportField($this->usuario_dato);
                     } else {
                         $doc->exportField($this->id_estadio);
+                        $doc->exportField($this->id_torneo);
+                        $doc->exportField($this->nombre_estadio);
                         $doc->exportField($this->foto_estadio);
                         $doc->exportField($this->crea_dato);
                         $doc->exportField($this->modifica_dato);
+                        $doc->exportField($this->usuario_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

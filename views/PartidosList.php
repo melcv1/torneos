@@ -18,6 +18,50 @@ loadjs.ready(["wrapper", "head"], function () {
     currentPageID = ew.PAGE_ID = "list";
     currentForm = fpartidoslist;
     fpartidoslist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+
+    // Add fields
+    var fields = currentTable.fields;
+    fpartidoslist.addFields([
+        ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
+        ["equipo_local", [fields.equipo_local.visible && fields.equipo_local.required ? ew.Validators.required(fields.equipo_local.caption) : null], fields.equipo_local.isInvalid],
+        ["equipo_visitante", [fields.equipo_visitante.visible && fields.equipo_visitante.required ? ew.Validators.required(fields.equipo_visitante.caption) : null], fields.equipo_visitante.isInvalid],
+        ["ID_PARTIDO", [fields.ID_PARTIDO.visible && fields.ID_PARTIDO.required ? ew.Validators.required(fields.ID_PARTIDO.caption) : null], fields.ID_PARTIDO.isInvalid],
+        ["FECHA_PARTIDO", [fields.FECHA_PARTIDO.visible && fields.FECHA_PARTIDO.required ? ew.Validators.required(fields.FECHA_PARTIDO.caption) : null, ew.Validators.datetime(fields.FECHA_PARTIDO.clientFormatPattern)], fields.FECHA_PARTIDO.isInvalid],
+        ["HORA_PARTIDO", [fields.HORA_PARTIDO.visible && fields.HORA_PARTIDO.required ? ew.Validators.required(fields.HORA_PARTIDO.caption) : null, ew.Validators.time(fields.HORA_PARTIDO.clientFormatPattern)], fields.HORA_PARTIDO.isInvalid],
+        ["ESTADIO", [fields.ESTADIO.visible && fields.ESTADIO.required ? ew.Validators.required(fields.ESTADIO.caption) : null], fields.ESTADIO.isInvalid],
+        ["CIUDAD_PARTIDO", [fields.CIUDAD_PARTIDO.visible && fields.CIUDAD_PARTIDO.required ? ew.Validators.required(fields.CIUDAD_PARTIDO.caption) : null], fields.CIUDAD_PARTIDO.isInvalid],
+        ["PAIS_PARTIDO", [fields.PAIS_PARTIDO.visible && fields.PAIS_PARTIDO.required ? ew.Validators.required(fields.PAIS_PARTIDO.caption) : null], fields.PAIS_PARTIDO.isInvalid],
+        ["GOLES_LOCAL", [fields.GOLES_LOCAL.visible && fields.GOLES_LOCAL.required ? ew.Validators.required(fields.GOLES_LOCAL.caption) : null, ew.Validators.integer], fields.GOLES_LOCAL.isInvalid],
+        ["GOLES_VISITANTE", [fields.GOLES_VISITANTE.visible && fields.GOLES_VISITANTE.required ? ew.Validators.required(fields.GOLES_VISITANTE.caption) : null, ew.Validators.integer], fields.GOLES_VISITANTE.isInvalid],
+        ["GOLES_EXTRA_EQUIPO1", [fields.GOLES_EXTRA_EQUIPO1.visible && fields.GOLES_EXTRA_EQUIPO1.required ? ew.Validators.required(fields.GOLES_EXTRA_EQUIPO1.caption) : null, ew.Validators.integer], fields.GOLES_EXTRA_EQUIPO1.isInvalid],
+        ["GOLES_EXTRA_EQUIPO2", [fields.GOLES_EXTRA_EQUIPO2.visible && fields.GOLES_EXTRA_EQUIPO2.required ? ew.Validators.required(fields.GOLES_EXTRA_EQUIPO2.caption) : null, ew.Validators.integer], fields.GOLES_EXTRA_EQUIPO2.isInvalid],
+        ["NOTA_PARTIDO", [fields.NOTA_PARTIDO.visible && fields.NOTA_PARTIDO.required ? ew.Validators.required(fields.NOTA_PARTIDO.caption) : null], fields.NOTA_PARTIDO.isInvalid],
+        ["RESUMEN_PARTIDO", [fields.RESUMEN_PARTIDO.visible && fields.RESUMEN_PARTIDO.required ? ew.Validators.required(fields.RESUMEN_PARTIDO.caption) : null], fields.RESUMEN_PARTIDO.isInvalid],
+        ["ESTADO_PARTIDO", [fields.ESTADO_PARTIDO.visible && fields.ESTADO_PARTIDO.required ? ew.Validators.required(fields.ESTADO_PARTIDO.caption) : null], fields.ESTADO_PARTIDO.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid],
+        ["automatico", [fields.automatico.visible && fields.automatico.required ? ew.Validators.required(fields.automatico.caption) : null], fields.automatico.isInvalid],
+        ["actualizado", [fields.actualizado.visible && fields.actualizado.required ? ew.Validators.required(fields.actualizado.caption) : null], fields.actualizado.isInvalid]
+    ]);
+
+    // Form_CustomValidate
+    fpartidoslist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    fpartidoslist.validateRequired = ew.CLIENT_VALIDATE;
+
+    // Dynamic selection lists
+    fpartidoslist.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
+    fpartidoslist.lists.equipo_local = <?= $Page->equipo_local->toClientList($Page) ?>;
+    fpartidoslist.lists.equipo_visitante = <?= $Page->equipo_visitante->toClientList($Page) ?>;
+    fpartidoslist.lists.ESTADIO = <?= $Page->ESTADIO->toClientList($Page) ?>;
+    fpartidoslist.lists.PAIS_PARTIDO = <?= $Page->PAIS_PARTIDO->toClientList($Page) ?>;
+    fpartidoslist.lists.ESTADO_PARTIDO = <?= $Page->ESTADO_PARTIDO->toClientList($Page) ?>;
+    fpartidoslist.lists.automatico = <?= $Page->automatico->toClientList($Page) ?>;
     loadjs.done("fpartidoslist");
 });
 var fpartidossrch, currentSearchForm, currentAdvancedSearchForm;
@@ -118,6 +162,9 @@ $Page->renderListOptions();
 // Render list options (header, left)
 $Page->ListOptions->render("header", "left");
 ?>
+<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
+        <th data-name="ID_TORNEO" class="<?= $Page->ID_TORNEO->headerCellClass() ?>"><div id="elh_partidos_ID_TORNEO" class="partidos_ID_TORNEO"><?= $Page->renderFieldHeader($Page->ID_TORNEO) ?></div></th>
+<?php } ?>
 <?php if ($Page->equipo_local->Visible) { // equipo_local ?>
         <th data-name="equipo_local" class="<?= $Page->equipo_local->headerCellClass() ?>"><div id="elh_partidos_equipo_local" class="partidos_equipo_local"><?= $Page->renderFieldHeader($Page->equipo_local) ?></div></th>
 <?php } ?>
@@ -126,9 +173,6 @@ $Page->ListOptions->render("header", "left");
 <?php } ?>
 <?php if ($Page->ID_PARTIDO->Visible) { // ID_PARTIDO ?>
         <th data-name="ID_PARTIDO" class="<?= $Page->ID_PARTIDO->headerCellClass() ?>"><div id="elh_partidos_ID_PARTIDO" class="partidos_ID_PARTIDO"><?= $Page->renderFieldHeader($Page->ID_PARTIDO) ?></div></th>
-<?php } ?>
-<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
-        <th data-name="ID_TORNEO" class="<?= $Page->ID_TORNEO->headerCellClass() ?>"><div id="elh_partidos_ID_TORNEO" class="partidos_ID_TORNEO"><?= $Page->renderFieldHeader($Page->ID_TORNEO) ?></div></th>
 <?php } ?>
 <?php if ($Page->FECHA_PARTIDO->Visible) { // FECHA_PARTIDO ?>
         <th data-name="FECHA_PARTIDO" class="<?= $Page->FECHA_PARTIDO->headerCellClass() ?>"><div id="elh_partidos_FECHA_PARTIDO" class="partidos_FECHA_PARTIDO"><?= $Page->renderFieldHeader($Page->FECHA_PARTIDO) ?></div></th>
@@ -145,11 +189,11 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->PAIS_PARTIDO->Visible) { // PAIS_PARTIDO ?>
         <th data-name="PAIS_PARTIDO" class="<?= $Page->PAIS_PARTIDO->headerCellClass() ?>"><div id="elh_partidos_PAIS_PARTIDO" class="partidos_PAIS_PARTIDO"><?= $Page->renderFieldHeader($Page->PAIS_PARTIDO) ?></div></th>
 <?php } ?>
-<?php if ($Page->GOLES_EQUIPO1->Visible) { // GOLES_EQUIPO1 ?>
-        <th data-name="GOLES_EQUIPO1" class="<?= $Page->GOLES_EQUIPO1->headerCellClass() ?>"><div id="elh_partidos_GOLES_EQUIPO1" class="partidos_GOLES_EQUIPO1"><?= $Page->renderFieldHeader($Page->GOLES_EQUIPO1) ?></div></th>
+<?php if ($Page->GOLES_LOCAL->Visible) { // GOLES_LOCAL ?>
+        <th data-name="GOLES_LOCAL" class="<?= $Page->GOLES_LOCAL->headerCellClass() ?>"><div id="elh_partidos_GOLES_LOCAL" class="partidos_GOLES_LOCAL"><?= $Page->renderFieldHeader($Page->GOLES_LOCAL) ?></div></th>
 <?php } ?>
-<?php if ($Page->GOLES_EQUIPO2->Visible) { // GOLES_EQUIPO2 ?>
-        <th data-name="GOLES_EQUIPO2" class="<?= $Page->GOLES_EQUIPO2->headerCellClass() ?>"><div id="elh_partidos_GOLES_EQUIPO2" class="partidos_GOLES_EQUIPO2"><?= $Page->renderFieldHeader($Page->GOLES_EQUIPO2) ?></div></th>
+<?php if ($Page->GOLES_VISITANTE->Visible) { // GOLES_VISITANTE ?>
+        <th data-name="GOLES_VISITANTE" class="<?= $Page->GOLES_VISITANTE->headerCellClass() ?>"><div id="elh_partidos_GOLES_VISITANTE" class="partidos_GOLES_VISITANTE"><?= $Page->renderFieldHeader($Page->GOLES_VISITANTE) ?></div></th>
 <?php } ?>
 <?php if ($Page->GOLES_EXTRA_EQUIPO1->Visible) { // GOLES_EXTRA_EQUIPO1 ?>
         <th data-name="GOLES_EXTRA_EQUIPO1" class="<?= $Page->GOLES_EXTRA_EQUIPO1->headerCellClass() ?>"><div id="elh_partidos_GOLES_EXTRA_EQUIPO1" class="partidos_GOLES_EXTRA_EQUIPO1"><?= $Page->renderFieldHeader($Page->GOLES_EXTRA_EQUIPO1) ?></div></th>
@@ -172,6 +216,15 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <th data-name="modifica_dato" class="<?= $Page->modifica_dato->headerCellClass() ?>"><div id="elh_partidos_modifica_dato" class="partidos_modifica_dato"><?= $Page->renderFieldHeader($Page->modifica_dato) ?></div></th>
 <?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <th data-name="usuario_dato" class="<?= $Page->usuario_dato->headerCellClass() ?>"><div id="elh_partidos_usuario_dato" class="partidos_usuario_dato"><?= $Page->renderFieldHeader($Page->usuario_dato) ?></div></th>
+<?php } ?>
+<?php if ($Page->automatico->Visible) { // automatico ?>
+        <th data-name="automatico" class="<?= $Page->automatico->headerCellClass() ?>"><div id="elh_partidos_automatico" class="partidos_automatico"><?= $Page->renderFieldHeader($Page->automatico) ?></div></th>
+<?php } ?>
+<?php if ($Page->actualizado->Visible) { // actualizado ?>
+        <th data-name="actualizado" class="<?= $Page->actualizado->headerCellClass() ?>"><div id="elh_partidos_actualizado" class="partidos_actualizado"><?= $Page->renderFieldHeader($Page->actualizado) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -190,6 +243,15 @@ if ($Page->ExportAll && $Page->isExport()) {
         $Page->StopRecord = $Page->TotalRecords;
     }
 }
+
+// Restore number of post back records
+if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
+    $CurrentForm->Index = -1;
+    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
+        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
+        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
+    }
+}
 $Page->RecordCount = $Page->StartRecord - 1;
 if ($Page->Recordset && !$Page->Recordset->EOF) {
     // Nothing to do
@@ -201,6 +263,10 @@ if ($Page->Recordset && !$Page->Recordset->EOF) {
 $Page->RowType = ROWTYPE_AGGREGATEINIT;
 $Page->resetAttributes();
 $Page->renderRow();
+$Page->EditRowCount = 0;
+if ($Page->isEdit()) {
+    $Page->RowIndex = 1;
+}
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
@@ -224,6 +290,18 @@ while ($Page->RecordCount < $Page->StopRecord) {
             }
         }
         $Page->RowType = ROWTYPE_VIEW; // Render view
+        if ($Page->isEdit()) {
+            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
+                $Page->RowType = ROWTYPE_EDIT; // Render edit
+            }
+        }
+        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $Page->restoreFormValues(); // Restore form values
+        }
+        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
+            $Page->EditRowCount++;
+        }
 
         // Set up row attributes
         $Page->RowAttrs->merge([
@@ -247,148 +325,543 @@ while ($Page->RecordCount < $Page->StopRecord) {
 // Render list options (body, left)
 $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
-    <?php if ($Page->equipo_local->Visible) { // equipo_local ?>
-        <td data-name="equipo_local"<?= $Page->equipo_local->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_equipo_local" class="el_partidos_equipo_local">
-<span<?= $Page->equipo_local->viewAttributes() ?>>
-<?= $Page->equipo_local->getViewValue() ?></span>
-</span>
-</td>
-    <?php } ?>
-    <?php if ($Page->equipo_visitante->Visible) { // equipo_visitante ?>
-        <td data-name="equipo_visitante"<?= $Page->equipo_visitante->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_equipo_visitante" class="el_partidos_equipo_visitante">
-<span<?= $Page->equipo_visitante->viewAttributes() ?>>
-<?= $Page->equipo_visitante->getViewValue() ?></span>
-</span>
-</td>
-    <?php } ?>
-    <?php if ($Page->ID_PARTIDO->Visible) { // ID_PARTIDO ?>
-        <td data-name="ID_PARTIDO"<?= $Page->ID_PARTIDO->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_ID_PARTIDO" class="el_partidos_ID_PARTIDO">
-<span<?= $Page->ID_PARTIDO->viewAttributes() ?>>
-<?= $Page->ID_PARTIDO->getViewValue() ?></span>
-</span>
-</td>
-    <?php } ?>
     <?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
         <td data-name="ID_TORNEO"<?= $Page->ID_TORNEO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_ID_TORNEO" class="el_partidos_ID_TORNEO">
+<?php $Page->ID_TORNEO->EditAttrs->prepend("onchange", "ew.updateOptions.call(this);"); ?>
+    <select
+        id="x<?= $Page->RowIndex ?>_ID_TORNEO"
+        name="x<?= $Page->RowIndex ?>_ID_TORNEO"
+        class="form-select ew-select<?= $Page->ID_TORNEO->isInvalidClass() ?>"
+        data-select2-id="fpartidoslist_x<?= $Page->RowIndex ?>_ID_TORNEO"
+        data-table="partidos"
+        data-field="x_ID_TORNEO"
+        data-value-separator="<?= $Page->ID_TORNEO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->ID_TORNEO->getPlaceHolder()) ?>"
+        <?= $Page->ID_TORNEO->editAttributes() ?>>
+        <?= $Page->ID_TORNEO->selectOptionListHtml("x{$Page->RowIndex}_ID_TORNEO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->ID_TORNEO->getErrorMessage() ?></div>
+<?= $Page->ID_TORNEO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_TORNEO") ?>
+<script>
+loadjs.ready("fpartidoslist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ID_TORNEO", selectId: "fpartidoslist_x<?= $Page->RowIndex ?>_ID_TORNEO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fpartidoslist.lists.ID_TORNEO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "fpartidoslist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.ID_TORNEO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_ID_TORNEO" class="el_partidos_ID_TORNEO">
 <span<?= $Page->ID_TORNEO->viewAttributes() ?>>
 <?= $Page->ID_TORNEO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
+    <?php } ?>
+    <?php if ($Page->equipo_local->Visible) { // equipo_local ?>
+        <td data-name="equipo_local"<?= $Page->equipo_local->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_equipo_local" class="el_partidos_equipo_local">
+<?php $Page->equipo_local->EditAttrs->prepend("onchange", "ew.updateOptions.call(this);"); ?>
+    <select
+        id="x<?= $Page->RowIndex ?>_equipo_local"
+        name="x<?= $Page->RowIndex ?>_equipo_local"
+        class="form-select ew-select<?= $Page->equipo_local->isInvalidClass() ?>"
+        data-select2-id="fpartidoslist_x<?= $Page->RowIndex ?>_equipo_local"
+        data-table="partidos"
+        data-field="x_equipo_local"
+        data-value-separator="<?= $Page->equipo_local->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->equipo_local->getPlaceHolder()) ?>"
+        <?= $Page->equipo_local->editAttributes() ?>>
+        <?= $Page->equipo_local->selectOptionListHtml("x{$Page->RowIndex}_equipo_local") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->equipo_local->getErrorMessage() ?></div>
+<?= $Page->equipo_local->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_equipo_local") ?>
+<script>
+loadjs.ready("fpartidoslist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_equipo_local", selectId: "fpartidoslist_x<?= $Page->RowIndex ?>_equipo_local" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fpartidoslist.lists.equipo_local.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_equipo_local", form: "fpartidoslist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_equipo_local", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.equipo_local.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_equipo_local" class="el_partidos_equipo_local">
+<span<?= $Page->equipo_local->viewAttributes() ?>>
+<?= $Page->equipo_local->getViewValue() ?></span>
+</span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->equipo_visitante->Visible) { // equipo_visitante ?>
+        <td data-name="equipo_visitante"<?= $Page->equipo_visitante->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_equipo_visitante" class="el_partidos_equipo_visitante">
+    <select
+        id="x<?= $Page->RowIndex ?>_equipo_visitante"
+        name="x<?= $Page->RowIndex ?>_equipo_visitante"
+        class="form-select ew-select<?= $Page->equipo_visitante->isInvalidClass() ?>"
+        data-select2-id="fpartidoslist_x<?= $Page->RowIndex ?>_equipo_visitante"
+        data-table="partidos"
+        data-field="x_equipo_visitante"
+        data-value-separator="<?= $Page->equipo_visitante->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->equipo_visitante->getPlaceHolder()) ?>"
+        <?= $Page->equipo_visitante->editAttributes() ?>>
+        <?= $Page->equipo_visitante->selectOptionListHtml("x{$Page->RowIndex}_equipo_visitante") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->equipo_visitante->getErrorMessage() ?></div>
+<?= $Page->equipo_visitante->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_equipo_visitante") ?>
+<script>
+loadjs.ready("fpartidoslist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_equipo_visitante", selectId: "fpartidoslist_x<?= $Page->RowIndex ?>_equipo_visitante" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fpartidoslist.lists.equipo_visitante.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_equipo_visitante", form: "fpartidoslist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_equipo_visitante", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.equipo_visitante.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_equipo_visitante" class="el_partidos_equipo_visitante">
+<span<?= $Page->equipo_visitante->viewAttributes() ?>>
+<?= $Page->equipo_visitante->getViewValue() ?></span>
+</span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->ID_PARTIDO->Visible) { // ID_PARTIDO ?>
+        <td data-name="ID_PARTIDO"<?= $Page->ID_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_ID_PARTIDO" class="el_partidos_ID_PARTIDO">
+<span<?= $Page->ID_PARTIDO->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_PARTIDO->getDisplayValue($Page->ID_PARTIDO->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="partidos" data-field="x_ID_PARTIDO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_PARTIDO" id="x<?= $Page->RowIndex ?>_ID_PARTIDO" value="<?= HtmlEncode($Page->ID_PARTIDO->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_ID_PARTIDO" class="el_partidos_ID_PARTIDO">
+<span<?= $Page->ID_PARTIDO->viewAttributes() ?>>
+<?= $Page->ID_PARTIDO->getViewValue() ?></span>
+</span>
+<?php } ?>
+</td>
+    <?php } else { ?>
+            <input type="hidden" data-table="partidos" data-field="x_ID_PARTIDO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_PARTIDO" id="x<?= $Page->RowIndex ?>_ID_PARTIDO" value="<?= HtmlEncode($Page->ID_PARTIDO->CurrentValue) ?>">
     <?php } ?>
     <?php if ($Page->FECHA_PARTIDO->Visible) { // FECHA_PARTIDO ?>
         <td data-name="FECHA_PARTIDO"<?= $Page->FECHA_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_FECHA_PARTIDO" class="el_partidos_FECHA_PARTIDO">
+<input type="<?= $Page->FECHA_PARTIDO->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_FECHA_PARTIDO" id="x<?= $Page->RowIndex ?>_FECHA_PARTIDO" data-table="partidos" data-field="x_FECHA_PARTIDO" value="<?= $Page->FECHA_PARTIDO->EditValue ?>" placeholder="<?= HtmlEncode($Page->FECHA_PARTIDO->getPlaceHolder()) ?>"<?= $Page->FECHA_PARTIDO->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->FECHA_PARTIDO->getErrorMessage() ?></div>
+<?php if (!$Page->FECHA_PARTIDO->ReadOnly && !$Page->FECHA_PARTIDO->Disabled && !isset($Page->FECHA_PARTIDO->EditAttrs["readonly"]) && !isset($Page->FECHA_PARTIDO->EditAttrs["disabled"])) { ?>
+<script>
+loadjs.ready(["fpartidoslist", "datetimepicker"], function () {
+    let format = "<?= DateFormat(14) ?>",
+        options = {
+            localization: {
+                locale: ew.LANGUAGE_ID + "-u-nu-" + ew.getNumberingSystem()
+            },
+            display: {
+                icons: {
+                    previous: ew.IS_RTL ? "fas fa-chevron-right" : "fas fa-chevron-left",
+                    next: ew.IS_RTL ? "fas fa-chevron-left" : "fas fa-chevron-right"
+                },
+                components: {
+                    hours: !!format.match(/h/i),
+                    minutes: !!format.match(/m/),
+                    seconds: !!format.match(/s/i),
+                    useTwentyfourHour: !!format.match(/H/)
+                }
+            },
+            meta: {
+                format
+            }
+        };
+    ew.createDateTimePicker("fpartidoslist", "x<?= $Page->RowIndex ?>_FECHA_PARTIDO", jQuery.extend(true, {"useCurrent":false}, options));
+});
+</script>
+<?php } ?>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_FECHA_PARTIDO" class="el_partidos_FECHA_PARTIDO">
 <span<?= $Page->FECHA_PARTIDO->viewAttributes() ?>>
 <?= $Page->FECHA_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->HORA_PARTIDO->Visible) { // HORA_PARTIDO ?>
         <td data-name="HORA_PARTIDO"<?= $Page->HORA_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_HORA_PARTIDO" class="el_partidos_HORA_PARTIDO">
+<input type="<?= $Page->HORA_PARTIDO->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_HORA_PARTIDO" id="x<?= $Page->RowIndex ?>_HORA_PARTIDO" data-table="partidos" data-field="x_HORA_PARTIDO" value="<?= $Page->HORA_PARTIDO->EditValue ?>" placeholder="<?= HtmlEncode($Page->HORA_PARTIDO->getPlaceHolder()) ?>"<?= $Page->HORA_PARTIDO->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->HORA_PARTIDO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_HORA_PARTIDO" class="el_partidos_HORA_PARTIDO">
 <span<?= $Page->HORA_PARTIDO->viewAttributes() ?>>
 <?= $Page->HORA_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->ESTADIO->Visible) { // ESTADIO ?>
         <td data-name="ESTADIO"<?= $Page->ESTADIO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_ESTADIO" class="el_partidos_ESTADIO">
+    <select
+        id="x<?= $Page->RowIndex ?>_ESTADIO"
+        name="x<?= $Page->RowIndex ?>_ESTADIO"
+        class="form-select ew-select<?= $Page->ESTADIO->isInvalidClass() ?>"
+        data-select2-id="fpartidoslist_x<?= $Page->RowIndex ?>_ESTADIO"
+        data-table="partidos"
+        data-field="x_ESTADIO"
+        data-value-separator="<?= $Page->ESTADIO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->ESTADIO->getPlaceHolder()) ?>"
+        <?= $Page->ESTADIO->editAttributes() ?>>
+        <?= $Page->ESTADIO->selectOptionListHtml("x{$Page->RowIndex}_ESTADIO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->ESTADIO->getErrorMessage() ?></div>
+<?= $Page->ESTADIO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ESTADIO") ?>
+<script>
+loadjs.ready("fpartidoslist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ESTADIO", selectId: "fpartidoslist_x<?= $Page->RowIndex ?>_ESTADIO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fpartidoslist.lists.ESTADIO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ESTADIO", form: "fpartidoslist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ESTADIO", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.ESTADIO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_ESTADIO" class="el_partidos_ESTADIO">
 <span<?= $Page->ESTADIO->viewAttributes() ?>>
 <?= $Page->ESTADIO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->CIUDAD_PARTIDO->Visible) { // CIUDAD_PARTIDO ?>
         <td data-name="CIUDAD_PARTIDO"<?= $Page->CIUDAD_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_CIUDAD_PARTIDO" class="el_partidos_CIUDAD_PARTIDO">
+<textarea data-table="partidos" data-field="x_CIUDAD_PARTIDO" name="x<?= $Page->RowIndex ?>_CIUDAD_PARTIDO" id="x<?= $Page->RowIndex ?>_CIUDAD_PARTIDO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->CIUDAD_PARTIDO->getPlaceHolder()) ?>"<?= $Page->CIUDAD_PARTIDO->editAttributes() ?>><?= $Page->CIUDAD_PARTIDO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->CIUDAD_PARTIDO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_CIUDAD_PARTIDO" class="el_partidos_CIUDAD_PARTIDO">
 <span<?= $Page->CIUDAD_PARTIDO->viewAttributes() ?>>
 <?= $Page->CIUDAD_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->PAIS_PARTIDO->Visible) { // PAIS_PARTIDO ?>
         <td data-name="PAIS_PARTIDO"<?= $Page->PAIS_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_PAIS_PARTIDO" class="el_partidos_PAIS_PARTIDO">
+    <select
+        id="x<?= $Page->RowIndex ?>_PAIS_PARTIDO"
+        name="x<?= $Page->RowIndex ?>_PAIS_PARTIDO"
+        class="form-select ew-select<?= $Page->PAIS_PARTIDO->isInvalidClass() ?>"
+        data-select2-id="fpartidoslist_x<?= $Page->RowIndex ?>_PAIS_PARTIDO"
+        data-table="partidos"
+        data-field="x_PAIS_PARTIDO"
+        data-value-separator="<?= $Page->PAIS_PARTIDO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->PAIS_PARTIDO->getPlaceHolder()) ?>"
+        <?= $Page->PAIS_PARTIDO->editAttributes() ?>>
+        <?= $Page->PAIS_PARTIDO->selectOptionListHtml("x{$Page->RowIndex}_PAIS_PARTIDO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->PAIS_PARTIDO->getErrorMessage() ?></div>
+<?= $Page->PAIS_PARTIDO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_PAIS_PARTIDO") ?>
+<script>
+loadjs.ready("fpartidoslist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_PAIS_PARTIDO", selectId: "fpartidoslist_x<?= $Page->RowIndex ?>_PAIS_PARTIDO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fpartidoslist.lists.PAIS_PARTIDO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_PAIS_PARTIDO", form: "fpartidoslist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_PAIS_PARTIDO", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.PAIS_PARTIDO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_PAIS_PARTIDO" class="el_partidos_PAIS_PARTIDO">
 <span<?= $Page->PAIS_PARTIDO->viewAttributes() ?>>
 <?= $Page->PAIS_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
-    <?php if ($Page->GOLES_EQUIPO1->Visible) { // GOLES_EQUIPO1 ?>
-        <td data-name="GOLES_EQUIPO1"<?= $Page->GOLES_EQUIPO1->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_GOLES_EQUIPO1" class="el_partidos_GOLES_EQUIPO1">
-<span<?= $Page->GOLES_EQUIPO1->viewAttributes() ?>>
-<?= $Page->GOLES_EQUIPO1->getViewValue() ?></span>
+    <?php if ($Page->GOLES_LOCAL->Visible) { // GOLES_LOCAL ?>
+        <td data-name="GOLES_LOCAL"<?= $Page->GOLES_LOCAL->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_LOCAL" class="el_partidos_GOLES_LOCAL">
+<input type="<?= $Page->GOLES_LOCAL->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GOLES_LOCAL" id="x<?= $Page->RowIndex ?>_GOLES_LOCAL" data-table="partidos" data-field="x_GOLES_LOCAL" value="<?= $Page->GOLES_LOCAL->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GOLES_LOCAL->getPlaceHolder()) ?>"<?= $Page->GOLES_LOCAL->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GOLES_LOCAL->getErrorMessage() ?></div>
 </span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_LOCAL" class="el_partidos_GOLES_LOCAL">
+<span<?= $Page->GOLES_LOCAL->viewAttributes() ?>>
+<?= $Page->GOLES_LOCAL->getViewValue() ?></span>
+</span>
+<?php } ?>
 </td>
     <?php } ?>
-    <?php if ($Page->GOLES_EQUIPO2->Visible) { // GOLES_EQUIPO2 ?>
-        <td data-name="GOLES_EQUIPO2"<?= $Page->GOLES_EQUIPO2->cellAttributes() ?>>
-<span id="el<?= $Page->RowCount ?>_partidos_GOLES_EQUIPO2" class="el_partidos_GOLES_EQUIPO2">
-<span<?= $Page->GOLES_EQUIPO2->viewAttributes() ?>>
-<?= $Page->GOLES_EQUIPO2->getViewValue() ?></span>
+    <?php if ($Page->GOLES_VISITANTE->Visible) { // GOLES_VISITANTE ?>
+        <td data-name="GOLES_VISITANTE"<?= $Page->GOLES_VISITANTE->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_VISITANTE" class="el_partidos_GOLES_VISITANTE">
+<input type="<?= $Page->GOLES_VISITANTE->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GOLES_VISITANTE" id="x<?= $Page->RowIndex ?>_GOLES_VISITANTE" data-table="partidos" data-field="x_GOLES_VISITANTE" value="<?= $Page->GOLES_VISITANTE->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GOLES_VISITANTE->getPlaceHolder()) ?>"<?= $Page->GOLES_VISITANTE->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GOLES_VISITANTE->getErrorMessage() ?></div>
 </span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_VISITANTE" class="el_partidos_GOLES_VISITANTE">
+<span<?= $Page->GOLES_VISITANTE->viewAttributes() ?>>
+<?= $Page->GOLES_VISITANTE->getViewValue() ?></span>
+</span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->GOLES_EXTRA_EQUIPO1->Visible) { // GOLES_EXTRA_EQUIPO1 ?>
         <td data-name="GOLES_EXTRA_EQUIPO1"<?= $Page->GOLES_EXTRA_EQUIPO1->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_EXTRA_EQUIPO1" class="el_partidos_GOLES_EXTRA_EQUIPO1">
+<input type="<?= $Page->GOLES_EXTRA_EQUIPO1->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GOLES_EXTRA_EQUIPO1" id="x<?= $Page->RowIndex ?>_GOLES_EXTRA_EQUIPO1" data-table="partidos" data-field="x_GOLES_EXTRA_EQUIPO1" value="<?= $Page->GOLES_EXTRA_EQUIPO1->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GOLES_EXTRA_EQUIPO1->getPlaceHolder()) ?>"<?= $Page->GOLES_EXTRA_EQUIPO1->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GOLES_EXTRA_EQUIPO1->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_GOLES_EXTRA_EQUIPO1" class="el_partidos_GOLES_EXTRA_EQUIPO1">
 <span<?= $Page->GOLES_EXTRA_EQUIPO1->viewAttributes() ?>>
 <?= $Page->GOLES_EXTRA_EQUIPO1->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->GOLES_EXTRA_EQUIPO2->Visible) { // GOLES_EXTRA_EQUIPO2 ?>
         <td data-name="GOLES_EXTRA_EQUIPO2"<?= $Page->GOLES_EXTRA_EQUIPO2->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_GOLES_EXTRA_EQUIPO2" class="el_partidos_GOLES_EXTRA_EQUIPO2">
+<input type="<?= $Page->GOLES_EXTRA_EQUIPO2->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GOLES_EXTRA_EQUIPO2" id="x<?= $Page->RowIndex ?>_GOLES_EXTRA_EQUIPO2" data-table="partidos" data-field="x_GOLES_EXTRA_EQUIPO2" value="<?= $Page->GOLES_EXTRA_EQUIPO2->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GOLES_EXTRA_EQUIPO2->getPlaceHolder()) ?>"<?= $Page->GOLES_EXTRA_EQUIPO2->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->GOLES_EXTRA_EQUIPO2->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_GOLES_EXTRA_EQUIPO2" class="el_partidos_GOLES_EXTRA_EQUIPO2">
 <span<?= $Page->GOLES_EXTRA_EQUIPO2->viewAttributes() ?>>
 <?= $Page->GOLES_EXTRA_EQUIPO2->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->NOTA_PARTIDO->Visible) { // NOTA_PARTIDO ?>
         <td data-name="NOTA_PARTIDO"<?= $Page->NOTA_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_NOTA_PARTIDO" class="el_partidos_NOTA_PARTIDO">
+<textarea data-table="partidos" data-field="x_NOTA_PARTIDO" name="x<?= $Page->RowIndex ?>_NOTA_PARTIDO" id="x<?= $Page->RowIndex ?>_NOTA_PARTIDO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOTA_PARTIDO->getPlaceHolder()) ?>"<?= $Page->NOTA_PARTIDO->editAttributes() ?>><?= $Page->NOTA_PARTIDO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->NOTA_PARTIDO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_NOTA_PARTIDO" class="el_partidos_NOTA_PARTIDO">
 <span<?= $Page->NOTA_PARTIDO->viewAttributes() ?>>
 <?= $Page->NOTA_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->RESUMEN_PARTIDO->Visible) { // RESUMEN_PARTIDO ?>
         <td data-name="RESUMEN_PARTIDO"<?= $Page->RESUMEN_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_RESUMEN_PARTIDO" class="el_partidos_RESUMEN_PARTIDO">
+<textarea data-table="partidos" data-field="x_RESUMEN_PARTIDO" name="x<?= $Page->RowIndex ?>_RESUMEN_PARTIDO" id="x<?= $Page->RowIndex ?>_RESUMEN_PARTIDO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->RESUMEN_PARTIDO->getPlaceHolder()) ?>"<?= $Page->RESUMEN_PARTIDO->editAttributes() ?>><?= $Page->RESUMEN_PARTIDO->EditValue ?></textarea>
+<div class="invalid-feedback"><?= $Page->RESUMEN_PARTIDO->getErrorMessage() ?></div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_RESUMEN_PARTIDO" class="el_partidos_RESUMEN_PARTIDO">
 <span<?= $Page->RESUMEN_PARTIDO->viewAttributes() ?>>
 <?= $Page->RESUMEN_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->ESTADO_PARTIDO->Visible) { // ESTADO_PARTIDO ?>
         <td data-name="ESTADO_PARTIDO"<?= $Page->ESTADO_PARTIDO->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_ESTADO_PARTIDO" class="el_partidos_ESTADO_PARTIDO">
+    <select
+        id="x<?= $Page->RowIndex ?>_ESTADO_PARTIDO"
+        name="x<?= $Page->RowIndex ?>_ESTADO_PARTIDO"
+        class="form-select ew-select<?= $Page->ESTADO_PARTIDO->isInvalidClass() ?>"
+        data-select2-id="fpartidoslist_x<?= $Page->RowIndex ?>_ESTADO_PARTIDO"
+        data-table="partidos"
+        data-field="x_ESTADO_PARTIDO"
+        data-value-separator="<?= $Page->ESTADO_PARTIDO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->ESTADO_PARTIDO->getPlaceHolder()) ?>"
+        <?= $Page->ESTADO_PARTIDO->editAttributes() ?>>
+        <?= $Page->ESTADO_PARTIDO->selectOptionListHtml("x{$Page->RowIndex}_ESTADO_PARTIDO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->ESTADO_PARTIDO->getErrorMessage() ?></div>
+<script>
+loadjs.ready("fpartidoslist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ESTADO_PARTIDO", selectId: "fpartidoslist_x<?= $Page->RowIndex ?>_ESTADO_PARTIDO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fpartidoslist.lists.ESTADO_PARTIDO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ESTADO_PARTIDO", form: "fpartidoslist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ESTADO_PARTIDO", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.ESTADO_PARTIDO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_ESTADO_PARTIDO" class="el_partidos_ESTADO_PARTIDO">
 <span<?= $Page->ESTADO_PARTIDO->viewAttributes() ?>>
 <?= $Page->ESTADO_PARTIDO->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_crea_dato" class="el_partidos_crea_dato">
+<span<?= $Page->crea_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="partidos" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_crea_dato" class="el_partidos_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_modifica_dato" class="el_partidos_modifica_dato">
+<span<?= $Page->modifica_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="partidos" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_modifica_dato" class="el_partidos_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_usuario_dato" class="el_partidos_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="partidos" data-field="x_usuario_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_usuario_dato" id="x<?= $Page->RowIndex ?>_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_usuario_dato" class="el_partidos_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->automatico->Visible) { // automatico ?>
+        <td data-name="automatico"<?= $Page->automatico->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_automatico" class="el_partidos_automatico">
+<div class="form-check d-inline-block">
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x<?= $Page->RowIndex ?>_automatico[]" id="x<?= $Page->RowIndex ?>_automatico_901854" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?>>
+    <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
+</div>
+</span>
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_automatico" class="el_partidos_automatico">
+<span<?= $Page->automatico->viewAttributes() ?>>
+<div class="form-check d-inline-block">
+    <input type="checkbox" id="x_automatico_<?= $Page->RowCount ?>" class="form-check-input" value="<?= $Page->automatico->getViewValue() ?>" disabled<?php if (ConvertToBool($Page->automatico->CurrentValue)) { ?> checked<?php } ?>>
+    <label class="form-check-label" for="x_automatico_<?= $Page->RowCount ?>"></label>
+</div></span>
+</span>
+<?php } ?>
+</td>
+    <?php } ?>
+    <?php if ($Page->actualizado->Visible) { // actualizado ?>
+        <td data-name="actualizado"<?= $Page->actualizado->cellAttributes() ?>>
+<?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_actualizado" class="el_partidos_actualizado">
+<span<?= $Page->actualizado->viewAttributes() ?>>
+<?= $Page->actualizado->EditValue ?></span>
+</span>
+<input type="hidden" data-table="partidos" data-field="x_actualizado" data-hidden="1" name="x<?= $Page->RowIndex ?>_actualizado" id="x<?= $Page->RowIndex ?>_actualizado" value="<?= HtmlEncode($Page->actualizado->CurrentValue) ?>">
+<?php } ?>
+<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
+<span id="el<?= $Page->RowCount ?>_partidos_actualizado" class="el_partidos_actualizado">
+<span<?= $Page->actualizado->viewAttributes() ?>>
+<?= $Page->actualizado->getViewValue() ?></span>
+</span>
+<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -396,6 +869,11 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
+<?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
+<script>
+loadjs.ready(["fpartidoslist","load"], () => fpartidoslist.updateLists(<?= $Page->RowIndex ?>));
+</script>
+<?php } ?>
 <?php
     }
     if (!$Page->isGridAdd()) {
@@ -407,6 +885,10 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 </table><!-- /.ew-table -->
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
+<?php if ($Page->isEdit()) { ?>
+<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
+<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
+<?php } ?>
 <?php if (!$Page->CurrentAction) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>

@@ -578,6 +578,9 @@ class TorneoList extends Torneo
 
         // Use layout
         $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+
+        // Create form object
+        $CurrentForm = new HttpForm();
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Get grid add count
@@ -597,6 +600,7 @@ class TorneoList extends Torneo
         $this->LOGO_TORNEO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -622,6 +626,9 @@ class TorneoList extends Torneo
 
         // Set up lookup cache
 
+        // Load default values for add
+        $this->loadDefaultValues();
+
         // Search filters
         $srchAdvanced = ""; // Advanced search filter
         $srchBasic = ""; // Basic search filter
@@ -645,6 +652,31 @@ class TorneoList extends Torneo
             // Set up Breadcrumb
             if (!$this->isExport()) {
                 $this->setupBreadcrumb();
+            }
+
+            // Check QueryString parameters
+            if (Get("action") !== null) {
+                $this->CurrentAction = Get("action");
+
+                // Clear inline mode
+                if ($this->isCancel()) {
+                    $this->clearInlineMode();
+                }
+
+                // Switch to inline edit mode
+                if ($this->isEdit()) {
+                    $this->inlineEditMode();
+                }
+            } else {
+                if (Post("action") !== null) {
+                    $this->CurrentAction = Post("action"); // Get action
+
+                    // Inline Update
+                    if (($this->isUpdate() || $this->isOverwrite()) && Session(SESSION_INLINE_MODE) == "edit") {
+                        $this->setKey(Post($this->OldKeyName));
+                        $this->inlineUpdate();
+                    }
+                }
             }
 
             // Hide list options
@@ -853,6 +885,78 @@ class TorneoList extends Torneo
         }
     }
 
+    // Exit inline mode
+    protected function clearInlineMode()
+    {
+        $this->LastAction = $this->CurrentAction; // Save last action
+        $this->CurrentAction = ""; // Clear action
+        $_SESSION[SESSION_INLINE_MODE] = ""; // Clear inline mode
+    }
+
+    // Switch to Inline Edit mode
+    protected function inlineEditMode()
+    {
+        global $Security, $Language;
+        if (!$Security->canEdit()) { // No edit permission
+            $this->CurrentAction = "";
+            $this->setFailureMessage($Language->phrase("NoEditPermission"));
+            return false;
+        }
+        $inlineEdit = true;
+        if (($keyValue = Get("ID_TORNEO") ?? Route("ID_TORNEO")) !== null) {
+            $this->ID_TORNEO->setQueryStringValue($keyValue);
+        } else {
+            $inlineEdit = false;
+        }
+        if ($inlineEdit) {
+            if ($this->loadRow()) {
+                $this->OldKey = $this->getKey(true); // Get from CurrentValue
+                $this->setKey($this->OldKey); // Set to OldValue
+                $_SESSION[SESSION_INLINE_MODE] = "edit"; // Enable inline edit
+            }
+        }
+        return true;
+    }
+
+    // Perform update to Inline Edit record
+    protected function inlineUpdate()
+    {
+        global $Language, $CurrentForm;
+        $CurrentForm->Index = 1;
+        $this->loadFormValues(); // Get form values
+
+        // Validate form
+        $inlineUpdate = true;
+        if (!$this->validateForm()) {
+            $inlineUpdate = false; // Form error, reset action
+        } else {
+            $inlineUpdate = false;
+            $this->SendEmail = true; // Send email on update success
+            $inlineUpdate = $this->editRow(); // Update record
+        }
+        if ($inlineUpdate) { // Update success
+            if ($this->getSuccessMessage() == "") {
+                $this->setSuccessMessage($Language->phrase("UpdateSuccess")); // Set up success message
+            }
+            $this->clearInlineMode(); // Clear inline edit mode
+        } else {
+            if ($this->getFailureMessage() == "") {
+                $this->setFailureMessage($Language->phrase("UpdateFailed")); // Set update failed message
+            }
+            $this->EventCancelled = true; // Cancel event
+            $this->CurrentAction = "edit"; // Stay in edit mode
+        }
+    }
+
+    // Check Inline Edit key
+    public function checkInlineEditKey()
+    {
+        if (!SameString($this->ID_TORNEO->OldValue, $this->ID_TORNEO->CurrentValue)) {
+            return false;
+        }
+        return true;
+    }
+
     // Build filter for all keys
     protected function buildKeyFilter()
     {
@@ -905,6 +1009,7 @@ class TorneoList extends Torneo
         $filterList = Concat($filterList, $this->DETALLE_TORNEO->AdvancedSearch->toJson(), ","); // Field DETALLE_TORNEO
         $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
         $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
+        $filterList = Concat($filterList, $this->usuario_dato->AdvancedSearch->toJson(), ","); // Field usuario_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1008,6 +1113,14 @@ class TorneoList extends Torneo
         $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->save();
+
+        // Field usuario_dato
+        $this->usuario_dato->AdvancedSearch->SearchValue = @$filter["x_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator = @$filter["z_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchCondition = @$filter["v_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchValue2 = @$filter["y_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator2 = @$filter["w_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1028,6 +1141,7 @@ class TorneoList extends Torneo
         $searchFlds[] = &$this->PAIS_TORNEO;
         $searchFlds[] = &$this->REGION_TORNEO;
         $searchFlds[] = &$this->DETALLE_TORNEO;
+        $searchFlds[] = &$this->usuario_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1112,6 +1226,7 @@ class TorneoList extends Torneo
             $this->updateSort($this->LOGO_TORNEO); // LOGO_TORNEO
             $this->updateSort($this->crea_dato); // crea_dato
             $this->updateSort($this->modifica_dato); // modifica_dato
+            $this->updateSort($this->usuario_dato); // usuario_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1145,6 +1260,7 @@ class TorneoList extends Torneo
                 $this->LOGO_TORNEO->setSort("");
                 $this->crea_dato->setSort("");
                 $this->modifica_dato->setSort("");
+                $this->usuario_dato->setSort("");
             }
 
             // Reset start position
@@ -1232,7 +1348,38 @@ class TorneoList extends Torneo
 
         // Call ListOptions_Rendering event
         $this->listOptionsRendering();
+
+        // Set up row action and key
+        if ($CurrentForm && is_numeric($this->RowIndex) && $this->RowType != "view") {
+            $CurrentForm->Index = $this->RowIndex;
+            $actionName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormActionName);
+            $oldKeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->OldKeyName);
+            $blankRowName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormBlankRowName);
+            if ($this->RowAction != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $actionName . "\" id=\"" . $actionName . "\" value=\"" . $this->RowAction . "\">";
+            }
+            $oldKey = $this->getKey(false); // Get from OldValue
+            if ($oldKeyName != "" && $oldKey != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $oldKeyName . "\" id=\"" . $oldKeyName . "\" value=\"" . HtmlEncode($oldKey) . "\">";
+            }
+            if ($this->RowAction == "insert" && $this->isConfirm() && $this->emptyRow()) {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $blankRowName . "\" id=\"" . $blankRowName . "\" value=\"1\">";
+            }
+        }
         $pageUrl = $this->pageUrl(false);
+
+        // "edit"
+        $opt = $this->ListOptions["edit"];
+        if ($this->isInlineEditRow()) { // Inline-Edit
+            $this->ListOptions->CustomItem = "edit"; // Show edit column only
+            $cancelurl = $this->addMasterUrl($pageUrl . "action=cancel");
+                $opt->Body = "<div" . (($opt->OnLeft) ? " class=\"text-end\"" : "") . ">" .
+                "<button class=\"ew-grid-link ew-inline-update\" title=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" form=\"ftorneolist\" formaction=\"" . HtmlEncode(GetUrl(UrlAddHash($this->pageName(), "r" . $this->RowCount . "_" . $this->TableVar))) . "\">" . $Language->phrase("UpdateLink") . "</button>&nbsp;" .
+                "<a class=\"ew-grid-link ew-inline-cancel\" title=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" href=\"" . $cancelurl . "\">" . $Language->phrase("CancelLink") . "</a>" .
+                "<input type=\"hidden\" name=\"action\" id=\"action\" value=\"update\"></div>";
+            $opt->Body .= "<input type=\"hidden\" name=\"k" . $this->RowIndex . "_key\" id=\"k" . $this->RowIndex . "_key\" value=\"" . HtmlEncode($this->ID_TORNEO->CurrentValue) . "\">";
+            return;
+        }
         if ($this->CurrentMode == "view") {
             // "view"
             $opt = $this->ListOptions["view"];
@@ -1248,6 +1395,7 @@ class TorneoList extends Torneo
             $editcaption = HtmlTitle($Language->phrase("EditLink"));
             if ($Security->canEdit()) {
                 $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("EditLink") . "</a>";
+                $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" href=\"" . HtmlEncode(UrlAddHash(GetUrl($this->InlineEditUrl), "r" . $this->RowCount . "_" . $this->TableVar)) . "\">" . $Language->phrase("InlineEditLink") . "</a>";
             } else {
                 $opt->Body = "";
             }
@@ -1346,6 +1494,7 @@ class TorneoList extends Torneo
             $option->add("LOGO_TORNEO", $this->createColumnOption("LOGO_TORNEO"));
             $option->add("crea_dato", $this->createColumnOption("crea_dato"));
             $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
+            $option->add("usuario_dato", $this->createColumnOption("usuario_dato"));
         }
 
         // Set up options default
@@ -1512,6 +1661,21 @@ class TorneoList extends Torneo
         return false; // Not ajax request
     }
 
+    // Get upload files
+    protected function getUploadFiles()
+    {
+        global $CurrentForm, $Language;
+        $this->LOGO_TORNEO->Upload->Index = $CurrentForm->Index;
+        $this->LOGO_TORNEO->Upload->uploadFile();
+        $this->LOGO_TORNEO->CurrentValue = $this->LOGO_TORNEO->Upload->FileName;
+    }
+
+    // Load default values
+    protected function loadDefaultValues()
+    {
+        $this->usuario_dato->DefaultValue = "admin";
+    }
+
     // Load basic search values
     protected function loadBasicSearchValues()
     {
@@ -1520,6 +1684,122 @@ class TorneoList extends Torneo
             $this->Command = "search";
         }
         $this->BasicSearch->setType(Get(Config("TABLE_BASIC_SEARCH_TYPE"), ""), false);
+    }
+
+    // Load form values
+    protected function loadFormValues()
+    {
+        // Load from form
+        global $CurrentForm;
+        $validate = !Config("SERVER_VALIDATE");
+
+        // Check field name 'ID_TORNEO' first before field var 'x_ID_TORNEO'
+        $val = $CurrentForm->hasValue("ID_TORNEO") ? $CurrentForm->getValue("ID_TORNEO") : $CurrentForm->getValue("x_ID_TORNEO");
+        if (!$this->ID_TORNEO->IsDetailKey && !$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_TORNEO->setFormValue($val);
+        }
+
+        // Check field name 'NOM_TORNEO_CORTO' first before field var 'x_NOM_TORNEO_CORTO'
+        $val = $CurrentForm->hasValue("NOM_TORNEO_CORTO") ? $CurrentForm->getValue("NOM_TORNEO_CORTO") : $CurrentForm->getValue("x_NOM_TORNEO_CORTO");
+        if (!$this->NOM_TORNEO_CORTO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->NOM_TORNEO_CORTO->Visible = false; // Disable update for API request
+            } else {
+                $this->NOM_TORNEO_CORTO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'NOM_TORNEO_LARGO' first before field var 'x_NOM_TORNEO_LARGO'
+        $val = $CurrentForm->hasValue("NOM_TORNEO_LARGO") ? $CurrentForm->getValue("NOM_TORNEO_LARGO") : $CurrentForm->getValue("x_NOM_TORNEO_LARGO");
+        if (!$this->NOM_TORNEO_LARGO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->NOM_TORNEO_LARGO->Visible = false; // Disable update for API request
+            } else {
+                $this->NOM_TORNEO_LARGO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'PAIS_TORNEO' first before field var 'x_PAIS_TORNEO'
+        $val = $CurrentForm->hasValue("PAIS_TORNEO") ? $CurrentForm->getValue("PAIS_TORNEO") : $CurrentForm->getValue("x_PAIS_TORNEO");
+        if (!$this->PAIS_TORNEO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->PAIS_TORNEO->Visible = false; // Disable update for API request
+            } else {
+                $this->PAIS_TORNEO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'REGION_TORNEO' first before field var 'x_REGION_TORNEO'
+        $val = $CurrentForm->hasValue("REGION_TORNEO") ? $CurrentForm->getValue("REGION_TORNEO") : $CurrentForm->getValue("x_REGION_TORNEO");
+        if (!$this->REGION_TORNEO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->REGION_TORNEO->Visible = false; // Disable update for API request
+            } else {
+                $this->REGION_TORNEO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'DETALLE_TORNEO' first before field var 'x_DETALLE_TORNEO'
+        $val = $CurrentForm->hasValue("DETALLE_TORNEO") ? $CurrentForm->getValue("DETALLE_TORNEO") : $CurrentForm->getValue("x_DETALLE_TORNEO");
+        if (!$this->DETALLE_TORNEO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->DETALLE_TORNEO->Visible = false; // Disable update for API request
+            } else {
+                $this->DETALLE_TORNEO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'crea_dato' first before field var 'x_crea_dato'
+        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
+        if (!$this->crea_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->crea_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->crea_dato->setFormValue($val);
+            }
+            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        }
+
+        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
+        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
+        if (!$this->modifica_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->modifica_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->modifica_dato->setFormValue($val);
+            }
+            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        }
+
+        // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
+        $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
+        if (!$this->usuario_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->usuario_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->usuario_dato->setFormValue($val);
+            }
+        }
+        $this->getUploadFiles(); // Get upload files
+    }
+
+    // Restore form values
+    public function restoreFormValues()
+    {
+        global $CurrentForm;
+        if (!$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_TORNEO->CurrentValue = $this->ID_TORNEO->FormValue;
+        }
+        $this->NOM_TORNEO_CORTO->CurrentValue = $this->NOM_TORNEO_CORTO->FormValue;
+        $this->NOM_TORNEO_LARGO->CurrentValue = $this->NOM_TORNEO_LARGO->FormValue;
+        $this->PAIS_TORNEO->CurrentValue = $this->PAIS_TORNEO->FormValue;
+        $this->REGION_TORNEO->CurrentValue = $this->REGION_TORNEO->FormValue;
+        $this->DETALLE_TORNEO->CurrentValue = $this->DETALLE_TORNEO->FormValue;
+        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
+        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
+        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        $this->usuario_dato->CurrentValue = $this->usuario_dato->FormValue;
     }
 
     // Load recordset
@@ -1582,6 +1862,9 @@ class TorneoList extends Torneo
         if ($row) {
             $res = true;
             $this->loadRowValues($row); // Load row values
+            if (!$this->EventCancelled) {
+                $this->HashValue = $this->getRowHash($row); // Get hash value for record
+            }
         }
         return $res;
     }
@@ -1617,6 +1900,7 @@ class TorneoList extends Torneo
         $this->LOGO_TORNEO->setDbValue($this->LOGO_TORNEO->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -1632,6 +1916,7 @@ class TorneoList extends Torneo
         $row['LOGO_TORNEO'] = $this->LOGO_TORNEO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -1687,6 +1972,8 @@ class TorneoList extends Torneo
 
         // modifica_dato
 
+        // usuario_dato
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_TORNEO
@@ -1738,6 +2025,10 @@ class TorneoList extends Torneo
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_TORNEO
             $this->ID_TORNEO->LinkCustomAttributes = "";
@@ -1799,12 +2090,711 @@ class TorneoList extends Torneo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
+        } elseif ($this->RowType == ROWTYPE_ADD) {
+            // ID_TORNEO
+
+            // NOM_TORNEO_CORTO
+            $this->NOM_TORNEO_CORTO->setupEditAttributes();
+            $this->NOM_TORNEO_CORTO->EditCustomAttributes = "";
+            $this->NOM_TORNEO_CORTO->EditValue = HtmlEncode($this->NOM_TORNEO_CORTO->CurrentValue);
+            $this->NOM_TORNEO_CORTO->PlaceHolder = RemoveHtml($this->NOM_TORNEO_CORTO->caption());
+
+            // NOM_TORNEO_LARGO
+            $this->NOM_TORNEO_LARGO->setupEditAttributes();
+            $this->NOM_TORNEO_LARGO->EditCustomAttributes = "";
+            $this->NOM_TORNEO_LARGO->EditValue = HtmlEncode($this->NOM_TORNEO_LARGO->CurrentValue);
+            $this->NOM_TORNEO_LARGO->PlaceHolder = RemoveHtml($this->NOM_TORNEO_LARGO->caption());
+
+            // PAIS_TORNEO
+            $this->PAIS_TORNEO->setupEditAttributes();
+            $this->PAIS_TORNEO->EditCustomAttributes = "";
+            $this->PAIS_TORNEO->EditValue = HtmlEncode($this->PAIS_TORNEO->CurrentValue);
+            $this->PAIS_TORNEO->PlaceHolder = RemoveHtml($this->PAIS_TORNEO->caption());
+
+            // REGION_TORNEO
+            $this->REGION_TORNEO->setupEditAttributes();
+            $this->REGION_TORNEO->EditCustomAttributes = "";
+            $this->REGION_TORNEO->EditValue = HtmlEncode($this->REGION_TORNEO->CurrentValue);
+            $this->REGION_TORNEO->PlaceHolder = RemoveHtml($this->REGION_TORNEO->caption());
+
+            // DETALLE_TORNEO
+            $this->DETALLE_TORNEO->setupEditAttributes();
+            $this->DETALLE_TORNEO->EditCustomAttributes = "";
+            $this->DETALLE_TORNEO->EditValue = HtmlEncode($this->DETALLE_TORNEO->CurrentValue);
+            $this->DETALLE_TORNEO->PlaceHolder = RemoveHtml($this->DETALLE_TORNEO->caption());
+
+            // LOGO_TORNEO
+            $this->LOGO_TORNEO->setupEditAttributes();
+            $this->LOGO_TORNEO->EditCustomAttributes = "";
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->ImageWidth = 50;
+                $this->LOGO_TORNEO->ImageHeight = 0;
+                $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
+                $this->LOGO_TORNEO->ImageCssClass = "ew-image";
+                $this->LOGO_TORNEO->EditValue = $this->LOGO_TORNEO->Upload->DbValue;
+            } else {
+                $this->LOGO_TORNEO->EditValue = "";
+            }
+            if (!EmptyValue($this->LOGO_TORNEO->CurrentValue)) {
+                if ($this->RowIndex == '$rowindex$') {
+                    $this->LOGO_TORNEO->Upload->FileName = "";
+                } else {
+                    $this->LOGO_TORNEO->Upload->FileName = $this->LOGO_TORNEO->CurrentValue;
+                }
+            }
+            if (is_numeric($this->RowIndex)) {
+                RenderUploadField($this->LOGO_TORNEO, $this->RowIndex);
+            }
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
+            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
+            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            if (!$this->usuario_dato->Raw) {
+                $this->usuario_dato->CurrentValue = HtmlDecode($this->usuario_dato->CurrentValue);
+            }
+            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
+            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
+
+            // Add refer script
+
+            // ID_TORNEO
+            $this->ID_TORNEO->LinkCustomAttributes = "";
+            $this->ID_TORNEO->HrefValue = "";
+
+            // NOM_TORNEO_CORTO
+            $this->NOM_TORNEO_CORTO->LinkCustomAttributes = "";
+            $this->NOM_TORNEO_CORTO->HrefValue = "";
+
+            // NOM_TORNEO_LARGO
+            $this->NOM_TORNEO_LARGO->LinkCustomAttributes = "";
+            $this->NOM_TORNEO_LARGO->HrefValue = "";
+
+            // PAIS_TORNEO
+            $this->PAIS_TORNEO->LinkCustomAttributes = "";
+            $this->PAIS_TORNEO->HrefValue = "";
+
+            // REGION_TORNEO
+            $this->REGION_TORNEO->LinkCustomAttributes = "";
+            $this->REGION_TORNEO->HrefValue = "";
+
+            // DETALLE_TORNEO
+            $this->DETALLE_TORNEO->LinkCustomAttributes = "";
+            $this->DETALLE_TORNEO->HrefValue = "";
+
+            // LOGO_TORNEO
+            $this->LOGO_TORNEO->LinkCustomAttributes = "";
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
+                $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
+                if ($this->isExport()) {
+                    $this->LOGO_TORNEO->HrefValue = FullUrl($this->LOGO_TORNEO->HrefValue, "href");
+                }
+            } else {
+                $this->LOGO_TORNEO->HrefValue = "";
+            }
+            $this->LOGO_TORNEO->ExportHrefValue = $this->LOGO_TORNEO->UploadPath . $this->LOGO_TORNEO->Upload->DbValue;
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+        } elseif ($this->RowType == ROWTYPE_EDIT) {
+            // ID_TORNEO
+            $this->ID_TORNEO->setupEditAttributes();
+            $this->ID_TORNEO->EditCustomAttributes = "";
+            $this->ID_TORNEO->EditValue = $this->ID_TORNEO->CurrentValue;
+            $this->ID_TORNEO->ViewCustomAttributes = "";
+
+            // NOM_TORNEO_CORTO
+            $this->NOM_TORNEO_CORTO->setupEditAttributes();
+            $this->NOM_TORNEO_CORTO->EditCustomAttributes = "";
+            $this->NOM_TORNEO_CORTO->EditValue = HtmlEncode($this->NOM_TORNEO_CORTO->CurrentValue);
+            $this->NOM_TORNEO_CORTO->PlaceHolder = RemoveHtml($this->NOM_TORNEO_CORTO->caption());
+
+            // NOM_TORNEO_LARGO
+            $this->NOM_TORNEO_LARGO->setupEditAttributes();
+            $this->NOM_TORNEO_LARGO->EditCustomAttributes = "";
+            $this->NOM_TORNEO_LARGO->EditValue = HtmlEncode($this->NOM_TORNEO_LARGO->CurrentValue);
+            $this->NOM_TORNEO_LARGO->PlaceHolder = RemoveHtml($this->NOM_TORNEO_LARGO->caption());
+
+            // PAIS_TORNEO
+            $this->PAIS_TORNEO->setupEditAttributes();
+            $this->PAIS_TORNEO->EditCustomAttributes = "";
+            $this->PAIS_TORNEO->EditValue = HtmlEncode($this->PAIS_TORNEO->CurrentValue);
+            $this->PAIS_TORNEO->PlaceHolder = RemoveHtml($this->PAIS_TORNEO->caption());
+
+            // REGION_TORNEO
+            $this->REGION_TORNEO->setupEditAttributes();
+            $this->REGION_TORNEO->EditCustomAttributes = "";
+            $this->REGION_TORNEO->EditValue = HtmlEncode($this->REGION_TORNEO->CurrentValue);
+            $this->REGION_TORNEO->PlaceHolder = RemoveHtml($this->REGION_TORNEO->caption());
+
+            // DETALLE_TORNEO
+            $this->DETALLE_TORNEO->setupEditAttributes();
+            $this->DETALLE_TORNEO->EditCustomAttributes = "";
+            $this->DETALLE_TORNEO->EditValue = HtmlEncode($this->DETALLE_TORNEO->CurrentValue);
+            $this->DETALLE_TORNEO->PlaceHolder = RemoveHtml($this->DETALLE_TORNEO->caption());
+
+            // LOGO_TORNEO
+            $this->LOGO_TORNEO->setupEditAttributes();
+            $this->LOGO_TORNEO->EditCustomAttributes = "";
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->ImageWidth = 50;
+                $this->LOGO_TORNEO->ImageHeight = 0;
+                $this->LOGO_TORNEO->ImageAlt = $this->LOGO_TORNEO->alt();
+                $this->LOGO_TORNEO->ImageCssClass = "ew-image";
+                $this->LOGO_TORNEO->EditValue = $this->LOGO_TORNEO->Upload->DbValue;
+            } else {
+                $this->LOGO_TORNEO->EditValue = "";
+            }
+            if (!EmptyValue($this->LOGO_TORNEO->CurrentValue)) {
+                if ($this->RowIndex == '$rowindex$') {
+                    $this->LOGO_TORNEO->Upload->FileName = "";
+                } else {
+                    $this->LOGO_TORNEO->Upload->FileName = $this->LOGO_TORNEO->CurrentValue;
+                }
+            }
+            if (is_numeric($this->RowIndex)) {
+                RenderUploadField($this->LOGO_TORNEO, $this->RowIndex);
+            }
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
+            // Edit refer script
+
+            // ID_TORNEO
+            $this->ID_TORNEO->LinkCustomAttributes = "";
+            $this->ID_TORNEO->HrefValue = "";
+
+            // NOM_TORNEO_CORTO
+            $this->NOM_TORNEO_CORTO->LinkCustomAttributes = "";
+            $this->NOM_TORNEO_CORTO->HrefValue = "";
+
+            // NOM_TORNEO_LARGO
+            $this->NOM_TORNEO_LARGO->LinkCustomAttributes = "";
+            $this->NOM_TORNEO_LARGO->HrefValue = "";
+
+            // PAIS_TORNEO
+            $this->PAIS_TORNEO->LinkCustomAttributes = "";
+            $this->PAIS_TORNEO->HrefValue = "";
+
+            // REGION_TORNEO
+            $this->REGION_TORNEO->LinkCustomAttributes = "";
+            $this->REGION_TORNEO->HrefValue = "";
+
+            // DETALLE_TORNEO
+            $this->DETALLE_TORNEO->LinkCustomAttributes = "";
+            $this->DETALLE_TORNEO->HrefValue = "";
+
+            // LOGO_TORNEO
+            $this->LOGO_TORNEO->LinkCustomAttributes = "";
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
+                $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
+                $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
+                if ($this->isExport()) {
+                    $this->LOGO_TORNEO->HrefValue = FullUrl($this->LOGO_TORNEO->HrefValue, "href");
+                }
+            } else {
+                $this->LOGO_TORNEO->HrefValue = "";
+            }
+            $this->LOGO_TORNEO->ExportHrefValue = $this->LOGO_TORNEO->UploadPath . $this->LOGO_TORNEO->Upload->DbValue;
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
+        }
+        if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
+            $this->setupFieldTitles();
         }
 
         // Call Row Rendered event
         if ($this->RowType != ROWTYPE_AGGREGATEINIT) {
             $this->rowRendered();
         }
+    }
+
+    // Validate form
+    protected function validateForm()
+    {
+        global $Language;
+
+        // Check if validation required
+        if (!Config("SERVER_VALIDATE")) {
+            return true;
+        }
+        $validateForm = true;
+        if ($this->ID_TORNEO->Required) {
+            if (!$this->ID_TORNEO->IsDetailKey && EmptyValue($this->ID_TORNEO->FormValue)) {
+                $this->ID_TORNEO->addErrorMessage(str_replace("%s", $this->ID_TORNEO->caption(), $this->ID_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->NOM_TORNEO_CORTO->Required) {
+            if (!$this->NOM_TORNEO_CORTO->IsDetailKey && EmptyValue($this->NOM_TORNEO_CORTO->FormValue)) {
+                $this->NOM_TORNEO_CORTO->addErrorMessage(str_replace("%s", $this->NOM_TORNEO_CORTO->caption(), $this->NOM_TORNEO_CORTO->RequiredErrorMessage));
+            }
+        }
+        if ($this->NOM_TORNEO_LARGO->Required) {
+            if (!$this->NOM_TORNEO_LARGO->IsDetailKey && EmptyValue($this->NOM_TORNEO_LARGO->FormValue)) {
+                $this->NOM_TORNEO_LARGO->addErrorMessage(str_replace("%s", $this->NOM_TORNEO_LARGO->caption(), $this->NOM_TORNEO_LARGO->RequiredErrorMessage));
+            }
+        }
+        if ($this->PAIS_TORNEO->Required) {
+            if (!$this->PAIS_TORNEO->IsDetailKey && EmptyValue($this->PAIS_TORNEO->FormValue)) {
+                $this->PAIS_TORNEO->addErrorMessage(str_replace("%s", $this->PAIS_TORNEO->caption(), $this->PAIS_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->REGION_TORNEO->Required) {
+            if (!$this->REGION_TORNEO->IsDetailKey && EmptyValue($this->REGION_TORNEO->FormValue)) {
+                $this->REGION_TORNEO->addErrorMessage(str_replace("%s", $this->REGION_TORNEO->caption(), $this->REGION_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->DETALLE_TORNEO->Required) {
+            if (!$this->DETALLE_TORNEO->IsDetailKey && EmptyValue($this->DETALLE_TORNEO->FormValue)) {
+                $this->DETALLE_TORNEO->addErrorMessage(str_replace("%s", $this->DETALLE_TORNEO->caption(), $this->DETALLE_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->LOGO_TORNEO->Required) {
+            if ($this->LOGO_TORNEO->Upload->FileName == "" && !$this->LOGO_TORNEO->Upload->KeepFile) {
+                $this->LOGO_TORNEO->addErrorMessage(str_replace("%s", $this->LOGO_TORNEO->caption(), $this->LOGO_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->crea_dato->Required) {
+            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
+                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->modifica_dato->Required) {
+            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
+                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->usuario_dato->Required) {
+            if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {
+                $this->usuario_dato->addErrorMessage(str_replace("%s", $this->usuario_dato->caption(), $this->usuario_dato->RequiredErrorMessage));
+            }
+        }
+
+        // Return validate result
+        $validateForm = $validateForm && !$this->hasInvalidFields();
+
+        // Call Form_CustomValidate event
+        $formCustomError = "";
+        $validateForm = $validateForm && $this->formCustomValidate($formCustomError);
+        if ($formCustomError != "") {
+            $this->setFailureMessage($formCustomError);
+        }
+        return $validateForm;
+    }
+
+    // Update record based on key values
+    protected function editRow()
+    {
+        global $Security, $Language;
+        $oldKeyFilter = $this->getRecordFilter();
+        $filter = $this->applyUserIDFilters($oldKeyFilter);
+        $conn = $this->getConnection();
+
+        // Load old row
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $rsold = $conn->fetchAssociative($sql);
+        if (!$rsold) {
+            $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
+            return false; // Update Failed
+        } else {
+            // Save old values
+            $this->loadDbValues($rsold);
+        }
+
+        // Set new row
+        $rsnew = [];
+
+        // NOM_TORNEO_CORTO
+        $this->NOM_TORNEO_CORTO->setDbValueDef($rsnew, $this->NOM_TORNEO_CORTO->CurrentValue, null, $this->NOM_TORNEO_CORTO->ReadOnly);
+
+        // NOM_TORNEO_LARGO
+        $this->NOM_TORNEO_LARGO->setDbValueDef($rsnew, $this->NOM_TORNEO_LARGO->CurrentValue, null, $this->NOM_TORNEO_LARGO->ReadOnly);
+
+        // PAIS_TORNEO
+        $this->PAIS_TORNEO->setDbValueDef($rsnew, $this->PAIS_TORNEO->CurrentValue, null, $this->PAIS_TORNEO->ReadOnly);
+
+        // REGION_TORNEO
+        $this->REGION_TORNEO->setDbValueDef($rsnew, $this->REGION_TORNEO->CurrentValue, null, $this->REGION_TORNEO->ReadOnly);
+
+        // DETALLE_TORNEO
+        $this->DETALLE_TORNEO->setDbValueDef($rsnew, $this->DETALLE_TORNEO->CurrentValue, null, $this->DETALLE_TORNEO->ReadOnly);
+
+        // LOGO_TORNEO
+        if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->ReadOnly && !$this->LOGO_TORNEO->Upload->KeepFile) {
+            $this->LOGO_TORNEO->Upload->DbValue = $rsold['LOGO_TORNEO']; // Get original value
+            if ($this->LOGO_TORNEO->Upload->FileName == "") {
+                $rsnew['LOGO_TORNEO'] = null;
+            } else {
+                $rsnew['LOGO_TORNEO'] = $this->LOGO_TORNEO->Upload->FileName;
+            }
+        }
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+        if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {
+                $newFiles = [$this->LOGO_TORNEO->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->LOGO_TORNEO->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->LOGO_TORNEO->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->LOGO_TORNEO->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->LOGO_TORNEO->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->LOGO_TORNEO->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->LOGO_TORNEO->setDbValueDef($rsnew, $this->LOGO_TORNEO->Upload->FileName, null, $this->LOGO_TORNEO->ReadOnly);
+            }
+        }
+
+        // Call Row Updating event
+        $updateRow = $this->rowUpdating($rsold, $rsnew);
+        if ($updateRow) {
+            if (count($rsnew) > 0) {
+                $this->CurrentFilter = $filter; // Set up current filter
+                $editRow = $this->update($rsnew, "", $rsold);
+            } else {
+                $editRow = true; // No field to update
+            }
+            if ($editRow) {
+                if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
+                    if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {
+                        $newFiles = [$this->LOGO_TORNEO->Upload->FileName];
+                        $newFiles2 = [$this->LOGO_TORNEO->htmlDecode($rsnew['LOGO_TORNEO'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->LOGO_TORNEO->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->LOGO_TORNEO->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("UpdateCancelled"));
+            }
+            $editRow = false;
+        }
+
+        // Call Row_Updated event
+        if ($editRow) {
+            $this->rowUpdated($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($editRow) {
+            // LOGO_TORNEO
+            CleanUploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index);
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $editRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $editRow;
+    }
+
+    // Load row hash
+    protected function loadRowHash()
+    {
+        $filter = $this->getRecordFilter();
+
+        // Load SQL based on filter
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $conn = $this->getConnection();
+        $row = $conn->fetchAssociative($sql);
+        $this->HashValue = $row ? $this->getRowHash($row) : ""; // Get hash value for record
+    }
+
+    // Get Row Hash
+    public function getRowHash(&$rs)
+    {
+        if (!$rs) {
+            return "";
+        }
+        $row = ($rs instanceof Recordset) ? $rs->fields : $rs;
+        $hash = "";
+        $hash .= GetFieldHash($row['NOM_TORNEO_CORTO']); // NOM_TORNEO_CORTO
+        $hash .= GetFieldHash($row['NOM_TORNEO_LARGO']); // NOM_TORNEO_LARGO
+        $hash .= GetFieldHash($row['PAIS_TORNEO']); // PAIS_TORNEO
+        $hash .= GetFieldHash($row['REGION_TORNEO']); // REGION_TORNEO
+        $hash .= GetFieldHash($row['DETALLE_TORNEO']); // DETALLE_TORNEO
+        $hash .= GetFieldHash($row['LOGO_TORNEO']); // LOGO_TORNEO
+        return md5($hash);
+    }
+
+    // Add record
+    protected function addRow($rsold = null)
+    {
+        global $Language, $Security;
+
+        // Set new row
+        $rsnew = [];
+
+        // NOM_TORNEO_CORTO
+        $this->NOM_TORNEO_CORTO->setDbValueDef($rsnew, $this->NOM_TORNEO_CORTO->CurrentValue, null, false);
+
+        // NOM_TORNEO_LARGO
+        $this->NOM_TORNEO_LARGO->setDbValueDef($rsnew, $this->NOM_TORNEO_LARGO->CurrentValue, null, false);
+
+        // PAIS_TORNEO
+        $this->PAIS_TORNEO->setDbValueDef($rsnew, $this->PAIS_TORNEO->CurrentValue, null, false);
+
+        // REGION_TORNEO
+        $this->REGION_TORNEO->setDbValueDef($rsnew, $this->REGION_TORNEO->CurrentValue, null, false);
+
+        // DETALLE_TORNEO
+        $this->DETALLE_TORNEO->setDbValueDef($rsnew, $this->DETALLE_TORNEO->CurrentValue, null, false);
+
+        // LOGO_TORNEO
+        if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+            $this->LOGO_TORNEO->Upload->DbValue = ""; // No need to delete old file
+            if ($this->LOGO_TORNEO->Upload->FileName == "") {
+                $rsnew['LOGO_TORNEO'] = null;
+            } else {
+                $rsnew['LOGO_TORNEO'] = $this->LOGO_TORNEO->Upload->FileName;
+            }
+        }
+
+        // crea_dato
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+
+        // modifica_dato
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+
+        // usuario_dato
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "", strval($this->usuario_dato->CurrentValue ?? "") == "");
+        if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
+            if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {
+                $newFiles = [$this->LOGO_TORNEO->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->LOGO_TORNEO->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->LOGO_TORNEO->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->LOGO_TORNEO->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->LOGO_TORNEO->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->LOGO_TORNEO->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->LOGO_TORNEO->setDbValueDef($rsnew, $this->LOGO_TORNEO->Upload->FileName, null, false);
+            }
+        }
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+        $conn = $this->getConnection();
+
+        // Load db values from old row
+        $this->loadDbValues($rsold);
+        if ($rsold) {
+        }
+
+        // Call Row Inserting event
+        $insertRow = $this->rowInserting($rsold, $rsnew);
+        if ($insertRow) {
+            $addRow = $this->insert($rsnew);
+            if ($addRow) {
+                if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
+                    if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {
+                        $newFiles = [$this->LOGO_TORNEO->Upload->FileName];
+                        $newFiles2 = [$this->LOGO_TORNEO->htmlDecode($rsnew['LOGO_TORNEO'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->LOGO_TORNEO->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->LOGO_TORNEO->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("InsertCancelled"));
+            }
+            $addRow = false;
+        }
+        if ($addRow) {
+            // Call Row Inserted event
+            $this->rowInserted($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($addRow) {
+            // LOGO_TORNEO
+            CleanUploadTempPath($this->LOGO_TORNEO, $this->LOGO_TORNEO->Upload->Index);
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $addRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $addRow;
     }
 
     // Set up search options

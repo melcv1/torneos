@@ -40,6 +40,7 @@ class Torneo extends DbTable
     public $LOGO_TORNEO;
     public $crea_dato;
     public $modifica_dato;
+    public $usuario_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -284,6 +285,29 @@ class Torneo extends DbTable
         $this->modifica_dato->Required = true; // Required field
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
+
+        // usuario_dato
+        $this->usuario_dato = new DbField(
+            'torneo',
+            'torneo',
+            'x_usuario_dato',
+            'usuario_dato',
+            '`usuario_dato`',
+            '`usuario_dato`',
+            201,
+            256,
+            -1,
+            false,
+            '`usuario_dato`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->usuario_dato->InputTextType = "text";
+        $this->usuario_dato->Nullable = false; // NOT NULL field
+        $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -724,6 +748,7 @@ class Torneo extends DbTable
         $this->LOGO_TORNEO->Upload->DbValue = $row['LOGO_TORNEO'];
         $this->crea_dato->DbValue = $row['crea_dato'];
         $this->modifica_dato->DbValue = $row['modifica_dato'];
+        $this->usuario_dato->DbValue = $row['usuario_dato'];
     }
 
     // Delete uploaded files
@@ -1057,6 +1082,7 @@ class Torneo extends DbTable
         $this->LOGO_TORNEO->Upload->DbValue = $row['LOGO_TORNEO'];
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Render list row values
@@ -1086,6 +1112,8 @@ class Torneo extends DbTable
         // crea_dato
 
         // modifica_dato
+
+        // usuario_dato
 
         // ID_TORNEO
         $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
@@ -1136,6 +1164,10 @@ class Torneo extends DbTable
         $this->modifica_dato->CssClass = "fst-italic";
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
         $this->modifica_dato->ViewCustomAttributes = "";
+
+        // usuario_dato
+        $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+        $this->usuario_dato->ViewCustomAttributes = "";
 
         // ID_TORNEO
         $this->ID_TORNEO->LinkCustomAttributes = "";
@@ -1197,6 +1229,11 @@ class Torneo extends DbTable
         $this->modifica_dato->LinkCustomAttributes = "";
         $this->modifica_dato->HrefValue = "";
         $this->modifica_dato->TooltipValue = "";
+
+        // usuario_dato
+        $this->usuario_dato->LinkCustomAttributes = "";
+        $this->usuario_dato->HrefValue = "";
+        $this->usuario_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1283,6 +1320,12 @@ class Torneo extends DbTable
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
         $this->modifica_dato->ViewCustomAttributes = "";
 
+        // usuario_dato
+        $this->usuario_dato->setupEditAttributes();
+        $this->usuario_dato->EditCustomAttributes = "";
+        $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
+        $this->usuario_dato->ViewCustomAttributes = "";
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1320,10 +1363,18 @@ class Torneo extends DbTable
                     $doc->exportCaption($this->LOGO_TORNEO);
                     $doc->exportCaption($this->crea_dato);
                     $doc->exportCaption($this->modifica_dato);
+                    $doc->exportCaption($this->usuario_dato);
                 } else {
                     $doc->exportCaption($this->ID_TORNEO);
+                    $doc->exportCaption($this->NOM_TORNEO_CORTO);
+                    $doc->exportCaption($this->NOM_TORNEO_LARGO);
+                    $doc->exportCaption($this->PAIS_TORNEO);
+                    $doc->exportCaption($this->REGION_TORNEO);
+                    $doc->exportCaption($this->DETALLE_TORNEO);
+                    $doc->exportCaption($this->LOGO_TORNEO);
                     $doc->exportCaption($this->crea_dato);
                     $doc->exportCaption($this->modifica_dato);
+                    $doc->exportCaption($this->usuario_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1362,10 +1413,18 @@ class Torneo extends DbTable
                         $doc->exportField($this->LOGO_TORNEO);
                         $doc->exportField($this->crea_dato);
                         $doc->exportField($this->modifica_dato);
+                        $doc->exportField($this->usuario_dato);
                     } else {
                         $doc->exportField($this->ID_TORNEO);
+                        $doc->exportField($this->NOM_TORNEO_CORTO);
+                        $doc->exportField($this->NOM_TORNEO_LARGO);
+                        $doc->exportField($this->PAIS_TORNEO);
+                        $doc->exportField($this->REGION_TORNEO);
+                        $doc->exportField($this->DETALLE_TORNEO);
+                        $doc->exportField($this->LOGO_TORNEO);
                         $doc->exportField($this->crea_dato);
                         $doc->exportField($this->modifica_dato);
+                        $doc->exportField($this->usuario_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

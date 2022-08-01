@@ -28,7 +28,8 @@ loadjs.ready(["wrapper", "head"], function () {
         ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
         ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid],
         ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
     ]);
 
     // Form_CustomValidate
@@ -168,6 +169,18 @@ $Page->showMessage();
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
 </span>
 <input type="hidden" data-table="participante" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</div></div>
+    </div>
+<?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+    <div id="r_usuario_dato"<?= $Page->usuario_dato->rowAttributes() ?>>
+        <label id="elh_participante_usuario_dato" for="x_usuario_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->usuario_dato->caption() ?><?= $Page->usuario_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->usuario_dato->cellAttributes() ?>>
+<span id="el_participante_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
+</span>
+<input type="hidden" data-table="participante" data-field="x_usuario_dato" data-hidden="1" name="x_usuario_dato" id="x_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
 </div></div>
     </div>
 <?php } ?>

@@ -495,6 +495,7 @@ class TorneoAdd extends Torneo
         $this->LOGO_TORNEO->setVisibility();
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -651,6 +652,7 @@ class TorneoAdd extends Torneo
     // Load default values
     protected function loadDefaultValues()
     {
+        $this->usuario_dato->DefaultValue = "admin";
     }
 
     // Load form values
@@ -783,6 +785,7 @@ class TorneoAdd extends Torneo
         $this->LOGO_TORNEO->setDbValue($this->LOGO_TORNEO->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -798,6 +801,7 @@ class TorneoAdd extends Torneo
         $row['LOGO_TORNEO'] = $this->LOGO_TORNEO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -856,6 +860,9 @@ class TorneoAdd extends Torneo
         // modifica_dato
         $this->modifica_dato->RowCssClass = "row";
 
+        // usuario_dato
+        $this->usuario_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_TORNEO
@@ -907,6 +914,10 @@ class TorneoAdd extends Torneo
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
 
             // NOM_TORNEO_CORTO
             $this->NOM_TORNEO_CORTO->LinkCustomAttributes = "";

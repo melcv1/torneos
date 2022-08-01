@@ -47,6 +47,9 @@ $Page->showMessage();
 <?php if ($Page->id_estadio->Visible) { // id_estadio ?>
         <th class="<?= $Page->id_estadio->headerCellClass() ?>"><span id="elh_estadio_id_estadio" class="estadio_id_estadio"><?= $Page->id_estadio->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->id_torneo->Visible) { // id_torneo ?>
+        <th class="<?= $Page->id_torneo->headerCellClass() ?>"><span id="elh_estadio_id_torneo" class="estadio_id_torneo"><?= $Page->id_torneo->caption() ?></span></th>
+<?php } ?>
 <?php if ($Page->nombre_estadio->Visible) { // nombre_estadio ?>
         <th class="<?= $Page->nombre_estadio->headerCellClass() ?>"><span id="elh_estadio_nombre_estadio" class="estadio_nombre_estadio"><?= $Page->nombre_estadio->caption() ?></span></th>
 <?php } ?>
@@ -85,6 +88,14 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_estadio_id_estadio" class="el_estadio_id_estadio">
 <span<?= $Page->id_estadio->viewAttributes() ?>>
 <?= $Page->id_estadio->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->id_torneo->Visible) { // id_torneo ?>
+        <td<?= $Page->id_torneo->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_estadio_id_torneo" class="el_estadio_id_torneo">
+<span<?= $Page->id_torneo->viewAttributes() ?>>
+<?= $Page->id_torneo->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

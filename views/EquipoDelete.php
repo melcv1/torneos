@@ -74,6 +74,9 @@ $Page->showMessage();
 <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <th class="<?= $Page->modifica_dato->headerCellClass() ?>"><span id="elh_equipo_modifica_dato" class="equipo_modifica_dato"><?= $Page->modifica_dato->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <th class="<?= $Page->usuario_dato->headerCellClass() ?>"><span id="elh_equipo_usuario_dato" class="equipo_usuario_dato"><?= $Page->usuario_dato->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -173,6 +176,14 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_equipo_modifica_dato" class="el_equipo_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+        <td<?= $Page->usuario_dato->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_equipo_usuario_dato" class="el_equipo_usuario_dato">
+<span<?= $Page->usuario_dato->viewAttributes() ?>>
+<?= $Page->usuario_dato->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

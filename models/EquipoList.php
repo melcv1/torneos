@@ -578,6 +578,9 @@ class EquipoList extends Equipo
 
         // Use layout
         $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+
+        // Create form object
+        $CurrentForm = new HttpForm();
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Get grid add count
@@ -598,6 +601,7 @@ class EquipoList extends Equipo
         $this->NOM_ESTADIO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -625,6 +629,9 @@ class EquipoList extends Equipo
         $this->setupLookupOptions($this->REGION_EQUIPO);
         $this->setupLookupOptions($this->NOM_ESTADIO);
 
+        // Load default values for add
+        $this->loadDefaultValues();
+
         // Search filters
         $srchAdvanced = ""; // Advanced search filter
         $srchBasic = ""; // Basic search filter
@@ -648,6 +655,31 @@ class EquipoList extends Equipo
             // Set up Breadcrumb
             if (!$this->isExport()) {
                 $this->setupBreadcrumb();
+            }
+
+            // Check QueryString parameters
+            if (Get("action") !== null) {
+                $this->CurrentAction = Get("action");
+
+                // Clear inline mode
+                if ($this->isCancel()) {
+                    $this->clearInlineMode();
+                }
+
+                // Switch to inline edit mode
+                if ($this->isEdit()) {
+                    $this->inlineEditMode();
+                }
+            } else {
+                if (Post("action") !== null) {
+                    $this->CurrentAction = Post("action"); // Get action
+
+                    // Inline Update
+                    if (($this->isUpdate() || $this->isOverwrite()) && Session(SESSION_INLINE_MODE) == "edit") {
+                        $this->setKey(Post($this->OldKeyName));
+                        $this->inlineUpdate();
+                    }
+                }
             }
 
             // Hide list options
@@ -856,6 +888,78 @@ class EquipoList extends Equipo
         }
     }
 
+    // Exit inline mode
+    protected function clearInlineMode()
+    {
+        $this->LastAction = $this->CurrentAction; // Save last action
+        $this->CurrentAction = ""; // Clear action
+        $_SESSION[SESSION_INLINE_MODE] = ""; // Clear inline mode
+    }
+
+    // Switch to Inline Edit mode
+    protected function inlineEditMode()
+    {
+        global $Security, $Language;
+        if (!$Security->canEdit()) { // No edit permission
+            $this->CurrentAction = "";
+            $this->setFailureMessage($Language->phrase("NoEditPermission"));
+            return false;
+        }
+        $inlineEdit = true;
+        if (($keyValue = Get("ID_EQUIPO") ?? Route("ID_EQUIPO")) !== null) {
+            $this->ID_EQUIPO->setQueryStringValue($keyValue);
+        } else {
+            $inlineEdit = false;
+        }
+        if ($inlineEdit) {
+            if ($this->loadRow()) {
+                $this->OldKey = $this->getKey(true); // Get from CurrentValue
+                $this->setKey($this->OldKey); // Set to OldValue
+                $_SESSION[SESSION_INLINE_MODE] = "edit"; // Enable inline edit
+            }
+        }
+        return true;
+    }
+
+    // Perform update to Inline Edit record
+    protected function inlineUpdate()
+    {
+        global $Language, $CurrentForm;
+        $CurrentForm->Index = 1;
+        $this->loadFormValues(); // Get form values
+
+        // Validate form
+        $inlineUpdate = true;
+        if (!$this->validateForm()) {
+            $inlineUpdate = false; // Form error, reset action
+        } else {
+            $inlineUpdate = false;
+            $this->SendEmail = true; // Send email on update success
+            $inlineUpdate = $this->editRow(); // Update record
+        }
+        if ($inlineUpdate) { // Update success
+            if ($this->getSuccessMessage() == "") {
+                $this->setSuccessMessage($Language->phrase("UpdateSuccess")); // Set up success message
+            }
+            $this->clearInlineMode(); // Clear inline edit mode
+        } else {
+            if ($this->getFailureMessage() == "") {
+                $this->setFailureMessage($Language->phrase("UpdateFailed")); // Set update failed message
+            }
+            $this->EventCancelled = true; // Cancel event
+            $this->CurrentAction = "edit"; // Stay in edit mode
+        }
+    }
+
+    // Check Inline Edit key
+    public function checkInlineEditKey()
+    {
+        if (!SameString($this->ID_EQUIPO->OldValue, $this->ID_EQUIPO->CurrentValue)) {
+            return false;
+        }
+        return true;
+    }
+
     // Build filter for all keys
     protected function buildKeyFilter()
     {
@@ -909,6 +1013,7 @@ class EquipoList extends Equipo
         $filterList = Concat($filterList, $this->NOM_ESTADIO->AdvancedSearch->toJson(), ","); // Field NOM_ESTADIO
         $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
         $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
+        $filterList = Concat($filterList, $this->usuario_dato->AdvancedSearch->toJson(), ","); // Field usuario_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1020,6 +1125,14 @@ class EquipoList extends Equipo
         $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->save();
+
+        // Field usuario_dato
+        $this->usuario_dato->AdvancedSearch->SearchValue = @$filter["x_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator = @$filter["z_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchCondition = @$filter["v_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchValue2 = @$filter["y_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator2 = @$filter["w_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1041,6 +1154,7 @@ class EquipoList extends Equipo
         $searchFlds[] = &$this->REGION_EQUIPO;
         $searchFlds[] = &$this->DETALLE_EQUIPO;
         $searchFlds[] = &$this->NOM_ESTADIO;
+        $searchFlds[] = &$this->usuario_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1130,6 +1244,7 @@ class EquipoList extends Equipo
             $this->updateSort($this->NOM_ESTADIO); // NOM_ESTADIO
             $this->updateSort($this->crea_dato); // crea_dato
             $this->updateSort($this->modifica_dato); // modifica_dato
+            $this->updateSort($this->usuario_dato); // usuario_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1165,6 +1280,7 @@ class EquipoList extends Equipo
                 $this->NOM_ESTADIO->setSort("");
                 $this->crea_dato->setSort("");
                 $this->modifica_dato->setSort("");
+                $this->usuario_dato->setSort("");
             }
 
             // Reset start position
@@ -1252,7 +1368,38 @@ class EquipoList extends Equipo
 
         // Call ListOptions_Rendering event
         $this->listOptionsRendering();
+
+        // Set up row action and key
+        if ($CurrentForm && is_numeric($this->RowIndex) && $this->RowType != "view") {
+            $CurrentForm->Index = $this->RowIndex;
+            $actionName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormActionName);
+            $oldKeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->OldKeyName);
+            $blankRowName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormBlankRowName);
+            if ($this->RowAction != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $actionName . "\" id=\"" . $actionName . "\" value=\"" . $this->RowAction . "\">";
+            }
+            $oldKey = $this->getKey(false); // Get from OldValue
+            if ($oldKeyName != "" && $oldKey != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $oldKeyName . "\" id=\"" . $oldKeyName . "\" value=\"" . HtmlEncode($oldKey) . "\">";
+            }
+            if ($this->RowAction == "insert" && $this->isConfirm() && $this->emptyRow()) {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $blankRowName . "\" id=\"" . $blankRowName . "\" value=\"1\">";
+            }
+        }
         $pageUrl = $this->pageUrl(false);
+
+        // "edit"
+        $opt = $this->ListOptions["edit"];
+        if ($this->isInlineEditRow()) { // Inline-Edit
+            $this->ListOptions->CustomItem = "edit"; // Show edit column only
+            $cancelurl = $this->addMasterUrl($pageUrl . "action=cancel");
+                $opt->Body = "<div" . (($opt->OnLeft) ? " class=\"text-end\"" : "") . ">" .
+                "<button class=\"ew-grid-link ew-inline-update\" title=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" form=\"fequipolist\" formaction=\"" . HtmlEncode(GetUrl(UrlAddHash($this->pageName(), "r" . $this->RowCount . "_" . $this->TableVar))) . "\">" . $Language->phrase("UpdateLink") . "</button>&nbsp;" .
+                "<a class=\"ew-grid-link ew-inline-cancel\" title=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" href=\"" . $cancelurl . "\">" . $Language->phrase("CancelLink") . "</a>" .
+                "<input type=\"hidden\" name=\"action\" id=\"action\" value=\"update\"></div>";
+            $opt->Body .= "<input type=\"hidden\" name=\"k" . $this->RowIndex . "_key\" id=\"k" . $this->RowIndex . "_key\" value=\"" . HtmlEncode($this->ID_EQUIPO->CurrentValue) . "\">";
+            return;
+        }
         if ($this->CurrentMode == "view") {
             // "view"
             $opt = $this->ListOptions["view"];
@@ -1268,6 +1415,7 @@ class EquipoList extends Equipo
             $editcaption = HtmlTitle($Language->phrase("EditLink"));
             if ($Security->canEdit()) {
                 $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("EditLink") . "</a>";
+                $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" href=\"" . HtmlEncode(UrlAddHash(GetUrl($this->InlineEditUrl), "r" . $this->RowCount . "_" . $this->TableVar)) . "\">" . $Language->phrase("InlineEditLink") . "</a>";
             } else {
                 $opt->Body = "";
             }
@@ -1367,6 +1515,7 @@ class EquipoList extends Equipo
             $option->add("NOM_ESTADIO", $this->createColumnOption("NOM_ESTADIO"));
             $option->add("crea_dato", $this->createColumnOption("crea_dato"));
             $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
+            $option->add("usuario_dato", $this->createColumnOption("usuario_dato"));
         }
 
         // Set up options default
@@ -1533,6 +1682,21 @@ class EquipoList extends Equipo
         return false; // Not ajax request
     }
 
+    // Get upload files
+    protected function getUploadFiles()
+    {
+        global $CurrentForm, $Language;
+        $this->ESCUDO_EQUIPO->Upload->Index = $CurrentForm->Index;
+        $this->ESCUDO_EQUIPO->Upload->uploadFile();
+        $this->ESCUDO_EQUIPO->CurrentValue = $this->ESCUDO_EQUIPO->Upload->FileName;
+    }
+
+    // Load default values
+    protected function loadDefaultValues()
+    {
+        $this->usuario_dato->DefaultValue = "admin";
+    }
+
     // Load basic search values
     protected function loadBasicSearchValues()
     {
@@ -1541,6 +1705,133 @@ class EquipoList extends Equipo
             $this->Command = "search";
         }
         $this->BasicSearch->setType(Get(Config("TABLE_BASIC_SEARCH_TYPE"), ""), false);
+    }
+
+    // Load form values
+    protected function loadFormValues()
+    {
+        // Load from form
+        global $CurrentForm;
+        $validate = !Config("SERVER_VALIDATE");
+
+        // Check field name 'ID_EQUIPO' first before field var 'x_ID_EQUIPO'
+        $val = $CurrentForm->hasValue("ID_EQUIPO") ? $CurrentForm->getValue("ID_EQUIPO") : $CurrentForm->getValue("x_ID_EQUIPO");
+        if (!$this->ID_EQUIPO->IsDetailKey && !$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_EQUIPO->setFormValue($val);
+        }
+
+        // Check field name 'NOM_EQUIPO_CORTO' first before field var 'x_NOM_EQUIPO_CORTO'
+        $val = $CurrentForm->hasValue("NOM_EQUIPO_CORTO") ? $CurrentForm->getValue("NOM_EQUIPO_CORTO") : $CurrentForm->getValue("x_NOM_EQUIPO_CORTO");
+        if (!$this->NOM_EQUIPO_CORTO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->NOM_EQUIPO_CORTO->Visible = false; // Disable update for API request
+            } else {
+                $this->NOM_EQUIPO_CORTO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'NOM_EQUIPO_LARGO' first before field var 'x_NOM_EQUIPO_LARGO'
+        $val = $CurrentForm->hasValue("NOM_EQUIPO_LARGO") ? $CurrentForm->getValue("NOM_EQUIPO_LARGO") : $CurrentForm->getValue("x_NOM_EQUIPO_LARGO");
+        if (!$this->NOM_EQUIPO_LARGO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->NOM_EQUIPO_LARGO->Visible = false; // Disable update for API request
+            } else {
+                $this->NOM_EQUIPO_LARGO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'PAIS_EQUIPO' first before field var 'x_PAIS_EQUIPO'
+        $val = $CurrentForm->hasValue("PAIS_EQUIPO") ? $CurrentForm->getValue("PAIS_EQUIPO") : $CurrentForm->getValue("x_PAIS_EQUIPO");
+        if (!$this->PAIS_EQUIPO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->PAIS_EQUIPO->Visible = false; // Disable update for API request
+            } else {
+                $this->PAIS_EQUIPO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'REGION_EQUIPO' first before field var 'x_REGION_EQUIPO'
+        $val = $CurrentForm->hasValue("REGION_EQUIPO") ? $CurrentForm->getValue("REGION_EQUIPO") : $CurrentForm->getValue("x_REGION_EQUIPO");
+        if (!$this->REGION_EQUIPO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->REGION_EQUIPO->Visible = false; // Disable update for API request
+            } else {
+                $this->REGION_EQUIPO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'DETALLE_EQUIPO' first before field var 'x_DETALLE_EQUIPO'
+        $val = $CurrentForm->hasValue("DETALLE_EQUIPO") ? $CurrentForm->getValue("DETALLE_EQUIPO") : $CurrentForm->getValue("x_DETALLE_EQUIPO");
+        if (!$this->DETALLE_EQUIPO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->DETALLE_EQUIPO->Visible = false; // Disable update for API request
+            } else {
+                $this->DETALLE_EQUIPO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'NOM_ESTADIO' first before field var 'x_NOM_ESTADIO'
+        $val = $CurrentForm->hasValue("NOM_ESTADIO") ? $CurrentForm->getValue("NOM_ESTADIO") : $CurrentForm->getValue("x_NOM_ESTADIO");
+        if (!$this->NOM_ESTADIO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->NOM_ESTADIO->Visible = false; // Disable update for API request
+            } else {
+                $this->NOM_ESTADIO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'crea_dato' first before field var 'x_crea_dato'
+        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
+        if (!$this->crea_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->crea_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->crea_dato->setFormValue($val);
+            }
+            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        }
+
+        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
+        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
+        if (!$this->modifica_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->modifica_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->modifica_dato->setFormValue($val);
+            }
+            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        }
+
+        // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
+        $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
+        if (!$this->usuario_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->usuario_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->usuario_dato->setFormValue($val);
+            }
+        }
+        $this->getUploadFiles(); // Get upload files
+    }
+
+    // Restore form values
+    public function restoreFormValues()
+    {
+        global $CurrentForm;
+        if (!$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_EQUIPO->CurrentValue = $this->ID_EQUIPO->FormValue;
+        }
+        $this->NOM_EQUIPO_CORTO->CurrentValue = $this->NOM_EQUIPO_CORTO->FormValue;
+        $this->NOM_EQUIPO_LARGO->CurrentValue = $this->NOM_EQUIPO_LARGO->FormValue;
+        $this->PAIS_EQUIPO->CurrentValue = $this->PAIS_EQUIPO->FormValue;
+        $this->REGION_EQUIPO->CurrentValue = $this->REGION_EQUIPO->FormValue;
+        $this->DETALLE_EQUIPO->CurrentValue = $this->DETALLE_EQUIPO->FormValue;
+        $this->NOM_ESTADIO->CurrentValue = $this->NOM_ESTADIO->FormValue;
+        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
+        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
+        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        $this->usuario_dato->CurrentValue = $this->usuario_dato->FormValue;
     }
 
     // Load recordset
@@ -1603,6 +1894,9 @@ class EquipoList extends Equipo
         if ($row) {
             $res = true;
             $this->loadRowValues($row); // Load row values
+            if (!$this->EventCancelled) {
+                $this->HashValue = $this->getRowHash($row); // Get hash value for record
+            }
         }
         return $res;
     }
@@ -1644,6 +1938,7 @@ class EquipoList extends Equipo
         }
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -1660,6 +1955,7 @@ class EquipoList extends Equipo
         $row['NOM_ESTADIO'] = $this->NOM_ESTADIO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -1716,6 +2012,8 @@ class EquipoList extends Equipo
         // crea_dato
 
         // modifica_dato
+
+        // usuario_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -1801,6 +2099,10 @@ class EquipoList extends Equipo
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // ID_EQUIPO
             $this->ID_EQUIPO->LinkCustomAttributes = "";
             $this->ID_EQUIPO->HrefValue = "";
@@ -1866,12 +2168,764 @@ class EquipoList extends Equipo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
+        } elseif ($this->RowType == ROWTYPE_ADD) {
+            // ID_EQUIPO
+
+            // NOM_EQUIPO_CORTO
+            $this->NOM_EQUIPO_CORTO->setupEditAttributes();
+            $this->NOM_EQUIPO_CORTO->EditCustomAttributes = "";
+            $this->NOM_EQUIPO_CORTO->EditValue = HtmlEncode($this->NOM_EQUIPO_CORTO->CurrentValue);
+            $this->NOM_EQUIPO_CORTO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_CORTO->caption());
+
+            // NOM_EQUIPO_LARGO
+            $this->NOM_EQUIPO_LARGO->setupEditAttributes();
+            $this->NOM_EQUIPO_LARGO->EditCustomAttributes = "";
+            $this->NOM_EQUIPO_LARGO->EditValue = HtmlEncode($this->NOM_EQUIPO_LARGO->CurrentValue);
+            $this->NOM_EQUIPO_LARGO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_LARGO->caption());
+
+            // PAIS_EQUIPO
+            $this->PAIS_EQUIPO->setupEditAttributes();
+            $this->PAIS_EQUIPO->EditCustomAttributes = "";
+            $this->PAIS_EQUIPO->EditValue = HtmlEncode($this->PAIS_EQUIPO->CurrentValue);
+            $this->PAIS_EQUIPO->PlaceHolder = RemoveHtml($this->PAIS_EQUIPO->caption());
+
+            // REGION_EQUIPO
+            $this->REGION_EQUIPO->setupEditAttributes();
+            $this->REGION_EQUIPO->EditCustomAttributes = "";
+            $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->options(true);
+            $this->REGION_EQUIPO->PlaceHolder = RemoveHtml($this->REGION_EQUIPO->caption());
+
+            // DETALLE_EQUIPO
+            $this->DETALLE_EQUIPO->setupEditAttributes();
+            $this->DETALLE_EQUIPO->EditCustomAttributes = "";
+            $this->DETALLE_EQUIPO->EditValue = HtmlEncode($this->DETALLE_EQUIPO->CurrentValue);
+            $this->DETALLE_EQUIPO->PlaceHolder = RemoveHtml($this->DETALLE_EQUIPO->caption());
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->setupEditAttributes();
+            $this->ESCUDO_EQUIPO->EditCustomAttributes = "";
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->ImageWidth = 50;
+                $this->ESCUDO_EQUIPO->ImageHeight = 0;
+                $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
+                $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
+                $this->ESCUDO_EQUIPO->EditValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
+            } else {
+                $this->ESCUDO_EQUIPO->EditValue = "";
+            }
+            if (!EmptyValue($this->ESCUDO_EQUIPO->CurrentValue)) {
+                if ($this->RowIndex == '$rowindex$') {
+                    $this->ESCUDO_EQUIPO->Upload->FileName = "";
+                } else {
+                    $this->ESCUDO_EQUIPO->Upload->FileName = $this->ESCUDO_EQUIPO->CurrentValue;
+                }
+            }
+            if (is_numeric($this->RowIndex)) {
+                RenderUploadField($this->ESCUDO_EQUIPO, $this->RowIndex);
+            }
+
+            // NOM_ESTADIO
+            $this->NOM_ESTADIO->setupEditAttributes();
+            $this->NOM_ESTADIO->EditCustomAttributes = "";
+            $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
+            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
+            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            if (!$this->usuario_dato->Raw) {
+                $this->usuario_dato->CurrentValue = HtmlDecode($this->usuario_dato->CurrentValue);
+            }
+            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
+            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
+
+            // Add refer script
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->LinkCustomAttributes = "";
+            $this->ID_EQUIPO->HrefValue = "";
+
+            // NOM_EQUIPO_CORTO
+            $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
+            $this->NOM_EQUIPO_CORTO->HrefValue = "";
+
+            // NOM_EQUIPO_LARGO
+            $this->NOM_EQUIPO_LARGO->LinkCustomAttributes = "";
+            $this->NOM_EQUIPO_LARGO->HrefValue = "";
+
+            // PAIS_EQUIPO
+            $this->PAIS_EQUIPO->LinkCustomAttributes = "";
+            $this->PAIS_EQUIPO->HrefValue = "";
+
+            // REGION_EQUIPO
+            $this->REGION_EQUIPO->LinkCustomAttributes = "";
+            $this->REGION_EQUIPO->HrefValue = "";
+
+            // DETALLE_EQUIPO
+            $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
+            $this->DETALLE_EQUIPO->HrefValue = "";
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
+                if ($this->isExport()) {
+                    $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
+                }
+            } else {
+                $this->ESCUDO_EQUIPO->HrefValue = "";
+            }
+            $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
+
+            // NOM_ESTADIO
+            $this->NOM_ESTADIO->LinkCustomAttributes = "";
+            $this->NOM_ESTADIO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+        } elseif ($this->RowType == ROWTYPE_EDIT) {
+            // ID_EQUIPO
+            $this->ID_EQUIPO->setupEditAttributes();
+            $this->ID_EQUIPO->EditCustomAttributes = "";
+            $this->ID_EQUIPO->EditValue = $this->ID_EQUIPO->CurrentValue;
+            $this->ID_EQUIPO->ViewCustomAttributes = "";
+
+            // NOM_EQUIPO_CORTO
+            $this->NOM_EQUIPO_CORTO->setupEditAttributes();
+            $this->NOM_EQUIPO_CORTO->EditCustomAttributes = "";
+            $this->NOM_EQUIPO_CORTO->EditValue = HtmlEncode($this->NOM_EQUIPO_CORTO->CurrentValue);
+            $this->NOM_EQUIPO_CORTO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_CORTO->caption());
+
+            // NOM_EQUIPO_LARGO
+            $this->NOM_EQUIPO_LARGO->setupEditAttributes();
+            $this->NOM_EQUIPO_LARGO->EditCustomAttributes = "";
+            $this->NOM_EQUIPO_LARGO->EditValue = HtmlEncode($this->NOM_EQUIPO_LARGO->CurrentValue);
+            $this->NOM_EQUIPO_LARGO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_LARGO->caption());
+
+            // PAIS_EQUIPO
+            $this->PAIS_EQUIPO->setupEditAttributes();
+            $this->PAIS_EQUIPO->EditCustomAttributes = "";
+            $this->PAIS_EQUIPO->EditValue = HtmlEncode($this->PAIS_EQUIPO->CurrentValue);
+            $this->PAIS_EQUIPO->PlaceHolder = RemoveHtml($this->PAIS_EQUIPO->caption());
+
+            // REGION_EQUIPO
+            $this->REGION_EQUIPO->setupEditAttributes();
+            $this->REGION_EQUIPO->EditCustomAttributes = "";
+            $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->options(true);
+            $this->REGION_EQUIPO->PlaceHolder = RemoveHtml($this->REGION_EQUIPO->caption());
+
+            // DETALLE_EQUIPO
+            $this->DETALLE_EQUIPO->setupEditAttributes();
+            $this->DETALLE_EQUIPO->EditCustomAttributes = "";
+            $this->DETALLE_EQUIPO->EditValue = HtmlEncode($this->DETALLE_EQUIPO->CurrentValue);
+            $this->DETALLE_EQUIPO->PlaceHolder = RemoveHtml($this->DETALLE_EQUIPO->caption());
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->setupEditAttributes();
+            $this->ESCUDO_EQUIPO->EditCustomAttributes = "";
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->ImageWidth = 50;
+                $this->ESCUDO_EQUIPO->ImageHeight = 0;
+                $this->ESCUDO_EQUIPO->ImageAlt = $this->ESCUDO_EQUIPO->alt();
+                $this->ESCUDO_EQUIPO->ImageCssClass = "ew-image";
+                $this->ESCUDO_EQUIPO->EditValue = $this->ESCUDO_EQUIPO->Upload->DbValue;
+            } else {
+                $this->ESCUDO_EQUIPO->EditValue = "";
+            }
+            if (!EmptyValue($this->ESCUDO_EQUIPO->CurrentValue)) {
+                if ($this->RowIndex == '$rowindex$') {
+                    $this->ESCUDO_EQUIPO->Upload->FileName = "";
+                } else {
+                    $this->ESCUDO_EQUIPO->Upload->FileName = $this->ESCUDO_EQUIPO->CurrentValue;
+                }
+            }
+            if (is_numeric($this->RowIndex)) {
+                RenderUploadField($this->ESCUDO_EQUIPO, $this->RowIndex);
+            }
+
+            // NOM_ESTADIO
+            $this->NOM_ESTADIO->setupEditAttributes();
+            $this->NOM_ESTADIO->EditCustomAttributes = "";
+            $curVal = trim(strval($this->NOM_ESTADIO->CurrentValue));
+            if ($curVal != "") {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
+            } else {
+                $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->Lookup !== null && is_array($this->NOM_ESTADIO->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->NOM_ESTADIO->ViewValue !== null) { // Load from cache
+                $this->NOM_ESTADIO->EditValue = array_values($this->NOM_ESTADIO->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`id_estadio`" . SearchString("=", $this->NOM_ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->NOM_ESTADIO->EditValue = $arwrk;
+            }
+            $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
+            // Edit refer script
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->LinkCustomAttributes = "";
+            $this->ID_EQUIPO->HrefValue = "";
+
+            // NOM_EQUIPO_CORTO
+            $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
+            $this->NOM_EQUIPO_CORTO->HrefValue = "";
+
+            // NOM_EQUIPO_LARGO
+            $this->NOM_EQUIPO_LARGO->LinkCustomAttributes = "";
+            $this->NOM_EQUIPO_LARGO->HrefValue = "";
+
+            // PAIS_EQUIPO
+            $this->PAIS_EQUIPO->LinkCustomAttributes = "";
+            $this->PAIS_EQUIPO->HrefValue = "";
+
+            // REGION_EQUIPO
+            $this->REGION_EQUIPO->LinkCustomAttributes = "";
+            $this->REGION_EQUIPO->HrefValue = "";
+
+            // DETALLE_EQUIPO
+            $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
+            $this->DETALLE_EQUIPO->HrefValue = "";
+
+            // ESCUDO_EQUIPO
+            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
+                $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
+                $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
+                if ($this->isExport()) {
+                    $this->ESCUDO_EQUIPO->HrefValue = FullUrl($this->ESCUDO_EQUIPO->HrefValue, "href");
+                }
+            } else {
+                $this->ESCUDO_EQUIPO->HrefValue = "";
+            }
+            $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
+
+            // NOM_ESTADIO
+            $this->NOM_ESTADIO->LinkCustomAttributes = "";
+            $this->NOM_ESTADIO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
+        }
+        if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
+            $this->setupFieldTitles();
         }
 
         // Call Row Rendered event
         if ($this->RowType != ROWTYPE_AGGREGATEINIT) {
             $this->rowRendered();
         }
+    }
+
+    // Validate form
+    protected function validateForm()
+    {
+        global $Language;
+
+        // Check if validation required
+        if (!Config("SERVER_VALIDATE")) {
+            return true;
+        }
+        $validateForm = true;
+        if ($this->ID_EQUIPO->Required) {
+            if (!$this->ID_EQUIPO->IsDetailKey && EmptyValue($this->ID_EQUIPO->FormValue)) {
+                $this->ID_EQUIPO->addErrorMessage(str_replace("%s", $this->ID_EQUIPO->caption(), $this->ID_EQUIPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->NOM_EQUIPO_CORTO->Required) {
+            if (!$this->NOM_EQUIPO_CORTO->IsDetailKey && EmptyValue($this->NOM_EQUIPO_CORTO->FormValue)) {
+                $this->NOM_EQUIPO_CORTO->addErrorMessage(str_replace("%s", $this->NOM_EQUIPO_CORTO->caption(), $this->NOM_EQUIPO_CORTO->RequiredErrorMessage));
+            }
+        }
+        if ($this->NOM_EQUIPO_LARGO->Required) {
+            if (!$this->NOM_EQUIPO_LARGO->IsDetailKey && EmptyValue($this->NOM_EQUIPO_LARGO->FormValue)) {
+                $this->NOM_EQUIPO_LARGO->addErrorMessage(str_replace("%s", $this->NOM_EQUIPO_LARGO->caption(), $this->NOM_EQUIPO_LARGO->RequiredErrorMessage));
+            }
+        }
+        if ($this->PAIS_EQUIPO->Required) {
+            if (!$this->PAIS_EQUIPO->IsDetailKey && EmptyValue($this->PAIS_EQUIPO->FormValue)) {
+                $this->PAIS_EQUIPO->addErrorMessage(str_replace("%s", $this->PAIS_EQUIPO->caption(), $this->PAIS_EQUIPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->REGION_EQUIPO->Required) {
+            if (!$this->REGION_EQUIPO->IsDetailKey && EmptyValue($this->REGION_EQUIPO->FormValue)) {
+                $this->REGION_EQUIPO->addErrorMessage(str_replace("%s", $this->REGION_EQUIPO->caption(), $this->REGION_EQUIPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->DETALLE_EQUIPO->Required) {
+            if (!$this->DETALLE_EQUIPO->IsDetailKey && EmptyValue($this->DETALLE_EQUIPO->FormValue)) {
+                $this->DETALLE_EQUIPO->addErrorMessage(str_replace("%s", $this->DETALLE_EQUIPO->caption(), $this->DETALLE_EQUIPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->ESCUDO_EQUIPO->Required) {
+            if ($this->ESCUDO_EQUIPO->Upload->FileName == "" && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+                $this->ESCUDO_EQUIPO->addErrorMessage(str_replace("%s", $this->ESCUDO_EQUIPO->caption(), $this->ESCUDO_EQUIPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->NOM_ESTADIO->Required) {
+            if (!$this->NOM_ESTADIO->IsDetailKey && EmptyValue($this->NOM_ESTADIO->FormValue)) {
+                $this->NOM_ESTADIO->addErrorMessage(str_replace("%s", $this->NOM_ESTADIO->caption(), $this->NOM_ESTADIO->RequiredErrorMessage));
+            }
+        }
+        if ($this->crea_dato->Required) {
+            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
+                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->modifica_dato->Required) {
+            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
+                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->usuario_dato->Required) {
+            if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {
+                $this->usuario_dato->addErrorMessage(str_replace("%s", $this->usuario_dato->caption(), $this->usuario_dato->RequiredErrorMessage));
+            }
+        }
+
+        // Return validate result
+        $validateForm = $validateForm && !$this->hasInvalidFields();
+
+        // Call Form_CustomValidate event
+        $formCustomError = "";
+        $validateForm = $validateForm && $this->formCustomValidate($formCustomError);
+        if ($formCustomError != "") {
+            $this->setFailureMessage($formCustomError);
+        }
+        return $validateForm;
+    }
+
+    // Update record based on key values
+    protected function editRow()
+    {
+        global $Security, $Language;
+        $oldKeyFilter = $this->getRecordFilter();
+        $filter = $this->applyUserIDFilters($oldKeyFilter);
+        $conn = $this->getConnection();
+
+        // Load old row
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $rsold = $conn->fetchAssociative($sql);
+        if (!$rsold) {
+            $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
+            return false; // Update Failed
+        } else {
+            // Save old values
+            $this->loadDbValues($rsold);
+        }
+
+        // Set new row
+        $rsnew = [];
+
+        // NOM_EQUIPO_CORTO
+        $this->NOM_EQUIPO_CORTO->setDbValueDef($rsnew, $this->NOM_EQUIPO_CORTO->CurrentValue, null, $this->NOM_EQUIPO_CORTO->ReadOnly);
+
+        // NOM_EQUIPO_LARGO
+        $this->NOM_EQUIPO_LARGO->setDbValueDef($rsnew, $this->NOM_EQUIPO_LARGO->CurrentValue, null, $this->NOM_EQUIPO_LARGO->ReadOnly);
+
+        // PAIS_EQUIPO
+        $this->PAIS_EQUIPO->setDbValueDef($rsnew, $this->PAIS_EQUIPO->CurrentValue, null, $this->PAIS_EQUIPO->ReadOnly);
+
+        // REGION_EQUIPO
+        $this->REGION_EQUIPO->setDbValueDef($rsnew, $this->REGION_EQUIPO->CurrentValue, null, $this->REGION_EQUIPO->ReadOnly);
+
+        // DETALLE_EQUIPO
+        $this->DETALLE_EQUIPO->setDbValueDef($rsnew, $this->DETALLE_EQUIPO->CurrentValue, null, $this->DETALLE_EQUIPO->ReadOnly);
+
+        // ESCUDO_EQUIPO
+        if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->ReadOnly && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+            $this->ESCUDO_EQUIPO->Upload->DbValue = $rsold['ESCUDO_EQUIPO']; // Get original value
+            if ($this->ESCUDO_EQUIPO->Upload->FileName == "") {
+                $rsnew['ESCUDO_EQUIPO'] = null;
+            } else {
+                $rsnew['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->Upload->FileName;
+            }
+        }
+
+        // NOM_ESTADIO
+        $this->NOM_ESTADIO->setDbValueDef($rsnew, $this->NOM_ESTADIO->CurrentValue, null, $this->NOM_ESTADIO->ReadOnly);
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+        if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {
+                $newFiles = [$this->ESCUDO_EQUIPO->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->ESCUDO_EQUIPO->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->ESCUDO_EQUIPO->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->ESCUDO_EQUIPO->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->ESCUDO_EQUIPO->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->ESCUDO_EQUIPO->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->ESCUDO_EQUIPO->setDbValueDef($rsnew, $this->ESCUDO_EQUIPO->Upload->FileName, null, $this->ESCUDO_EQUIPO->ReadOnly);
+            }
+        }
+
+        // Call Row Updating event
+        $updateRow = $this->rowUpdating($rsold, $rsnew);
+        if ($updateRow) {
+            if (count($rsnew) > 0) {
+                $this->CurrentFilter = $filter; // Set up current filter
+                $editRow = $this->update($rsnew, "", $rsold);
+            } else {
+                $editRow = true; // No field to update
+            }
+            if ($editRow) {
+                if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
+                    if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {
+                        $newFiles = [$this->ESCUDO_EQUIPO->Upload->FileName];
+                        $newFiles2 = [$this->ESCUDO_EQUIPO->htmlDecode($rsnew['ESCUDO_EQUIPO'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->ESCUDO_EQUIPO->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->ESCUDO_EQUIPO->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("UpdateCancelled"));
+            }
+            $editRow = false;
+        }
+
+        // Call Row_Updated event
+        if ($editRow) {
+            $this->rowUpdated($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($editRow) {
+            // ESCUDO_EQUIPO
+            CleanUploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index);
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $editRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $editRow;
+    }
+
+    // Load row hash
+    protected function loadRowHash()
+    {
+        $filter = $this->getRecordFilter();
+
+        // Load SQL based on filter
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $conn = $this->getConnection();
+        $row = $conn->fetchAssociative($sql);
+        $this->HashValue = $row ? $this->getRowHash($row) : ""; // Get hash value for record
+    }
+
+    // Get Row Hash
+    public function getRowHash(&$rs)
+    {
+        if (!$rs) {
+            return "";
+        }
+        $row = ($rs instanceof Recordset) ? $rs->fields : $rs;
+        $hash = "";
+        $hash .= GetFieldHash($row['NOM_EQUIPO_CORTO']); // NOM_EQUIPO_CORTO
+        $hash .= GetFieldHash($row['NOM_EQUIPO_LARGO']); // NOM_EQUIPO_LARGO
+        $hash .= GetFieldHash($row['PAIS_EQUIPO']); // PAIS_EQUIPO
+        $hash .= GetFieldHash($row['REGION_EQUIPO']); // REGION_EQUIPO
+        $hash .= GetFieldHash($row['DETALLE_EQUIPO']); // DETALLE_EQUIPO
+        $hash .= GetFieldHash($row['ESCUDO_EQUIPO']); // ESCUDO_EQUIPO
+        $hash .= GetFieldHash($row['NOM_ESTADIO']); // NOM_ESTADIO
+        return md5($hash);
+    }
+
+    // Add record
+    protected function addRow($rsold = null)
+    {
+        global $Language, $Security;
+
+        // Set new row
+        $rsnew = [];
+
+        // NOM_EQUIPO_CORTO
+        $this->NOM_EQUIPO_CORTO->setDbValueDef($rsnew, $this->NOM_EQUIPO_CORTO->CurrentValue, null, false);
+
+        // NOM_EQUIPO_LARGO
+        $this->NOM_EQUIPO_LARGO->setDbValueDef($rsnew, $this->NOM_EQUIPO_LARGO->CurrentValue, null, false);
+
+        // PAIS_EQUIPO
+        $this->PAIS_EQUIPO->setDbValueDef($rsnew, $this->PAIS_EQUIPO->CurrentValue, null, false);
+
+        // REGION_EQUIPO
+        $this->REGION_EQUIPO->setDbValueDef($rsnew, $this->REGION_EQUIPO->CurrentValue, null, false);
+
+        // DETALLE_EQUIPO
+        $this->DETALLE_EQUIPO->setDbValueDef($rsnew, $this->DETALLE_EQUIPO->CurrentValue, null, false);
+
+        // ESCUDO_EQUIPO
+        if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+            $this->ESCUDO_EQUIPO->Upload->DbValue = ""; // No need to delete old file
+            if ($this->ESCUDO_EQUIPO->Upload->FileName == "") {
+                $rsnew['ESCUDO_EQUIPO'] = null;
+            } else {
+                $rsnew['ESCUDO_EQUIPO'] = $this->ESCUDO_EQUIPO->Upload->FileName;
+            }
+        }
+
+        // NOM_ESTADIO
+        $this->NOM_ESTADIO->setDbValueDef($rsnew, $this->NOM_ESTADIO->CurrentValue, null, false);
+
+        // crea_dato
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+
+        // modifica_dato
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+
+        // usuario_dato
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "", strval($this->usuario_dato->CurrentValue ?? "") == "");
+        if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+            $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
+            if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {
+                $newFiles = [$this->ESCUDO_EQUIPO->Upload->FileName];
+                $NewFileCount = count($newFiles);
+                for ($i = 0; $i < $NewFileCount; $i++) {
+                    if ($newFiles[$i] != "") {
+                        $file = $newFiles[$i];
+                        $tempPath = UploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index);
+                        if (file_exists($tempPath . $file)) {
+                            if (Config("DELETE_UPLOADED_FILES")) {
+                                $oldFileFound = false;
+                                $oldFileCount = count($oldFiles);
+                                for ($j = 0; $j < $oldFileCount; $j++) {
+                                    $oldFile = $oldFiles[$j];
+                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
+                                        array_splice($oldFiles, $j, 1);
+                                        $oldFileFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($oldFileFound) { // No need to check if file exists further
+                                    continue;
+                                }
+                            }
+                            $file1 = UniqueFilename($this->ESCUDO_EQUIPO->physicalUploadPath(), $file); // Get new file name
+                            if ($file1 != $file) { // Rename temp file
+                                while (file_exists($tempPath . $file1) || file_exists($this->ESCUDO_EQUIPO->physicalUploadPath() . $file1)) { // Make sure no file name clash
+                                    $file1 = UniqueFilename([$this->ESCUDO_EQUIPO->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
+                                }
+                                rename($tempPath . $file, $tempPath . $file1);
+                                $newFiles[$i] = $file1;
+                            }
+                        }
+                    }
+                }
+                $this->ESCUDO_EQUIPO->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
+                $this->ESCUDO_EQUIPO->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
+                $this->ESCUDO_EQUIPO->setDbValueDef($rsnew, $this->ESCUDO_EQUIPO->Upload->FileName, null, false);
+            }
+        }
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+        $conn = $this->getConnection();
+
+        // Load db values from old row
+        $this->loadDbValues($rsold);
+        if ($rsold) {
+        }
+
+        // Call Row Inserting event
+        $insertRow = $this->rowInserting($rsold, $rsnew);
+        if ($insertRow) {
+            $addRow = $this->insert($rsnew);
+            if ($addRow) {
+                if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
+                    $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
+                    if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {
+                        $newFiles = [$this->ESCUDO_EQUIPO->Upload->FileName];
+                        $newFiles2 = [$this->ESCUDO_EQUIPO->htmlDecode($rsnew['ESCUDO_EQUIPO'])];
+                        $newFileCount = count($newFiles);
+                        for ($i = 0; $i < $newFileCount; $i++) {
+                            if ($newFiles[$i] != "") {
+                                $file = UploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index) . $newFiles[$i];
+                                if (file_exists($file)) {
+                                    if (@$newFiles2[$i] != "") { // Use correct file name
+                                        $newFiles[$i] = $newFiles2[$i];
+                                    }
+                                    if (!$this->ESCUDO_EQUIPO->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
+                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $newFiles = [];
+                    }
+                    if (Config("DELETE_UPLOADED_FILES")) {
+                        foreach ($oldFiles as $oldFile) {
+                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
+                                @unlink($this->ESCUDO_EQUIPO->oldPhysicalUploadPath() . $oldFile);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("InsertCancelled"));
+            }
+            $addRow = false;
+        }
+        if ($addRow) {
+            // Call Row Inserted event
+            $this->rowInserted($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($addRow) {
+            // ESCUDO_EQUIPO
+            CleanUploadTempPath($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->Upload->Index);
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $addRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $addRow;
     }
 
     // Set up search options

@@ -578,6 +578,9 @@ class EquipotorneoList extends Equipotorneo
 
         // Use layout
         $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+
+        // Create form object
+        $CurrentForm = new HttpForm();
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Get grid add count
@@ -602,6 +605,7 @@ class EquipotorneoList extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -630,6 +634,9 @@ class EquipotorneoList extends Equipotorneo
         $this->setupLookupOptions($this->ID_EQUIPO);
         $this->setupLookupOptions($this->GRUPO);
 
+        // Load default values for add
+        $this->loadDefaultValues();
+
         // Search filters
         $srchAdvanced = ""; // Advanced search filter
         $srchBasic = ""; // Basic search filter
@@ -653,6 +660,31 @@ class EquipotorneoList extends Equipotorneo
             // Set up Breadcrumb
             if (!$this->isExport()) {
                 $this->setupBreadcrumb();
+            }
+
+            // Check QueryString parameters
+            if (Get("action") !== null) {
+                $this->CurrentAction = Get("action");
+
+                // Clear inline mode
+                if ($this->isCancel()) {
+                    $this->clearInlineMode();
+                }
+
+                // Switch to inline edit mode
+                if ($this->isEdit()) {
+                    $this->inlineEditMode();
+                }
+            } else {
+                if (Post("action") !== null) {
+                    $this->CurrentAction = Post("action"); // Get action
+
+                    // Inline Update
+                    if (($this->isUpdate() || $this->isOverwrite()) && Session(SESSION_INLINE_MODE) == "edit") {
+                        $this->setKey(Post($this->OldKeyName));
+                        $this->inlineUpdate();
+                    }
+                }
             }
 
             // Hide list options
@@ -861,6 +893,78 @@ class EquipotorneoList extends Equipotorneo
         }
     }
 
+    // Exit inline mode
+    protected function clearInlineMode()
+    {
+        $this->LastAction = $this->CurrentAction; // Save last action
+        $this->CurrentAction = ""; // Clear action
+        $_SESSION[SESSION_INLINE_MODE] = ""; // Clear inline mode
+    }
+
+    // Switch to Inline Edit mode
+    protected function inlineEditMode()
+    {
+        global $Security, $Language;
+        if (!$Security->canEdit()) { // No edit permission
+            $this->CurrentAction = "";
+            $this->setFailureMessage($Language->phrase("NoEditPermission"));
+            return false;
+        }
+        $inlineEdit = true;
+        if (($keyValue = Get("ID_EQUIPO_TORNEO") ?? Route("ID_EQUIPO_TORNEO")) !== null) {
+            $this->ID_EQUIPO_TORNEO->setQueryStringValue($keyValue);
+        } else {
+            $inlineEdit = false;
+        }
+        if ($inlineEdit) {
+            if ($this->loadRow()) {
+                $this->OldKey = $this->getKey(true); // Get from CurrentValue
+                $this->setKey($this->OldKey); // Set to OldValue
+                $_SESSION[SESSION_INLINE_MODE] = "edit"; // Enable inline edit
+            }
+        }
+        return true;
+    }
+
+    // Perform update to Inline Edit record
+    protected function inlineUpdate()
+    {
+        global $Language, $CurrentForm;
+        $CurrentForm->Index = 1;
+        $this->loadFormValues(); // Get form values
+
+        // Validate form
+        $inlineUpdate = true;
+        if (!$this->validateForm()) {
+            $inlineUpdate = false; // Form error, reset action
+        } else {
+            $inlineUpdate = false;
+            $this->SendEmail = true; // Send email on update success
+            $inlineUpdate = $this->editRow(); // Update record
+        }
+        if ($inlineUpdate) { // Update success
+            if ($this->getSuccessMessage() == "") {
+                $this->setSuccessMessage($Language->phrase("UpdateSuccess")); // Set up success message
+            }
+            $this->clearInlineMode(); // Clear inline edit mode
+        } else {
+            if ($this->getFailureMessage() == "") {
+                $this->setFailureMessage($Language->phrase("UpdateFailed")); // Set update failed message
+            }
+            $this->EventCancelled = true; // Cancel event
+            $this->CurrentAction = "edit"; // Stay in edit mode
+        }
+    }
+
+    // Check Inline Edit key
+    public function checkInlineEditKey()
+    {
+        if (!SameString($this->ID_EQUIPO_TORNEO->OldValue, $this->ID_EQUIPO_TORNEO->CurrentValue)) {
+            return false;
+        }
+        return true;
+    }
+
     // Build filter for all keys
     protected function buildKeyFilter()
     {
@@ -919,6 +1023,7 @@ class EquipotorneoList extends Equipotorneo
         $filterList = Concat($filterList, $this->POSICION_EQUIPO_TORENO->AdvancedSearch->toJson(), ","); // Field POSICION_EQUIPO_TORENO
         $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
         $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
+        $filterList = Concat($filterList, $this->usuario_dato->AdvancedSearch->toJson(), ","); // Field usuario_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1070,6 +1175,14 @@ class EquipotorneoList extends Equipotorneo
         $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->save();
+
+        // Field usuario_dato
+        $this->usuario_dato->AdvancedSearch->SearchValue = @$filter["x_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator = @$filter["z_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchCondition = @$filter["v_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchValue2 = @$filter["y_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator2 = @$filter["w_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1087,6 +1200,7 @@ class EquipotorneoList extends Equipotorneo
         $searchFlds = [];
         $searchFlds[] = &$this->GRUPO;
         $searchFlds[] = &$this->POSICION_EQUIPO_TORENO;
+        $searchFlds[] = &$this->usuario_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1214,6 +1328,7 @@ class EquipotorneoList extends Equipotorneo
                 $this->POSICION_EQUIPO_TORENO->setSort("");
                 $this->crea_dato->setSort("");
                 $this->modifica_dato->setSort("");
+                $this->usuario_dato->setSort("");
             }
 
             // Reset start position
@@ -1301,7 +1416,38 @@ class EquipotorneoList extends Equipotorneo
 
         // Call ListOptions_Rendering event
         $this->listOptionsRendering();
+
+        // Set up row action and key
+        if ($CurrentForm && is_numeric($this->RowIndex) && $this->RowType != "view") {
+            $CurrentForm->Index = $this->RowIndex;
+            $actionName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormActionName);
+            $oldKeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->OldKeyName);
+            $blankRowName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormBlankRowName);
+            if ($this->RowAction != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $actionName . "\" id=\"" . $actionName . "\" value=\"" . $this->RowAction . "\">";
+            }
+            $oldKey = $this->getKey(false); // Get from OldValue
+            if ($oldKeyName != "" && $oldKey != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $oldKeyName . "\" id=\"" . $oldKeyName . "\" value=\"" . HtmlEncode($oldKey) . "\">";
+            }
+            if ($this->RowAction == "insert" && $this->isConfirm() && $this->emptyRow()) {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $blankRowName . "\" id=\"" . $blankRowName . "\" value=\"1\">";
+            }
+        }
         $pageUrl = $this->pageUrl(false);
+
+        // "edit"
+        $opt = $this->ListOptions["edit"];
+        if ($this->isInlineEditRow()) { // Inline-Edit
+            $this->ListOptions->CustomItem = "edit"; // Show edit column only
+            $cancelurl = $this->addMasterUrl($pageUrl . "action=cancel");
+                $opt->Body = "<div" . (($opt->OnLeft) ? " class=\"text-end\"" : "") . ">" .
+                "<button class=\"ew-grid-link ew-inline-update\" title=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" form=\"fequipotorneolist\" formaction=\"" . HtmlEncode(GetUrl(UrlAddHash($this->pageName(), "r" . $this->RowCount . "_" . $this->TableVar))) . "\">" . $Language->phrase("UpdateLink") . "</button>&nbsp;" .
+                "<a class=\"ew-grid-link ew-inline-cancel\" title=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" href=\"" . $cancelurl . "\">" . $Language->phrase("CancelLink") . "</a>" .
+                "<input type=\"hidden\" name=\"action\" id=\"action\" value=\"update\"></div>";
+            $opt->Body .= "<input type=\"hidden\" name=\"k" . $this->RowIndex . "_key\" id=\"k" . $this->RowIndex . "_key\" value=\"" . HtmlEncode($this->ID_EQUIPO_TORNEO->CurrentValue) . "\">";
+            return;
+        }
         if ($this->CurrentMode == "view") {
             // "view"
             $opt = $this->ListOptions["view"];
@@ -1317,6 +1463,7 @@ class EquipotorneoList extends Equipotorneo
             $editcaption = HtmlTitle($Language->phrase("EditLink"));
             if ($Security->canEdit()) {
                 $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("EditLink") . "</a>";
+                $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" href=\"" . HtmlEncode(UrlAddHash(GetUrl($this->InlineEditUrl), "r" . $this->RowCount . "_" . $this->TableVar)) . "\">" . $Language->phrase("InlineEditLink") . "</a>";
             } else {
                 $opt->Body = "";
             }
@@ -1586,6 +1733,15 @@ class EquipotorneoList extends Equipotorneo
         return false; // Not ajax request
     }
 
+    // Load default values
+    protected function loadDefaultValues()
+    {
+        $this->GF->DefaultValue = 0;
+        $this->GC->DefaultValue = 0;
+        $this->GD->DefaultValue = 0;
+        $this->usuario_dato->DefaultValue = "admin";
+    }
+
     // Load basic search values
     protected function loadBasicSearchValues()
     {
@@ -1594,6 +1750,176 @@ class EquipotorneoList extends Equipotorneo
             $this->Command = "search";
         }
         $this->BasicSearch->setType(Get(Config("TABLE_BASIC_SEARCH_TYPE"), ""), false);
+    }
+
+    // Load form values
+    protected function loadFormValues()
+    {
+        // Load from form
+        global $CurrentForm;
+        $validate = !Config("SERVER_VALIDATE");
+
+        // Check field name 'ID_EQUIPO_TORNEO' first before field var 'x_ID_EQUIPO_TORNEO'
+        $val = $CurrentForm->hasValue("ID_EQUIPO_TORNEO") ? $CurrentForm->getValue("ID_EQUIPO_TORNEO") : $CurrentForm->getValue("x_ID_EQUIPO_TORNEO");
+        if (!$this->ID_EQUIPO_TORNEO->IsDetailKey && !$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_EQUIPO_TORNEO->setFormValue($val);
+        }
+
+        // Check field name 'ID_TORNEO' first before field var 'x_ID_TORNEO'
+        $val = $CurrentForm->hasValue("ID_TORNEO") ? $CurrentForm->getValue("ID_TORNEO") : $CurrentForm->getValue("x_ID_TORNEO");
+        if (!$this->ID_TORNEO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->ID_TORNEO->Visible = false; // Disable update for API request
+            } else {
+                $this->ID_TORNEO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'ID_EQUIPO' first before field var 'x_ID_EQUIPO'
+        $val = $CurrentForm->hasValue("ID_EQUIPO") ? $CurrentForm->getValue("ID_EQUIPO") : $CurrentForm->getValue("x_ID_EQUIPO");
+        if (!$this->ID_EQUIPO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->ID_EQUIPO->Visible = false; // Disable update for API request
+            } else {
+                $this->ID_EQUIPO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'PARTIDOS_JUGADOS' first before field var 'x_PARTIDOS_JUGADOS'
+        $val = $CurrentForm->hasValue("PARTIDOS_JUGADOS") ? $CurrentForm->getValue("PARTIDOS_JUGADOS") : $CurrentForm->getValue("x_PARTIDOS_JUGADOS");
+        if (!$this->PARTIDOS_JUGADOS->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->PARTIDOS_JUGADOS->Visible = false; // Disable update for API request
+            } else {
+                $this->PARTIDOS_JUGADOS->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'PARTIDOS_GANADOS' first before field var 'x_PARTIDOS_GANADOS'
+        $val = $CurrentForm->hasValue("PARTIDOS_GANADOS") ? $CurrentForm->getValue("PARTIDOS_GANADOS") : $CurrentForm->getValue("x_PARTIDOS_GANADOS");
+        if (!$this->PARTIDOS_GANADOS->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->PARTIDOS_GANADOS->Visible = false; // Disable update for API request
+            } else {
+                $this->PARTIDOS_GANADOS->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'PARTIDOS_EMPATADOS' first before field var 'x_PARTIDOS_EMPATADOS'
+        $val = $CurrentForm->hasValue("PARTIDOS_EMPATADOS") ? $CurrentForm->getValue("PARTIDOS_EMPATADOS") : $CurrentForm->getValue("x_PARTIDOS_EMPATADOS");
+        if (!$this->PARTIDOS_EMPATADOS->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->PARTIDOS_EMPATADOS->Visible = false; // Disable update for API request
+            } else {
+                $this->PARTIDOS_EMPATADOS->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'PARTIDOS_PERDIDOS' first before field var 'x_PARTIDOS_PERDIDOS'
+        $val = $CurrentForm->hasValue("PARTIDOS_PERDIDOS") ? $CurrentForm->getValue("PARTIDOS_PERDIDOS") : $CurrentForm->getValue("x_PARTIDOS_PERDIDOS");
+        if (!$this->PARTIDOS_PERDIDOS->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->PARTIDOS_PERDIDOS->Visible = false; // Disable update for API request
+            } else {
+                $this->PARTIDOS_PERDIDOS->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'GF' first before field var 'x_GF'
+        $val = $CurrentForm->hasValue("GF") ? $CurrentForm->getValue("GF") : $CurrentForm->getValue("x_GF");
+        if (!$this->GF->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->GF->Visible = false; // Disable update for API request
+            } else {
+                $this->GF->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'GC' first before field var 'x_GC'
+        $val = $CurrentForm->hasValue("GC") ? $CurrentForm->getValue("GC") : $CurrentForm->getValue("x_GC");
+        if (!$this->GC->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->GC->Visible = false; // Disable update for API request
+            } else {
+                $this->GC->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'GD' first before field var 'x_GD'
+        $val = $CurrentForm->hasValue("GD") ? $CurrentForm->getValue("GD") : $CurrentForm->getValue("x_GD");
+        if (!$this->GD->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->GD->Visible = false; // Disable update for API request
+            } else {
+                $this->GD->setFormValue($val, true, $validate);
+            }
+        }
+
+        // Check field name 'GRUPO' first before field var 'x_GRUPO'
+        $val = $CurrentForm->hasValue("GRUPO") ? $CurrentForm->getValue("GRUPO") : $CurrentForm->getValue("x_GRUPO");
+        if (!$this->GRUPO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->GRUPO->Visible = false; // Disable update for API request
+            } else {
+                $this->GRUPO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'POSICION_EQUIPO_TORENO' first before field var 'x_POSICION_EQUIPO_TORENO'
+        $val = $CurrentForm->hasValue("POSICION_EQUIPO_TORENO") ? $CurrentForm->getValue("POSICION_EQUIPO_TORENO") : $CurrentForm->getValue("x_POSICION_EQUIPO_TORENO");
+        if (!$this->POSICION_EQUIPO_TORENO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->POSICION_EQUIPO_TORENO->Visible = false; // Disable update for API request
+            } else {
+                $this->POSICION_EQUIPO_TORENO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'crea_dato' first before field var 'x_crea_dato'
+        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
+        if (!$this->crea_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->crea_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->crea_dato->setFormValue($val);
+            }
+            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        }
+
+        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
+        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
+        if (!$this->modifica_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->modifica_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->modifica_dato->setFormValue($val);
+            }
+            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        }
+    }
+
+    // Restore form values
+    public function restoreFormValues()
+    {
+        global $CurrentForm;
+        if (!$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_EQUIPO_TORNEO->CurrentValue = $this->ID_EQUIPO_TORNEO->FormValue;
+        }
+        $this->ID_TORNEO->CurrentValue = $this->ID_TORNEO->FormValue;
+        $this->ID_EQUIPO->CurrentValue = $this->ID_EQUIPO->FormValue;
+        $this->PARTIDOS_JUGADOS->CurrentValue = $this->PARTIDOS_JUGADOS->FormValue;
+        $this->PARTIDOS_GANADOS->CurrentValue = $this->PARTIDOS_GANADOS->FormValue;
+        $this->PARTIDOS_EMPATADOS->CurrentValue = $this->PARTIDOS_EMPATADOS->FormValue;
+        $this->PARTIDOS_PERDIDOS->CurrentValue = $this->PARTIDOS_PERDIDOS->FormValue;
+        $this->GF->CurrentValue = $this->GF->FormValue;
+        $this->GC->CurrentValue = $this->GC->FormValue;
+        $this->GD->CurrentValue = $this->GD->FormValue;
+        $this->GRUPO->CurrentValue = $this->GRUPO->FormValue;
+        $this->POSICION_EQUIPO_TORENO->CurrentValue = $this->POSICION_EQUIPO_TORENO->FormValue;
+        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
+        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
+        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
     }
 
     // Load recordset
@@ -1656,6 +1982,9 @@ class EquipotorneoList extends Equipotorneo
         if ($row) {
             $res = true;
             $this->loadRowValues($row); // Load row values
+            if (!$this->EventCancelled) {
+                $this->HashValue = $this->getRowHash($row); // Get hash value for record
+            }
         }
         return $res;
     }
@@ -1695,6 +2024,7 @@ class EquipotorneoList extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setDbValue($row['POSICION_EQUIPO_TORENO']);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -1715,6 +2045,7 @@ class EquipotorneoList extends Equipotorneo
         $row['POSICION_EQUIPO_TORENO'] = $this->POSICION_EQUIPO_TORENO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -1779,6 +2110,8 @@ class EquipotorneoList extends Equipotorneo
         // crea_dato
 
         // modifica_dato
+
+        // usuario_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -1964,12 +2297,725 @@ class EquipotorneoList extends Equipotorneo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+        } elseif ($this->RowType == ROWTYPE_ADD) {
+            // ID_EQUIPO_TORNEO
+
+            // ID_TORNEO
+            $this->ID_TORNEO->setupEditAttributes();
+            $this->ID_TORNEO->EditCustomAttributes = "";
+            $this->ID_TORNEO->PlaceHolder = RemoveHtml($this->ID_TORNEO->caption());
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->setupEditAttributes();
+            $this->ID_EQUIPO->EditCustomAttributes = "";
+            $this->ID_EQUIPO->PlaceHolder = RemoveHtml($this->ID_EQUIPO->caption());
+
+            // PARTIDOS_JUGADOS
+            $this->PARTIDOS_JUGADOS->setupEditAttributes();
+            $this->PARTIDOS_JUGADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_JUGADOS->EditValue = HtmlEncode($this->PARTIDOS_JUGADOS->CurrentValue);
+            $this->PARTIDOS_JUGADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_JUGADOS->caption());
+            if (strval($this->PARTIDOS_JUGADOS->EditValue) != "" && is_numeric($this->PARTIDOS_JUGADOS->EditValue)) {
+                $this->PARTIDOS_JUGADOS->EditValue = FormatNumber($this->PARTIDOS_JUGADOS->EditValue, null);
+            }
+
+            // PARTIDOS_GANADOS
+            $this->PARTIDOS_GANADOS->setupEditAttributes();
+            $this->PARTIDOS_GANADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_GANADOS->EditValue = HtmlEncode($this->PARTIDOS_GANADOS->CurrentValue);
+            $this->PARTIDOS_GANADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_GANADOS->caption());
+            if (strval($this->PARTIDOS_GANADOS->EditValue) != "" && is_numeric($this->PARTIDOS_GANADOS->EditValue)) {
+                $this->PARTIDOS_GANADOS->EditValue = FormatNumber($this->PARTIDOS_GANADOS->EditValue, null);
+            }
+
+            // PARTIDOS_EMPATADOS
+            $this->PARTIDOS_EMPATADOS->setupEditAttributes();
+            $this->PARTIDOS_EMPATADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_EMPATADOS->EditValue = HtmlEncode($this->PARTIDOS_EMPATADOS->CurrentValue);
+            $this->PARTIDOS_EMPATADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_EMPATADOS->caption());
+            if (strval($this->PARTIDOS_EMPATADOS->EditValue) != "" && is_numeric($this->PARTIDOS_EMPATADOS->EditValue)) {
+                $this->PARTIDOS_EMPATADOS->EditValue = FormatNumber($this->PARTIDOS_EMPATADOS->EditValue, null);
+            }
+
+            // PARTIDOS_PERDIDOS
+            $this->PARTIDOS_PERDIDOS->setupEditAttributes();
+            $this->PARTIDOS_PERDIDOS->EditCustomAttributes = "";
+            $this->PARTIDOS_PERDIDOS->EditValue = HtmlEncode($this->PARTIDOS_PERDIDOS->CurrentValue);
+            $this->PARTIDOS_PERDIDOS->PlaceHolder = RemoveHtml($this->PARTIDOS_PERDIDOS->caption());
+            if (strval($this->PARTIDOS_PERDIDOS->EditValue) != "" && is_numeric($this->PARTIDOS_PERDIDOS->EditValue)) {
+                $this->PARTIDOS_PERDIDOS->EditValue = FormatNumber($this->PARTIDOS_PERDIDOS->EditValue, null);
+            }
+
+            // GF
+            $this->GF->setupEditAttributes();
+            $this->GF->EditCustomAttributes = "";
+            $this->GF->EditValue = HtmlEncode($this->GF->CurrentValue);
+            $this->GF->PlaceHolder = RemoveHtml($this->GF->caption());
+            if (strval($this->GF->EditValue) != "" && is_numeric($this->GF->EditValue)) {
+                $this->GF->EditValue = FormatNumber($this->GF->EditValue, null);
+            }
+
+            // GC
+            $this->GC->setupEditAttributes();
+            $this->GC->EditCustomAttributes = "";
+            $this->GC->EditValue = HtmlEncode($this->GC->CurrentValue);
+            $this->GC->PlaceHolder = RemoveHtml($this->GC->caption());
+            if (strval($this->GC->EditValue) != "" && is_numeric($this->GC->EditValue)) {
+                $this->GC->EditValue = FormatNumber($this->GC->EditValue, null);
+            }
+
+            // GD
+            $this->GD->setupEditAttributes();
+            $this->GD->EditCustomAttributes = "";
+            $this->GD->EditValue = HtmlEncode($this->GD->CurrentValue);
+            $this->GD->PlaceHolder = RemoveHtml($this->GD->caption());
+            if (strval($this->GD->EditValue) != "" && is_numeric($this->GD->EditValue)) {
+                $this->GD->EditValue = FormatNumber($this->GD->EditValue, null);
+            }
+
+            // GRUPO
+            $this->GRUPO->setupEditAttributes();
+            $this->GRUPO->EditCustomAttributes = "";
+            $this->GRUPO->EditValue = $this->GRUPO->options(true);
+            $this->GRUPO->PlaceHolder = RemoveHtml($this->GRUPO->caption());
+
+            // POSICION_EQUIPO_TORENO
+            $this->POSICION_EQUIPO_TORENO->setupEditAttributes();
+            $this->POSICION_EQUIPO_TORENO->EditCustomAttributes = "";
+            $this->POSICION_EQUIPO_TORENO->EditValue = HtmlEncode($this->POSICION_EQUIPO_TORENO->CurrentValue);
+            $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
+            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
+            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+
+            // Add refer script
+
+            // ID_EQUIPO_TORNEO
+            $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
+            $this->ID_EQUIPO_TORNEO->HrefValue = "";
+
+            // ID_TORNEO
+            $this->ID_TORNEO->LinkCustomAttributes = "";
+            $this->ID_TORNEO->HrefValue = "";
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->LinkCustomAttributes = "";
+            $this->ID_EQUIPO->HrefValue = "";
+
+            // PARTIDOS_JUGADOS
+            $this->PARTIDOS_JUGADOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_JUGADOS->HrefValue = "";
+
+            // PARTIDOS_GANADOS
+            $this->PARTIDOS_GANADOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_GANADOS->HrefValue = "";
+
+            // PARTIDOS_EMPATADOS
+            $this->PARTIDOS_EMPATADOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_EMPATADOS->HrefValue = "";
+
+            // PARTIDOS_PERDIDOS
+            $this->PARTIDOS_PERDIDOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_PERDIDOS->HrefValue = "";
+
+            // GF
+            $this->GF->LinkCustomAttributes = "";
+            $this->GF->HrefValue = "";
+
+            // GC
+            $this->GC->LinkCustomAttributes = "";
+            $this->GC->HrefValue = "";
+
+            // GD
+            $this->GD->LinkCustomAttributes = "";
+            $this->GD->HrefValue = "";
+
+            // GRUPO
+            $this->GRUPO->LinkCustomAttributes = "";
+            $this->GRUPO->HrefValue = "";
+
+            // POSICION_EQUIPO_TORENO
+            $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
+            $this->POSICION_EQUIPO_TORENO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+        } elseif ($this->RowType == ROWTYPE_EDIT) {
+            // ID_EQUIPO_TORNEO
+            $this->ID_EQUIPO_TORNEO->setupEditAttributes();
+            $this->ID_EQUIPO_TORNEO->EditCustomAttributes = "";
+            $this->ID_EQUIPO_TORNEO->EditValue = $this->ID_EQUIPO_TORNEO->CurrentValue;
+            $this->ID_EQUIPO_TORNEO->ViewCustomAttributes = "";
+
+            // ID_TORNEO
+            $this->ID_TORNEO->setupEditAttributes();
+            $this->ID_TORNEO->EditCustomAttributes = "";
+            $curVal = trim(strval($this->ID_TORNEO->CurrentValue));
+            if ($curVal != "") {
+                $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
+            } else {
+                $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->Lookup !== null && is_array($this->ID_TORNEO->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->ID_TORNEO->ViewValue !== null) { // Load from cache
+                $this->ID_TORNEO->EditValue = array_values($this->ID_TORNEO->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $this->ID_TORNEO->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->ID_TORNEO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->ID_TORNEO->EditValue = $arwrk;
+            }
+            $this->ID_TORNEO->PlaceHolder = RemoveHtml($this->ID_TORNEO->caption());
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->setupEditAttributes();
+            $this->ID_EQUIPO->EditCustomAttributes = "";
+            $curVal = trim(strval($this->ID_EQUIPO->CurrentValue));
+            if ($curVal != "") {
+                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
+            } else {
+                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->Lookup !== null && is_array($this->ID_EQUIPO->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->ID_EQUIPO->ViewValue !== null) { // Load from cache
+                $this->ID_EQUIPO->EditValue = array_values($this->ID_EQUIPO->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->ID_EQUIPO->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->ID_EQUIPO->EditValue = $arwrk;
+            }
+            $this->ID_EQUIPO->PlaceHolder = RemoveHtml($this->ID_EQUIPO->caption());
+
+            // PARTIDOS_JUGADOS
+            $this->PARTIDOS_JUGADOS->setupEditAttributes();
+            $this->PARTIDOS_JUGADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_JUGADOS->EditValue = HtmlEncode($this->PARTIDOS_JUGADOS->CurrentValue);
+            $this->PARTIDOS_JUGADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_JUGADOS->caption());
+            if (strval($this->PARTIDOS_JUGADOS->EditValue) != "" && is_numeric($this->PARTIDOS_JUGADOS->EditValue)) {
+                $this->PARTIDOS_JUGADOS->EditValue = FormatNumber($this->PARTIDOS_JUGADOS->EditValue, null);
+            }
+
+            // PARTIDOS_GANADOS
+            $this->PARTIDOS_GANADOS->setupEditAttributes();
+            $this->PARTIDOS_GANADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_GANADOS->EditValue = HtmlEncode($this->PARTIDOS_GANADOS->CurrentValue);
+            $this->PARTIDOS_GANADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_GANADOS->caption());
+            if (strval($this->PARTIDOS_GANADOS->EditValue) != "" && is_numeric($this->PARTIDOS_GANADOS->EditValue)) {
+                $this->PARTIDOS_GANADOS->EditValue = FormatNumber($this->PARTIDOS_GANADOS->EditValue, null);
+            }
+
+            // PARTIDOS_EMPATADOS
+            $this->PARTIDOS_EMPATADOS->setupEditAttributes();
+            $this->PARTIDOS_EMPATADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_EMPATADOS->EditValue = HtmlEncode($this->PARTIDOS_EMPATADOS->CurrentValue);
+            $this->PARTIDOS_EMPATADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_EMPATADOS->caption());
+            if (strval($this->PARTIDOS_EMPATADOS->EditValue) != "" && is_numeric($this->PARTIDOS_EMPATADOS->EditValue)) {
+                $this->PARTIDOS_EMPATADOS->EditValue = FormatNumber($this->PARTIDOS_EMPATADOS->EditValue, null);
+            }
+
+            // PARTIDOS_PERDIDOS
+            $this->PARTIDOS_PERDIDOS->setupEditAttributes();
+            $this->PARTIDOS_PERDIDOS->EditCustomAttributes = "";
+            $this->PARTIDOS_PERDIDOS->EditValue = HtmlEncode($this->PARTIDOS_PERDIDOS->CurrentValue);
+            $this->PARTIDOS_PERDIDOS->PlaceHolder = RemoveHtml($this->PARTIDOS_PERDIDOS->caption());
+            if (strval($this->PARTIDOS_PERDIDOS->EditValue) != "" && is_numeric($this->PARTIDOS_PERDIDOS->EditValue)) {
+                $this->PARTIDOS_PERDIDOS->EditValue = FormatNumber($this->PARTIDOS_PERDIDOS->EditValue, null);
+            }
+
+            // GF
+            $this->GF->setupEditAttributes();
+            $this->GF->EditCustomAttributes = "";
+            $this->GF->EditValue = HtmlEncode($this->GF->CurrentValue);
+            $this->GF->PlaceHolder = RemoveHtml($this->GF->caption());
+            if (strval($this->GF->EditValue) != "" && is_numeric($this->GF->EditValue)) {
+                $this->GF->EditValue = FormatNumber($this->GF->EditValue, null);
+            }
+
+            // GC
+            $this->GC->setupEditAttributes();
+            $this->GC->EditCustomAttributes = "";
+            $this->GC->EditValue = HtmlEncode($this->GC->CurrentValue);
+            $this->GC->PlaceHolder = RemoveHtml($this->GC->caption());
+            if (strval($this->GC->EditValue) != "" && is_numeric($this->GC->EditValue)) {
+                $this->GC->EditValue = FormatNumber($this->GC->EditValue, null);
+            }
+
+            // GD
+            $this->GD->setupEditAttributes();
+            $this->GD->EditCustomAttributes = "";
+            $this->GD->EditValue = HtmlEncode($this->GD->CurrentValue);
+            $this->GD->PlaceHolder = RemoveHtml($this->GD->caption());
+            if (strval($this->GD->EditValue) != "" && is_numeric($this->GD->EditValue)) {
+                $this->GD->EditValue = FormatNumber($this->GD->EditValue, null);
+            }
+
+            // GRUPO
+            $this->GRUPO->setupEditAttributes();
+            $this->GRUPO->EditCustomAttributes = "";
+            $this->GRUPO->EditValue = $this->GRUPO->options(true);
+            $this->GRUPO->PlaceHolder = RemoveHtml($this->GRUPO->caption());
+
+            // POSICION_EQUIPO_TORENO
+            $this->POSICION_EQUIPO_TORENO->setupEditAttributes();
+            $this->POSICION_EQUIPO_TORENO->EditCustomAttributes = "";
+            $this->POSICION_EQUIPO_TORENO->EditValue = HtmlEncode($this->POSICION_EQUIPO_TORENO->CurrentValue);
+            $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CssClass = "fst-italic";
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
+
+            // Edit refer script
+
+            // ID_EQUIPO_TORNEO
+            $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
+            $this->ID_EQUIPO_TORNEO->HrefValue = "";
+
+            // ID_TORNEO
+            $this->ID_TORNEO->LinkCustomAttributes = "";
+            $this->ID_TORNEO->HrefValue = "";
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->LinkCustomAttributes = "";
+            $this->ID_EQUIPO->HrefValue = "";
+
+            // PARTIDOS_JUGADOS
+            $this->PARTIDOS_JUGADOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_JUGADOS->HrefValue = "";
+
+            // PARTIDOS_GANADOS
+            $this->PARTIDOS_GANADOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_GANADOS->HrefValue = "";
+
+            // PARTIDOS_EMPATADOS
+            $this->PARTIDOS_EMPATADOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_EMPATADOS->HrefValue = "";
+
+            // PARTIDOS_PERDIDOS
+            $this->PARTIDOS_PERDIDOS->LinkCustomAttributes = "";
+            $this->PARTIDOS_PERDIDOS->HrefValue = "";
+
+            // GF
+            $this->GF->LinkCustomAttributes = "";
+            $this->GF->HrefValue = "";
+
+            // GC
+            $this->GC->LinkCustomAttributes = "";
+            $this->GC->HrefValue = "";
+
+            // GD
+            $this->GD->LinkCustomAttributes = "";
+            $this->GD->HrefValue = "";
+
+            // GRUPO
+            $this->GRUPO->LinkCustomAttributes = "";
+            $this->GRUPO->HrefValue = "";
+
+            // POSICION_EQUIPO_TORENO
+            $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
+            $this->POSICION_EQUIPO_TORENO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
+        }
+        if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
+            $this->setupFieldTitles();
         }
 
         // Call Row Rendered event
         if ($this->RowType != ROWTYPE_AGGREGATEINIT) {
             $this->rowRendered();
         }
+    }
+
+    // Validate form
+    protected function validateForm()
+    {
+        global $Language;
+
+        // Check if validation required
+        if (!Config("SERVER_VALIDATE")) {
+            return true;
+        }
+        $validateForm = true;
+        if ($this->ID_EQUIPO_TORNEO->Required) {
+            if (!$this->ID_EQUIPO_TORNEO->IsDetailKey && EmptyValue($this->ID_EQUIPO_TORNEO->FormValue)) {
+                $this->ID_EQUIPO_TORNEO->addErrorMessage(str_replace("%s", $this->ID_EQUIPO_TORNEO->caption(), $this->ID_EQUIPO_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->ID_TORNEO->Required) {
+            if (!$this->ID_TORNEO->IsDetailKey && EmptyValue($this->ID_TORNEO->FormValue)) {
+                $this->ID_TORNEO->addErrorMessage(str_replace("%s", $this->ID_TORNEO->caption(), $this->ID_TORNEO->RequiredErrorMessage));
+            }
+        }
+        if ($this->ID_EQUIPO->Required) {
+            if (!$this->ID_EQUIPO->IsDetailKey && EmptyValue($this->ID_EQUIPO->FormValue)) {
+                $this->ID_EQUIPO->addErrorMessage(str_replace("%s", $this->ID_EQUIPO->caption(), $this->ID_EQUIPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->PARTIDOS_JUGADOS->Required) {
+            if (!$this->PARTIDOS_JUGADOS->IsDetailKey && EmptyValue($this->PARTIDOS_JUGADOS->FormValue)) {
+                $this->PARTIDOS_JUGADOS->addErrorMessage(str_replace("%s", $this->PARTIDOS_JUGADOS->caption(), $this->PARTIDOS_JUGADOS->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->PARTIDOS_JUGADOS->FormValue)) {
+            $this->PARTIDOS_JUGADOS->addErrorMessage($this->PARTIDOS_JUGADOS->getErrorMessage(false));
+        }
+        if ($this->PARTIDOS_GANADOS->Required) {
+            if (!$this->PARTIDOS_GANADOS->IsDetailKey && EmptyValue($this->PARTIDOS_GANADOS->FormValue)) {
+                $this->PARTIDOS_GANADOS->addErrorMessage(str_replace("%s", $this->PARTIDOS_GANADOS->caption(), $this->PARTIDOS_GANADOS->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->PARTIDOS_GANADOS->FormValue)) {
+            $this->PARTIDOS_GANADOS->addErrorMessage($this->PARTIDOS_GANADOS->getErrorMessage(false));
+        }
+        if ($this->PARTIDOS_EMPATADOS->Required) {
+            if (!$this->PARTIDOS_EMPATADOS->IsDetailKey && EmptyValue($this->PARTIDOS_EMPATADOS->FormValue)) {
+                $this->PARTIDOS_EMPATADOS->addErrorMessage(str_replace("%s", $this->PARTIDOS_EMPATADOS->caption(), $this->PARTIDOS_EMPATADOS->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->PARTIDOS_EMPATADOS->FormValue)) {
+            $this->PARTIDOS_EMPATADOS->addErrorMessage($this->PARTIDOS_EMPATADOS->getErrorMessage(false));
+        }
+        if ($this->PARTIDOS_PERDIDOS->Required) {
+            if (!$this->PARTIDOS_PERDIDOS->IsDetailKey && EmptyValue($this->PARTIDOS_PERDIDOS->FormValue)) {
+                $this->PARTIDOS_PERDIDOS->addErrorMessage(str_replace("%s", $this->PARTIDOS_PERDIDOS->caption(), $this->PARTIDOS_PERDIDOS->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->PARTIDOS_PERDIDOS->FormValue)) {
+            $this->PARTIDOS_PERDIDOS->addErrorMessage($this->PARTIDOS_PERDIDOS->getErrorMessage(false));
+        }
+        if ($this->GF->Required) {
+            if (!$this->GF->IsDetailKey && EmptyValue($this->GF->FormValue)) {
+                $this->GF->addErrorMessage(str_replace("%s", $this->GF->caption(), $this->GF->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->GF->FormValue)) {
+            $this->GF->addErrorMessage($this->GF->getErrorMessage(false));
+        }
+        if ($this->GC->Required) {
+            if (!$this->GC->IsDetailKey && EmptyValue($this->GC->FormValue)) {
+                $this->GC->addErrorMessage(str_replace("%s", $this->GC->caption(), $this->GC->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->GC->FormValue)) {
+            $this->GC->addErrorMessage($this->GC->getErrorMessage(false));
+        }
+        if ($this->GD->Required) {
+            if (!$this->GD->IsDetailKey && EmptyValue($this->GD->FormValue)) {
+                $this->GD->addErrorMessage(str_replace("%s", $this->GD->caption(), $this->GD->RequiredErrorMessage));
+            }
+        }
+        if (!CheckInteger($this->GD->FormValue)) {
+            $this->GD->addErrorMessage($this->GD->getErrorMessage(false));
+        }
+        if ($this->GRUPO->Required) {
+            if (!$this->GRUPO->IsDetailKey && EmptyValue($this->GRUPO->FormValue)) {
+                $this->GRUPO->addErrorMessage(str_replace("%s", $this->GRUPO->caption(), $this->GRUPO->RequiredErrorMessage));
+            }
+        }
+        if ($this->POSICION_EQUIPO_TORENO->Required) {
+            if (!$this->POSICION_EQUIPO_TORENO->IsDetailKey && EmptyValue($this->POSICION_EQUIPO_TORENO->FormValue)) {
+                $this->POSICION_EQUIPO_TORENO->addErrorMessage(str_replace("%s", $this->POSICION_EQUIPO_TORENO->caption(), $this->POSICION_EQUIPO_TORENO->RequiredErrorMessage));
+            }
+        }
+        if ($this->crea_dato->Required) {
+            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
+                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->modifica_dato->Required) {
+            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
+                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+
+        // Return validate result
+        $validateForm = $validateForm && !$this->hasInvalidFields();
+
+        // Call Form_CustomValidate event
+        $formCustomError = "";
+        $validateForm = $validateForm && $this->formCustomValidate($formCustomError);
+        if ($formCustomError != "") {
+            $this->setFailureMessage($formCustomError);
+        }
+        return $validateForm;
+    }
+
+    // Update record based on key values
+    protected function editRow()
+    {
+        global $Security, $Language;
+        $oldKeyFilter = $this->getRecordFilter();
+        $filter = $this->applyUserIDFilters($oldKeyFilter);
+        $conn = $this->getConnection();
+
+        // Load old row
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $rsold = $conn->fetchAssociative($sql);
+        if (!$rsold) {
+            $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
+            return false; // Update Failed
+        } else {
+            // Save old values
+            $this->loadDbValues($rsold);
+        }
+
+        // Set new row
+        $rsnew = [];
+
+        // ID_TORNEO
+        $this->ID_TORNEO->setDbValueDef($rsnew, $this->ID_TORNEO->CurrentValue, null, $this->ID_TORNEO->ReadOnly);
+
+        // ID_EQUIPO
+        $this->ID_EQUIPO->setDbValueDef($rsnew, $this->ID_EQUIPO->CurrentValue, null, $this->ID_EQUIPO->ReadOnly);
+
+        // PARTIDOS_JUGADOS
+        $this->PARTIDOS_JUGADOS->setDbValueDef($rsnew, $this->PARTIDOS_JUGADOS->CurrentValue, null, $this->PARTIDOS_JUGADOS->ReadOnly);
+
+        // PARTIDOS_GANADOS
+        $this->PARTIDOS_GANADOS->setDbValueDef($rsnew, $this->PARTIDOS_GANADOS->CurrentValue, null, $this->PARTIDOS_GANADOS->ReadOnly);
+
+        // PARTIDOS_EMPATADOS
+        $this->PARTIDOS_EMPATADOS->setDbValueDef($rsnew, $this->PARTIDOS_EMPATADOS->CurrentValue, null, $this->PARTIDOS_EMPATADOS->ReadOnly);
+
+        // PARTIDOS_PERDIDOS
+        $this->PARTIDOS_PERDIDOS->setDbValueDef($rsnew, $this->PARTIDOS_PERDIDOS->CurrentValue, null, $this->PARTIDOS_PERDIDOS->ReadOnly);
+
+        // GF
+        $this->GF->setDbValueDef($rsnew, $this->GF->CurrentValue, null, $this->GF->ReadOnly);
+
+        // GC
+        $this->GC->setDbValueDef($rsnew, $this->GC->CurrentValue, null, $this->GC->ReadOnly);
+
+        // GD
+        $this->GD->setDbValueDef($rsnew, $this->GD->CurrentValue, null, $this->GD->ReadOnly);
+
+        // GRUPO
+        $this->GRUPO->setDbValueDef($rsnew, $this->GRUPO->CurrentValue, null, $this->GRUPO->ReadOnly);
+
+        // POSICION_EQUIPO_TORENO
+        $this->POSICION_EQUIPO_TORENO->setDbValueDef($rsnew, $this->POSICION_EQUIPO_TORENO->CurrentValue, null, $this->POSICION_EQUIPO_TORENO->ReadOnly);
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+
+        // Call Row Updating event
+        $updateRow = $this->rowUpdating($rsold, $rsnew);
+        if ($updateRow) {
+            if (count($rsnew) > 0) {
+                $this->CurrentFilter = $filter; // Set up current filter
+                $editRow = $this->update($rsnew, "", $rsold);
+            } else {
+                $editRow = true; // No field to update
+            }
+            if ($editRow) {
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("UpdateCancelled"));
+            }
+            $editRow = false;
+        }
+
+        // Call Row_Updated event
+        if ($editRow) {
+            $this->rowUpdated($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($editRow) {
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $editRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $editRow;
+    }
+
+    // Load row hash
+    protected function loadRowHash()
+    {
+        $filter = $this->getRecordFilter();
+
+        // Load SQL based on filter
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $conn = $this->getConnection();
+        $row = $conn->fetchAssociative($sql);
+        $this->HashValue = $row ? $this->getRowHash($row) : ""; // Get hash value for record
+    }
+
+    // Get Row Hash
+    public function getRowHash(&$rs)
+    {
+        if (!$rs) {
+            return "";
+        }
+        $row = ($rs instanceof Recordset) ? $rs->fields : $rs;
+        $hash = "";
+        $hash .= GetFieldHash($row['ID_TORNEO']); // ID_TORNEO
+        $hash .= GetFieldHash($row['ID_EQUIPO']); // ID_EQUIPO
+        $hash .= GetFieldHash($row['PARTIDOS_JUGADOS']); // PARTIDOS_JUGADOS
+        $hash .= GetFieldHash($row['PARTIDOS_GANADOS']); // PARTIDOS_GANADOS
+        $hash .= GetFieldHash($row['PARTIDOS_EMPATADOS']); // PARTIDOS_EMPATADOS
+        $hash .= GetFieldHash($row['PARTIDOS_PERDIDOS']); // PARTIDOS_PERDIDOS
+        $hash .= GetFieldHash($row['GF']); // GF
+        $hash .= GetFieldHash($row['GC']); // GC
+        $hash .= GetFieldHash($row['GD']); // GD
+        $hash .= GetFieldHash($row['GRUPO']); // GRUPO
+        $hash .= GetFieldHash($row['POSICION_EQUIPO_TORENO']); // POSICION_EQUIPO_TORENO
+        return md5($hash);
+    }
+
+    // Add record
+    protected function addRow($rsold = null)
+    {
+        global $Language, $Security;
+
+        // Set new row
+        $rsnew = [];
+
+        // ID_TORNEO
+        $this->ID_TORNEO->setDbValueDef($rsnew, $this->ID_TORNEO->CurrentValue, null, false);
+
+        // ID_EQUIPO
+        $this->ID_EQUIPO->setDbValueDef($rsnew, $this->ID_EQUIPO->CurrentValue, null, false);
+
+        // PARTIDOS_JUGADOS
+        $this->PARTIDOS_JUGADOS->setDbValueDef($rsnew, $this->PARTIDOS_JUGADOS->CurrentValue, null, false);
+
+        // PARTIDOS_GANADOS
+        $this->PARTIDOS_GANADOS->setDbValueDef($rsnew, $this->PARTIDOS_GANADOS->CurrentValue, null, false);
+
+        // PARTIDOS_EMPATADOS
+        $this->PARTIDOS_EMPATADOS->setDbValueDef($rsnew, $this->PARTIDOS_EMPATADOS->CurrentValue, null, false);
+
+        // PARTIDOS_PERDIDOS
+        $this->PARTIDOS_PERDIDOS->setDbValueDef($rsnew, $this->PARTIDOS_PERDIDOS->CurrentValue, null, false);
+
+        // GF
+        $this->GF->setDbValueDef($rsnew, $this->GF->CurrentValue, null, false);
+
+        // GC
+        $this->GC->setDbValueDef($rsnew, $this->GC->CurrentValue, null, false);
+
+        // GD
+        $this->GD->setDbValueDef($rsnew, $this->GD->CurrentValue, null, false);
+
+        // GRUPO
+        $this->GRUPO->setDbValueDef($rsnew, $this->GRUPO->CurrentValue, null, false);
+
+        // POSICION_EQUIPO_TORENO
+        $this->POSICION_EQUIPO_TORENO->setDbValueDef($rsnew, $this->POSICION_EQUIPO_TORENO->CurrentValue, null, false);
+
+        // crea_dato
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+
+        // modifica_dato
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+        $conn = $this->getConnection();
+
+        // Load db values from old row
+        $this->loadDbValues($rsold);
+        if ($rsold) {
+        }
+
+        // Call Row Inserting event
+        $insertRow = $this->rowInserting($rsold, $rsnew);
+        if ($insertRow) {
+            $addRow = $this->insert($rsnew);
+            if ($addRow) {
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("InsertCancelled"));
+            }
+            $addRow = false;
+        }
+        if ($addRow) {
+            // Call Row Inserted event
+            $this->rowInserted($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($addRow) {
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $addRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $addRow;
     }
 
     // Set up search options

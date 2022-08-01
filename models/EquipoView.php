@@ -531,6 +531,7 @@ class EquipoView extends Equipo
         $this->NOM_ESTADIO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -766,6 +767,7 @@ class EquipoView extends Equipo
         }
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -782,6 +784,7 @@ class EquipoView extends Equipo
         $row['NOM_ESTADIO'] = $this->NOM_ESTADIO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -822,6 +825,8 @@ class EquipoView extends Equipo
         // crea_dato
 
         // modifica_dato
+
+        // usuario_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -907,6 +912,10 @@ class EquipoView extends Equipo
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // ID_EQUIPO
             $this->ID_EQUIPO->LinkCustomAttributes = "";
             $this->ID_EQUIPO->HrefValue = "";
@@ -972,6 +981,11 @@ class EquipoView extends Equipo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

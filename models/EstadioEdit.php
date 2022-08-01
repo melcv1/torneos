@@ -492,10 +492,12 @@ class EstadioEdit extends Estadio
         $CurrentForm = new HttpForm();
         $this->CurrentAction = Param("action"); // Set up current action
         $this->id_estadio->setVisibility();
+        $this->id_torneo->setVisibility();
         $this->nombre_estadio->setVisibility();
         $this->foto_estadio->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -512,6 +514,7 @@ class EstadioEdit extends Estadio
         }
 
         // Set up lookup cache
+        $this->setupLookupOptions($this->id_torneo);
 
         // Check modal
         if ($this->IsModal) {
@@ -690,6 +693,16 @@ class EstadioEdit extends Estadio
             $this->id_estadio->setFormValue($val);
         }
 
+        // Check field name 'id_torneo' first before field var 'x_id_torneo'
+        $val = $CurrentForm->hasValue("id_torneo") ? $CurrentForm->getValue("id_torneo") : $CurrentForm->getValue("x_id_torneo");
+        if (!$this->id_torneo->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->id_torneo->Visible = false; // Disable update for API request
+            } else {
+                $this->id_torneo->setFormValue($val);
+            }
+        }
+
         // Check field name 'nombre_estadio' first before field var 'x_nombre_estadio'
         $val = $CurrentForm->hasValue("nombre_estadio") ? $CurrentForm->getValue("nombre_estadio") : $CurrentForm->getValue("x_nombre_estadio");
         if (!$this->nombre_estadio->IsDetailKey) {
@@ -721,6 +734,16 @@ class EstadioEdit extends Estadio
             }
             $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
         }
+
+        // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
+        $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
+        if (!$this->usuario_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->usuario_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->usuario_dato->setFormValue($val);
+            }
+        }
         $this->getUploadFiles(); // Get upload files
     }
 
@@ -729,11 +752,13 @@ class EstadioEdit extends Estadio
     {
         global $CurrentForm;
         $this->id_estadio->CurrentValue = $this->id_estadio->FormValue;
+        $this->id_torneo->CurrentValue = $this->id_torneo->FormValue;
         $this->nombre_estadio->CurrentValue = $this->nombre_estadio->FormValue;
         $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
         $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
         $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
         $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        $this->usuario_dato->CurrentValue = $this->usuario_dato->FormValue;
     }
 
     /**
@@ -784,11 +809,13 @@ class EstadioEdit extends Estadio
         // Call Row Selected event
         $this->rowSelected($row);
         $this->id_estadio->setDbValue($row['id_estadio']);
+        $this->id_torneo->setDbValue($row['id_torneo']);
         $this->nombre_estadio->setDbValue($row['nombre_estadio']);
         $this->foto_estadio->Upload->DbValue = $row['foto_estadio'];
         $this->foto_estadio->setDbValue($this->foto_estadio->Upload->DbValue);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -796,10 +823,12 @@ class EstadioEdit extends Estadio
     {
         $row = [];
         $row['id_estadio'] = $this->id_estadio->DefaultValue;
+        $row['id_torneo'] = $this->id_torneo->DefaultValue;
         $row['nombre_estadio'] = $this->nombre_estadio->DefaultValue;
         $row['foto_estadio'] = $this->foto_estadio->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -834,6 +863,9 @@ class EstadioEdit extends Estadio
         // id_estadio
         $this->id_estadio->RowCssClass = "row";
 
+        // id_torneo
+        $this->id_torneo->RowCssClass = "row";
+
         // nombre_estadio
         $this->nombre_estadio->RowCssClass = "row";
 
@@ -846,11 +878,38 @@ class EstadioEdit extends Estadio
         // modifica_dato
         $this->modifica_dato->RowCssClass = "row";
 
+        // usuario_dato
+        $this->usuario_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // id_estadio
             $this->id_estadio->ViewValue = $this->id_estadio->CurrentValue;
             $this->id_estadio->ViewCustomAttributes = "";
+
+            // id_torneo
+            $curVal = strval($this->id_torneo->CurrentValue);
+            if ($curVal != "") {
+                $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
+                if ($this->id_torneo->ViewValue === null) { // Lookup from database
+                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $sqlWrk = $this->id_torneo->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                    $conn = Conn();
+                    $config = $conn->getConfiguration();
+                    $config->setResultCacheImpl($this->Cache);
+                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                    $ari = count($rswrk);
+                    if ($ari > 0) { // Lookup values found
+                        $arwrk = $this->id_torneo->Lookup->renderViewRow($rswrk[0]);
+                        $this->id_torneo->ViewValue = $this->id_torneo->displayValue($arwrk);
+                    } else {
+                        $this->id_torneo->ViewValue = FormatNumber($this->id_torneo->CurrentValue, $this->id_torneo->formatPattern());
+                    }
+                }
+            } else {
+                $this->id_torneo->ViewValue = null;
+            }
+            $this->id_torneo->ViewCustomAttributes = "";
 
             // nombre_estadio
             $this->nombre_estadio->ViewValue = $this->nombre_estadio->CurrentValue;
@@ -882,9 +941,17 @@ class EstadioEdit extends Estadio
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // id_estadio
             $this->id_estadio->LinkCustomAttributes = "";
             $this->id_estadio->HrefValue = "";
+
+            // id_torneo
+            $this->id_torneo->LinkCustomAttributes = "";
+            $this->id_torneo->HrefValue = "";
 
             // nombre_estadio
             $this->nombre_estadio->LinkCustomAttributes = "";
@@ -912,12 +979,45 @@ class EstadioEdit extends Estadio
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // id_estadio
             $this->id_estadio->setupEditAttributes();
             $this->id_estadio->EditCustomAttributes = "";
             $this->id_estadio->EditValue = $this->id_estadio->CurrentValue;
             $this->id_estadio->ViewCustomAttributes = "";
+
+            // id_torneo
+            $this->id_torneo->setupEditAttributes();
+            $this->id_torneo->EditCustomAttributes = "";
+            $curVal = trim(strval($this->id_torneo->CurrentValue));
+            if ($curVal != "") {
+                $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
+            } else {
+                $this->id_torneo->ViewValue = $this->id_torneo->Lookup !== null && is_array($this->id_torneo->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->id_torneo->ViewValue !== null) { // Load from cache
+                $this->id_torneo->EditValue = array_values($this->id_torneo->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $this->id_torneo->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->id_torneo->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->id_torneo->EditValue = $arwrk;
+            }
+            $this->id_torneo->PlaceHolder = RemoveHtml($this->id_torneo->caption());
 
             // nombre_estadio
             $this->nombre_estadio->setupEditAttributes();
@@ -954,11 +1054,21 @@ class EstadioEdit extends Estadio
             $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // Edit refer script
 
             // id_estadio
             $this->id_estadio->LinkCustomAttributes = "";
             $this->id_estadio->HrefValue = "";
+
+            // id_torneo
+            $this->id_torneo->LinkCustomAttributes = "";
+            $this->id_torneo->HrefValue = "";
 
             // nombre_estadio
             $this->nombre_estadio->LinkCustomAttributes = "";
@@ -986,6 +1096,11 @@ class EstadioEdit extends Estadio
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1012,6 +1127,11 @@ class EstadioEdit extends Estadio
                 $this->id_estadio->addErrorMessage(str_replace("%s", $this->id_estadio->caption(), $this->id_estadio->RequiredErrorMessage));
             }
         }
+        if ($this->id_torneo->Required) {
+            if (!$this->id_torneo->IsDetailKey && EmptyValue($this->id_torneo->FormValue)) {
+                $this->id_torneo->addErrorMessage(str_replace("%s", $this->id_torneo->caption(), $this->id_torneo->RequiredErrorMessage));
+            }
+        }
         if ($this->nombre_estadio->Required) {
             if (!$this->nombre_estadio->IsDetailKey && EmptyValue($this->nombre_estadio->FormValue)) {
                 $this->nombre_estadio->addErrorMessage(str_replace("%s", $this->nombre_estadio->caption(), $this->nombre_estadio->RequiredErrorMessage));
@@ -1030,6 +1150,11 @@ class EstadioEdit extends Estadio
         if ($this->modifica_dato->Required) {
             if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
                 $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->usuario_dato->Required) {
+            if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {
+                $this->usuario_dato->addErrorMessage(str_replace("%s", $this->usuario_dato->caption(), $this->usuario_dato->RequiredErrorMessage));
             }
         }
 
@@ -1067,6 +1192,9 @@ class EstadioEdit extends Estadio
 
         // Set new row
         $rsnew = [];
+
+        // id_torneo
+        $this->id_torneo->setDbValueDef($rsnew, $this->id_torneo->CurrentValue, null, $this->id_torneo->ReadOnly);
 
         // nombre_estadio
         $this->nombre_estadio->setDbValueDef($rsnew, $this->nombre_estadio->CurrentValue, null, $this->nombre_estadio->ReadOnly);
@@ -1222,6 +1350,8 @@ class EstadioEdit extends Estadio
 
             // Set up lookup SQL and connection
             switch ($fld->FieldVar) {
+                case "x_id_torneo":
+                    break;
                 default:
                     $lookupFilter = "";
                     break;

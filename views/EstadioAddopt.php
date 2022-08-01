@@ -20,10 +20,12 @@ loadjs.ready(["wrapper", "head"], function () {
     // Add fields
     var fields = currentTable.fields;
     festadioaddopt.addFields([
+        ["id_torneo", [fields.id_torneo.visible && fields.id_torneo.required ? ew.Validators.required(fields.id_torneo.caption) : null], fields.id_torneo.isInvalid],
         ["nombre_estadio", [fields.nombre_estadio.visible && fields.nombre_estadio.required ? ew.Validators.required(fields.nombre_estadio.caption) : null], fields.nombre_estadio.isInvalid],
         ["foto_estadio", [fields.foto_estadio.visible && fields.foto_estadio.required ? ew.Validators.fileRequired(fields.foto_estadio.caption) : null], fields.foto_estadio.isInvalid],
         ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
     ]);
 
     // Form_CustomValidate
@@ -36,6 +38,7 @@ loadjs.ready(["wrapper", "head"], function () {
     festadioaddopt.validateRequired = ew.CLIENT_VALIDATE;
 
     // Dynamic selection lists
+    festadioaddopt.lists.id_torneo = <?= $Page->id_torneo->toClientList($Page) ?>;
     loadjs.done("festadioaddopt");
 });
 </script>
@@ -53,6 +56,42 @@ loadjs.ready("head", function () {
 <input type="hidden" name="<?= Config("API_ACTION_NAME") ?>" id="<?= Config("API_ACTION_NAME") ?>" value="<?= Config("API_ADD_ACTION") ?>">
 <input type="hidden" name="<?= Config("API_OBJECT_NAME") ?>" id="<?= Config("API_OBJECT_NAME") ?>" value="estadio">
 <input type="hidden" name="addopt" id="addopt" value="1">
+<?php if ($Page->id_torneo->Visible) { // id_torneo ?>
+    <div<?= $Page->id_torneo->rowAttributes() ?>>
+        <label class="col-sm-2 col-form-label ew-label" for="x_id_torneo"><?= $Page->id_torneo->caption() ?><?= $Page->id_torneo->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="col-sm-10"><div<?= $Page->id_torneo->cellAttributes() ?>>
+    <select
+        id="x_id_torneo"
+        name="x_id_torneo"
+        class="form-select ew-select<?= $Page->id_torneo->isInvalidClass() ?>"
+        data-select2-id="festadioaddopt_x_id_torneo"
+        data-table="estadio"
+        data-field="x_id_torneo"
+        data-value-separator="<?= $Page->id_torneo->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->id_torneo->getPlaceHolder()) ?>"
+        <?= $Page->id_torneo->editAttributes() ?>>
+        <?= $Page->id_torneo->selectOptionListHtml("x_id_torneo") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->id_torneo->getErrorMessage() ?></div>
+<?= $Page->id_torneo->Lookup->getParamTag($Page, "p_x_id_torneo") ?>
+<script>
+loadjs.ready("festadioaddopt", function() {
+    var options = { name: "x_id_torneo", selectId: "festadioaddopt_x_id_torneo" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (festadioaddopt.lists.id_torneo.lookupOptions.length) {
+        options.data = { id: "x_id_torneo", form: "festadioaddopt" };
+    } else {
+        options.ajax = { id: "x_id_torneo", form: "festadioaddopt", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.estadio.fields.id_torneo.selectOptions);
+    ew.createSelect(options);
+});
+</script>
+</div></div>
+    </div>
+<?php } ?>
 <?php if ($Page->nombre_estadio->Visible) { // nombre_estadio ?>
     <div<?= $Page->nombre_estadio->rowAttributes() ?>>
         <label class="col-sm-2 col-form-label ew-label" for="x_nombre_estadio"><?= $Page->nombre_estadio->caption() ?><?= $Page->nombre_estadio->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
@@ -93,6 +132,15 @@ loadjs.ready("head", function () {
         <label class="col-sm-2 col-form-label ew-label"><?= $Page->modifica_dato->caption() ?><?= $Page->modifica_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="col-sm-10"><div<?= $Page->modifica_dato->cellAttributes() ?>>
 <input type="hidden" data-table="estadio" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</div></div>
+    </div>
+<?php } ?>
+<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
+    <div<?= $Page->usuario_dato->rowAttributes() ?>>
+        <label class="col-sm-2 col-form-label ew-label" for="x_usuario_dato"><?= $Page->usuario_dato->caption() ?><?= $Page->usuario_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="col-sm-10"><div<?= $Page->usuario_dato->cellAttributes() ?>>
+<input type="<?= $Page->usuario_dato->getInputTextType() ?>" name="x_usuario_dato" id="x_usuario_dato" data-table="estadio" data-field="x_usuario_dato" value="<?= $Page->usuario_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->usuario_dato->getPlaceHolder()) ?>"<?= $Page->usuario_dato->editAttributes() ?>>
+<div class="invalid-feedback"><?= $Page->usuario_dato->getErrorMessage() ?></div>
 </div></div>
     </div>
 <?php } ?>

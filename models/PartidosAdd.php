@@ -486,17 +486,17 @@ class PartidosAdd extends Partidos
         // Create form object
         $CurrentForm = new HttpForm();
         $this->CurrentAction = Param("action"); // Set up current action
+        $this->ID_TORNEO->setVisibility();
         $this->equipo_local->setVisibility();
         $this->equipo_visitante->setVisibility();
         $this->ID_PARTIDO->Visible = false;
-        $this->ID_TORNEO->setVisibility();
         $this->FECHA_PARTIDO->setVisibility();
         $this->HORA_PARTIDO->setVisibility();
         $this->ESTADIO->setVisibility();
         $this->CIUDAD_PARTIDO->setVisibility();
         $this->PAIS_PARTIDO->setVisibility();
-        $this->GOLES_EQUIPO1->setVisibility();
-        $this->GOLES_EQUIPO2->setVisibility();
+        $this->GOLES_LOCAL->setVisibility();
+        $this->GOLES_VISITANTE->setVisibility();
         $this->GOLES_EXTRA_EQUIPO1->setVisibility();
         $this->GOLES_EXTRA_EQUIPO2->setVisibility();
         $this->NOTA_PARTIDO->setVisibility();
@@ -504,6 +504,9 @@ class PartidosAdd extends Partidos
         $this->ESTADO_PARTIDO->setVisibility();
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
+        $this->usuario_dato->Visible = false;
+        $this->automatico->setVisibility();
+        $this->actualizado->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -520,12 +523,13 @@ class PartidosAdd extends Partidos
         }
 
         // Set up lookup cache
+        $this->setupLookupOptions($this->ID_TORNEO);
         $this->setupLookupOptions($this->equipo_local);
         $this->setupLookupOptions($this->equipo_visitante);
-        $this->setupLookupOptions($this->ID_TORNEO);
         $this->setupLookupOptions($this->ESTADIO);
         $this->setupLookupOptions($this->PAIS_PARTIDO);
         $this->setupLookupOptions($this->ESTADO_PARTIDO);
+        $this->setupLookupOptions($this->automatico);
 
         // Load default values for add
         $this->loadDefaultValues();
@@ -665,10 +669,12 @@ class PartidosAdd extends Partidos
     {
         $this->FECHA_PARTIDO->DefaultValue = "07/01/2022";
         $this->HORA_PARTIDO->DefaultValue = "00:00";
-        $this->GOLES_EQUIPO1->DefaultValue = 0;
-        $this->GOLES_EQUIPO2->DefaultValue = 0;
+        $this->GOLES_LOCAL->DefaultValue = 0;
+        $this->GOLES_VISITANTE->DefaultValue = 0;
         $this->GOLES_EXTRA_EQUIPO1->DefaultValue = 0;
         $this->GOLES_EXTRA_EQUIPO2->DefaultValue = 0;
+        $this->ESTADO_PARTIDO->DefaultValue = "Por jugar";
+        $this->usuario_dato->DefaultValue = "admin";
     }
 
     // Load form values
@@ -677,6 +683,16 @@ class PartidosAdd extends Partidos
         // Load from form
         global $CurrentForm;
         $validate = !Config("SERVER_VALIDATE");
+
+        // Check field name 'ID_TORNEO' first before field var 'x_ID_TORNEO'
+        $val = $CurrentForm->hasValue("ID_TORNEO") ? $CurrentForm->getValue("ID_TORNEO") : $CurrentForm->getValue("x_ID_TORNEO");
+        if (!$this->ID_TORNEO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->ID_TORNEO->Visible = false; // Disable update for API request
+            } else {
+                $this->ID_TORNEO->setFormValue($val);
+            }
+        }
 
         // Check field name 'equipo_local' first before field var 'x_equipo_local'
         $val = $CurrentForm->hasValue("equipo_local") ? $CurrentForm->getValue("equipo_local") : $CurrentForm->getValue("x_equipo_local");
@@ -695,16 +711,6 @@ class PartidosAdd extends Partidos
                 $this->equipo_visitante->Visible = false; // Disable update for API request
             } else {
                 $this->equipo_visitante->setFormValue($val);
-            }
-        }
-
-        // Check field name 'ID_TORNEO' first before field var 'x_ID_TORNEO'
-        $val = $CurrentForm->hasValue("ID_TORNEO") ? $CurrentForm->getValue("ID_TORNEO") : $CurrentForm->getValue("x_ID_TORNEO");
-        if (!$this->ID_TORNEO->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->ID_TORNEO->Visible = false; // Disable update for API request
-            } else {
-                $this->ID_TORNEO->setFormValue($val);
             }
         }
 
@@ -760,23 +766,23 @@ class PartidosAdd extends Partidos
             }
         }
 
-        // Check field name 'GOLES_EQUIPO1' first before field var 'x_GOLES_EQUIPO1'
-        $val = $CurrentForm->hasValue("GOLES_EQUIPO1") ? $CurrentForm->getValue("GOLES_EQUIPO1") : $CurrentForm->getValue("x_GOLES_EQUIPO1");
-        if (!$this->GOLES_EQUIPO1->IsDetailKey) {
+        // Check field name 'GOLES_LOCAL' first before field var 'x_GOLES_LOCAL'
+        $val = $CurrentForm->hasValue("GOLES_LOCAL") ? $CurrentForm->getValue("GOLES_LOCAL") : $CurrentForm->getValue("x_GOLES_LOCAL");
+        if (!$this->GOLES_LOCAL->IsDetailKey) {
             if (IsApi() && $val === null) {
-                $this->GOLES_EQUIPO1->Visible = false; // Disable update for API request
+                $this->GOLES_LOCAL->Visible = false; // Disable update for API request
             } else {
-                $this->GOLES_EQUIPO1->setFormValue($val, true, $validate);
+                $this->GOLES_LOCAL->setFormValue($val, true, $validate);
             }
         }
 
-        // Check field name 'GOLES_EQUIPO2' first before field var 'x_GOLES_EQUIPO2'
-        $val = $CurrentForm->hasValue("GOLES_EQUIPO2") ? $CurrentForm->getValue("GOLES_EQUIPO2") : $CurrentForm->getValue("x_GOLES_EQUIPO2");
-        if (!$this->GOLES_EQUIPO2->IsDetailKey) {
+        // Check field name 'GOLES_VISITANTE' first before field var 'x_GOLES_VISITANTE'
+        $val = $CurrentForm->hasValue("GOLES_VISITANTE") ? $CurrentForm->getValue("GOLES_VISITANTE") : $CurrentForm->getValue("x_GOLES_VISITANTE");
+        if (!$this->GOLES_VISITANTE->IsDetailKey) {
             if (IsApi() && $val === null) {
-                $this->GOLES_EQUIPO2->Visible = false; // Disable update for API request
+                $this->GOLES_VISITANTE->Visible = false; // Disable update for API request
             } else {
-                $this->GOLES_EQUIPO2->setFormValue($val, true, $validate);
+                $this->GOLES_VISITANTE->setFormValue($val, true, $validate);
             }
         }
 
@@ -830,6 +836,16 @@ class PartidosAdd extends Partidos
             }
         }
 
+        // Check field name 'automatico' first before field var 'x_automatico'
+        $val = $CurrentForm->hasValue("automatico") ? $CurrentForm->getValue("automatico") : $CurrentForm->getValue("x_automatico");
+        if (!$this->automatico->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->automatico->Visible = false; // Disable update for API request
+            } else {
+                $this->automatico->setFormValue($val);
+            }
+        }
+
         // Check field name 'ID_PARTIDO' first before field var 'x_ID_PARTIDO'
         $val = $CurrentForm->hasValue("ID_PARTIDO") ? $CurrentForm->getValue("ID_PARTIDO") : $CurrentForm->getValue("x_ID_PARTIDO");
     }
@@ -838,9 +854,9 @@ class PartidosAdd extends Partidos
     public function restoreFormValues()
     {
         global $CurrentForm;
+        $this->ID_TORNEO->CurrentValue = $this->ID_TORNEO->FormValue;
         $this->equipo_local->CurrentValue = $this->equipo_local->FormValue;
         $this->equipo_visitante->CurrentValue = $this->equipo_visitante->FormValue;
-        $this->ID_TORNEO->CurrentValue = $this->ID_TORNEO->FormValue;
         $this->FECHA_PARTIDO->CurrentValue = $this->FECHA_PARTIDO->FormValue;
         $this->FECHA_PARTIDO->CurrentValue = UnFormatDateTime($this->FECHA_PARTIDO->CurrentValue, $this->FECHA_PARTIDO->formatPattern());
         $this->HORA_PARTIDO->CurrentValue = $this->HORA_PARTIDO->FormValue;
@@ -848,13 +864,14 @@ class PartidosAdd extends Partidos
         $this->ESTADIO->CurrentValue = $this->ESTADIO->FormValue;
         $this->CIUDAD_PARTIDO->CurrentValue = $this->CIUDAD_PARTIDO->FormValue;
         $this->PAIS_PARTIDO->CurrentValue = $this->PAIS_PARTIDO->FormValue;
-        $this->GOLES_EQUIPO1->CurrentValue = $this->GOLES_EQUIPO1->FormValue;
-        $this->GOLES_EQUIPO2->CurrentValue = $this->GOLES_EQUIPO2->FormValue;
+        $this->GOLES_LOCAL->CurrentValue = $this->GOLES_LOCAL->FormValue;
+        $this->GOLES_VISITANTE->CurrentValue = $this->GOLES_VISITANTE->FormValue;
         $this->GOLES_EXTRA_EQUIPO1->CurrentValue = $this->GOLES_EXTRA_EQUIPO1->FormValue;
         $this->GOLES_EXTRA_EQUIPO2->CurrentValue = $this->GOLES_EXTRA_EQUIPO2->FormValue;
         $this->NOTA_PARTIDO->CurrentValue = $this->NOTA_PARTIDO->FormValue;
         $this->RESUMEN_PARTIDO->CurrentValue = $this->RESUMEN_PARTIDO->FormValue;
         $this->ESTADO_PARTIDO->CurrentValue = $this->ESTADO_PARTIDO->FormValue;
+        $this->automatico->CurrentValue = $this->automatico->FormValue;
     }
 
     /**
@@ -904,17 +921,17 @@ class PartidosAdd extends Partidos
 
         // Call Row Selected event
         $this->rowSelected($row);
+        $this->ID_TORNEO->setDbValue($row['ID_TORNEO']);
         $this->equipo_local->setDbValue($row['equipo_local']);
         $this->equipo_visitante->setDbValue($row['equipo_visitante']);
         $this->ID_PARTIDO->setDbValue($row['ID_PARTIDO']);
-        $this->ID_TORNEO->setDbValue($row['ID_TORNEO']);
         $this->FECHA_PARTIDO->setDbValue($row['FECHA_PARTIDO']);
         $this->HORA_PARTIDO->setDbValue($row['HORA_PARTIDO']);
         $this->ESTADIO->setDbValue($row['ESTADIO']);
         $this->CIUDAD_PARTIDO->setDbValue($row['CIUDAD_PARTIDO']);
         $this->PAIS_PARTIDO->setDbValue($row['PAIS_PARTIDO']);
-        $this->GOLES_EQUIPO1->setDbValue($row['GOLES_EQUIPO1']);
-        $this->GOLES_EQUIPO2->setDbValue($row['GOLES_EQUIPO2']);
+        $this->GOLES_LOCAL->setDbValue($row['GOLES_LOCAL']);
+        $this->GOLES_VISITANTE->setDbValue($row['GOLES_VISITANTE']);
         $this->GOLES_EXTRA_EQUIPO1->setDbValue($row['GOLES_EXTRA_EQUIPO1']);
         $this->GOLES_EXTRA_EQUIPO2->setDbValue($row['GOLES_EXTRA_EQUIPO2']);
         $this->NOTA_PARTIDO->setDbValue($row['NOTA_PARTIDO']);
@@ -922,23 +939,26 @@ class PartidosAdd extends Partidos
         $this->ESTADO_PARTIDO->setDbValue($row['ESTADO_PARTIDO']);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
+        $this->automatico->setDbValue($row['automatico']);
+        $this->actualizado->setDbValue($row['actualizado']);
     }
 
     // Return a row with default values
     protected function newRow()
     {
         $row = [];
+        $row['ID_TORNEO'] = $this->ID_TORNEO->DefaultValue;
         $row['equipo_local'] = $this->equipo_local->DefaultValue;
         $row['equipo_visitante'] = $this->equipo_visitante->DefaultValue;
         $row['ID_PARTIDO'] = $this->ID_PARTIDO->DefaultValue;
-        $row['ID_TORNEO'] = $this->ID_TORNEO->DefaultValue;
         $row['FECHA_PARTIDO'] = $this->FECHA_PARTIDO->DefaultValue;
         $row['HORA_PARTIDO'] = $this->HORA_PARTIDO->DefaultValue;
         $row['ESTADIO'] = $this->ESTADIO->DefaultValue;
         $row['CIUDAD_PARTIDO'] = $this->CIUDAD_PARTIDO->DefaultValue;
         $row['PAIS_PARTIDO'] = $this->PAIS_PARTIDO->DefaultValue;
-        $row['GOLES_EQUIPO1'] = $this->GOLES_EQUIPO1->DefaultValue;
-        $row['GOLES_EQUIPO2'] = $this->GOLES_EQUIPO2->DefaultValue;
+        $row['GOLES_LOCAL'] = $this->GOLES_LOCAL->DefaultValue;
+        $row['GOLES_VISITANTE'] = $this->GOLES_VISITANTE->DefaultValue;
         $row['GOLES_EXTRA_EQUIPO1'] = $this->GOLES_EXTRA_EQUIPO1->DefaultValue;
         $row['GOLES_EXTRA_EQUIPO2'] = $this->GOLES_EXTRA_EQUIPO2->DefaultValue;
         $row['NOTA_PARTIDO'] = $this->NOTA_PARTIDO->DefaultValue;
@@ -946,6 +966,9 @@ class PartidosAdd extends Partidos
         $row['ESTADO_PARTIDO'] = $this->ESTADO_PARTIDO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
+        $row['automatico'] = $this->automatico->DefaultValue;
+        $row['actualizado'] = $this->actualizado->DefaultValue;
         return $row;
     }
 
@@ -977,6 +1000,9 @@ class PartidosAdd extends Partidos
 
         // Common render codes for all row types
 
+        // ID_TORNEO
+        $this->ID_TORNEO->RowCssClass = "row";
+
         // equipo_local
         $this->equipo_local->RowCssClass = "row";
 
@@ -985,9 +1011,6 @@ class PartidosAdd extends Partidos
 
         // ID_PARTIDO
         $this->ID_PARTIDO->RowCssClass = "row";
-
-        // ID_TORNEO
-        $this->ID_TORNEO->RowCssClass = "row";
 
         // FECHA_PARTIDO
         $this->FECHA_PARTIDO->RowCssClass = "row";
@@ -1004,11 +1027,11 @@ class PartidosAdd extends Partidos
         // PAIS_PARTIDO
         $this->PAIS_PARTIDO->RowCssClass = "row";
 
-        // GOLES_EQUIPO1
-        $this->GOLES_EQUIPO1->RowCssClass = "row";
+        // GOLES_LOCAL
+        $this->GOLES_LOCAL->RowCssClass = "row";
 
-        // GOLES_EQUIPO2
-        $this->GOLES_EQUIPO2->RowCssClass = "row";
+        // GOLES_VISITANTE
+        $this->GOLES_VISITANTE->RowCssClass = "row";
 
         // GOLES_EXTRA_EQUIPO1
         $this->GOLES_EXTRA_EQUIPO1->RowCssClass = "row";
@@ -1031,8 +1054,41 @@ class PartidosAdd extends Partidos
         // modifica_dato
         $this->modifica_dato->RowCssClass = "row";
 
+        // usuario_dato
+        $this->usuario_dato->RowCssClass = "row";
+
+        // automatico
+        $this->automatico->RowCssClass = "row";
+
+        // actualizado
+        $this->actualizado->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
+            // ID_TORNEO
+            $curVal = strval($this->ID_TORNEO->CurrentValue);
+            if ($curVal != "") {
+                $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
+                if ($this->ID_TORNEO->ViewValue === null) { // Lookup from database
+                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $sqlWrk = $this->ID_TORNEO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                    $conn = Conn();
+                    $config = $conn->getConfiguration();
+                    $config->setResultCacheImpl($this->Cache);
+                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                    $ari = count($rswrk);
+                    if ($ari > 0) { // Lookup values found
+                        $arwrk = $this->ID_TORNEO->Lookup->renderViewRow($rswrk[0]);
+                        $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->displayValue($arwrk);
+                    } else {
+                        $this->ID_TORNEO->ViewValue = FormatNumber($this->ID_TORNEO->CurrentValue, $this->ID_TORNEO->formatPattern());
+                    }
+                }
+            } else {
+                $this->ID_TORNEO->ViewValue = null;
+            }
+            $this->ID_TORNEO->ViewCustomAttributes = "";
+
             // equipo_local
             $curVal = strval($this->equipo_local->CurrentValue);
             if ($curVal != "") {
@@ -1085,30 +1141,6 @@ class PartidosAdd extends Partidos
             $this->ID_PARTIDO->ViewValue = $this->ID_PARTIDO->CurrentValue;
             $this->ID_PARTIDO->ViewCustomAttributes = "";
 
-            // ID_TORNEO
-            $curVal = strval($this->ID_TORNEO->CurrentValue);
-            if ($curVal != "") {
-                $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
-                if ($this->ID_TORNEO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                    $sqlWrk = $this->ID_TORNEO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                    $conn = Conn();
-                    $config = $conn->getConfiguration();
-                    $config->setResultCacheImpl($this->Cache);
-                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                    $ari = count($rswrk);
-                    if ($ari > 0) { // Lookup values found
-                        $arwrk = $this->ID_TORNEO->Lookup->renderViewRow($rswrk[0]);
-                        $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->displayValue($arwrk);
-                    } else {
-                        $this->ID_TORNEO->ViewValue = FormatNumber($this->ID_TORNEO->CurrentValue, $this->ID_TORNEO->formatPattern());
-                    }
-                }
-            } else {
-                $this->ID_TORNEO->ViewValue = null;
-            }
-            $this->ID_TORNEO->ViewCustomAttributes = "";
-
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->ViewValue = $this->FECHA_PARTIDO->CurrentValue;
             $this->FECHA_PARTIDO->ViewValue = FormatDateTime($this->FECHA_PARTIDO->ViewValue, $this->FECHA_PARTIDO->formatPattern());
@@ -1124,7 +1156,7 @@ class PartidosAdd extends Partidos
             if ($curVal != "") {
                 $this->ESTADIO->ViewValue = $this->ESTADIO->lookupCacheOption($curVal);
                 if ($this->ESTADIO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`NOM_ESTADIO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -1171,15 +1203,15 @@ class PartidosAdd extends Partidos
             }
             $this->PAIS_PARTIDO->ViewCustomAttributes = "";
 
-            // GOLES_EQUIPO1
-            $this->GOLES_EQUIPO1->ViewValue = $this->GOLES_EQUIPO1->CurrentValue;
-            $this->GOLES_EQUIPO1->ViewValue = FormatNumber($this->GOLES_EQUIPO1->ViewValue, $this->GOLES_EQUIPO1->formatPattern());
-            $this->GOLES_EQUIPO1->ViewCustomAttributes = "";
+            // GOLES_LOCAL
+            $this->GOLES_LOCAL->ViewValue = $this->GOLES_LOCAL->CurrentValue;
+            $this->GOLES_LOCAL->ViewValue = FormatNumber($this->GOLES_LOCAL->ViewValue, $this->GOLES_LOCAL->formatPattern());
+            $this->GOLES_LOCAL->ViewCustomAttributes = "";
 
-            // GOLES_EQUIPO2
-            $this->GOLES_EQUIPO2->ViewValue = $this->GOLES_EQUIPO2->CurrentValue;
-            $this->GOLES_EQUIPO2->ViewValue = FormatNumber($this->GOLES_EQUIPO2->ViewValue, $this->GOLES_EQUIPO2->formatPattern());
-            $this->GOLES_EQUIPO2->ViewCustomAttributes = "";
+            // GOLES_VISITANTE
+            $this->GOLES_VISITANTE->ViewValue = $this->GOLES_VISITANTE->CurrentValue;
+            $this->GOLES_VISITANTE->ViewValue = FormatNumber($this->GOLES_VISITANTE->ViewValue, $this->GOLES_VISITANTE->formatPattern());
+            $this->GOLES_VISITANTE->ViewCustomAttributes = "";
 
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->ViewValue = $this->GOLES_EXTRA_EQUIPO1->CurrentValue;
@@ -1217,6 +1249,26 @@ class PartidosAdd extends Partidos
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
+            // automatico
+            if (ConvertToBool($this->automatico->CurrentValue)) {
+                $this->automatico->ViewValue = $this->automatico->tagCaption(1) != "" ? $this->automatico->tagCaption(1) : "Yes";
+            } else {
+                $this->automatico->ViewValue = $this->automatico->tagCaption(2) != "" ? $this->automatico->tagCaption(2) : "No";
+            }
+            $this->automatico->ViewCustomAttributes = "";
+
+            // actualizado
+            $this->actualizado->ViewValue = $this->actualizado->CurrentValue;
+            $this->actualizado->ViewCustomAttributes = "";
+
+            // ID_TORNEO
+            $this->ID_TORNEO->LinkCustomAttributes = "";
+            $this->ID_TORNEO->HrefValue = "";
+
             // equipo_local
             $this->equipo_local->LinkCustomAttributes = "";
             $this->equipo_local->HrefValue = "";
@@ -1224,10 +1276,6 @@ class PartidosAdd extends Partidos
             // equipo_visitante
             $this->equipo_visitante->LinkCustomAttributes = "";
             $this->equipo_visitante->HrefValue = "";
-
-            // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
-            $this->ID_TORNEO->HrefValue = "";
 
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->LinkCustomAttributes = "";
@@ -1249,13 +1297,13 @@ class PartidosAdd extends Partidos
             $this->PAIS_PARTIDO->LinkCustomAttributes = "";
             $this->PAIS_PARTIDO->HrefValue = "";
 
-            // GOLES_EQUIPO1
-            $this->GOLES_EQUIPO1->LinkCustomAttributes = "";
-            $this->GOLES_EQUIPO1->HrefValue = "";
+            // GOLES_LOCAL
+            $this->GOLES_LOCAL->LinkCustomAttributes = "";
+            $this->GOLES_LOCAL->HrefValue = "";
 
-            // GOLES_EQUIPO2
-            $this->GOLES_EQUIPO2->LinkCustomAttributes = "";
-            $this->GOLES_EQUIPO2->HrefValue = "";
+            // GOLES_VISITANTE
+            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
+            $this->GOLES_VISITANTE->HrefValue = "";
 
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
@@ -1276,63 +1324,11 @@ class PartidosAdd extends Partidos
             // ESTADO_PARTIDO
             $this->ESTADO_PARTIDO->LinkCustomAttributes = "";
             $this->ESTADO_PARTIDO->HrefValue = "";
+
+            // automatico
+            $this->automatico->LinkCustomAttributes = "";
+            $this->automatico->HrefValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
-            // equipo_local
-            $this->equipo_local->setupEditAttributes();
-            $this->equipo_local->EditCustomAttributes = "";
-            $curVal = trim(strval($this->equipo_local->CurrentValue));
-            if ($curVal != "") {
-                $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
-            } else {
-                $this->equipo_local->ViewValue = $this->equipo_local->Lookup !== null && is_array($this->equipo_local->lookupOptions()) ? $curVal : null;
-            }
-            if ($this->equipo_local->ViewValue !== null) { // Load from cache
-                $this->equipo_local->EditValue = array_values($this->equipo_local->lookupOptions());
-            } else { // Lookup from database
-                if ($curVal == "") {
-                    $filterWrk = "0=1";
-                } else {
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->equipo_local->CurrentValue, DATATYPE_NUMBER, "");
-                }
-                $sqlWrk = $this->equipo_local->Lookup->getSql(true, $filterWrk, '', $this, false, true);
-                $conn = Conn();
-                $config = $conn->getConfiguration();
-                $config->setResultCacheImpl($this->Cache);
-                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                $ari = count($rswrk);
-                $arwrk = $rswrk;
-                $this->equipo_local->EditValue = $arwrk;
-            }
-            $this->equipo_local->PlaceHolder = RemoveHtml($this->equipo_local->caption());
-
-            // equipo_visitante
-            $this->equipo_visitante->setupEditAttributes();
-            $this->equipo_visitante->EditCustomAttributes = "";
-            $curVal = trim(strval($this->equipo_visitante->CurrentValue));
-            if ($curVal != "") {
-                $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
-            } else {
-                $this->equipo_visitante->ViewValue = $this->equipo_visitante->Lookup !== null && is_array($this->equipo_visitante->lookupOptions()) ? $curVal : null;
-            }
-            if ($this->equipo_visitante->ViewValue !== null) { // Load from cache
-                $this->equipo_visitante->EditValue = array_values($this->equipo_visitante->lookupOptions());
-            } else { // Lookup from database
-                if ($curVal == "") {
-                    $filterWrk = "0=1";
-                } else {
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->equipo_visitante->CurrentValue, DATATYPE_NUMBER, "");
-                }
-                $sqlWrk = $this->equipo_visitante->Lookup->getSql(true, $filterWrk, '', $this, false, true);
-                $conn = Conn();
-                $config = $conn->getConfiguration();
-                $config->setResultCacheImpl($this->Cache);
-                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                $ari = count($rswrk);
-                $arwrk = $rswrk;
-                $this->equipo_visitante->EditValue = $arwrk;
-            }
-            $this->equipo_visitante->PlaceHolder = RemoveHtml($this->equipo_visitante->caption());
-
             // ID_TORNEO
             $this->ID_TORNEO->setupEditAttributes();
             $this->ID_TORNEO->EditCustomAttributes = "";
@@ -1361,6 +1357,68 @@ class PartidosAdd extends Partidos
             }
             $this->ID_TORNEO->PlaceHolder = RemoveHtml($this->ID_TORNEO->caption());
 
+            // equipo_local
+            $this->equipo_local->setupEditAttributes();
+            $this->equipo_local->EditCustomAttributes = "";
+            $curVal = trim(strval($this->equipo_local->CurrentValue));
+            if ($curVal != "") {
+                $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
+            } else {
+                $this->equipo_local->ViewValue = $this->equipo_local->Lookup !== null && is_array($this->equipo_local->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->equipo_local->ViewValue !== null) { // Load from cache
+                $this->equipo_local->EditValue = array_values($this->equipo_local->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->equipo_local->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->equipo_local->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                foreach ($arwrk as &$row) {
+                    $row = $this->equipo_local->Lookup->renderViewRow($row);
+                }
+                $this->equipo_local->EditValue = $arwrk;
+            }
+            $this->equipo_local->PlaceHolder = RemoveHtml($this->equipo_local->caption());
+
+            // equipo_visitante
+            $this->equipo_visitante->setupEditAttributes();
+            $this->equipo_visitante->EditCustomAttributes = "";
+            $curVal = trim(strval($this->equipo_visitante->CurrentValue));
+            if ($curVal != "") {
+                $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
+            } else {
+                $this->equipo_visitante->ViewValue = $this->equipo_visitante->Lookup !== null && is_array($this->equipo_visitante->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->equipo_visitante->ViewValue !== null) { // Load from cache
+                $this->equipo_visitante->EditValue = array_values($this->equipo_visitante->lookupOptions());
+            } else { // Lookup from database
+                if ($curVal == "") {
+                    $filterWrk = "0=1";
+                } else {
+                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->equipo_visitante->CurrentValue, DATATYPE_NUMBER, "");
+                }
+                $sqlWrk = $this->equipo_visitante->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                foreach ($arwrk as &$row) {
+                    $row = $this->equipo_visitante->Lookup->renderViewRow($row);
+                }
+                $this->equipo_visitante->EditValue = $arwrk;
+            }
+            $this->equipo_visitante->PlaceHolder = RemoveHtml($this->equipo_visitante->caption());
+
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->setupEditAttributes();
             $this->FECHA_PARTIDO->EditCustomAttributes = "";
@@ -1388,7 +1446,7 @@ class PartidosAdd extends Partidos
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`NOM_ESTADIO`" . SearchString("=", $this->ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = "`id_estadio`" . SearchString("=", $this->ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->ESTADIO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1397,9 +1455,6 @@ class PartidosAdd extends Partidos
                 $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
                 $ari = count($rswrk);
                 $arwrk = $rswrk;
-                foreach ($arwrk as &$row) {
-                    $row = $this->ESTADIO->Lookup->renderViewRow($row);
-                }
                 $this->ESTADIO->EditValue = $arwrk;
             }
             $this->ESTADIO->PlaceHolder = RemoveHtml($this->ESTADIO->caption());
@@ -1438,22 +1493,22 @@ class PartidosAdd extends Partidos
             }
             $this->PAIS_PARTIDO->PlaceHolder = RemoveHtml($this->PAIS_PARTIDO->caption());
 
-            // GOLES_EQUIPO1
-            $this->GOLES_EQUIPO1->setupEditAttributes();
-            $this->GOLES_EQUIPO1->EditCustomAttributes = "";
-            $this->GOLES_EQUIPO1->EditValue = HtmlEncode($this->GOLES_EQUIPO1->CurrentValue);
-            $this->GOLES_EQUIPO1->PlaceHolder = RemoveHtml($this->GOLES_EQUIPO1->caption());
-            if (strval($this->GOLES_EQUIPO1->EditValue) != "" && is_numeric($this->GOLES_EQUIPO1->EditValue)) {
-                $this->GOLES_EQUIPO1->EditValue = FormatNumber($this->GOLES_EQUIPO1->EditValue, null);
+            // GOLES_LOCAL
+            $this->GOLES_LOCAL->setupEditAttributes();
+            $this->GOLES_LOCAL->EditCustomAttributes = "";
+            $this->GOLES_LOCAL->EditValue = HtmlEncode($this->GOLES_LOCAL->CurrentValue);
+            $this->GOLES_LOCAL->PlaceHolder = RemoveHtml($this->GOLES_LOCAL->caption());
+            if (strval($this->GOLES_LOCAL->EditValue) != "" && is_numeric($this->GOLES_LOCAL->EditValue)) {
+                $this->GOLES_LOCAL->EditValue = FormatNumber($this->GOLES_LOCAL->EditValue, null);
             }
 
-            // GOLES_EQUIPO2
-            $this->GOLES_EQUIPO2->setupEditAttributes();
-            $this->GOLES_EQUIPO2->EditCustomAttributes = "";
-            $this->GOLES_EQUIPO2->EditValue = HtmlEncode($this->GOLES_EQUIPO2->CurrentValue);
-            $this->GOLES_EQUIPO2->PlaceHolder = RemoveHtml($this->GOLES_EQUIPO2->caption());
-            if (strval($this->GOLES_EQUIPO2->EditValue) != "" && is_numeric($this->GOLES_EQUIPO2->EditValue)) {
-                $this->GOLES_EQUIPO2->EditValue = FormatNumber($this->GOLES_EQUIPO2->EditValue, null);
+            // GOLES_VISITANTE
+            $this->GOLES_VISITANTE->setupEditAttributes();
+            $this->GOLES_VISITANTE->EditCustomAttributes = "";
+            $this->GOLES_VISITANTE->EditValue = HtmlEncode($this->GOLES_VISITANTE->CurrentValue);
+            $this->GOLES_VISITANTE->PlaceHolder = RemoveHtml($this->GOLES_VISITANTE->caption());
+            if (strval($this->GOLES_VISITANTE->EditValue) != "" && is_numeric($this->GOLES_VISITANTE->EditValue)) {
+                $this->GOLES_VISITANTE->EditValue = FormatNumber($this->GOLES_VISITANTE->EditValue, null);
             }
 
             // GOLES_EXTRA_EQUIPO1
@@ -1492,7 +1547,16 @@ class PartidosAdd extends Partidos
             $this->ESTADO_PARTIDO->EditValue = $this->ESTADO_PARTIDO->options(true);
             $this->ESTADO_PARTIDO->PlaceHolder = RemoveHtml($this->ESTADO_PARTIDO->caption());
 
+            // automatico
+            $this->automatico->EditCustomAttributes = "";
+            $this->automatico->EditValue = $this->automatico->options(false);
+            $this->automatico->PlaceHolder = RemoveHtml($this->automatico->caption());
+
             // Add refer script
+
+            // ID_TORNEO
+            $this->ID_TORNEO->LinkCustomAttributes = "";
+            $this->ID_TORNEO->HrefValue = "";
 
             // equipo_local
             $this->equipo_local->LinkCustomAttributes = "";
@@ -1501,10 +1565,6 @@ class PartidosAdd extends Partidos
             // equipo_visitante
             $this->equipo_visitante->LinkCustomAttributes = "";
             $this->equipo_visitante->HrefValue = "";
-
-            // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
-            $this->ID_TORNEO->HrefValue = "";
 
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->LinkCustomAttributes = "";
@@ -1526,13 +1586,13 @@ class PartidosAdd extends Partidos
             $this->PAIS_PARTIDO->LinkCustomAttributes = "";
             $this->PAIS_PARTIDO->HrefValue = "";
 
-            // GOLES_EQUIPO1
-            $this->GOLES_EQUIPO1->LinkCustomAttributes = "";
-            $this->GOLES_EQUIPO1->HrefValue = "";
+            // GOLES_LOCAL
+            $this->GOLES_LOCAL->LinkCustomAttributes = "";
+            $this->GOLES_LOCAL->HrefValue = "";
 
-            // GOLES_EQUIPO2
-            $this->GOLES_EQUIPO2->LinkCustomAttributes = "";
-            $this->GOLES_EQUIPO2->HrefValue = "";
+            // GOLES_VISITANTE
+            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
+            $this->GOLES_VISITANTE->HrefValue = "";
 
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
@@ -1553,6 +1613,10 @@ class PartidosAdd extends Partidos
             // ESTADO_PARTIDO
             $this->ESTADO_PARTIDO->LinkCustomAttributes = "";
             $this->ESTADO_PARTIDO->HrefValue = "";
+
+            // automatico
+            $this->automatico->LinkCustomAttributes = "";
+            $this->automatico->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1574,6 +1638,11 @@ class PartidosAdd extends Partidos
             return true;
         }
         $validateForm = true;
+        if ($this->ID_TORNEO->Required) {
+            if (!$this->ID_TORNEO->IsDetailKey && EmptyValue($this->ID_TORNEO->FormValue)) {
+                $this->ID_TORNEO->addErrorMessage(str_replace("%s", $this->ID_TORNEO->caption(), $this->ID_TORNEO->RequiredErrorMessage));
+            }
+        }
         if ($this->equipo_local->Required) {
             if (!$this->equipo_local->IsDetailKey && EmptyValue($this->equipo_local->FormValue)) {
                 $this->equipo_local->addErrorMessage(str_replace("%s", $this->equipo_local->caption(), $this->equipo_local->RequiredErrorMessage));
@@ -1582,11 +1651,6 @@ class PartidosAdd extends Partidos
         if ($this->equipo_visitante->Required) {
             if (!$this->equipo_visitante->IsDetailKey && EmptyValue($this->equipo_visitante->FormValue)) {
                 $this->equipo_visitante->addErrorMessage(str_replace("%s", $this->equipo_visitante->caption(), $this->equipo_visitante->RequiredErrorMessage));
-            }
-        }
-        if ($this->ID_TORNEO->Required) {
-            if (!$this->ID_TORNEO->IsDetailKey && EmptyValue($this->ID_TORNEO->FormValue)) {
-                $this->ID_TORNEO->addErrorMessage(str_replace("%s", $this->ID_TORNEO->caption(), $this->ID_TORNEO->RequiredErrorMessage));
             }
         }
         if ($this->FECHA_PARTIDO->Required) {
@@ -1620,21 +1684,21 @@ class PartidosAdd extends Partidos
                 $this->PAIS_PARTIDO->addErrorMessage(str_replace("%s", $this->PAIS_PARTIDO->caption(), $this->PAIS_PARTIDO->RequiredErrorMessage));
             }
         }
-        if ($this->GOLES_EQUIPO1->Required) {
-            if (!$this->GOLES_EQUIPO1->IsDetailKey && EmptyValue($this->GOLES_EQUIPO1->FormValue)) {
-                $this->GOLES_EQUIPO1->addErrorMessage(str_replace("%s", $this->GOLES_EQUIPO1->caption(), $this->GOLES_EQUIPO1->RequiredErrorMessage));
+        if ($this->GOLES_LOCAL->Required) {
+            if (!$this->GOLES_LOCAL->IsDetailKey && EmptyValue($this->GOLES_LOCAL->FormValue)) {
+                $this->GOLES_LOCAL->addErrorMessage(str_replace("%s", $this->GOLES_LOCAL->caption(), $this->GOLES_LOCAL->RequiredErrorMessage));
             }
         }
-        if (!CheckInteger($this->GOLES_EQUIPO1->FormValue)) {
-            $this->GOLES_EQUIPO1->addErrorMessage($this->GOLES_EQUIPO1->getErrorMessage(false));
+        if (!CheckInteger($this->GOLES_LOCAL->FormValue)) {
+            $this->GOLES_LOCAL->addErrorMessage($this->GOLES_LOCAL->getErrorMessage(false));
         }
-        if ($this->GOLES_EQUIPO2->Required) {
-            if (!$this->GOLES_EQUIPO2->IsDetailKey && EmptyValue($this->GOLES_EQUIPO2->FormValue)) {
-                $this->GOLES_EQUIPO2->addErrorMessage(str_replace("%s", $this->GOLES_EQUIPO2->caption(), $this->GOLES_EQUIPO2->RequiredErrorMessage));
+        if ($this->GOLES_VISITANTE->Required) {
+            if (!$this->GOLES_VISITANTE->IsDetailKey && EmptyValue($this->GOLES_VISITANTE->FormValue)) {
+                $this->GOLES_VISITANTE->addErrorMessage(str_replace("%s", $this->GOLES_VISITANTE->caption(), $this->GOLES_VISITANTE->RequiredErrorMessage));
             }
         }
-        if (!CheckInteger($this->GOLES_EQUIPO2->FormValue)) {
-            $this->GOLES_EQUIPO2->addErrorMessage($this->GOLES_EQUIPO2->getErrorMessage(false));
+        if (!CheckInteger($this->GOLES_VISITANTE->FormValue)) {
+            $this->GOLES_VISITANTE->addErrorMessage($this->GOLES_VISITANTE->getErrorMessage(false));
         }
         if ($this->GOLES_EXTRA_EQUIPO1->Required) {
             if (!$this->GOLES_EXTRA_EQUIPO1->IsDetailKey && EmptyValue($this->GOLES_EXTRA_EQUIPO1->FormValue)) {
@@ -1667,6 +1731,11 @@ class PartidosAdd extends Partidos
                 $this->ESTADO_PARTIDO->addErrorMessage(str_replace("%s", $this->ESTADO_PARTIDO->caption(), $this->ESTADO_PARTIDO->RequiredErrorMessage));
             }
         }
+        if ($this->automatico->Required) {
+            if ($this->automatico->FormValue == "") {
+                $this->automatico->addErrorMessage(str_replace("%s", $this->automatico->caption(), $this->automatico->RequiredErrorMessage));
+            }
+        }
 
         // Return validate result
         $validateForm = $validateForm && !$this->hasInvalidFields();
@@ -1688,14 +1757,14 @@ class PartidosAdd extends Partidos
         // Set new row
         $rsnew = [];
 
+        // ID_TORNEO
+        $this->ID_TORNEO->setDbValueDef($rsnew, $this->ID_TORNEO->CurrentValue, null, false);
+
         // equipo_local
         $this->equipo_local->setDbValueDef($rsnew, $this->equipo_local->CurrentValue, null, false);
 
         // equipo_visitante
         $this->equipo_visitante->setDbValueDef($rsnew, $this->equipo_visitante->CurrentValue, null, false);
-
-        // ID_TORNEO
-        $this->ID_TORNEO->setDbValueDef($rsnew, $this->ID_TORNEO->CurrentValue, null, false);
 
         // FECHA_PARTIDO
         $this->FECHA_PARTIDO->setDbValueDef($rsnew, UnFormatDateTime($this->FECHA_PARTIDO->CurrentValue, $this->FECHA_PARTIDO->formatPattern()), null, false);
@@ -1712,11 +1781,11 @@ class PartidosAdd extends Partidos
         // PAIS_PARTIDO
         $this->PAIS_PARTIDO->setDbValueDef($rsnew, $this->PAIS_PARTIDO->CurrentValue, null, false);
 
-        // GOLES_EQUIPO1
-        $this->GOLES_EQUIPO1->setDbValueDef($rsnew, $this->GOLES_EQUIPO1->CurrentValue, null, strval($this->GOLES_EQUIPO1->CurrentValue ?? "") == "");
+        // GOLES_LOCAL
+        $this->GOLES_LOCAL->setDbValueDef($rsnew, $this->GOLES_LOCAL->CurrentValue, null, strval($this->GOLES_LOCAL->CurrentValue ?? "") == "");
 
-        // GOLES_EQUIPO2
-        $this->GOLES_EQUIPO2->setDbValueDef($rsnew, $this->GOLES_EQUIPO2->CurrentValue, null, strval($this->GOLES_EQUIPO2->CurrentValue ?? "") == "");
+        // GOLES_VISITANTE
+        $this->GOLES_VISITANTE->setDbValueDef($rsnew, $this->GOLES_VISITANTE->CurrentValue, null, strval($this->GOLES_VISITANTE->CurrentValue ?? "") == "");
 
         // GOLES_EXTRA_EQUIPO1
         $this->GOLES_EXTRA_EQUIPO1->setDbValueDef($rsnew, $this->GOLES_EXTRA_EQUIPO1->CurrentValue, null, strval($this->GOLES_EXTRA_EQUIPO1->CurrentValue ?? "") == "");
@@ -1732,6 +1801,13 @@ class PartidosAdd extends Partidos
 
         // ESTADO_PARTIDO
         $this->ESTADO_PARTIDO->setDbValueDef($rsnew, $this->ESTADO_PARTIDO->CurrentValue, null, false);
+
+        // automatico
+        $tmpBool = $this->automatico->CurrentValue;
+        if ($tmpBool != "1" && $tmpBool != "0") {
+            $tmpBool = !empty($tmpBool) ? "1" : "0";
+        }
+        $this->automatico->setDbValueDef($rsnew, $tmpBool, 0, false);
 
         // Update current values
         $this->setCurrentValues($rsnew);
@@ -1800,17 +1876,19 @@ class PartidosAdd extends Partidos
 
             // Set up lookup SQL and connection
             switch ($fld->FieldVar) {
+                case "x_ID_TORNEO":
+                    break;
                 case "x_equipo_local":
                     break;
                 case "x_equipo_visitante":
-                    break;
-                case "x_ID_TORNEO":
                     break;
                 case "x_ESTADIO":
                     break;
                 case "x_PAIS_PARTIDO":
                     break;
                 case "x_ESTADO_PARTIDO":
+                    break;
+                case "x_automatico":
                     break;
                 default:
                     $lookupFilter = "";

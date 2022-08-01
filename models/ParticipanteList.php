@@ -578,6 +578,9 @@ class ParticipanteList extends Participante
 
         // Use layout
         $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+
+        // Create form object
+        $CurrentForm = new HttpForm();
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Get grid add count
@@ -597,6 +600,7 @@ class ParticipanteList extends Participante
         $this->TELEFONO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -622,6 +626,9 @@ class ParticipanteList extends Participante
 
         // Set up lookup cache
 
+        // Load default values for add
+        $this->loadDefaultValues();
+
         // Search filters
         $srchAdvanced = ""; // Advanced search filter
         $srchBasic = ""; // Basic search filter
@@ -645,6 +652,31 @@ class ParticipanteList extends Participante
             // Set up Breadcrumb
             if (!$this->isExport()) {
                 $this->setupBreadcrumb();
+            }
+
+            // Check QueryString parameters
+            if (Get("action") !== null) {
+                $this->CurrentAction = Get("action");
+
+                // Clear inline mode
+                if ($this->isCancel()) {
+                    $this->clearInlineMode();
+                }
+
+                // Switch to inline edit mode
+                if ($this->isEdit()) {
+                    $this->inlineEditMode();
+                }
+            } else {
+                if (Post("action") !== null) {
+                    $this->CurrentAction = Post("action"); // Get action
+
+                    // Inline Update
+                    if (($this->isUpdate() || $this->isOverwrite()) && Session(SESSION_INLINE_MODE) == "edit") {
+                        $this->setKey(Post($this->OldKeyName));
+                        $this->inlineUpdate();
+                    }
+                }
             }
 
             // Hide list options
@@ -853,6 +885,78 @@ class ParticipanteList extends Participante
         }
     }
 
+    // Exit inline mode
+    protected function clearInlineMode()
+    {
+        $this->LastAction = $this->CurrentAction; // Save last action
+        $this->CurrentAction = ""; // Clear action
+        $_SESSION[SESSION_INLINE_MODE] = ""; // Clear inline mode
+    }
+
+    // Switch to Inline Edit mode
+    protected function inlineEditMode()
+    {
+        global $Security, $Language;
+        if (!$Security->canEdit()) { // No edit permission
+            $this->CurrentAction = "";
+            $this->setFailureMessage($Language->phrase("NoEditPermission"));
+            return false;
+        }
+        $inlineEdit = true;
+        if (($keyValue = Get("ID_PARTICIPANTE") ?? Route("ID_PARTICIPANTE")) !== null) {
+            $this->ID_PARTICIPANTE->setQueryStringValue($keyValue);
+        } else {
+            $inlineEdit = false;
+        }
+        if ($inlineEdit) {
+            if ($this->loadRow()) {
+                $this->OldKey = $this->getKey(true); // Get from CurrentValue
+                $this->setKey($this->OldKey); // Set to OldValue
+                $_SESSION[SESSION_INLINE_MODE] = "edit"; // Enable inline edit
+            }
+        }
+        return true;
+    }
+
+    // Perform update to Inline Edit record
+    protected function inlineUpdate()
+    {
+        global $Language, $CurrentForm;
+        $CurrentForm->Index = 1;
+        $this->loadFormValues(); // Get form values
+
+        // Validate form
+        $inlineUpdate = true;
+        if (!$this->validateForm()) {
+            $inlineUpdate = false; // Form error, reset action
+        } else {
+            $inlineUpdate = false;
+            $this->SendEmail = true; // Send email on update success
+            $inlineUpdate = $this->editRow(); // Update record
+        }
+        if ($inlineUpdate) { // Update success
+            if ($this->getSuccessMessage() == "") {
+                $this->setSuccessMessage($Language->phrase("UpdateSuccess")); // Set up success message
+            }
+            $this->clearInlineMode(); // Clear inline edit mode
+        } else {
+            if ($this->getFailureMessage() == "") {
+                $this->setFailureMessage($Language->phrase("UpdateFailed")); // Set update failed message
+            }
+            $this->EventCancelled = true; // Cancel event
+            $this->CurrentAction = "edit"; // Stay in edit mode
+        }
+    }
+
+    // Check Inline Edit key
+    public function checkInlineEditKey()
+    {
+        if (!SameString($this->ID_PARTICIPANTE->OldValue, $this->ID_PARTICIPANTE->CurrentValue)) {
+            return false;
+        }
+        return true;
+    }
+
     // Build filter for all keys
     protected function buildKeyFilter()
     {
@@ -906,6 +1010,7 @@ class ParticipanteList extends Participante
         $filterList = Concat($filterList, $this->TELEFONO->AdvancedSearch->toJson(), ","); // Field TELEFONO
         $filterList = Concat($filterList, $this->crea_dato->AdvancedSearch->toJson(), ","); // Field crea_dato
         $filterList = Concat($filterList, $this->modifica_dato->AdvancedSearch->toJson(), ","); // Field modifica_dato
+        $filterList = Concat($filterList, $this->usuario_dato->AdvancedSearch->toJson(), ","); // Field usuario_dato
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1017,6 +1122,14 @@ class ParticipanteList extends Participante
         $this->modifica_dato->AdvancedSearch->SearchValue2 = @$filter["y_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->SearchOperator2 = @$filter["w_modifica_dato"];
         $this->modifica_dato->AdvancedSearch->save();
+
+        // Field usuario_dato
+        $this->usuario_dato->AdvancedSearch->SearchValue = @$filter["x_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator = @$filter["z_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchCondition = @$filter["v_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchValue2 = @$filter["y_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->SearchOperator2 = @$filter["w_usuario_dato"];
+        $this->usuario_dato->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1040,6 +1153,7 @@ class ParticipanteList extends Participante
         $searchFlds[] = &$this->TELEFONO;
         $searchFlds[] = &$this->crea_dato;
         $searchFlds[] = &$this->modifica_dato;
+        $searchFlds[] = &$this->usuario_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1157,6 +1271,7 @@ class ParticipanteList extends Participante
                 $this->TELEFONO->setSort("");
                 $this->crea_dato->setSort("");
                 $this->modifica_dato->setSort("");
+                $this->usuario_dato->setSort("");
             }
 
             // Reset start position
@@ -1244,7 +1359,38 @@ class ParticipanteList extends Participante
 
         // Call ListOptions_Rendering event
         $this->listOptionsRendering();
+
+        // Set up row action and key
+        if ($CurrentForm && is_numeric($this->RowIndex) && $this->RowType != "view") {
+            $CurrentForm->Index = $this->RowIndex;
+            $actionName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormActionName);
+            $oldKeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->OldKeyName);
+            $blankRowName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormBlankRowName);
+            if ($this->RowAction != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $actionName . "\" id=\"" . $actionName . "\" value=\"" . $this->RowAction . "\">";
+            }
+            $oldKey = $this->getKey(false); // Get from OldValue
+            if ($oldKeyName != "" && $oldKey != "") {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $oldKeyName . "\" id=\"" . $oldKeyName . "\" value=\"" . HtmlEncode($oldKey) . "\">";
+            }
+            if ($this->RowAction == "insert" && $this->isConfirm() && $this->emptyRow()) {
+                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $blankRowName . "\" id=\"" . $blankRowName . "\" value=\"1\">";
+            }
+        }
         $pageUrl = $this->pageUrl(false);
+
+        // "edit"
+        $opt = $this->ListOptions["edit"];
+        if ($this->isInlineEditRow()) { // Inline-Edit
+            $this->ListOptions->CustomItem = "edit"; // Show edit column only
+            $cancelurl = $this->addMasterUrl($pageUrl . "action=cancel");
+                $opt->Body = "<div" . (($opt->OnLeft) ? " class=\"text-end\"" : "") . ">" .
+                "<button class=\"ew-grid-link ew-inline-update\" title=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" form=\"fparticipantelist\" formaction=\"" . HtmlEncode(GetUrl(UrlAddHash($this->pageName(), "r" . $this->RowCount . "_" . $this->TableVar))) . "\">" . $Language->phrase("UpdateLink") . "</button>&nbsp;" .
+                "<a class=\"ew-grid-link ew-inline-cancel\" title=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" href=\"" . $cancelurl . "\">" . $Language->phrase("CancelLink") . "</a>" .
+                "<input type=\"hidden\" name=\"action\" id=\"action\" value=\"update\"></div>";
+            $opt->Body .= "<input type=\"hidden\" name=\"k" . $this->RowIndex . "_key\" id=\"k" . $this->RowIndex . "_key\" value=\"" . HtmlEncode($this->ID_PARTICIPANTE->CurrentValue) . "\">";
+            return;
+        }
         if ($this->CurrentMode == "view") {
             // "view"
             $opt = $this->ListOptions["view"];
@@ -1260,6 +1406,7 @@ class ParticipanteList extends Participante
             $editcaption = HtmlTitle($Language->phrase("EditLink"));
             if ($Security->canEdit()) {
                 $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("EditLink") . "</a>";
+                $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" href=\"" . HtmlEncode(UrlAddHash(GetUrl($this->InlineEditUrl), "r" . $this->RowCount . "_" . $this->TableVar)) . "\">" . $Language->phrase("InlineEditLink") . "</a>";
             } else {
                 $opt->Body = "";
             }
@@ -1524,6 +1671,12 @@ class ParticipanteList extends Participante
         return false; // Not ajax request
     }
 
+    // Load default values
+    protected function loadDefaultValues()
+    {
+        $this->usuario_dato->DefaultValue = "admin";
+    }
+
     // Load basic search values
     protected function loadBasicSearchValues()
     {
@@ -1532,6 +1685,121 @@ class ParticipanteList extends Participante
             $this->Command = "search";
         }
         $this->BasicSearch->setType(Get(Config("TABLE_BASIC_SEARCH_TYPE"), ""), false);
+    }
+
+    // Load form values
+    protected function loadFormValues()
+    {
+        // Load from form
+        global $CurrentForm;
+        $validate = !Config("SERVER_VALIDATE");
+
+        // Check field name 'ID_PARTICIPANTE' first before field var 'x_ID_PARTICIPANTE'
+        $val = $CurrentForm->hasValue("ID_PARTICIPANTE") ? $CurrentForm->getValue("ID_PARTICIPANTE") : $CurrentForm->getValue("x_ID_PARTICIPANTE");
+        if (!$this->ID_PARTICIPANTE->IsDetailKey && !$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_PARTICIPANTE->setFormValue($val);
+        }
+
+        // Check field name 'NOMBRE' first before field var 'x_NOMBRE'
+        $val = $CurrentForm->hasValue("NOMBRE") ? $CurrentForm->getValue("NOMBRE") : $CurrentForm->getValue("x_NOMBRE");
+        if (!$this->NOMBRE->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->NOMBRE->Visible = false; // Disable update for API request
+            } else {
+                $this->NOMBRE->setFormValue($val);
+            }
+        }
+
+        // Check field name 'APELLIDO' first before field var 'x_APELLIDO'
+        $val = $CurrentForm->hasValue("APELLIDO") ? $CurrentForm->getValue("APELLIDO") : $CurrentForm->getValue("x_APELLIDO");
+        if (!$this->APELLIDO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->APELLIDO->Visible = false; // Disable update for API request
+            } else {
+                $this->APELLIDO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'FECHA_NACIMIENTO' first before field var 'x_FECHA_NACIMIENTO'
+        $val = $CurrentForm->hasValue("FECHA_NACIMIENTO") ? $CurrentForm->getValue("FECHA_NACIMIENTO") : $CurrentForm->getValue("x_FECHA_NACIMIENTO");
+        if (!$this->FECHA_NACIMIENTO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->FECHA_NACIMIENTO->Visible = false; // Disable update for API request
+            } else {
+                $this->FECHA_NACIMIENTO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'CEDULA' first before field var 'x_CEDULA'
+        $val = $CurrentForm->hasValue("CEDULA") ? $CurrentForm->getValue("CEDULA") : $CurrentForm->getValue("x_CEDULA");
+        if (!$this->CEDULA->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->CEDULA->Visible = false; // Disable update for API request
+            } else {
+                $this->CEDULA->setFormValue($val);
+            }
+        }
+
+        // Check field name 'EMAIL' first before field var 'x__EMAIL'
+        $val = $CurrentForm->hasValue("EMAIL") ? $CurrentForm->getValue("EMAIL") : $CurrentForm->getValue("x__EMAIL");
+        if (!$this->_EMAIL->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->_EMAIL->Visible = false; // Disable update for API request
+            } else {
+                $this->_EMAIL->setFormValue($val);
+            }
+        }
+
+        // Check field name 'TELEFONO' first before field var 'x_TELEFONO'
+        $val = $CurrentForm->hasValue("TELEFONO") ? $CurrentForm->getValue("TELEFONO") : $CurrentForm->getValue("x_TELEFONO");
+        if (!$this->TELEFONO->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->TELEFONO->Visible = false; // Disable update for API request
+            } else {
+                $this->TELEFONO->setFormValue($val);
+            }
+        }
+
+        // Check field name 'crea_dato' first before field var 'x_crea_dato'
+        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
+        if (!$this->crea_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->crea_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->crea_dato->setFormValue($val);
+            }
+            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        }
+
+        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
+        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
+        if (!$this->modifica_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->modifica_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->modifica_dato->setFormValue($val);
+            }
+            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        }
+    }
+
+    // Restore form values
+    public function restoreFormValues()
+    {
+        global $CurrentForm;
+        if (!$this->isGridAdd() && !$this->isAdd()) {
+            $this->ID_PARTICIPANTE->CurrentValue = $this->ID_PARTICIPANTE->FormValue;
+        }
+        $this->NOMBRE->CurrentValue = $this->NOMBRE->FormValue;
+        $this->APELLIDO->CurrentValue = $this->APELLIDO->FormValue;
+        $this->FECHA_NACIMIENTO->CurrentValue = $this->FECHA_NACIMIENTO->FormValue;
+        $this->CEDULA->CurrentValue = $this->CEDULA->FormValue;
+        $this->_EMAIL->CurrentValue = $this->_EMAIL->FormValue;
+        $this->TELEFONO->CurrentValue = $this->TELEFONO->FormValue;
+        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
+        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
+        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
+        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
     }
 
     // Load recordset
@@ -1594,6 +1862,9 @@ class ParticipanteList extends Participante
         if ($row) {
             $res = true;
             $this->loadRowValues($row); // Load row values
+            if (!$this->EventCancelled) {
+                $this->HashValue = $this->getRowHash($row); // Get hash value for record
+            }
         }
         return $res;
     }
@@ -1628,6 +1899,7 @@ class ParticipanteList extends Participante
         $this->TELEFONO->setDbValue($row['TELEFONO']);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -1643,6 +1915,7 @@ class ParticipanteList extends Participante
         $row['TELEFONO'] = $this->TELEFONO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -1698,6 +1971,8 @@ class ParticipanteList extends Participante
 
         // modifica_dato
 
+        // usuario_dato
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_PARTICIPANTE
@@ -1740,6 +2015,10 @@ class ParticipanteList extends Participante
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
@@ -1785,12 +2064,471 @@ class ParticipanteList extends Participante
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+        } elseif ($this->RowType == ROWTYPE_ADD) {
+            // ID_PARTICIPANTE
+
+            // NOMBRE
+            $this->NOMBRE->setupEditAttributes();
+            $this->NOMBRE->EditCustomAttributes = "";
+            $this->NOMBRE->EditValue = HtmlEncode($this->NOMBRE->CurrentValue);
+            $this->NOMBRE->PlaceHolder = RemoveHtml($this->NOMBRE->caption());
+
+            // APELLIDO
+            $this->APELLIDO->setupEditAttributes();
+            $this->APELLIDO->EditCustomAttributes = "";
+            $this->APELLIDO->EditValue = HtmlEncode($this->APELLIDO->CurrentValue);
+            $this->APELLIDO->PlaceHolder = RemoveHtml($this->APELLIDO->caption());
+
+            // FECHA_NACIMIENTO
+            $this->FECHA_NACIMIENTO->setupEditAttributes();
+            $this->FECHA_NACIMIENTO->EditCustomAttributes = "";
+            $this->FECHA_NACIMIENTO->EditValue = HtmlEncode($this->FECHA_NACIMIENTO->CurrentValue);
+            $this->FECHA_NACIMIENTO->PlaceHolder = RemoveHtml($this->FECHA_NACIMIENTO->caption());
+
+            // CEDULA
+            $this->CEDULA->setupEditAttributes();
+            $this->CEDULA->EditCustomAttributes = "";
+            if (!$this->CEDULA->Raw) {
+                $this->CEDULA->CurrentValue = HtmlDecode($this->CEDULA->CurrentValue);
+            }
+            $this->CEDULA->EditValue = HtmlEncode($this->CEDULA->CurrentValue);
+            $this->CEDULA->PlaceHolder = RemoveHtml($this->CEDULA->caption());
+
+            // EMAIL
+            $this->_EMAIL->setupEditAttributes();
+            $this->_EMAIL->EditCustomAttributes = "";
+            $this->_EMAIL->EditValue = HtmlEncode($this->_EMAIL->CurrentValue);
+            $this->_EMAIL->PlaceHolder = RemoveHtml($this->_EMAIL->caption());
+
+            // TELEFONO
+            $this->TELEFONO->setupEditAttributes();
+            $this->TELEFONO->EditCustomAttributes = "";
+            if (!$this->TELEFONO->Raw) {
+                $this->TELEFONO->CurrentValue = HtmlDecode($this->TELEFONO->CurrentValue);
+            }
+            $this->TELEFONO->EditValue = HtmlEncode($this->TELEFONO->CurrentValue);
+            $this->TELEFONO->PlaceHolder = RemoveHtml($this->TELEFONO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
+            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
+            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+
+            // Add refer script
+
+            // ID_PARTICIPANTE
+            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
+            $this->ID_PARTICIPANTE->HrefValue = "";
+
+            // NOMBRE
+            $this->NOMBRE->LinkCustomAttributes = "";
+            $this->NOMBRE->HrefValue = "";
+
+            // APELLIDO
+            $this->APELLIDO->LinkCustomAttributes = "";
+            $this->APELLIDO->HrefValue = "";
+
+            // FECHA_NACIMIENTO
+            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
+            $this->FECHA_NACIMIENTO->HrefValue = "";
+
+            // CEDULA
+            $this->CEDULA->LinkCustomAttributes = "";
+            $this->CEDULA->HrefValue = "";
+
+            // EMAIL
+            $this->_EMAIL->LinkCustomAttributes = "";
+            $this->_EMAIL->HrefValue = "";
+
+            // TELEFONO
+            $this->TELEFONO->LinkCustomAttributes = "";
+            $this->TELEFONO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+        } elseif ($this->RowType == ROWTYPE_EDIT) {
+            // ID_PARTICIPANTE
+            $this->ID_PARTICIPANTE->setupEditAttributes();
+            $this->ID_PARTICIPANTE->EditCustomAttributes = "";
+            $this->ID_PARTICIPANTE->EditValue = $this->ID_PARTICIPANTE->CurrentValue;
+            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
+
+            // NOMBRE
+            $this->NOMBRE->setupEditAttributes();
+            $this->NOMBRE->EditCustomAttributes = "";
+            $this->NOMBRE->EditValue = HtmlEncode($this->NOMBRE->CurrentValue);
+            $this->NOMBRE->PlaceHolder = RemoveHtml($this->NOMBRE->caption());
+
+            // APELLIDO
+            $this->APELLIDO->setupEditAttributes();
+            $this->APELLIDO->EditCustomAttributes = "";
+            $this->APELLIDO->EditValue = HtmlEncode($this->APELLIDO->CurrentValue);
+            $this->APELLIDO->PlaceHolder = RemoveHtml($this->APELLIDO->caption());
+
+            // FECHA_NACIMIENTO
+            $this->FECHA_NACIMIENTO->setupEditAttributes();
+            $this->FECHA_NACIMIENTO->EditCustomAttributes = "";
+            $this->FECHA_NACIMIENTO->EditValue = HtmlEncode($this->FECHA_NACIMIENTO->CurrentValue);
+            $this->FECHA_NACIMIENTO->PlaceHolder = RemoveHtml($this->FECHA_NACIMIENTO->caption());
+
+            // CEDULA
+            $this->CEDULA->setupEditAttributes();
+            $this->CEDULA->EditCustomAttributes = "";
+            if (!$this->CEDULA->Raw) {
+                $this->CEDULA->CurrentValue = HtmlDecode($this->CEDULA->CurrentValue);
+            }
+            $this->CEDULA->EditValue = HtmlEncode($this->CEDULA->CurrentValue);
+            $this->CEDULA->PlaceHolder = RemoveHtml($this->CEDULA->caption());
+
+            // EMAIL
+            $this->_EMAIL->setupEditAttributes();
+            $this->_EMAIL->EditCustomAttributes = "";
+            $this->_EMAIL->EditValue = HtmlEncode($this->_EMAIL->CurrentValue);
+            $this->_EMAIL->PlaceHolder = RemoveHtml($this->_EMAIL->caption());
+
+            // TELEFONO
+            $this->TELEFONO->setupEditAttributes();
+            $this->TELEFONO->EditCustomAttributes = "";
+            if (!$this->TELEFONO->Raw) {
+                $this->TELEFONO->CurrentValue = HtmlDecode($this->TELEFONO->CurrentValue);
+            }
+            $this->TELEFONO->EditValue = HtmlEncode($this->TELEFONO->CurrentValue);
+            $this->TELEFONO->PlaceHolder = RemoveHtml($this->TELEFONO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->CellCssStyle .= "text-align: right;";
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->CssClass = "fst-italic";
+            $this->modifica_dato->CellCssStyle .= "text-align: right;";
+            $this->modifica_dato->ViewCustomAttributes = "";
+
+            // Edit refer script
+
+            // ID_PARTICIPANTE
+            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
+            $this->ID_PARTICIPANTE->HrefValue = "";
+
+            // NOMBRE
+            $this->NOMBRE->LinkCustomAttributes = "";
+            $this->NOMBRE->HrefValue = "";
+
+            // APELLIDO
+            $this->APELLIDO->LinkCustomAttributes = "";
+            $this->APELLIDO->HrefValue = "";
+
+            // FECHA_NACIMIENTO
+            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
+            $this->FECHA_NACIMIENTO->HrefValue = "";
+
+            // CEDULA
+            $this->CEDULA->LinkCustomAttributes = "";
+            $this->CEDULA->HrefValue = "";
+
+            // EMAIL
+            $this->_EMAIL->LinkCustomAttributes = "";
+            $this->_EMAIL->HrefValue = "";
+
+            // TELEFONO
+            $this->TELEFONO->LinkCustomAttributes = "";
+            $this->TELEFONO->HrefValue = "";
+
+            // crea_dato
+            $this->crea_dato->LinkCustomAttributes = "";
+            $this->crea_dato->HrefValue = "";
+            $this->crea_dato->TooltipValue = "";
+
+            // modifica_dato
+            $this->modifica_dato->LinkCustomAttributes = "";
+            $this->modifica_dato->HrefValue = "";
+            $this->modifica_dato->TooltipValue = "";
+        }
+        if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
+            $this->setupFieldTitles();
         }
 
         // Call Row Rendered event
         if ($this->RowType != ROWTYPE_AGGREGATEINIT) {
             $this->rowRendered();
         }
+    }
+
+    // Validate form
+    protected function validateForm()
+    {
+        global $Language;
+
+        // Check if validation required
+        if (!Config("SERVER_VALIDATE")) {
+            return true;
+        }
+        $validateForm = true;
+        if ($this->ID_PARTICIPANTE->Required) {
+            if (!$this->ID_PARTICIPANTE->IsDetailKey && EmptyValue($this->ID_PARTICIPANTE->FormValue)) {
+                $this->ID_PARTICIPANTE->addErrorMessage(str_replace("%s", $this->ID_PARTICIPANTE->caption(), $this->ID_PARTICIPANTE->RequiredErrorMessage));
+            }
+        }
+        if ($this->NOMBRE->Required) {
+            if (!$this->NOMBRE->IsDetailKey && EmptyValue($this->NOMBRE->FormValue)) {
+                $this->NOMBRE->addErrorMessage(str_replace("%s", $this->NOMBRE->caption(), $this->NOMBRE->RequiredErrorMessage));
+            }
+        }
+        if ($this->APELLIDO->Required) {
+            if (!$this->APELLIDO->IsDetailKey && EmptyValue($this->APELLIDO->FormValue)) {
+                $this->APELLIDO->addErrorMessage(str_replace("%s", $this->APELLIDO->caption(), $this->APELLIDO->RequiredErrorMessage));
+            }
+        }
+        if ($this->FECHA_NACIMIENTO->Required) {
+            if (!$this->FECHA_NACIMIENTO->IsDetailKey && EmptyValue($this->FECHA_NACIMIENTO->FormValue)) {
+                $this->FECHA_NACIMIENTO->addErrorMessage(str_replace("%s", $this->FECHA_NACIMIENTO->caption(), $this->FECHA_NACIMIENTO->RequiredErrorMessage));
+            }
+        }
+        if ($this->CEDULA->Required) {
+            if (!$this->CEDULA->IsDetailKey && EmptyValue($this->CEDULA->FormValue)) {
+                $this->CEDULA->addErrorMessage(str_replace("%s", $this->CEDULA->caption(), $this->CEDULA->RequiredErrorMessage));
+            }
+        }
+        if ($this->_EMAIL->Required) {
+            if (!$this->_EMAIL->IsDetailKey && EmptyValue($this->_EMAIL->FormValue)) {
+                $this->_EMAIL->addErrorMessage(str_replace("%s", $this->_EMAIL->caption(), $this->_EMAIL->RequiredErrorMessage));
+            }
+        }
+        if ($this->TELEFONO->Required) {
+            if (!$this->TELEFONO->IsDetailKey && EmptyValue($this->TELEFONO->FormValue)) {
+                $this->TELEFONO->addErrorMessage(str_replace("%s", $this->TELEFONO->caption(), $this->TELEFONO->RequiredErrorMessage));
+            }
+        }
+        if ($this->crea_dato->Required) {
+            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
+                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->modifica_dato->Required) {
+            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
+                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+
+        // Return validate result
+        $validateForm = $validateForm && !$this->hasInvalidFields();
+
+        // Call Form_CustomValidate event
+        $formCustomError = "";
+        $validateForm = $validateForm && $this->formCustomValidate($formCustomError);
+        if ($formCustomError != "") {
+            $this->setFailureMessage($formCustomError);
+        }
+        return $validateForm;
+    }
+
+    // Update record based on key values
+    protected function editRow()
+    {
+        global $Security, $Language;
+        $oldKeyFilter = $this->getRecordFilter();
+        $filter = $this->applyUserIDFilters($oldKeyFilter);
+        $conn = $this->getConnection();
+
+        // Load old row
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $rsold = $conn->fetchAssociative($sql);
+        if (!$rsold) {
+            $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
+            return false; // Update Failed
+        } else {
+            // Save old values
+            $this->loadDbValues($rsold);
+        }
+
+        // Set new row
+        $rsnew = [];
+
+        // NOMBRE
+        $this->NOMBRE->setDbValueDef($rsnew, $this->NOMBRE->CurrentValue, null, $this->NOMBRE->ReadOnly);
+
+        // APELLIDO
+        $this->APELLIDO->setDbValueDef($rsnew, $this->APELLIDO->CurrentValue, null, $this->APELLIDO->ReadOnly);
+
+        // FECHA_NACIMIENTO
+        $this->FECHA_NACIMIENTO->setDbValueDef($rsnew, $this->FECHA_NACIMIENTO->CurrentValue, null, $this->FECHA_NACIMIENTO->ReadOnly);
+
+        // CEDULA
+        $this->CEDULA->setDbValueDef($rsnew, $this->CEDULA->CurrentValue, null, $this->CEDULA->ReadOnly);
+
+        // EMAIL
+        $this->_EMAIL->setDbValueDef($rsnew, $this->_EMAIL->CurrentValue, null, $this->_EMAIL->ReadOnly);
+
+        // TELEFONO
+        $this->TELEFONO->setDbValueDef($rsnew, $this->TELEFONO->CurrentValue, null, $this->TELEFONO->ReadOnly);
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+
+        // Call Row Updating event
+        $updateRow = $this->rowUpdating($rsold, $rsnew);
+        if ($updateRow) {
+            if (count($rsnew) > 0) {
+                $this->CurrentFilter = $filter; // Set up current filter
+                $editRow = $this->update($rsnew, "", $rsold);
+            } else {
+                $editRow = true; // No field to update
+            }
+            if ($editRow) {
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("UpdateCancelled"));
+            }
+            $editRow = false;
+        }
+
+        // Call Row_Updated event
+        if ($editRow) {
+            $this->rowUpdated($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($editRow) {
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $editRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $editRow;
+    }
+
+    // Load row hash
+    protected function loadRowHash()
+    {
+        $filter = $this->getRecordFilter();
+
+        // Load SQL based on filter
+        $this->CurrentFilter = $filter;
+        $sql = $this->getCurrentSql();
+        $conn = $this->getConnection();
+        $row = $conn->fetchAssociative($sql);
+        $this->HashValue = $row ? $this->getRowHash($row) : ""; // Get hash value for record
+    }
+
+    // Get Row Hash
+    public function getRowHash(&$rs)
+    {
+        if (!$rs) {
+            return "";
+        }
+        $row = ($rs instanceof Recordset) ? $rs->fields : $rs;
+        $hash = "";
+        $hash .= GetFieldHash($row['NOMBRE']); // NOMBRE
+        $hash .= GetFieldHash($row['APELLIDO']); // APELLIDO
+        $hash .= GetFieldHash($row['FECHA_NACIMIENTO']); // FECHA_NACIMIENTO
+        $hash .= GetFieldHash($row['CEDULA']); // CEDULA
+        $hash .= GetFieldHash($row['EMAIL']); // EMAIL
+        $hash .= GetFieldHash($row['TELEFONO']); // TELEFONO
+        return md5($hash);
+    }
+
+    // Add record
+    protected function addRow($rsold = null)
+    {
+        global $Language, $Security;
+
+        // Set new row
+        $rsnew = [];
+
+        // NOMBRE
+        $this->NOMBRE->setDbValueDef($rsnew, $this->NOMBRE->CurrentValue, null, false);
+
+        // APELLIDO
+        $this->APELLIDO->setDbValueDef($rsnew, $this->APELLIDO->CurrentValue, null, false);
+
+        // FECHA_NACIMIENTO
+        $this->FECHA_NACIMIENTO->setDbValueDef($rsnew, $this->FECHA_NACIMIENTO->CurrentValue, null, false);
+
+        // CEDULA
+        $this->CEDULA->setDbValueDef($rsnew, $this->CEDULA->CurrentValue, null, false);
+
+        // EMAIL
+        $this->_EMAIL->setDbValueDef($rsnew, $this->_EMAIL->CurrentValue, null, false);
+
+        // TELEFONO
+        $this->TELEFONO->setDbValueDef($rsnew, $this->TELEFONO->CurrentValue, null, false);
+
+        // crea_dato
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+
+        // modifica_dato
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+
+        // Update current values
+        $this->setCurrentValues($rsnew);
+        $conn = $this->getConnection();
+
+        // Load db values from old row
+        $this->loadDbValues($rsold);
+        if ($rsold) {
+        }
+
+        // Call Row Inserting event
+        $insertRow = $this->rowInserting($rsold, $rsnew);
+        if ($insertRow) {
+            $addRow = $this->insert($rsnew);
+            if ($addRow) {
+            }
+        } else {
+            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
+                // Use the message, do nothing
+            } elseif ($this->CancelMessage != "") {
+                $this->setFailureMessage($this->CancelMessage);
+                $this->CancelMessage = "";
+            } else {
+                $this->setFailureMessage($Language->phrase("InsertCancelled"));
+            }
+            $addRow = false;
+        }
+        if ($addRow) {
+            // Call Row Inserted event
+            $this->rowInserted($rsold, $rsnew);
+        }
+
+        // Clean upload path if any
+        if ($addRow) {
+        }
+
+        // Write JSON for API request
+        if (IsApi() && $addRow) {
+            $row = $this->getRecordsFromRecordset([$rsnew], true);
+            WriteJson(["success" => true, $this->TableVar => $row]);
+        }
+        return $addRow;
     }
 
     // Set up search options

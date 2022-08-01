@@ -8,7 +8,7 @@ namespace PHPMaker2022\project11;
 $USER_LEVELS = [["-2","Anonymous"]];
 // User level priv info
 $USER_LEVEL_PRIVS = [["{1FEE5CED-11BB-4991-94A0-946354AE0202}audittrail","-2","0"],
-    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}encuesta","-2","0"],
+    ["{1FEE5CED-11BB-4991-94A0-946354AE0202}pronosticador","-2","0"],
     ["{1FEE5CED-11BB-4991-94A0-946354AE0202}equipo","-2","0"],
     ["{1FEE5CED-11BB-4991-94A0-946354AE0202}equipotorneo","-2","0"],
     ["{1FEE5CED-11BB-4991-94A0-946354AE0202}participante","-2","0"],
@@ -18,7 +18,7 @@ $USER_LEVEL_PRIVS = [["{1FEE5CED-11BB-4991-94A0-946354AE0202}audittrail","-2","0
     ["{1FEE5CED-11BB-4991-94A0-946354AE0202}estadio","-2","0"]];
 // User level table info
 $USER_LEVEL_TABLES = [["audittrail","audittrail","audittrail",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}",""],
-    ["encuesta","encuesta","Encuesta",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","encuestalist"],
+    ["pronosticador","pronosticador","Encuesta",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","pronosticadorlist"],
     ["equipo","equipo","Equipo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","equipolist"],
     ["equipotorneo","equipotorneo","Equipo Torneo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","equipotorneolist"],
     ["participante","participante","Participante",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","participantelist"],

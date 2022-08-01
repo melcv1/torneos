@@ -7,20 +7,20 @@ use Slim\Routing\RouteCollectorProxy;
 
 // Handle Routes
 return function (App $app) {
-    // encuesta
-    $app->map(["GET","POST","OPTIONS"], '/encuestalist[/{ID_ENCUESTA}]', EncuestaController::class . ':list')->add(PermissionMiddleware::class)->setName('encuestalist-encuesta-list'); // list
-    $app->map(["GET","POST","OPTIONS"], '/encuestaadd[/{ID_ENCUESTA}]', EncuestaController::class . ':add')->add(PermissionMiddleware::class)->setName('encuestaadd-encuesta-add'); // add
-    $app->map(["GET","POST","OPTIONS"], '/encuestaview[/{ID_ENCUESTA}]', EncuestaController::class . ':view')->add(PermissionMiddleware::class)->setName('encuestaview-encuesta-view'); // view
-    $app->map(["GET","POST","OPTIONS"], '/encuestaedit[/{ID_ENCUESTA}]', EncuestaController::class . ':edit')->add(PermissionMiddleware::class)->setName('encuestaedit-encuesta-edit'); // edit
-    $app->map(["GET","POST","OPTIONS"], '/encuestadelete[/{ID_ENCUESTA}]', EncuestaController::class . ':delete')->add(PermissionMiddleware::class)->setName('encuestadelete-encuesta-delete'); // delete
+    // pronosticador
+    $app->map(["GET","POST","OPTIONS"], '/pronosticadorlist[/{ID_ENCUESTA}]', PronosticadorController::class . ':list')->add(PermissionMiddleware::class)->setName('pronosticadorlist-pronosticador-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/pronosticadoradd[/{ID_ENCUESTA}]', PronosticadorController::class . ':add')->add(PermissionMiddleware::class)->setName('pronosticadoradd-pronosticador-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/pronosticadorview[/{ID_ENCUESTA}]', PronosticadorController::class . ':view')->add(PermissionMiddleware::class)->setName('pronosticadorview-pronosticador-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/pronosticadoredit[/{ID_ENCUESTA}]', PronosticadorController::class . ':edit')->add(PermissionMiddleware::class)->setName('pronosticadoredit-pronosticador-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/pronosticadordelete[/{ID_ENCUESTA}]', PronosticadorController::class . ':delete')->add(PermissionMiddleware::class)->setName('pronosticadordelete-pronosticador-delete'); // delete
     $app->group(
-        '/encuesta',
+        '/pronosticador',
         function (RouteCollectorProxy $group) {
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("LIST_ACTION") . '[/{ID_ENCUESTA}]', EncuestaController::class . ':list')->add(PermissionMiddleware::class)->setName('encuesta/list-encuesta-list-2'); // list
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("ADD_ACTION") . '[/{ID_ENCUESTA}]', EncuestaController::class . ':add')->add(PermissionMiddleware::class)->setName('encuesta/add-encuesta-add-2'); // add
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("VIEW_ACTION") . '[/{ID_ENCUESTA}]', EncuestaController::class . ':view')->add(PermissionMiddleware::class)->setName('encuesta/view-encuesta-view-2'); // view
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("EDIT_ACTION") . '[/{ID_ENCUESTA}]', EncuestaController::class . ':edit')->add(PermissionMiddleware::class)->setName('encuesta/edit-encuesta-edit-2'); // edit
-            $group->map(["GET","POST","OPTIONS"], '/' . Config("DELETE_ACTION") . '[/{ID_ENCUESTA}]', EncuestaController::class . ':delete')->add(PermissionMiddleware::class)->setName('encuesta/delete-encuesta-delete-2'); // delete
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("LIST_ACTION") . '[/{ID_ENCUESTA}]', PronosticadorController::class . ':list')->add(PermissionMiddleware::class)->setName('pronosticador/list-pronosticador-list-2'); // list
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("ADD_ACTION") . '[/{ID_ENCUESTA}]', PronosticadorController::class . ':add')->add(PermissionMiddleware::class)->setName('pronosticador/add-pronosticador-add-2'); // add
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("VIEW_ACTION") . '[/{ID_ENCUESTA}]', PronosticadorController::class . ':view')->add(PermissionMiddleware::class)->setName('pronosticador/view-pronosticador-view-2'); // view
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("EDIT_ACTION") . '[/{ID_ENCUESTA}]', PronosticadorController::class . ':edit')->add(PermissionMiddleware::class)->setName('pronosticador/edit-pronosticador-edit-2'); // edit
+            $group->map(["GET","POST","OPTIONS"], '/' . Config("DELETE_ACTION") . '[/{ID_ENCUESTA}]', PronosticadorController::class . ':delete')->add(PermissionMiddleware::class)->setName('pronosticador/delete-pronosticador-delete-2'); // delete
         }
     );
 

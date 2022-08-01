@@ -128,11 +128,18 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
         return $response;
     });
       $app->post('/v1/agregar', function ($request, $response, $args) {
-      	$data = $request->getParsedBody();
+      	$p2 = json_encode($request->getParsedBody());
+        $p= json_decode($p2);
         $conn = Conn();
           $conn = getConnection();
-               var_dump($conn);
-      		return $response;
+           $consulta = $conn->prepare("insert into encuesta(ID_PARTICIPANTE,GRUPO, EQUIPO, POSICION) values (:ID_PARTICIPANTE,:GRUPO,:EQUIPO,:POSICION)");
+           $estado = $consulta->execute(array(':ID_PARTICIPANTE' => $p->ID_PARTICIPANTE, ':GRUPO' => $p->GRUPO, ':EQUIPO' => $p->EQUIPO, ':POSICION' => $p->POSICION));
+           if ($estado) {
+            $response = $response->withJson( json_encode(array('mensaje' => 'Datos insertados correctamente. ')));
+          } else {
+            $response = $response->withJson( json_encode(array('mensaje' => 'Fallo ')));
+             }    
+           return $response;
     });
 }
 

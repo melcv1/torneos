@@ -530,6 +530,7 @@ class ParticipanteView extends Participante
         $this->TELEFONO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -756,6 +757,7 @@ class ParticipanteView extends Participante
         $this->TELEFONO->setDbValue($row['TELEFONO']);
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
+        $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
     // Return a row with default values
@@ -771,6 +773,7 @@ class ParticipanteView extends Participante
         $row['TELEFONO'] = $this->TELEFONO->DefaultValue;
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
+        $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
         return $row;
     }
 
@@ -809,6 +812,8 @@ class ParticipanteView extends Participante
         // crea_dato
 
         // modifica_dato
+
+        // usuario_dato
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
@@ -852,6 +857,10 @@ class ParticipanteView extends Participante
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
+
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
@@ -897,6 +906,11 @@ class ParticipanteView extends Participante
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

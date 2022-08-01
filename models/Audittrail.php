@@ -49,6 +49,7 @@ class Audittrail extends DbTable
     public $keyvalue;
     public $oldvalue;
     public $newvalue;
+    public $PRUE;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -312,6 +313,31 @@ class Audittrail extends DbTable
         );
         $this->newvalue->InputTextType = "text";
         $this->Fields['newvalue'] = &$this->newvalue;
+
+        // PRUE
+        $this->PRUE = new DbField(
+            'audittrail',
+            'audittrail',
+            'x_PRUE',
+            'PRUE',
+            '`PRUE`',
+            '`PRUE`',
+            3,
+            11,
+            -1,
+            false,
+            '`PRUE`',
+            false,
+            false,
+            false,
+            'FORMATTED TEXT',
+            'TEXT'
+        );
+        $this->PRUE->InputTextType = "text";
+        $this->PRUE->Nullable = false; // NOT NULL field
+        $this->PRUE->Required = true; // Required field
+        $this->PRUE->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->Fields['PRUE'] = &$this->PRUE;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -767,6 +793,7 @@ class Audittrail extends DbTable
         $this->keyvalue->DbValue = $row['keyvalue'];
         $this->oldvalue->DbValue = $row['oldvalue'];
         $this->newvalue->DbValue = $row['newvalue'];
+        $this->PRUE->DbValue = $row['PRUE'];
     }
 
     // Delete uploaded files
@@ -1095,6 +1122,7 @@ class Audittrail extends DbTable
         $this->keyvalue->setDbValue($row['keyvalue']);
         $this->oldvalue->setDbValue($row['oldvalue']);
         $this->newvalue->setDbValue($row['newvalue']);
+        $this->PRUE->setDbValue($row['PRUE']);
     }
 
     // Render list row values
@@ -1126,6 +1154,8 @@ class Audittrail extends DbTable
         // oldvalue
 
         // newvalue
+
+        // PRUE
 
         // id
         $this->id->ViewValue = $this->id->CurrentValue;
@@ -1167,6 +1197,11 @@ class Audittrail extends DbTable
         // newvalue
         $this->newvalue->ViewValue = $this->newvalue->CurrentValue;
         $this->newvalue->ViewCustomAttributes = "";
+
+        // PRUE
+        $this->PRUE->ViewValue = $this->PRUE->CurrentValue;
+        $this->PRUE->ViewValue = FormatNumber($this->PRUE->ViewValue, $this->PRUE->formatPattern());
+        $this->PRUE->ViewCustomAttributes = "";
 
         // id
         $this->id->LinkCustomAttributes = "";
@@ -1217,6 +1252,11 @@ class Audittrail extends DbTable
         $this->newvalue->LinkCustomAttributes = "";
         $this->newvalue->HrefValue = "";
         $this->newvalue->TooltipValue = "";
+
+        // PRUE
+        $this->PRUE->LinkCustomAttributes = "";
+        $this->PRUE->HrefValue = "";
+        $this->PRUE->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1308,6 +1348,15 @@ class Audittrail extends DbTable
         $this->newvalue->EditValue = $this->newvalue->CurrentValue;
         $this->newvalue->PlaceHolder = RemoveHtml($this->newvalue->caption());
 
+        // PRUE
+        $this->PRUE->setupEditAttributes();
+        $this->PRUE->EditCustomAttributes = "";
+        $this->PRUE->EditValue = $this->PRUE->CurrentValue;
+        $this->PRUE->PlaceHolder = RemoveHtml($this->PRUE->caption());
+        if (strval($this->PRUE->EditValue) != "" && is_numeric($this->PRUE->EditValue)) {
+            $this->PRUE->EditValue = FormatNumber($this->PRUE->EditValue, null);
+        }
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1346,6 +1395,7 @@ class Audittrail extends DbTable
                     $doc->exportCaption($this->keyvalue);
                     $doc->exportCaption($this->oldvalue);
                     $doc->exportCaption($this->newvalue);
+                    $doc->exportCaption($this->PRUE);
                 } else {
                     $doc->exportCaption($this->id);
                     $doc->exportCaption($this->datetime);
@@ -1354,6 +1404,7 @@ class Audittrail extends DbTable
                     $doc->exportCaption($this->_action);
                     $doc->exportCaption($this->_table);
                     $doc->exportCaption($this->field);
+                    $doc->exportCaption($this->PRUE);
                 }
                 $doc->endExportRow();
             }
@@ -1393,6 +1444,7 @@ class Audittrail extends DbTable
                         $doc->exportField($this->keyvalue);
                         $doc->exportField($this->oldvalue);
                         $doc->exportField($this->newvalue);
+                        $doc->exportField($this->PRUE);
                     } else {
                         $doc->exportField($this->id);
                         $doc->exportField($this->datetime);
@@ -1401,6 +1453,7 @@ class Audittrail extends DbTable
                         $doc->exportField($this->_action);
                         $doc->exportField($this->_table);
                         $doc->exportField($this->field);
+                        $doc->exportField($this->PRUE);
                     }
                     $doc->endExportRow($rowCnt);
                 }

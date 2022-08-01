@@ -36,6 +36,7 @@ return [
         if (Config("DEBUG")) {
             $loggers[] = $c->get("debugstack");
         }
+        $loggers[] = $c->get("debugsqllogger");
         return (count($loggers) > 0) ? new LoggerChain($loggers) : null;
     },
     "csrf" => function (ContainerInterface $c) {
@@ -52,7 +53,7 @@ return [
 
     // Tables
     "audittrail" => \DI\create(Audittrail::class),
-    "encuesta" => \DI\create(Encuesta::class),
+    "pronosticador" => \DI\create(Pronosticador::class),
     "equipo" => \DI\create(Equipo::class),
     "equipotorneo" => \DI\create(Equipotorneo::class),
     "participante" => \DI\create(Participante::class),

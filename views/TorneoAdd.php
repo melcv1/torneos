@@ -77,7 +77,7 @@ $Page->showMessage();
         <label id="elh_torneo_NOM_TORNEO_LARGO" for="x_NOM_TORNEO_LARGO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NOM_TORNEO_LARGO->caption() ?><?= $Page->NOM_TORNEO_LARGO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NOM_TORNEO_LARGO->cellAttributes() ?>>
 <span id="el_torneo_NOM_TORNEO_LARGO">
-<textarea data-table="torneo" data-field="x_NOM_TORNEO_LARGO" name="x_NOM_TORNEO_LARGO" id="x_NOM_TORNEO_LARGO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->NOM_TORNEO_LARGO->getPlaceHolder()) ?>"<?= $Page->NOM_TORNEO_LARGO->editAttributes() ?> aria-describedby="x_NOM_TORNEO_LARGO_help"><?= $Page->NOM_TORNEO_LARGO->EditValue ?></textarea>
+<textarea data-table="torneo" data-field="x_NOM_TORNEO_LARGO" name="x_NOM_TORNEO_LARGO" id="x_NOM_TORNEO_LARGO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->NOM_TORNEO_LARGO->getPlaceHolder()) ?>"<?= $Page->NOM_TORNEO_LARGO->editAttributes() ?> aria-describedby="x_NOM_TORNEO_LARGO_help"><?= $Page->NOM_TORNEO_LARGO->EditValue ?></textarea>
 <?= $Page->NOM_TORNEO_LARGO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NOM_TORNEO_LARGO->getErrorMessage() ?></div>
 </span>
@@ -89,7 +89,7 @@ $Page->showMessage();
         <label id="elh_torneo_PAIS_TORNEO" for="x_PAIS_TORNEO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->PAIS_TORNEO->caption() ?><?= $Page->PAIS_TORNEO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->PAIS_TORNEO->cellAttributes() ?>>
 <span id="el_torneo_PAIS_TORNEO">
-<textarea data-table="torneo" data-field="x_PAIS_TORNEO" name="x_PAIS_TORNEO" id="x_PAIS_TORNEO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->PAIS_TORNEO->getPlaceHolder()) ?>"<?= $Page->PAIS_TORNEO->editAttributes() ?> aria-describedby="x_PAIS_TORNEO_help"><?= $Page->PAIS_TORNEO->EditValue ?></textarea>
+<textarea data-table="torneo" data-field="x_PAIS_TORNEO" name="x_PAIS_TORNEO" id="x_PAIS_TORNEO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->PAIS_TORNEO->getPlaceHolder()) ?>"<?= $Page->PAIS_TORNEO->editAttributes() ?> aria-describedby="x_PAIS_TORNEO_help"><?= $Page->PAIS_TORNEO->EditValue ?></textarea>
 <?= $Page->PAIS_TORNEO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->PAIS_TORNEO->getErrorMessage() ?></div>
 </span>
@@ -101,7 +101,7 @@ $Page->showMessage();
         <label id="elh_torneo_REGION_TORNEO" for="x_REGION_TORNEO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->REGION_TORNEO->caption() ?><?= $Page->REGION_TORNEO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->REGION_TORNEO->cellAttributes() ?>>
 <span id="el_torneo_REGION_TORNEO">
-<textarea data-table="torneo" data-field="x_REGION_TORNEO" name="x_REGION_TORNEO" id="x_REGION_TORNEO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->REGION_TORNEO->getPlaceHolder()) ?>"<?= $Page->REGION_TORNEO->editAttributes() ?> aria-describedby="x_REGION_TORNEO_help"><?= $Page->REGION_TORNEO->EditValue ?></textarea>
+<textarea data-table="torneo" data-field="x_REGION_TORNEO" name="x_REGION_TORNEO" id="x_REGION_TORNEO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->REGION_TORNEO->getPlaceHolder()) ?>"<?= $Page->REGION_TORNEO->editAttributes() ?> aria-describedby="x_REGION_TORNEO_help"><?= $Page->REGION_TORNEO->EditValue ?></textarea>
 <?= $Page->REGION_TORNEO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->REGION_TORNEO->getErrorMessage() ?></div>
 </span>
@@ -113,7 +113,7 @@ $Page->showMessage();
         <label id="elh_torneo_DETALLE_TORNEO" for="x_DETALLE_TORNEO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->DETALLE_TORNEO->caption() ?><?= $Page->DETALLE_TORNEO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->DETALLE_TORNEO->cellAttributes() ?>>
 <span id="el_torneo_DETALLE_TORNEO">
-<textarea data-table="torneo" data-field="x_DETALLE_TORNEO" name="x_DETALLE_TORNEO" id="x_DETALLE_TORNEO" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->DETALLE_TORNEO->getPlaceHolder()) ?>"<?= $Page->DETALLE_TORNEO->editAttributes() ?> aria-describedby="x_DETALLE_TORNEO_help"><?= $Page->DETALLE_TORNEO->EditValue ?></textarea>
+<textarea data-table="torneo" data-field="x_DETALLE_TORNEO" name="x_DETALLE_TORNEO" id="x_DETALLE_TORNEO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->DETALLE_TORNEO->getPlaceHolder()) ?>"<?= $Page->DETALLE_TORNEO->editAttributes() ?> aria-describedby="x_DETALLE_TORNEO_help"><?= $Page->DETALLE_TORNEO->EditValue ?></textarea>
 <?= $Page->DETALLE_TORNEO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->DETALLE_TORNEO->getErrorMessage() ?></div>
 </span>
