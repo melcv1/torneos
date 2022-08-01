@@ -1763,3 +1763,6 @@
 [2022-08-01T23:01:20.322935+00:00] log.DEBUG: SELECT `ID_EQUIPO` AS `lf`, `NOM_EQUIPO_LARGO` AS `df`, '' AS `df2`, '' AS `df3`, '' AS `df4` FROM `equipo` {"params":[],"types":[],"executionMS":0.00020003318786621094} []
 [2022-08-01T23:01:20.338346+00:00] log.DEBUG: SELECT COUNT(*) FROM `equipotorneo` {"params":[],"types":[],"executionMS":0.0002818107604980469} []
 [2022-08-01T23:01:20.341730+00:00] log.DEBUG: SELECT * FROM `equipotorneo` LIMIT 20 {"params":[],"types":[],"executionMS":0.0002200603485107422} []
+[2022-08-01T23:18:57.993574+00:00] log.DEBUG: Row Updated [] []
+[2022-08-01T23:20:28.799968+00:00] log.DEBUG: Row Updated [] []
+[2022-08-01T23:36:54.522014+00:00] log.DEBUG: Row Updated [] []

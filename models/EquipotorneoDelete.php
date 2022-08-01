@@ -409,7 +409,7 @@ class EquipotorneoDelete extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
-        $this->usuario_dato->Visible = false;
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -792,6 +792,10 @@ class EquipotorneoDelete extends Equipotorneo
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // ID_EQUIPO_TORNEO
             $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
             $this->ID_EQUIPO_TORNEO->HrefValue = "";
@@ -861,6 +865,11 @@ class EquipotorneoDelete extends Equipotorneo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         }
 
         // Call Row Rendered event

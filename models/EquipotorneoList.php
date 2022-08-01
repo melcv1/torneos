@@ -605,7 +605,7 @@ class EquipotorneoList extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setVisibility();
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
-        $this->usuario_dato->Visible = false;
+        $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -1290,6 +1290,7 @@ class EquipotorneoList extends Equipotorneo
             $this->updateSort($this->POSICION_EQUIPO_TORENO); // POSICION_EQUIPO_TORENO
             $this->updateSort($this->crea_dato); // crea_dato
             $this->updateSort($this->modifica_dato); // modifica_dato
+            $this->updateSort($this->usuario_dato); // usuario_dato
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1567,6 +1568,7 @@ class EquipotorneoList extends Equipotorneo
             $option->add("POSICION_EQUIPO_TORENO", $this->createColumnOption("POSICION_EQUIPO_TORENO"));
             $option->add("crea_dato", $this->createColumnOption("crea_dato"));
             $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
+            $option->add("usuario_dato", $this->createColumnOption("usuario_dato"));
         }
 
         // Set up options default
@@ -1896,6 +1898,16 @@ class EquipotorneoList extends Equipotorneo
             }
             $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
         }
+
+        // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
+        $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
+        if (!$this->usuario_dato->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->usuario_dato->Visible = false; // Disable update for API request
+            } else {
+                $this->usuario_dato->setFormValue($val);
+            }
+        }
     }
 
     // Restore form values
@@ -1920,6 +1932,7 @@ class EquipotorneoList extends Equipotorneo
         $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
         $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
         $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
+        $this->usuario_dato->CurrentValue = $this->usuario_dato->FormValue;
     }
 
     // Load recordset
@@ -2228,6 +2241,10 @@ class EquipotorneoList extends Equipotorneo
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // ID_EQUIPO_TORNEO
             $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
             $this->ID_EQUIPO_TORNEO->HrefValue = "";
@@ -2297,6 +2314,11 @@ class EquipotorneoList extends Equipotorneo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // ID_EQUIPO_TORNEO
 
@@ -2397,6 +2419,15 @@ class EquipotorneoList extends Equipotorneo
             $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
             $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
 
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            if (!$this->usuario_dato->Raw) {
+                $this->usuario_dato->CurrentValue = HtmlDecode($this->usuario_dato->CurrentValue);
+            }
+            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
+            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
+
             // Add refer script
 
             // ID_EQUIPO_TORNEO
@@ -2454,6 +2485,10 @@ class EquipotorneoList extends Equipotorneo
             // modifica_dato
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_EQUIPO_TORNEO
             $this->ID_EQUIPO_TORNEO->setupEditAttributes();
@@ -2610,6 +2645,12 @@ class EquipotorneoList extends Equipotorneo
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
             $this->modifica_dato->ViewCustomAttributes = "";
 
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
+            $this->usuario_dato->ViewCustomAttributes = "";
+
             // Edit refer script
 
             // ID_EQUIPO_TORNEO
@@ -2669,6 +2710,11 @@ class EquipotorneoList extends Equipotorneo
             $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
+
+            // usuario_dato
+            $this->usuario_dato->LinkCustomAttributes = "";
+            $this->usuario_dato->HrefValue = "";
+            $this->usuario_dato->TooltipValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -2779,6 +2825,11 @@ class EquipotorneoList extends Equipotorneo
         if ($this->modifica_dato->Required) {
             if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
                 $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
+            }
+        }
+        if ($this->usuario_dato->Required) {
+            if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {
+                $this->usuario_dato->addErrorMessage(str_replace("%s", $this->usuario_dato->caption(), $this->usuario_dato->RequiredErrorMessage));
             }
         }
 
@@ -2974,6 +3025,9 @@ class EquipotorneoList extends Equipotorneo
 
         // modifica_dato
         $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+
+        // usuario_dato
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "", strval($this->usuario_dato->CurrentValue ?? "") == "");
 
         // Update current values
         $this->setCurrentValues($rsnew);
