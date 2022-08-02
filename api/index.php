@@ -90,7 +90,7 @@ $app->addBodyParsingMiddleware();
 
 // Add CORS middleware
 $app->add(new CorsMiddleware([
-    
+    "Access-Control-Allow-Origin" => "*",
     "Access-Control-Allow-Headers" => "X-Requested-With, Origin, X-Authorization"
 ]));
 

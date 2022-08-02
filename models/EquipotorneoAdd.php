@@ -520,6 +520,7 @@ class EquipotorneoAdd extends Equipotorneo
         $this->setupLookupOptions($this->ID_TORNEO);
         $this->setupLookupOptions($this->ID_EQUIPO);
         $this->setupLookupOptions($this->GRUPO);
+        $this->setupLookupOptions($this->POSICION_EQUIPO_TORENO);
 
         // Load default values for add
         $this->loadDefaultValues();
@@ -1058,7 +1059,11 @@ class EquipotorneoAdd extends Equipotorneo
             $this->GRUPO->ViewCustomAttributes = "";
 
             // POSICION_EQUIPO_TORENO
-            $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
+            if (strval($this->POSICION_EQUIPO_TORENO->CurrentValue) != "") {
+                $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->optionCaption($this->POSICION_EQUIPO_TORENO->CurrentValue);
+            } else {
+                $this->POSICION_EQUIPO_TORENO->ViewValue = null;
+            }
             $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
             // crea_dato
@@ -1247,7 +1252,7 @@ class EquipotorneoAdd extends Equipotorneo
             // POSICION_EQUIPO_TORENO
             $this->POSICION_EQUIPO_TORENO->setupEditAttributes();
             $this->POSICION_EQUIPO_TORENO->EditCustomAttributes = "";
-            $this->POSICION_EQUIPO_TORENO->EditValue = HtmlEncode($this->POSICION_EQUIPO_TORENO->CurrentValue);
+            $this->POSICION_EQUIPO_TORENO->EditValue = $this->POSICION_EQUIPO_TORENO->options(true);
             $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
 
             // Add refer script
@@ -1518,6 +1523,8 @@ class EquipotorneoAdd extends Equipotorneo
                 case "x_ID_EQUIPO":
                     break;
                 case "x_GRUPO":
+                    break;
+                case "x_POSICION_EQUIPO_TORENO":
                     break;
                 default:
                     $lookupFilter = "";

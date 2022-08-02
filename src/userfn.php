@@ -127,15 +127,6 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
          $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.GRUPO FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO"));
         return $response;
     });
-    $app->get('/v1/equipo/{NOM_EQUIPO_CORTO}', function ($request, $response, $args) {
-
-        $NOM_EQUIPO_CORTO = $args["NOM_EQUIPO_CORTO"] ?? null; // Get the input value
-        if ($NOM_EQUIPO_CORTO !== null) {
-         
-            $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.GRUPO FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO WHERE a.NOM_EQUIPO_CORTO = '" . AdjustSql($NOM_EQUIPO_CORTO) . "'"));
-        }    
-        return $response;
-    });
       $app->post('/v1/agregar', function ($request, $response, $args) {
       	$p2 = json_encode($request->getParsedBody());
         $p= json_decode($p2);
@@ -149,6 +140,13 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
             $response = $response->withJson( json_encode(array('mensaje' => 'Fallo ')));
              }    
            return $response;
+    });
+    $app->get('/v1/equipo/{NOM_EQUIPO_CORTO}', function ($request, $response, $args) {
+        $NOM_EQUIPO_CORTO = $args["NOM_EQUIPO_CORTO"] ?? null; // Get the input value
+        if ($NOM_EQUIPO_CORTO !== null) {
+            $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.GRUPO FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO WHERE a.NOM_EQUIPO_CORTO = '" . AdjustSql($NOM_EQUIPO_CORTO) . "'"));
+        }    
+        return $response;
     });
 }
 

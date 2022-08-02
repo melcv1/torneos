@@ -429,6 +429,7 @@ class EquipotorneoDelete extends Equipotorneo
         $this->setupLookupOptions($this->ID_TORNEO);
         $this->setupLookupOptions($this->ID_EQUIPO);
         $this->setupLookupOptions($this->GRUPO);
+        $this->setupLookupOptions($this->POSICION_EQUIPO_TORENO);
 
         // Set up Breadcrumb
         $this->setupBreadcrumb();
@@ -775,7 +776,11 @@ class EquipotorneoDelete extends Equipotorneo
             $this->GRUPO->ViewCustomAttributes = "";
 
             // POSICION_EQUIPO_TORENO
-            $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
+            if (strval($this->POSICION_EQUIPO_TORENO->CurrentValue) != "") {
+                $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->optionCaption($this->POSICION_EQUIPO_TORENO->CurrentValue);
+            } else {
+                $this->POSICION_EQUIPO_TORENO->ViewValue = null;
+            }
             $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
             // crea_dato
@@ -995,6 +1000,8 @@ class EquipotorneoDelete extends Equipotorneo
                 case "x_ID_EQUIPO":
                     break;
                 case "x_GRUPO":
+                    break;
+                case "x_POSICION_EQUIPO_TORENO":
                     break;
                 default:
                     $lookupFilter = "";

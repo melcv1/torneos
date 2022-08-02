@@ -15,7 +15,7 @@ final class CorsMiddleware implements MiddlewareInterface
 {
     public $Config;
     protected $Default = [
-        
+        "Access-Control-Allow-Origin" => "*",
         "Access-Control-Allow-Headers" => "",
         "Access-Control-Allow-Methods" => "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Credentials" => true
@@ -44,7 +44,10 @@ final class CorsMiddleware implements MiddlewareInterface
         $response = $handler->handle($request);
         $headers = array_keys($this->Config);
 
-        
+        // Access-Control-Allow-Origin
+        if (in_array("Access-Control-Allow-Origin", $headers)) {
+            $response = $response->withHeader("Access-Control-Allow-Origin", $this->Config["Access-Control-Allow-Origin"] ?: "*");
+        }
 
         // Access-Control-Allow-Methods
         if (in_array("Access-Control-Allow-Methods", $headers)) {

@@ -386,9 +386,20 @@ class Equipotorneo extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'SELECT'
         );
         $this->POSICION_EQUIPO_TORENO->InputTextType = "text";
+        $this->POSICION_EQUIPO_TORENO->UsePleaseSelect = true; // Use PleaseSelect by default
+        $this->POSICION_EQUIPO_TORENO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        switch ($CurrentLanguage) {
+            case "en-US":
+                $this->POSICION_EQUIPO_TORENO->Lookup = new Lookup('POSICION_EQUIPO_TORENO', 'equipotorneo', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                break;
+            default:
+                $this->POSICION_EQUIPO_TORENO->Lookup = new Lookup('POSICION_EQUIPO_TORENO', 'equipotorneo', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                break;
+        }
+        $this->POSICION_EQUIPO_TORENO->OptionCount = 5;
         $this->Fields['POSICION_EQUIPO_TORENO'] = &$this->POSICION_EQUIPO_TORENO;
 
         // crea_dato
@@ -1380,7 +1391,11 @@ class Equipotorneo extends DbTable
         $this->GRUPO->ViewCustomAttributes = "";
 
         // POSICION_EQUIPO_TORENO
-        $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
+        if (strval($this->POSICION_EQUIPO_TORENO->CurrentValue) != "") {
+            $this->POSICION_EQUIPO_TORENO->ViewValue = $this->POSICION_EQUIPO_TORENO->optionCaption($this->POSICION_EQUIPO_TORENO->CurrentValue);
+        } else {
+            $this->POSICION_EQUIPO_TORENO->ViewValue = null;
+        }
         $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
         // crea_dato
@@ -1579,7 +1594,7 @@ class Equipotorneo extends DbTable
         // POSICION_EQUIPO_TORENO
         $this->POSICION_EQUIPO_TORENO->setupEditAttributes();
         $this->POSICION_EQUIPO_TORENO->EditCustomAttributes = "";
-        $this->POSICION_EQUIPO_TORENO->EditValue = $this->POSICION_EQUIPO_TORENO->CurrentValue;
+        $this->POSICION_EQUIPO_TORENO->EditValue = $this->POSICION_EQUIPO_TORENO->options(true);
         $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
 
         // crea_dato

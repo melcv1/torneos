@@ -1323,7 +1323,7 @@ class UploadHandler
     }
 
     protected function send_access_control_headers() {
-     //   $this->header('Access-Control-Allow-Origin: '.$this->options['access_control_allow_origin']);
+        $this->header('Access-Control-Allow-Origin: '.$this->options['access_control_allow_origin']);
         $this->header('Access-Control-Allow-Credentials: '
             .($this->options['access_control_allow_credentials'] ? 'true' : 'false'));
         $this->header('Access-Control-Allow-Methods: '

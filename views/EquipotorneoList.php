@@ -52,6 +52,7 @@ loadjs.ready(["wrapper", "head"], function () {
     fequipotorneolist.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
     fequipotorneolist.lists.ID_EQUIPO = <?= $Page->ID_EQUIPO->toClientList($Page) ?>;
     fequipotorneolist.lists.GRUPO = <?= $Page->GRUPO->toClientList($Page) ?>;
+    fequipotorneolist.lists.POSICION_EQUIPO_TORENO = <?= $Page->POSICION_EQUIPO_TORENO->toClientList($Page) ?>;
     loadjs.done("fequipotorneolist");
 });
 var fequipotorneosrch, currentSearchForm, currentAdvancedSearchForm;
@@ -560,8 +561,34 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="POSICION_EQUIPO_TORENO"<?= $Page->POSICION_EQUIPO_TORENO->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_POSICION_EQUIPO_TORENO" class="el_equipotorneo_POSICION_EQUIPO_TORENO">
-<textarea data-table="equipotorneo" data-field="x_POSICION_EQUIPO_TORENO" name="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" id="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" cols="35" rows="1" placeholder="<?= HtmlEncode($Page->POSICION_EQUIPO_TORENO->getPlaceHolder()) ?>"<?= $Page->POSICION_EQUIPO_TORENO->editAttributes() ?>><?= $Page->POSICION_EQUIPO_TORENO->EditValue ?></textarea>
-<div class="invalid-feedback"><?= $Page->POSICION_EQUIPO_TORENO->getErrorMessage() ?></div>
+    <select
+        id="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
+        name="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
+        class="form-select ew-select<?= $Page->POSICION_EQUIPO_TORENO->isInvalidClass() ?>"
+        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
+        data-table="equipotorneo"
+        data-field="x_POSICION_EQUIPO_TORENO"
+        data-value-separator="<?= $Page->POSICION_EQUIPO_TORENO->displayValueSeparatorAttribute() ?>"
+        data-placeholder="<?= HtmlEncode($Page->POSICION_EQUIPO_TORENO->getPlaceHolder()) ?>"
+        <?= $Page->POSICION_EQUIPO_TORENO->editAttributes() ?>>
+        <?= $Page->POSICION_EQUIPO_TORENO->selectOptionListHtml("x{$Page->RowIndex}_POSICION_EQUIPO_TORENO") ?>
+    </select>
+    <div class="invalid-feedback"><?= $Page->POSICION_EQUIPO_TORENO->getErrorMessage() ?></div>
+<script>
+loadjs.ready("fequipotorneolist", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" },
+        el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
+    if (fequipotorneolist.lists.POSICION_EQUIPO_TORENO.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", form: "fequipotorneolist" };
+    } else {
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+    }
+    options.minimumResultsForSearch = Infinity;
+    options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.POSICION_EQUIPO_TORENO.selectOptions);
+    ew.createSelect(options);
+});
+</script>
 </span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
