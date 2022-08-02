@@ -18,7 +18,7 @@ $USER_LEVEL_PRIVS = [["{1FEE5CED-11BB-4991-94A0-946354AE0202}audittrail","-2","0
     ["{1FEE5CED-11BB-4991-94A0-946354AE0202}estadio","-2","0"]];
 // User level table info
 $USER_LEVEL_TABLES = [["audittrail","audittrail","audittrail",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}",""],
-    ["pronosticador","pronosticador","Encuesta",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","pronosticadorlist"],
+    ["pronosticador","pronosticador","Pronosticador",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","pronosticadorlist"],
     ["equipo","equipo","Equipo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","equipolist"],
     ["equipotorneo","equipotorneo","Equipo Torneo",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","equipotorneolist"],
     ["participante","participante","Participante",true,"{1FEE5CED-11BB-4991-94A0-946354AE0202}","participantelist"],
