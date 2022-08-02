@@ -675,6 +675,7 @@ class PartidosAdd extends Partidos
         $this->GOLES_EXTRA_EQUIPO2->DefaultValue = 0;
         $this->ESTADO_PARTIDO->DefaultValue = "Por jugar";
         $this->usuario_dato->DefaultValue = "admin";
+        $this->actualizado->DefaultValue = 0;
     }
 
     // Load form values
