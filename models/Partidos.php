@@ -2185,7 +2185,7 @@ class Partidos extends DbTable
                   $sql = "
                SELECT * FROM equipotorneo
                  WHERE ID_EQUIPO='". $id_equipo_local. "' ; ";
-                 $response= ExecuteRow($sql);
+                // $response= ExecuteRow($sql);
                 $goles_favor_local=$response["GF"];
                 $goles_contra_local=$response["GC"];
                 $goles_diferencia_local=$response["GD"];
@@ -2198,7 +2198,7 @@ class Partidos extends DbTable
                  $sql2 = "
                SELECT * FROM equipotorneo
                  WHERE ID_EQUIPO='". $id_equipo_visitante. "' ; ";
-                 $response= ExecuteRow($sql2);
+               //  $response= ExecuteRow($sql2);
                 $goles_favor_visitante=$response["GF"];
                 $goles_contra_visitante=$response["GC"];
                 $goles_diferencia_visitante=$response["GD"];
@@ -2230,41 +2230,41 @@ class Partidos extends DbTable
                     $partidos_empatados_local++;
                     $partidos_empatados_visitante++;
                 }    
-                 $sql_local = "
-                 UPDATE equipotorneo
-                 SET
-                PARTIDOS_JUGADOS = '". $partidos_jugados_local. "',
-                PARTIDOS_GANADOS = '". $partidos_ganados_local. "', 
-                PARTIDOS_EMPATADOS = '". $partidos_empatados_local. "', 
-                PARTIDOS_PERDIDOS = '". $partidos_perdidos_local. "',
-                GF = '". $goles_favor_local. "',
-                GC = '".  $goles_contra_local. "',
-                GD = '".  $goles_diferencia_local. "'
-                WHERE ID_EQUIPO ='". $id_equipo_local. "';
-                ";
-                 Execute($sql_local);
-                 $sql_visitante = "
-                 UPDATE equipotorneo
-                 SET
-                PARTIDOS_JUGADOS = '". $partidos_jugados_visitante. "',
-                PARTIDOS_GANADOS = '". $partidos_ganados_visitante. "', 
-                PARTIDOS_EMPATADOS = '". $partidos_empatados_visitante. "', 
-                PARTIDOS_PERDIDOS = '". $partidos_perdidos_visitante. "',
-                GF = '". $goles_favor_visitante. "',
-                GC = '".  $goles_contra_visitante. "',
-                GD = '".  $goles_diferencia_visitante. "'
-                WHERE ID_EQUIPO ='". $id_equipo_visitante. "';
-                ";
-                 Execute($sql_visitante);
-                     $sql_final = "
-                     UPDATE partidos
-                     SET
-                    actualizado = '1'                
-                    WHERE ID_PARTIDO ='".  $this->ID_PARTIDO->CurrentValue. "';
-                    ";
-                     Execute( $sql_final);
-                     $this->setSuccessMessage("Actualizado automáticamente");
-                }
+                //  $sql_local = "
+                //  UPDATE equipotorneo
+                //  SET
+                // PARTIDOS_JUGADOS = '". $partidos_jugados_local. "',
+                // PARTIDOS_GANADOS = '". $partidos_ganados_local. "', 
+                // PARTIDOS_EMPATADOS = '". $partidos_empatados_local. "', 
+                // PARTIDOS_PERDIDOS = '". $partidos_perdidos_local. "',
+                // GF = '". $goles_favor_local. "',
+                // GC = '".  $goles_contra_local. "',
+                // GD = '".  $goles_diferencia_local. "'
+                // WHERE ID_EQUIPO ='". $id_equipo_local. "';
+                // ";
+                //  Execute($sql_local);
+                //  $sql_visitante = "
+                //  UPDATE equipotorneo
+                //  SET
+                // PARTIDOS_JUGADOS = '". $partidos_jugados_visitante. "',
+                // PARTIDOS_GANADOS = '". $partidos_ganados_visitante. "', 
+                // PARTIDOS_EMPATADOS = '". $partidos_empatados_visitante. "', 
+                // PARTIDOS_PERDIDOS = '". $partidos_perdidos_visitante. "',
+                // GF = '". $goles_favor_visitante. "',
+                // GC = '".  $goles_contra_visitante. "',
+                // GD = '".  $goles_diferencia_visitante. "'
+                // WHERE ID_EQUIPO ='". $id_equipo_visitante. "';
+                // ";
+                //  Execute($sql_visitante);
+                //      $sql_final = "
+                //      UPDATE partidos
+                //      SET
+                //     actualizado = '1'                
+                //     WHERE ID_PARTIDO ='".  $this->ID_PARTIDO->CurrentValue. "';
+                //     ";
+                //      Execute( $sql_final);
+                //      $this->setSuccessMessage("Actualizado automáticamente");
+                 }
     }
 
     // Row Update Conflict event
