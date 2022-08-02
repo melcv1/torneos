@@ -29,13 +29,13 @@ loadjs.ready(["wrapper", "head"], function () {
         ["CIUDAD_PARTIDO", [fields.CIUDAD_PARTIDO.visible && fields.CIUDAD_PARTIDO.required ? ew.Validators.required(fields.CIUDAD_PARTIDO.caption) : null], fields.CIUDAD_PARTIDO.isInvalid],
         ["PAIS_PARTIDO", [fields.PAIS_PARTIDO.visible && fields.PAIS_PARTIDO.required ? ew.Validators.required(fields.PAIS_PARTIDO.caption) : null], fields.PAIS_PARTIDO.isInvalid],
         ["GOLES_LOCAL", [fields.GOLES_LOCAL.visible && fields.GOLES_LOCAL.required ? ew.Validators.required(fields.GOLES_LOCAL.caption) : null, ew.Validators.integer], fields.GOLES_LOCAL.isInvalid],
-        ["GOLES_VISITANTE", [fields.GOLES_VISITANTE.visible && fields.GOLES_VISITANTE.required ? ew.Validators.required(fields.GOLES_VISITANTE.caption) : null, ew.Validators.integer], fields.GOLES_VISITANTE.isInvalid],
         ["GOLES_EXTRA_EQUIPO1", [fields.GOLES_EXTRA_EQUIPO1.visible && fields.GOLES_EXTRA_EQUIPO1.required ? ew.Validators.required(fields.GOLES_EXTRA_EQUIPO1.caption) : null, ew.Validators.integer], fields.GOLES_EXTRA_EQUIPO1.isInvalid],
         ["GOLES_EXTRA_EQUIPO2", [fields.GOLES_EXTRA_EQUIPO2.visible && fields.GOLES_EXTRA_EQUIPO2.required ? ew.Validators.required(fields.GOLES_EXTRA_EQUIPO2.caption) : null, ew.Validators.integer], fields.GOLES_EXTRA_EQUIPO2.isInvalid],
         ["NOTA_PARTIDO", [fields.NOTA_PARTIDO.visible && fields.NOTA_PARTIDO.required ? ew.Validators.required(fields.NOTA_PARTIDO.caption) : null], fields.NOTA_PARTIDO.isInvalid],
         ["RESUMEN_PARTIDO", [fields.RESUMEN_PARTIDO.visible && fields.RESUMEN_PARTIDO.required ? ew.Validators.required(fields.RESUMEN_PARTIDO.caption) : null], fields.RESUMEN_PARTIDO.isInvalid],
         ["ESTADO_PARTIDO", [fields.ESTADO_PARTIDO.visible && fields.ESTADO_PARTIDO.required ? ew.Validators.required(fields.ESTADO_PARTIDO.caption) : null], fields.ESTADO_PARTIDO.isInvalid],
-        ["automatico", [fields.automatico.visible && fields.automatico.required ? ew.Validators.required(fields.automatico.caption) : null], fields.automatico.isInvalid]
+        ["automatico", [fields.automatico.visible && fields.automatico.required ? ew.Validators.required(fields.automatico.caption) : null], fields.automatico.isInvalid],
+        ["actualizado", [fields.actualizado.visible && fields.actualizado.required ? ew.Validators.required(fields.actualizado.caption) : null], fields.actualizado.isInvalid]
     ]);
 
     // Form_CustomValidate
@@ -350,18 +350,6 @@ loadjs.ready("fpartidosadd", function() {
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->GOLES_VISITANTE->Visible) { // GOLES_VISITANTE ?>
-    <div id="r_GOLES_VISITANTE"<?= $Page->GOLES_VISITANTE->rowAttributes() ?>>
-        <label id="elh_partidos_GOLES_VISITANTE" for="x_GOLES_VISITANTE" class="<?= $Page->LeftColumnClass ?>"><?= $Page->GOLES_VISITANTE->caption() ?><?= $Page->GOLES_VISITANTE->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->GOLES_VISITANTE->cellAttributes() ?>>
-<span id="el_partidos_GOLES_VISITANTE">
-<input type="<?= $Page->GOLES_VISITANTE->getInputTextType() ?>" name="x_GOLES_VISITANTE" id="x_GOLES_VISITANTE" data-table="partidos" data-field="x_GOLES_VISITANTE" value="<?= $Page->GOLES_VISITANTE->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GOLES_VISITANTE->getPlaceHolder()) ?>"<?= $Page->GOLES_VISITANTE->editAttributes() ?> aria-describedby="x_GOLES_VISITANTE_help">
-<?= $Page->GOLES_VISITANTE->getCustomMessage() ?>
-<div class="invalid-feedback"><?= $Page->GOLES_VISITANTE->getErrorMessage() ?></div>
-</span>
-</div></div>
-    </div>
-<?php } ?>
 <?php if ($Page->GOLES_EXTRA_EQUIPO1->Visible) { // GOLES_EXTRA_EQUIPO1 ?>
     <div id="r_GOLES_EXTRA_EQUIPO1"<?= $Page->GOLES_EXTRA_EQUIPO1->rowAttributes() ?>>
         <label id="elh_partidos_GOLES_EXTRA_EQUIPO1" for="x_GOLES_EXTRA_EQUIPO1" class="<?= $Page->LeftColumnClass ?>"><?= $Page->GOLES_EXTRA_EQUIPO1->caption() ?><?= $Page->GOLES_EXTRA_EQUIPO1->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
@@ -454,7 +442,7 @@ loadjs.ready("fpartidosadd", function() {
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->automatico->cellAttributes() ?>>
 <span id="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_823373" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_631079" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 <?= $Page->automatico->getCustomMessage() ?>
@@ -462,6 +450,9 @@ loadjs.ready("fpartidosadd", function() {
 </div></div>
     </div>
 <?php } ?>
+    <span id="el_partidos_actualizado">
+    <input type="hidden" data-table="partidos" data-field="x_actualizado" data-hidden="1" name="x_actualizado" id="x_actualizado" value="<?= HtmlEncode($Page->actualizado->CurrentValue) ?>">
+    </span>
 </div><!-- /page* -->
 <?php if (!$Page->IsModal) { ?>
 <div class="row"><!-- buttons .row -->

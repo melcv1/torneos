@@ -640,11 +640,10 @@ class Partidos extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXTAREA'
+            'HIDDEN'
         );
         $this->actualizado->InputTextType = "text";
         $this->actualizado->Nullable = false; // NOT NULL field
-        $this->actualizado->Required = true; // Required field
         $this->Fields['actualizado'] = &$this->actualizado;
 
         // Add Doctrine Cache
@@ -1942,8 +1941,6 @@ class Partidos extends DbTable
         // actualizado
         $this->actualizado->setupEditAttributes();
         $this->actualizado->EditCustomAttributes = "";
-        $this->actualizado->EditValue = $this->actualizado->CurrentValue;
-        $this->actualizado->ViewCustomAttributes = "";
 
         // Call Row Rendered event
         $this->rowRendered();

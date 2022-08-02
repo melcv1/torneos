@@ -507,7 +507,7 @@ loadjs.ready("fpartidosedit", function() {
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->automatico->cellAttributes() ?>>
 <span id="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_534483" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_169591" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 <?= $Page->automatico->getCustomMessage() ?>
@@ -515,19 +515,10 @@ loadjs.ready("fpartidosedit", function() {
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->actualizado->Visible) { // actualizado ?>
-    <div id="r_actualizado"<?= $Page->actualizado->rowAttributes() ?>>
-        <label id="elh_partidos_actualizado" for="x_actualizado" class="<?= $Page->LeftColumnClass ?>"><?= $Page->actualizado->caption() ?><?= $Page->actualizado->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->actualizado->cellAttributes() ?>>
-<span id="el_partidos_actualizado">
-<span<?= $Page->actualizado->viewAttributes() ?>>
-<?= $Page->actualizado->EditValue ?></span>
-</span>
-<input type="hidden" data-table="partidos" data-field="x_actualizado" data-hidden="1" name="x_actualizado" id="x_actualizado" value="<?= HtmlEncode($Page->actualizado->CurrentValue) ?>">
-</div></div>
-    </div>
-<?php } ?>
 </div><!-- /page* -->
+<span id="el_partidos_actualizado">
+<input type="hidden" data-table="partidos" data-field="x_actualizado" data-hidden="1" name="x_actualizado" id="x_actualizado" value="<?= HtmlEncode($Page->actualizado->CurrentValue) ?>">
+</span>
 <?php if (!$Page->IsModal) { ?>
 <div class="row"><!-- buttons .row -->
     <div class="<?= $Page->OffsetColumnClass ?>"><!-- buttons offset -->

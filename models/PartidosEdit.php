@@ -515,7 +515,6 @@ class PartidosEdit extends Partidos
         $this->hideFieldsForAddEdit();
         $this->crea_dato->Required = false;
         $this->modifica_dato->Required = false;
-        $this->actualizado->Required = false;
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -1680,8 +1679,6 @@ class PartidosEdit extends Partidos
             // actualizado
             $this->actualizado->setupEditAttributes();
             $this->actualizado->EditCustomAttributes = "";
-            $this->actualizado->EditValue = $this->actualizado->CurrentValue;
-            $this->actualizado->ViewCustomAttributes = "";
 
             // Edit refer script
 

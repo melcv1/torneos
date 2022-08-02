@@ -496,7 +496,7 @@ class PartidosAdd extends Partidos
         $this->CIUDAD_PARTIDO->setVisibility();
         $this->PAIS_PARTIDO->setVisibility();
         $this->GOLES_LOCAL->setVisibility();
-        $this->GOLES_VISITANTE->setVisibility();
+        $this->GOLES_VISITANTE->Visible = false;
         $this->GOLES_EXTRA_EQUIPO1->setVisibility();
         $this->GOLES_EXTRA_EQUIPO2->setVisibility();
         $this->NOTA_PARTIDO->setVisibility();
@@ -506,7 +506,7 @@ class PartidosAdd extends Partidos
         $this->modifica_dato->Visible = false;
         $this->usuario_dato->Visible = false;
         $this->automatico->setVisibility();
-        $this->actualizado->Visible = false;
+        $this->actualizado->setVisibility();
         $this->hideFieldsForAddEdit();
 
         // Set lookup cache
@@ -675,7 +675,7 @@ class PartidosAdd extends Partidos
         $this->GOLES_EXTRA_EQUIPO2->DefaultValue = 0;
         $this->ESTADO_PARTIDO->DefaultValue = "Por jugar";
         $this->usuario_dato->DefaultValue = "admin";
-        $this->actualizado->DefaultValue = 0;
+        $this->actualizado->DefaultValue = "0";
     }
 
     // Load form values
@@ -777,16 +777,6 @@ class PartidosAdd extends Partidos
             }
         }
 
-        // Check field name 'GOLES_VISITANTE' first before field var 'x_GOLES_VISITANTE'
-        $val = $CurrentForm->hasValue("GOLES_VISITANTE") ? $CurrentForm->getValue("GOLES_VISITANTE") : $CurrentForm->getValue("x_GOLES_VISITANTE");
-        if (!$this->GOLES_VISITANTE->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->GOLES_VISITANTE->Visible = false; // Disable update for API request
-            } else {
-                $this->GOLES_VISITANTE->setFormValue($val, true, $validate);
-            }
-        }
-
         // Check field name 'GOLES_EXTRA_EQUIPO1' first before field var 'x_GOLES_EXTRA_EQUIPO1'
         $val = $CurrentForm->hasValue("GOLES_EXTRA_EQUIPO1") ? $CurrentForm->getValue("GOLES_EXTRA_EQUIPO1") : $CurrentForm->getValue("x_GOLES_EXTRA_EQUIPO1");
         if (!$this->GOLES_EXTRA_EQUIPO1->IsDetailKey) {
@@ -847,6 +837,16 @@ class PartidosAdd extends Partidos
             }
         }
 
+        // Check field name 'actualizado' first before field var 'x_actualizado'
+        $val = $CurrentForm->hasValue("actualizado") ? $CurrentForm->getValue("actualizado") : $CurrentForm->getValue("x_actualizado");
+        if (!$this->actualizado->IsDetailKey) {
+            if (IsApi() && $val === null) {
+                $this->actualizado->Visible = false; // Disable update for API request
+            } else {
+                $this->actualizado->setFormValue($val);
+            }
+        }
+
         // Check field name 'ID_PARTIDO' first before field var 'x_ID_PARTIDO'
         $val = $CurrentForm->hasValue("ID_PARTIDO") ? $CurrentForm->getValue("ID_PARTIDO") : $CurrentForm->getValue("x_ID_PARTIDO");
     }
@@ -866,13 +866,13 @@ class PartidosAdd extends Partidos
         $this->CIUDAD_PARTIDO->CurrentValue = $this->CIUDAD_PARTIDO->FormValue;
         $this->PAIS_PARTIDO->CurrentValue = $this->PAIS_PARTIDO->FormValue;
         $this->GOLES_LOCAL->CurrentValue = $this->GOLES_LOCAL->FormValue;
-        $this->GOLES_VISITANTE->CurrentValue = $this->GOLES_VISITANTE->FormValue;
         $this->GOLES_EXTRA_EQUIPO1->CurrentValue = $this->GOLES_EXTRA_EQUIPO1->FormValue;
         $this->GOLES_EXTRA_EQUIPO2->CurrentValue = $this->GOLES_EXTRA_EQUIPO2->FormValue;
         $this->NOTA_PARTIDO->CurrentValue = $this->NOTA_PARTIDO->FormValue;
         $this->RESUMEN_PARTIDO->CurrentValue = $this->RESUMEN_PARTIDO->FormValue;
         $this->ESTADO_PARTIDO->CurrentValue = $this->ESTADO_PARTIDO->FormValue;
         $this->automatico->CurrentValue = $this->automatico->FormValue;
+        $this->actualizado->CurrentValue = $this->actualizado->FormValue;
     }
 
     /**
@@ -1302,10 +1302,6 @@ class PartidosAdd extends Partidos
             $this->GOLES_LOCAL->LinkCustomAttributes = "";
             $this->GOLES_LOCAL->HrefValue = "";
 
-            // GOLES_VISITANTE
-            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
-            $this->GOLES_VISITANTE->HrefValue = "";
-
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO1->HrefValue = "";
@@ -1329,6 +1325,11 @@ class PartidosAdd extends Partidos
             // automatico
             $this->automatico->LinkCustomAttributes = "";
             $this->automatico->HrefValue = "";
+
+            // actualizado
+            $this->actualizado->LinkCustomAttributes = "";
+            $this->actualizado->HrefValue = "";
+            $this->actualizado->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // ID_TORNEO
             $this->ID_TORNEO->setupEditAttributes();
@@ -1503,15 +1504,6 @@ class PartidosAdd extends Partidos
                 $this->GOLES_LOCAL->EditValue = FormatNumber($this->GOLES_LOCAL->EditValue, null);
             }
 
-            // GOLES_VISITANTE
-            $this->GOLES_VISITANTE->setupEditAttributes();
-            $this->GOLES_VISITANTE->EditCustomAttributes = "";
-            $this->GOLES_VISITANTE->EditValue = HtmlEncode($this->GOLES_VISITANTE->CurrentValue);
-            $this->GOLES_VISITANTE->PlaceHolder = RemoveHtml($this->GOLES_VISITANTE->caption());
-            if (strval($this->GOLES_VISITANTE->EditValue) != "" && is_numeric($this->GOLES_VISITANTE->EditValue)) {
-                $this->GOLES_VISITANTE->EditValue = FormatNumber($this->GOLES_VISITANTE->EditValue, null);
-            }
-
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->setupEditAttributes();
             $this->GOLES_EXTRA_EQUIPO1->EditCustomAttributes = "";
@@ -1553,6 +1545,11 @@ class PartidosAdd extends Partidos
             $this->automatico->EditValue = $this->automatico->options(false);
             $this->automatico->PlaceHolder = RemoveHtml($this->automatico->caption());
 
+            // actualizado
+            $this->actualizado->setupEditAttributes();
+            $this->actualizado->EditCustomAttributes = "";
+            $this->actualizado->CurrentValue = "0";
+
             // Add refer script
 
             // ID_TORNEO
@@ -1591,10 +1588,6 @@ class PartidosAdd extends Partidos
             $this->GOLES_LOCAL->LinkCustomAttributes = "";
             $this->GOLES_LOCAL->HrefValue = "";
 
-            // GOLES_VISITANTE
-            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
-            $this->GOLES_VISITANTE->HrefValue = "";
-
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO1->HrefValue = "";
@@ -1618,6 +1611,10 @@ class PartidosAdd extends Partidos
             // automatico
             $this->automatico->LinkCustomAttributes = "";
             $this->automatico->HrefValue = "";
+
+            // actualizado
+            $this->actualizado->LinkCustomAttributes = "";
+            $this->actualizado->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1693,14 +1690,6 @@ class PartidosAdd extends Partidos
         if (!CheckInteger($this->GOLES_LOCAL->FormValue)) {
             $this->GOLES_LOCAL->addErrorMessage($this->GOLES_LOCAL->getErrorMessage(false));
         }
-        if ($this->GOLES_VISITANTE->Required) {
-            if (!$this->GOLES_VISITANTE->IsDetailKey && EmptyValue($this->GOLES_VISITANTE->FormValue)) {
-                $this->GOLES_VISITANTE->addErrorMessage(str_replace("%s", $this->GOLES_VISITANTE->caption(), $this->GOLES_VISITANTE->RequiredErrorMessage));
-            }
-        }
-        if (!CheckInteger($this->GOLES_VISITANTE->FormValue)) {
-            $this->GOLES_VISITANTE->addErrorMessage($this->GOLES_VISITANTE->getErrorMessage(false));
-        }
         if ($this->GOLES_EXTRA_EQUIPO1->Required) {
             if (!$this->GOLES_EXTRA_EQUIPO1->IsDetailKey && EmptyValue($this->GOLES_EXTRA_EQUIPO1->FormValue)) {
                 $this->GOLES_EXTRA_EQUIPO1->addErrorMessage(str_replace("%s", $this->GOLES_EXTRA_EQUIPO1->caption(), $this->GOLES_EXTRA_EQUIPO1->RequiredErrorMessage));
@@ -1735,6 +1724,11 @@ class PartidosAdd extends Partidos
         if ($this->automatico->Required) {
             if ($this->automatico->FormValue == "") {
                 $this->automatico->addErrorMessage(str_replace("%s", $this->automatico->caption(), $this->automatico->RequiredErrorMessage));
+            }
+        }
+        if ($this->actualizado->Required) {
+            if (!$this->actualizado->IsDetailKey && EmptyValue($this->actualizado->FormValue)) {
+                $this->actualizado->addErrorMessage(str_replace("%s", $this->actualizado->caption(), $this->actualizado->RequiredErrorMessage));
             }
         }
 
@@ -1785,9 +1779,6 @@ class PartidosAdd extends Partidos
         // GOLES_LOCAL
         $this->GOLES_LOCAL->setDbValueDef($rsnew, $this->GOLES_LOCAL->CurrentValue, null, strval($this->GOLES_LOCAL->CurrentValue ?? "") == "");
 
-        // GOLES_VISITANTE
-        $this->GOLES_VISITANTE->setDbValueDef($rsnew, $this->GOLES_VISITANTE->CurrentValue, null, strval($this->GOLES_VISITANTE->CurrentValue ?? "") == "");
-
         // GOLES_EXTRA_EQUIPO1
         $this->GOLES_EXTRA_EQUIPO1->setDbValueDef($rsnew, $this->GOLES_EXTRA_EQUIPO1->CurrentValue, null, strval($this->GOLES_EXTRA_EQUIPO1->CurrentValue ?? "") == "");
 
@@ -1809,6 +1800,9 @@ class PartidosAdd extends Partidos
             $tmpBool = !empty($tmpBool) ? "1" : "0";
         }
         $this->automatico->setDbValueDef($rsnew, $tmpBool, 0, false);
+
+        // actualizado
+        $this->actualizado->setDbValueDef($rsnew, $this->actualizado->CurrentValue, "", false);
 
         // Update current values
         $this->setCurrentValues($rsnew);

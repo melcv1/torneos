@@ -1835,7 +1835,7 @@ class PartidosList extends Partidos
         $this->GOLES_EXTRA_EQUIPO2->DefaultValue = 0;
         $this->ESTADO_PARTIDO->DefaultValue = "Por jugar";
         $this->usuario_dato->DefaultValue = "admin";
-        $this->actualizado->DefaultValue = 0;
+        $this->actualizado->DefaultValue = "0";
     }
 
     // Load basic search values
@@ -2749,8 +2749,7 @@ class PartidosList extends Partidos
             // actualizado
             $this->actualizado->setupEditAttributes();
             $this->actualizado->EditCustomAttributes = "";
-            $this->actualizado->EditValue = HtmlEncode($this->actualizado->CurrentValue);
-            $this->actualizado->PlaceHolder = RemoveHtml($this->actualizado->caption());
+            $this->actualizado->CurrentValue = "0";
 
             // Add refer script
 
@@ -3090,8 +3089,6 @@ class PartidosList extends Partidos
             // actualizado
             $this->actualizado->setupEditAttributes();
             $this->actualizado->EditCustomAttributes = "";
-            $this->actualizado->EditValue = $this->actualizado->CurrentValue;
-            $this->actualizado->ViewCustomAttributes = "";
 
             // Edit refer script
 
