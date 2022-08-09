@@ -1742,6 +1742,10 @@ class EquipotorneoList extends Equipotorneo
     // Load default values
     protected function loadDefaultValues()
     {
+        $this->PARTIDOS_JUGADOS->DefaultValue = 0;
+        $this->PARTIDOS_GANADOS->DefaultValue = 0;
+        $this->PARTIDOS_EMPATADOS->DefaultValue = 0;
+        $this->PARTIDOS_PERDIDOS->DefaultValue = 0;
         $this->GF->DefaultValue = 0;
         $this->GC->DefaultValue = 0;
         $this->GD->DefaultValue = 0;
