@@ -538,7 +538,7 @@ loadjs.ready("fpartidoslist", function() {
     } else {
         options.ajax = { id: "x<?= $Page->RowIndex ?>_equipo_local", form: "fpartidoslist", limit: ew.LOOKUP_PAGE_SIZE };
     }
-    options.minimumResultsForSearch = Infinity;
+    options.minimumInputLength = ew.selectMinimumInputLength;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.equipo_local.selectOptions);
     ew.createSelect(options);
 });
@@ -972,7 +972,7 @@ loadjs.ready("fpartidoslist", function() {
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_automatico" class="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x<?= $Page->RowIndex ?>_automatico[]" id="x<?= $Page->RowIndex ?>_automatico_645921" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?>>
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x<?= $Page->RowIndex ?>_automatico[]" id="x<?= $Page->RowIndex ?>_automatico_281078" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?>>
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 </span>

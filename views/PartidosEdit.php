@@ -156,7 +156,7 @@ loadjs.ready("fpartidosedit", function() {
     } else {
         options.ajax = { id: "x_equipo_local", form: "fpartidosedit", limit: ew.LOOKUP_PAGE_SIZE };
     }
-    options.minimumResultsForSearch = Infinity;
+    options.minimumInputLength = ew.selectMinimumInputLength;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.partidos.fields.equipo_local.selectOptions);
     ew.createSelect(options);
 });
@@ -504,7 +504,7 @@ loadjs.ready("fpartidosedit", function() {
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->automatico->cellAttributes() ?>>
 <span id="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_182048" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_688387" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 <?= $Page->automatico->getCustomMessage() ?>
