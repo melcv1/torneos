@@ -49,7 +49,6 @@ class Audittrail extends DbTable
     public $keyvalue;
     public $oldvalue;
     public $newvalue;
-    public $PRUE;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -313,35 +312,6 @@ class Audittrail extends DbTable
         );
         $this->newvalue->InputTextType = "text";
         $this->Fields['newvalue'] = &$this->newvalue;
-
-        // PRUE
-        $this->PRUE = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_PRUE',
-            'PRUE',
-            '`PRUE`',
-            '`PRUE`',
-            3,
-            11,
-            -1,
-            false,
-            '`PRUE`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
-        );
-        $this->PRUE->InputTextType = "text";
-        $this->PRUE->Nullable = false; // NOT NULL field
-        $this->PRUE->Sortable = false; // Allow sort
-        $this->PRUE->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
-        $this->PRUE->AdvancedSearch->SearchValueDefault = 1;
-        $this->PRUE->AdvancedSearch->SearchOperatorDefault = "=";
-        $this->PRUE->AdvancedSearch->SearchOperatorDefault2 = "";
-        $this->PRUE->AdvancedSearch->SearchConditionDefault = "AND";
-        $this->Fields['PRUE'] = &$this->PRUE;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -797,7 +767,6 @@ class Audittrail extends DbTable
         $this->keyvalue->DbValue = $row['keyvalue'];
         $this->oldvalue->DbValue = $row['oldvalue'];
         $this->newvalue->DbValue = $row['newvalue'];
-        $this->PRUE->DbValue = $row['PRUE'];
     }
 
     // Delete uploaded files
@@ -1126,7 +1095,6 @@ class Audittrail extends DbTable
         $this->keyvalue->setDbValue($row['keyvalue']);
         $this->oldvalue->setDbValue($row['oldvalue']);
         $this->newvalue->setDbValue($row['newvalue']);
-        $this->PRUE->setDbValue($row['PRUE']);
     }
 
     // Render list row values
@@ -1158,9 +1126,6 @@ class Audittrail extends DbTable
         // oldvalue
 
         // newvalue
-
-        // PRUE
-        $this->PRUE->CellCssStyle = "white-space: nowrap;";
 
         // id
         $this->id->ViewValue = $this->id->CurrentValue;
@@ -1202,11 +1167,6 @@ class Audittrail extends DbTable
         // newvalue
         $this->newvalue->ViewValue = $this->newvalue->CurrentValue;
         $this->newvalue->ViewCustomAttributes = "";
-
-        // PRUE
-        $this->PRUE->ViewValue = $this->PRUE->CurrentValue;
-        $this->PRUE->ViewValue = FormatNumber($this->PRUE->ViewValue, $this->PRUE->formatPattern());
-        $this->PRUE->ViewCustomAttributes = "";
 
         // id
         $this->id->LinkCustomAttributes = "";
@@ -1257,11 +1217,6 @@ class Audittrail extends DbTable
         $this->newvalue->LinkCustomAttributes = "";
         $this->newvalue->HrefValue = "";
         $this->newvalue->TooltipValue = "";
-
-        // PRUE
-        $this->PRUE->LinkCustomAttributes = "";
-        $this->PRUE->HrefValue = "";
-        $this->PRUE->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1352,8 +1307,6 @@ class Audittrail extends DbTable
         $this->newvalue->EditCustomAttributes = "";
         $this->newvalue->EditValue = $this->newvalue->CurrentValue;
         $this->newvalue->PlaceHolder = RemoveHtml($this->newvalue->caption());
-
-        // PRUE
 
         // Call Row Rendered event
         $this->rowRendered();
