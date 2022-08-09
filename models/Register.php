@@ -563,7 +563,7 @@ class Register extends Usuario
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->nombre->DefaultValue = "torneos";
+      //  $this->nombre->DefaultValue = "torneos";
     }
 
     // Load form values
