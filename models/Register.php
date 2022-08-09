@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project1;
+namespace PHPMaker2022\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -500,13 +500,6 @@ class Register extends Usuario
                     if ($this->getSuccessMessage() == "") {
                         $this->setSuccessMessage($Language->phrase("RegisterSuccess")); // Register success
                     }
-
-                    // Auto login user
-                    if ($Security->validateUser($this->USER->CurrentValue, $this->CONTRASENA->FormValue, true)) {
-                        // Nothing to do
-                    } else {
-                        $this->setFailureMessage($Language->phrase("AutoLoginFailed")); // Set auto login failed message
-                    }
                     if (IsApi()) { // Return to caller
                         $this->terminate(true);
                         return;
@@ -514,10 +507,10 @@ class Register extends Usuario
                         if (Config("USE_TWO_FACTOR_AUTHENTICATION") && Config("FORCE_TWO_FACTOR_AUTHENTICATION")) { // Add two factor authentication
                             $_SESSION[SESSION_STATUS] = "loggingin2fa";
                             $_SESSION[SESSION_USER_PROFILE_USER_NAME] = $this->USER->CurrentValue;
-                            $_SESSION[SESSION_USER_PROFILE_PASSWORD] = $this->CONTRASENA->FormValue;
+                            $_SESSION[SESSION_USER_PROFILE_PASSWORD] = ""; // DO NOT auto login
                             $this->terminate("login2fa"); // Add two factor authentication
                         } else {
-                            $this->terminate("index"); // Return
+                            $this->terminate("login"); // Return
                         }
                         return;
                     }
@@ -534,11 +527,7 @@ class Register extends Usuario
         }
 
         // Render row
-        if ($this->isConfirm()) { // Confirm page
-            $this->RowType = ROWTYPE_VIEW; // Render view
-        } else {
-            $this->RowType = ROWTYPE_ADD; // Render add
-        }
+        $this->RowType = ROWTYPE_ADD; // Render add
         $this->resetAttributes();
         $this->renderRow();
 
@@ -574,6 +563,7 @@ class Register extends Usuario
     // Load default values
     protected function loadDefaultValues()
     {
+        $this->crea_dato->DefaultValue = current_timestamp();
     }
 
     // Load form values
@@ -673,6 +663,8 @@ class Register extends Usuario
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
         $this->nombre->setDbValue($row['nombre']);
+        $this->crea_dato->setDbValue($row['crea_dato']);
+        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -683,6 +675,8 @@ class Register extends Usuario
         $row['USER'] = $this->USER->DefaultValue;
         $row['CONTRASENA'] = $this->CONTRASENA->DefaultValue;
         $row['nombre'] = $this->nombre->DefaultValue;
+        $row['crea_dato'] = $this->crea_dato->DefaultValue;
+        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -710,6 +704,12 @@ class Register extends Usuario
         // nombre
         $this->nombre->RowCssClass = "row";
 
+        // crea_dato
+        $this->crea_dato->RowCssClass = "row";
+
+        // modifica_dato
+        $this->modifica_dato->RowCssClass = "row";
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_USUARIO
@@ -723,6 +723,16 @@ class Register extends Usuario
             // CONTRASENA
             $this->CONTRASENA->ViewValue = $this->CONTRASENA->CurrentValue;
             $this->CONTRASENA->ViewCustomAttributes = "";
+
+            // crea_dato
+            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
+            $this->crea_dato->ViewValue = FormatNumber($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
+            $this->crea_dato->ViewCustomAttributes = "";
+
+            // modifica_dato
+            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
+            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
+            $this->modifica_dato->ViewCustomAttributes = "";
 
             // USER
             $this->USER->LinkCustomAttributes = "";
