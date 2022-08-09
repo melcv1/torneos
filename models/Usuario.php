@@ -35,8 +35,6 @@ class Usuario extends DbTable
     public $USER;
     public $CONTRASENA;
     public $nombre;
-    public $crea_dato;
-    public $modifica_dato;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -172,55 +170,6 @@ class Usuario extends DbTable
         $this->nombre->Nullable = false; // NOT NULL field
         $this->nombre->Required = true; // Required field
         $this->Fields['nombre'] = &$this->nombre;
-
-        // crea_dato
-        $this->crea_dato = new DbField(
-            'usuario',
-            'usuario',
-            'x_crea_dato',
-            'crea_dato',
-            '`crea_dato`',
-            '`crea_dato`',
-            3,
-            11,
-            -1,
-            false,
-            '`crea_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
-        );
-        $this->crea_dato->InputTextType = "text";
-        $this->crea_dato->Nullable = false; // NOT NULL field
-        $this->crea_dato->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
-        $this->Fields['crea_dato'] = &$this->crea_dato;
-
-        // modifica_dato
-        $this->modifica_dato = new DbField(
-            'usuario',
-            'usuario',
-            'x_modifica_dato',
-            'modifica_dato',
-            '`modifica_dato`',
-            CastDateFieldForLike("`modifica_dato`", 0, "DB"),
-            135,
-            19,
-            0,
-            false,
-            '`modifica_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
-        );
-        $this->modifica_dato->InputTextType = "text";
-        $this->modifica_dato->Nullable = false; // NOT NULL field
-        $this->modifica_dato->Required = true; // Required field
-        $this->modifica_dato->DefaultErrorMessage = str_replace("%s", $GLOBALS["DATE_FORMAT"], $Language->phrase("IncorrectDate"));
-        $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -665,8 +614,6 @@ class Usuario extends DbTable
         $this->USER->DbValue = $row['USER'];
         $this->CONTRASENA->DbValue = $row['CONTRASENA'];
         $this->nombre->DbValue = $row['nombre'];
-        $this->crea_dato->DbValue = $row['crea_dato'];
-        $this->modifica_dato->DbValue = $row['modifica_dato'];
     }
 
     // Delete uploaded files
@@ -989,8 +936,6 @@ class Usuario extends DbTable
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
         $this->nombre->setDbValue($row['nombre']);
-        $this->crea_dato->setDbValue($row['crea_dato']);
-        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Render list row values
@@ -1011,10 +956,6 @@ class Usuario extends DbTable
 
         // nombre
 
-        // crea_dato
-
-        // modifica_dato
-
         // ID_USUARIO
         $this->ID_USUARIO->ViewValue = $this->ID_USUARIO->CurrentValue;
         $this->ID_USUARIO->ViewCustomAttributes = "";
@@ -1030,16 +971,6 @@ class Usuario extends DbTable
         // nombre
         $this->nombre->ViewValue = $this->nombre->CurrentValue;
         $this->nombre->ViewCustomAttributes = "";
-
-        // crea_dato
-        $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
-        $this->crea_dato->ViewValue = FormatNumber($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-        $this->crea_dato->ViewCustomAttributes = "";
-
-        // modifica_dato
-        $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
-        $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // ID_USUARIO
         $this->ID_USUARIO->LinkCustomAttributes = "";
@@ -1060,16 +991,6 @@ class Usuario extends DbTable
         $this->nombre->LinkCustomAttributes = "";
         $this->nombre->HrefValue = "";
         $this->nombre->TooltipValue = "";
-
-        // crea_dato
-        $this->crea_dato->LinkCustomAttributes = "";
-        $this->crea_dato->HrefValue = "";
-        $this->crea_dato->TooltipValue = "";
-
-        // modifica_dato
-        $this->modifica_dato->LinkCustomAttributes = "";
-        $this->modifica_dato->HrefValue = "";
-        $this->modifica_dato->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1110,20 +1031,6 @@ class Usuario extends DbTable
         $this->nombre->EditValue = $this->nombre->CurrentValue;
         $this->nombre->PlaceHolder = RemoveHtml($this->nombre->caption());
 
-        // crea_dato
-        $this->crea_dato->setupEditAttributes();
-        $this->crea_dato->EditCustomAttributes = "";
-        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
-        $this->crea_dato->EditValue = FormatNumber($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-        $this->crea_dato->ViewCustomAttributes = "";
-
-        // modifica_dato
-        $this->modifica_dato->setupEditAttributes();
-        $this->modifica_dato->EditCustomAttributes = "";
-        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
-        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-        $this->modifica_dato->ViewCustomAttributes = "";
-
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1156,12 +1063,8 @@ class Usuario extends DbTable
                     $doc->exportCaption($this->USER);
                     $doc->exportCaption($this->CONTRASENA);
                     $doc->exportCaption($this->nombre);
-                    $doc->exportCaption($this->crea_dato);
-                    $doc->exportCaption($this->modifica_dato);
                 } else {
                     $doc->exportCaption($this->ID_USUARIO);
-                    $doc->exportCaption($this->crea_dato);
-                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1195,12 +1098,8 @@ class Usuario extends DbTable
                         $doc->exportField($this->USER);
                         $doc->exportField($this->CONTRASENA);
                         $doc->exportField($this->nombre);
-                        $doc->exportField($this->crea_dato);
-                        $doc->exportField($this->modifica_dato);
                     } else {
                         $doc->exportField($this->ID_USUARIO);
-                        $doc->exportField($this->crea_dato);
-                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

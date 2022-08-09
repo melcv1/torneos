@@ -563,8 +563,6 @@ class Register extends Usuario
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->crea_dato->DefaultValue = "12345";
-
     }
 
     // Load form values
@@ -664,8 +662,6 @@ class Register extends Usuario
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
         $this->nombre->setDbValue($row['nombre']);
-        $this->crea_dato->setDbValue($row['crea_dato']);
-        $this->modifica_dato->setDbValue($row['modifica_dato']);
     }
 
     // Return a row with default values
@@ -676,8 +672,6 @@ class Register extends Usuario
         $row['USER'] = $this->USER->DefaultValue;
         $row['CONTRASENA'] = $this->CONTRASENA->DefaultValue;
         $row['nombre'] = $this->nombre->DefaultValue;
-        $row['crea_dato'] = $this->crea_dato->DefaultValue;
-        $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         return $row;
     }
 
@@ -705,12 +699,6 @@ class Register extends Usuario
         // nombre
         $this->nombre->RowCssClass = "row";
 
-        // crea_dato
-        $this->crea_dato->RowCssClass = "row";
-
-        // modifica_dato
-        $this->modifica_dato->RowCssClass = "row";
-
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_USUARIO
@@ -724,16 +712,6 @@ class Register extends Usuario
             // CONTRASENA
             $this->CONTRASENA->ViewValue = $this->CONTRASENA->CurrentValue;
             $this->CONTRASENA->ViewCustomAttributes = "";
-
-            // crea_dato
-            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
-            $this->crea_dato->ViewValue = FormatNumber($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
-
-            // modifica_dato
-            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
-            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // USER
             $this->USER->LinkCustomAttributes = "";
