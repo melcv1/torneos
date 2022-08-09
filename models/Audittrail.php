@@ -337,6 +337,10 @@ class Audittrail extends DbTable
         $this->PRUE->Nullable = false; // NOT NULL field
         $this->PRUE->Required = true; // Required field
         $this->PRUE->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->PRUE->AdvancedSearch->SearchValueDefault = 0;
+        $this->PRUE->AdvancedSearch->SearchOperatorDefault = "=";
+        $this->PRUE->AdvancedSearch->SearchOperatorDefault2 = "";
+        $this->PRUE->AdvancedSearch->SearchConditionDefault = "AND";
         $this->Fields['PRUE'] = &$this->PRUE;
 
         // Add Doctrine Cache
