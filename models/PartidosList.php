@@ -454,6 +454,9 @@ class PartidosList extends Partidos
         if ($this->isAdd() || $this->isCopy() || $this->isGridAdd()) {
             $this->ID_PARTIDO->Visible = false;
         }
+        if ($this->isAddOrEdit()) {
+            $this->usuario_dato->Visible = false;
+        }
     }
 
     // Lookup data
@@ -2733,13 +2736,6 @@ class PartidosList extends Partidos
             $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
 
             // usuario_dato
-            $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
-            if (!$this->usuario_dato->Raw) {
-                $this->usuario_dato->CurrentValue = HtmlDecode($this->usuario_dato->CurrentValue);
-            }
-            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
-            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
 
             // automatico
             $this->automatico->EditCustomAttributes = "";
@@ -3076,10 +3072,6 @@ class PartidosList extends Partidos
             $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
-            $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
-            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // automatico
             $this->automatico->EditCustomAttributes = "";
@@ -3554,7 +3546,8 @@ class PartidosList extends Partidos
         $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
 
         // usuario_dato
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "", strval($this->usuario_dato->CurrentValue ?? "") == "");
+        $this->usuario_dato->CurrentValue = CurrentUserName();
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "");
 
         // automatico
         $tmpBool = $this->automatico->CurrentValue;

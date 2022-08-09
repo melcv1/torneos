@@ -347,18 +347,6 @@ loadjs.ready("fequipotorneoedit", function() {
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
-    <div id="r_usuario_dato"<?= $Page->usuario_dato->rowAttributes() ?>>
-        <label id="elh_equipotorneo_usuario_dato" for="x_usuario_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->usuario_dato->caption() ?><?= $Page->usuario_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->usuario_dato->cellAttributes() ?>>
-<span id="el_equipotorneo_usuario_dato">
-<span<?= $Page->usuario_dato->viewAttributes() ?>>
-<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
-</span>
-<input type="hidden" data-table="equipotorneo" data-field="x_usuario_dato" data-hidden="1" name="x_usuario_dato" id="x_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
-</div></div>
-    </div>
-<?php } ?>
 </div><!-- /page* -->
 <?php if (!$Page->IsModal) { ?>
 <div class="row"><!-- buttons .row -->

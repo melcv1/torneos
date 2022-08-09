@@ -869,11 +869,7 @@ class EstadioAddopt extends Estadio
             // usuario_dato
             $this->usuario_dato->setupEditAttributes();
             $this->usuario_dato->EditCustomAttributes = "";
-            if (!$this->usuario_dato->Raw) {
-                $this->usuario_dato->CurrentValue = HtmlDecode($this->usuario_dato->CurrentValue);
-            }
-            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
-            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
+            $this->usuario_dato->CurrentValue = CurrentUserName();
 
             // Add refer script
 

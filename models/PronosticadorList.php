@@ -462,6 +462,9 @@ class PronosticadorList extends Pronosticador
         if ($this->isAdd() || $this->isCopy() || $this->isGridAdd()) {
             $this->ID_ENCUESTA->Visible = false;
         }
+        if ($this->isAddOrEdit()) {
+            $this->usuario_dato->Visible = false;
+        }
     }
 
     // Lookup data

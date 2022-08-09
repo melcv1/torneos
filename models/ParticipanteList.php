@@ -454,6 +454,9 @@ class ParticipanteList extends Participante
         if ($this->isAdd() || $this->isCopy() || $this->isGridAdd()) {
             $this->ID_PARTICIPANTE->Visible = false;
         }
+        if ($this->isAddOrEdit()) {
+            $this->usuario_dato->Visible = false;
+        }
     }
 
     // Lookup data

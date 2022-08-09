@@ -489,25 +489,13 @@ loadjs.ready("fpartidosedit", function() {
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
-    <div id="r_usuario_dato"<?= $Page->usuario_dato->rowAttributes() ?>>
-        <label id="elh_partidos_usuario_dato" for="x_usuario_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->usuario_dato->caption() ?><?= $Page->usuario_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->usuario_dato->cellAttributes() ?>>
-<span id="el_partidos_usuario_dato">
-<span<?= $Page->usuario_dato->viewAttributes() ?>>
-<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
-</span>
-<input type="hidden" data-table="partidos" data-field="x_usuario_dato" data-hidden="1" name="x_usuario_dato" id="x_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
-</div></div>
-    </div>
-<?php } ?>
 <?php if ($Page->automatico->Visible) { // automatico ?>
     <div id="r_automatico"<?= $Page->automatico->rowAttributes() ?>>
         <label id="elh_partidos_automatico" class="<?= $Page->LeftColumnClass ?>"><?= $Page->automatico->caption() ?><?= $Page->automatico->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->automatico->cellAttributes() ?>>
 <span id="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_284390" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_390133" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 <?= $Page->automatico->getCustomMessage() ?>

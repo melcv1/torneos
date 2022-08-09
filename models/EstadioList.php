@@ -454,6 +454,9 @@ class EstadioList extends Estadio
         if ($this->isAdd() || $this->isCopy() || $this->isGridAdd()) {
             $this->id_estadio->Visible = false;
         }
+        if ($this->isAddOrEdit()) {
+            $this->usuario_dato->Visible = false;
+        }
     }
 
     // Lookup data

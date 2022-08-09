@@ -1115,10 +1115,6 @@ class TorneoEdit extends Torneo
             $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
-            $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
-            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // Edit refer script
 

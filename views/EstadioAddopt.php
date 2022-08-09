@@ -136,13 +136,7 @@ loadjs.ready("festadioaddopt", function() {
     </div>
 <?php } ?>
 <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
-    <div<?= $Page->usuario_dato->rowAttributes() ?>>
-        <label class="col-sm-2 col-form-label ew-label" for="x_usuario_dato"><?= $Page->usuario_dato->caption() ?><?= $Page->usuario_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="col-sm-10"><div<?= $Page->usuario_dato->cellAttributes() ?>>
-<input type="<?= $Page->usuario_dato->getInputTextType() ?>" name="x_usuario_dato" id="x_usuario_dato" data-table="estadio" data-field="x_usuario_dato" value="<?= $Page->usuario_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->usuario_dato->getPlaceHolder()) ?>"<?= $Page->usuario_dato->editAttributes() ?>>
-<div class="invalid-feedback"><?= $Page->usuario_dato->getErrorMessage() ?></div>
-</div></div>
-    </div>
+    <input type="hidden" data-table="estadio" data-field="x_usuario_dato" data-hidden="1" name="x_usuario_dato" id="x_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
 <?php } ?>
 </form>
 <?php

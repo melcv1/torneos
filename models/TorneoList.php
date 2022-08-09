@@ -454,6 +454,9 @@ class TorneoList extends Torneo
         if ($this->isAdd() || $this->isCopy() || $this->isGridAdd()) {
             $this->ID_TORNEO->Visible = false;
         }
+        if ($this->isAddOrEdit()) {
+            $this->usuario_dato->Visible = false;
+        }
     }
 
     // Lookup data
@@ -2164,13 +2167,6 @@ class TorneoList extends Torneo
             $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
 
             // usuario_dato
-            $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
-            if (!$this->usuario_dato->Raw) {
-                $this->usuario_dato->CurrentValue = HtmlDecode($this->usuario_dato->CurrentValue);
-            }
-            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
-            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
 
             // Add refer script
 
@@ -2301,10 +2297,6 @@ class TorneoList extends Torneo
             $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
-            $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
-            $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // Edit refer script
 
@@ -2678,7 +2670,8 @@ class TorneoList extends Torneo
         $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
 
         // usuario_dato
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "", strval($this->usuario_dato->CurrentValue ?? "") == "");
+        $this->usuario_dato->CurrentValue = CurrentUserName();
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "");
         if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
             $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
             if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {

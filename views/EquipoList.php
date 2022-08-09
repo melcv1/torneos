@@ -514,11 +514,6 @@ loadjs.ready("fequipolist", function() {
     <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
         <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?= $Page->RowCount ?>_equipo_usuario_dato" class="el_equipo_usuario_dato">
-<span<?= $Page->usuario_dato->viewAttributes() ?>>
-<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->usuario_dato->getDisplayValue($Page->usuario_dato->EditValue))) ?>"></span>
-</span>
-<input type="hidden" data-table="equipo" data-field="x_usuario_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_usuario_dato" id="x<?= $Page->RowIndex ?>_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->CurrentValue) ?>">
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_usuario_dato" class="el_equipo_usuario_dato">
