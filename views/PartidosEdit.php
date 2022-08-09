@@ -128,6 +128,7 @@ loadjs.ready("fpartidosedit", function() {
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->equipo_local->cellAttributes() ?>>
 <span id="el_partidos_equipo_local">
 <?php $Page->equipo_local->EditAttrs->prepend("onchange", "ew.updateOptions.call(this);"); ?>
+<div class="input-group flex-nowrap">
     <select
         id="x_equipo_local"
         name="x_equipo_local"
@@ -140,8 +141,10 @@ loadjs.ready("fpartidosedit", function() {
         <?= $Page->equipo_local->editAttributes() ?>>
         <?= $Page->equipo_local->selectOptionListHtml("x_equipo_local") ?>
     </select>
-    <?= $Page->equipo_local->getCustomMessage() ?>
-    <div class="invalid-feedback"><?= $Page->equipo_local->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_equipo_local" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->equipo_local->caption() ?>" data-title="<?= $Page->equipo_local->caption() ?>" data-ew-action="add-option" data-el="x_equipo_local" data-url="<?= GetUrl("equipotorneoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<?= $Page->equipo_local->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->equipo_local->getErrorMessage() ?></div>
 <?= $Page->equipo_local->Lookup->getParamTag($Page, "p_x_equipo_local") ?>
 <script>
 loadjs.ready("fpartidosedit", function() {
@@ -167,6 +170,7 @@ loadjs.ready("fpartidosedit", function() {
         <label id="elh_partidos_equipo_visitante" for="x_equipo_visitante" class="<?= $Page->LeftColumnClass ?>"><?= $Page->equipo_visitante->caption() ?><?= $Page->equipo_visitante->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->equipo_visitante->cellAttributes() ?>>
 <span id="el_partidos_equipo_visitante">
+<div class="input-group flex-nowrap">
     <select
         id="x_equipo_visitante"
         name="x_equipo_visitante"
@@ -179,8 +183,10 @@ loadjs.ready("fpartidosedit", function() {
         <?= $Page->equipo_visitante->editAttributes() ?>>
         <?= $Page->equipo_visitante->selectOptionListHtml("x_equipo_visitante") ?>
     </select>
-    <?= $Page->equipo_visitante->getCustomMessage() ?>
-    <div class="invalid-feedback"><?= $Page->equipo_visitante->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_equipo_visitante" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->equipo_visitante->caption() ?>" data-title="<?= $Page->equipo_visitante->caption() ?>" data-ew-action="add-option" data-el="x_equipo_visitante" data-url="<?= GetUrl("equipotorneoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<?= $Page->equipo_visitante->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->equipo_visitante->getErrorMessage() ?></div>
 <?= $Page->equipo_visitante->Lookup->getParamTag($Page, "p_x_equipo_visitante") ?>
 <script>
 loadjs.ready("fpartidosedit", function() {
@@ -270,6 +276,7 @@ loadjs.ready(["fpartidosedit", "datetimepicker"], function () {
         <label id="elh_partidos_ESTADIO" for="x_ESTADIO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->ESTADIO->caption() ?><?= $Page->ESTADIO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->ESTADIO->cellAttributes() ?>>
 <span id="el_partidos_ESTADIO">
+<div class="input-group flex-nowrap">
     <select
         id="x_ESTADIO"
         name="x_ESTADIO"
@@ -282,8 +289,10 @@ loadjs.ready(["fpartidosedit", "datetimepicker"], function () {
         <?= $Page->ESTADIO->editAttributes() ?>>
         <?= $Page->ESTADIO->selectOptionListHtml("x_ESTADIO") ?>
     </select>
-    <?= $Page->ESTADIO->getCustomMessage() ?>
-    <div class="invalid-feedback"><?= $Page->ESTADIO->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->ESTADIO->caption() ?>" data-title="<?= $Page->ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<?= $Page->ESTADIO->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->ESTADIO->getErrorMessage() ?></div>
 <?= $Page->ESTADIO->Lookup->getParamTag($Page, "p_x_ESTADIO") ?>
 <script>
 loadjs.ready("fpartidosedit", function() {
@@ -495,7 +504,7 @@ loadjs.ready("fpartidosedit", function() {
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->automatico->cellAttributes() ?>>
 <span id="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_949898" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x_automatico[]" id="x_automatico_182048" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?> aria-describedby="x_automatico_help">
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 <?= $Page->automatico->getCustomMessage() ?>

@@ -71,7 +71,62 @@ loadjs.ready(["wrapper", "head"], function () {
     fpartidossrch = new ew.Form("fpartidossrch", "list");
     currentSearchForm = fpartidossrch;
 
+    // Add fields
+    var fields = currentTable.fields;
+    fpartidossrch.addFields([
+        ["ID_TORNEO", [], fields.ID_TORNEO.isInvalid],
+        ["equipo_local", [], fields.equipo_local.isInvalid],
+        ["equipo_visitante", [], fields.equipo_visitante.isInvalid],
+        ["ID_PARTIDO", [], fields.ID_PARTIDO.isInvalid],
+        ["FECHA_PARTIDO", [], fields.FECHA_PARTIDO.isInvalid],
+        ["HORA_PARTIDO", [], fields.HORA_PARTIDO.isInvalid],
+        ["ESTADIO", [], fields.ESTADIO.isInvalid],
+        ["CIUDAD_PARTIDO", [], fields.CIUDAD_PARTIDO.isInvalid],
+        ["PAIS_PARTIDO", [], fields.PAIS_PARTIDO.isInvalid],
+        ["GOLES_LOCAL", [], fields.GOLES_LOCAL.isInvalid],
+        ["GOLES_VISITANTE", [], fields.GOLES_VISITANTE.isInvalid],
+        ["GOLES_EXTRA_EQUIPO1", [], fields.GOLES_EXTRA_EQUIPO1.isInvalid],
+        ["GOLES_EXTRA_EQUIPO2", [], fields.GOLES_EXTRA_EQUIPO2.isInvalid],
+        ["NOTA_PARTIDO", [], fields.NOTA_PARTIDO.isInvalid],
+        ["RESUMEN_PARTIDO", [], fields.RESUMEN_PARTIDO.isInvalid],
+        ["ESTADO_PARTIDO", [], fields.ESTADO_PARTIDO.isInvalid],
+        ["crea_dato", [], fields.crea_dato.isInvalid],
+        ["modifica_dato", [], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [], fields.usuario_dato.isInvalid],
+        ["automatico", [], fields.automatico.isInvalid],
+        ["actualizado", [], fields.actualizado.isInvalid]
+    ]);
+
+    // Validate form
+    fpartidossrch.validate = function () {
+        if (!this.validateRequired)
+            return true; // Ignore validation
+        var fobj = this.getForm();
+
+        // Validate fields
+        if (!this.validateFields())
+            return false;
+
+        // Call Form_CustomValidate event
+        if (!this.customValidate(fobj)) {
+            this.focus();
+            return false;
+        }
+        return true;
+    }
+
+    // Form_CustomValidate
+    fpartidossrch.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    fpartidossrch.validateRequired = ew.CLIENT_VALIDATE;
+
     // Dynamic selection lists
+    fpartidossrch.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
+    fpartidossrch.lists.ESTADIO = <?= $Page->ESTADIO->toClientList($Page) ?>;
 
     // Filters
     fpartidossrch.filterList = <?= $Page->getFilterList() ?>;
@@ -110,6 +165,88 @@ $Page->renderOtherOptions();
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="partidos">
 <div class="ew-extended-search container-fluid">
+<div class="row mb-0<?= ($Page->SearchFieldsPerRow > 0) ? " row-cols-sm-" . $Page->SearchFieldsPerRow : "" ?>">
+<?php
+// Render search row
+$Page->RowType = ROWTYPE_SEARCH;
+$Page->resetAttributes();
+$Page->renderRow();
+?>
+<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
+<?php
+if (!$Page->ID_TORNEO->UseFilter) {
+    $Page->SearchColumnCount++;
+}
+?>
+    <div id="xs_ID_TORNEO" class="col-sm-auto d-sm-flex mb-3 px-0 pe-sm-2<?= $Page->ID_TORNEO->UseFilter ? " ew-filter-field" : "" ?>">
+        <select
+            id="x_ID_TORNEO"
+            name="x_ID_TORNEO[]"
+            class="form-control ew-select<?= $Page->ID_TORNEO->isInvalidClass() ?>"
+            data-select2-id="fpartidossrch_x_ID_TORNEO"
+            data-table="partidos"
+            data-field="x_ID_TORNEO"
+            data-caption="<?= HtmlEncode(RemoveHtml($Page->ID_TORNEO->caption())) ?>"
+            data-filter="true"
+            multiple
+            size="1"
+            data-value-separator="<?= $Page->ID_TORNEO->displayValueSeparatorAttribute() ?>"
+            data-placeholder="<?= HtmlEncode($Page->ID_TORNEO->getPlaceHolder()) ?>"
+            <?= $Page->ID_TORNEO->editAttributes() ?>>
+            <?= $Page->ID_TORNEO->selectOptionListHtml("x_ID_TORNEO", true) ?>
+        </select>
+        <div class="invalid-feedback"><?= $Page->ID_TORNEO->getErrorMessage(false) ?></div>
+        <script>
+        loadjs.ready("fpartidossrch", function() {
+            var options = {
+                name: "x_ID_TORNEO",
+                selectId: "fpartidossrch_x_ID_TORNEO",
+                ajax: { id: "x_ID_TORNEO", form: "fpartidossrch", limit: ew.FILTER_PAGE_SIZE, data: { ajax: "filter" } }
+            };
+            options = Object.assign({}, ew.filterOptions, options, ew.vars.tables.partidos.fields.ID_TORNEO.filterOptions);
+            ew.createFilter(options);
+        });
+        </script>
+    </div><!-- /.col-sm-auto -->
+<?php } ?>
+<?php if ($Page->ESTADIO->Visible) { // ESTADIO ?>
+<?php
+if (!$Page->ESTADIO->UseFilter) {
+    $Page->SearchColumnCount++;
+}
+?>
+    <div id="xs_ESTADIO" class="col-sm-auto d-sm-flex mb-3 px-0 pe-sm-2<?= $Page->ESTADIO->UseFilter ? " ew-filter-field" : "" ?>">
+        <select
+            id="x_ESTADIO"
+            name="x_ESTADIO[]"
+            class="form-control ew-select<?= $Page->ESTADIO->isInvalidClass() ?>"
+            data-select2-id="fpartidossrch_x_ESTADIO"
+            data-table="partidos"
+            data-field="x_ESTADIO"
+            data-caption="<?= HtmlEncode(RemoveHtml($Page->ESTADIO->caption())) ?>"
+            data-filter="true"
+            multiple
+            size="1"
+            data-value-separator="<?= $Page->ESTADIO->displayValueSeparatorAttribute() ?>"
+            data-placeholder="<?= HtmlEncode($Page->ESTADIO->getPlaceHolder()) ?>"
+            <?= $Page->ESTADIO->editAttributes() ?>>
+            <?= $Page->ESTADIO->selectOptionListHtml("x_ESTADIO", true) ?>
+        </select>
+        <div class="invalid-feedback"><?= $Page->ESTADIO->getErrorMessage(false) ?></div>
+        <script>
+        loadjs.ready("fpartidossrch", function() {
+            var options = {
+                name: "x_ESTADIO",
+                selectId: "fpartidossrch_x_ESTADIO",
+                ajax: { id: "x_ESTADIO", form: "fpartidossrch", limit: ew.FILTER_PAGE_SIZE, data: { ajax: "filter" } }
+            };
+            options = Object.assign({}, ew.filterOptions, options, ew.vars.tables.partidos.fields.ESTADIO.filterOptions);
+            ew.createFilter(options);
+        });
+        </script>
+    </div><!-- /.col-sm-auto -->
+<?php } ?>
+</div><!-- /.row -->
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -374,6 +511,7 @@ loadjs.ready("fpartidoslist", function() {
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_equipo_local" class="el_partidos_equipo_local">
 <?php $Page->equipo_local->EditAttrs->prepend("onchange", "ew.updateOptions.call(this);"); ?>
+<div class="input-group flex-nowrap">
     <select
         id="x<?= $Page->RowIndex ?>_equipo_local"
         name="x<?= $Page->RowIndex ?>_equipo_local"
@@ -386,7 +524,9 @@ loadjs.ready("fpartidoslist", function() {
         <?= $Page->equipo_local->editAttributes() ?>>
         <?= $Page->equipo_local->selectOptionListHtml("x{$Page->RowIndex}_equipo_local") ?>
     </select>
-    <div class="invalid-feedback"><?= $Page->equipo_local->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_equipo_local" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->equipo_local->caption() ?>" data-title="<?= $Page->equipo_local->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_equipo_local" data-url="<?= GetUrl("equipotorneoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<div class="invalid-feedback"><?= $Page->equipo_local->getErrorMessage() ?></div>
 <?= $Page->equipo_local->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_equipo_local") ?>
 <script>
 loadjs.ready("fpartidoslist", function() {
@@ -417,6 +557,7 @@ loadjs.ready("fpartidoslist", function() {
         <td data-name="equipo_visitante"<?= $Page->equipo_visitante->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_equipo_visitante" class="el_partidos_equipo_visitante">
+<div class="input-group flex-nowrap">
     <select
         id="x<?= $Page->RowIndex ?>_equipo_visitante"
         name="x<?= $Page->RowIndex ?>_equipo_visitante"
@@ -429,7 +570,9 @@ loadjs.ready("fpartidoslist", function() {
         <?= $Page->equipo_visitante->editAttributes() ?>>
         <?= $Page->equipo_visitante->selectOptionListHtml("x{$Page->RowIndex}_equipo_visitante") ?>
     </select>
-    <div class="invalid-feedback"><?= $Page->equipo_visitante->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_equipo_visitante" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->equipo_visitante->caption() ?>" data-title="<?= $Page->equipo_visitante->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_equipo_visitante" data-url="<?= GetUrl("equipotorneoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<div class="invalid-feedback"><?= $Page->equipo_visitante->getErrorMessage() ?></div>
 <?= $Page->equipo_visitante->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_equipo_visitante") ?>
 <script>
 loadjs.ready("fpartidoslist", function() {
@@ -539,6 +682,7 @@ loadjs.ready(["fpartidoslist", "datetimepicker"], function () {
         <td data-name="ESTADIO"<?= $Page->ESTADIO->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_ESTADIO" class="el_partidos_ESTADIO">
+<div class="input-group flex-nowrap">
     <select
         id="x<?= $Page->RowIndex ?>_ESTADIO"
         name="x<?= $Page->RowIndex ?>_ESTADIO"
@@ -551,7 +695,9 @@ loadjs.ready(["fpartidoslist", "datetimepicker"], function () {
         <?= $Page->ESTADIO->editAttributes() ?>>
         <?= $Page->ESTADIO->selectOptionListHtml("x{$Page->RowIndex}_ESTADIO") ?>
     </select>
-    <div class="invalid-feedback"><?= $Page->ESTADIO->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->ESTADIO->caption() ?>" data-title="<?= $Page->ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<div class="invalid-feedback"><?= $Page->ESTADIO->getErrorMessage() ?></div>
 <?= $Page->ESTADIO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ESTADIO") ?>
 <script>
 loadjs.ready("fpartidoslist", function() {
@@ -826,7 +972,7 @@ loadjs.ready("fpartidoslist", function() {
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_partidos_automatico" class="el_partidos_automatico">
 <div class="form-check d-inline-block">
-    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x<?= $Page->RowIndex ?>_automatico[]" id="x<?= $Page->RowIndex ?>_automatico_261682" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?>>
+    <input type="checkbox" class="form-check-input<?= $Page->automatico->isInvalidClass() ?>" data-table="partidos" data-field="x_automatico" name="x<?= $Page->RowIndex ?>_automatico[]" id="x<?= $Page->RowIndex ?>_automatico_645921" value="1"<?= ConvertToBool($Page->automatico->CurrentValue) ? " checked" : "" ?><?= $Page->automatico->editAttributes() ?>>
     <div class="invalid-feedback"><?= $Page->automatico->getErrorMessage() ?></div>
 </div>
 </span>

@@ -131,12 +131,13 @@ class Equipotorneo extends DbTable
         $this->ID_TORNEO->InputTextType = "text";
         $this->ID_TORNEO->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->ID_TORNEO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        $this->ID_TORNEO->UseFilter = true; // Table header filter
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->ID_TORNEO->Lookup = new Lookup('ID_TORNEO', 'torneo', false, 'ID_TORNEO', ["NOM_TORNEO_CORTO","","",""], [], [], [], [], [], [], '', '', "`NOM_TORNEO_CORTO`");
+                $this->ID_TORNEO->Lookup = new Lookup('ID_TORNEO', 'torneo', true, 'ID_TORNEO', ["NOM_TORNEO_CORTO","","",""], [], [], [], [], [], [], '', '', "`NOM_TORNEO_CORTO`");
                 break;
             default:
-                $this->ID_TORNEO->Lookup = new Lookup('ID_TORNEO', 'torneo', false, 'ID_TORNEO', ["NOM_TORNEO_CORTO","","",""], [], [], [], [], [], [], '', '', "`NOM_TORNEO_CORTO`");
+                $this->ID_TORNEO->Lookup = new Lookup('ID_TORNEO', 'torneo', true, 'ID_TORNEO', ["NOM_TORNEO_CORTO","","",""], [], [], [], [], [], [], '', '', "`NOM_TORNEO_CORTO`");
                 break;
         }
         $this->ID_TORNEO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
@@ -154,10 +155,10 @@ class Equipotorneo extends DbTable
             11,
             -1,
             false,
-            '`ID_EQUIPO`',
-            false,
-            false,
-            false,
+            '`EV__ID_EQUIPO`',
+            true,
+            true,
+            true,
             'FORMATTED TEXT',
             'SELECT'
         );
@@ -511,13 +512,16 @@ class Equipotorneo extends DbTable
             }
             $orderBy = in_array($curSort, ["ASC", "DESC"]) ? $sortField . " " . $curSort : "";
             $this->setSessionOrderBy($orderBy); // Save to Session
+            $sortFieldList = ($fld->VirtualExpression != "") ? $fld->VirtualExpression : $sortField;
+            $orderBy = in_array($curSort, ["ASC", "DESC"]) ? $sortFieldList . " " . $curSort : "";
+            $this->setSessionOrderByList($orderBy); // Save to Session
         }
     }
 
     // Update field sort
     public function updateFieldSort()
     {
-        $orderBy = $this->getSessionOrderBy(); // Get ORDER BY from Session
+        $orderBy = $this->useVirtualFields() ? $this->getSessionOrderByList() : $this->getSessionOrderBy(); // Get ORDER BY from Session
         $flds = GetSortFields($orderBy);
         foreach ($this->Fields as $field) {
             $fldSort = "";
@@ -528,6 +532,17 @@ class Equipotorneo extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Session ORDER BY for List page
+    public function getSessionOrderByList()
+    {
+        return Session(PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_ORDER_BY_LIST"));
+    }
+
+    public function setSessionOrderByList($v)
+    {
+        $_SESSION[PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_ORDER_BY_LIST")] = $v;
     }
 
     // Table level SQL
@@ -559,6 +574,25 @@ class Equipotorneo extends DbTable
     public function setSqlSelect($v)
     {
         $this->SqlSelect = $v;
+    }
+
+    public function getSqlSelectList() // Select for List page
+    {
+        if ($this->SqlSelectList) {
+            return $this->SqlSelectList;
+        }
+        $from = "(SELECT *, (SELECT `NOM_EQUIPO_LARGO` FROM `equipo` `TMP_LOOKUPTABLE` WHERE `TMP_LOOKUPTABLE`.`ID_EQUIPO` = `equipotorneo`.`ID_EQUIPO` LIMIT 1) AS `EV__ID_EQUIPO` FROM `equipotorneo`)";
+        return $from . " `TMP_TABLE`";
+    }
+
+    public function sqlSelectList() // For backward compatibility
+    {
+        return $this->getSqlSelectList();
+    }
+
+    public function setSqlSelectList($v)
+    {
+        $this->SqlSelectList = $v;
     }
 
     public function getSqlWhere() // Where
@@ -733,9 +767,15 @@ class Equipotorneo extends DbTable
         AddFilter($filter, $this->CurrentFilter);
         $filter = $this->applyUserIDFilters($filter);
         $this->recordsetSelecting($filter);
-        $select = $this->getSqlSelect();
-        $from = $this->getSqlFrom();
-        $sort = $this->UseSessionForListSql ? $this->getSessionOrderBy() : "";
+        if ($this->useVirtualFields()) {
+            $select = "*";
+            $from = $this->getSqlSelectList();
+            $sort = $this->UseSessionForListSql ? $this->getSessionOrderByList() : "";
+        } else {
+            $select = $this->getSqlSelect();
+            $from = $this->getSqlFrom();
+            $sort = $this->UseSessionForListSql ? $this->getSessionOrderBy() : "";
+        }
         $this->Sort = $sort;
         return $this->buildSelectSql(
             $select,
@@ -753,13 +793,40 @@ class Equipotorneo extends DbTable
     public function getOrderBy()
     {
         $orderBy = $this->getSqlOrderBy();
-        $sort = $this->getSessionOrderBy();
+        $sort = ($this->useVirtualFields()) ? $this->getSessionOrderByList() : $this->getSessionOrderBy();
         if ($orderBy != "" && $sort != "") {
             $orderBy .= ", " . $sort;
         } elseif ($sort != "") {
             $orderBy = $sort;
         }
         return $orderBy;
+    }
+
+    // Check if virtual fields is used in SQL
+    protected function useVirtualFields()
+    {
+        $where = $this->UseSessionForListSql ? $this->getSessionWhere() : $this->CurrentFilter;
+        $orderBy = $this->UseSessionForListSql ? $this->getSessionOrderByList() : "";
+        if ($where != "") {
+            $where = " " . str_replace(["(", ")"], ["", ""], $where) . " ";
+        }
+        if ($orderBy != "") {
+            $orderBy = " " . str_replace(["(", ")"], ["", ""], $orderBy) . " ";
+        }
+        if ($this->BasicSearch->getKeyword() != "") {
+            return true;
+        }
+        if (
+            $this->ID_EQUIPO->AdvancedSearch->SearchValue != "" ||
+            $this->ID_EQUIPO->AdvancedSearch->SearchValue2 != "" ||
+            ContainsString($where, " " . $this->ID_EQUIPO->VirtualExpression . " ")
+        ) {
+            return true;
+        }
+        if (ContainsString($orderBy, " " . $this->ID_EQUIPO->VirtualExpression . " ")) {
+            return true;
+        }
+        return false;
     }
 
     // Get record count based on filter (for detail record count in master table pages)
@@ -787,7 +854,11 @@ class Equipotorneo extends DbTable
         $select = $this->TableType == 'CUSTOMVIEW' ? $this->getSqlSelect() : $this->getQueryBuilder()->select("*");
         $groupBy = $this->TableType == 'CUSTOMVIEW' ? $this->getSqlGroupBy() : "";
         $having = $this->TableType == 'CUSTOMVIEW' ? $this->getSqlHaving() : "";
-        $sql = $this->buildSelectSql($select, $this->getSqlFrom(), $this->getSqlWhere(), $groupBy, $having, "", $filter, "");
+        if ($this->useVirtualFields()) {
+            $sql = $this->buildSelectSql("*", $this->getSqlSelectList(), $this->getSqlWhere(), $groupBy, $having, "", $filter, "");
+        } else {
+            $sql = $this->buildSelectSql($select, $this->getSqlFrom(), $this->getSqlWhere(), $groupBy, $having, "", $filter, "");
+        }
         $cnt = $this->getRecordCount($sql);
         return $cnt;
     }
@@ -1324,26 +1395,30 @@ class Equipotorneo extends DbTable
         $this->ID_TORNEO->ViewCustomAttributes = "";
 
         // ID_EQUIPO
-        $curVal = strval($this->ID_EQUIPO->CurrentValue);
-        if ($curVal != "") {
-            $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
-            if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
-                $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                $conn = Conn();
-                $config = $conn->getConfiguration();
-                $config->setResultCacheImpl($this->Cache);
-                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                $ari = count($rswrk);
-                if ($ari > 0) { // Lookup values found
-                    $arwrk = $this->ID_EQUIPO->Lookup->renderViewRow($rswrk[0]);
-                    $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->displayValue($arwrk);
-                } else {
-                    $this->ID_EQUIPO->ViewValue = FormatNumber($this->ID_EQUIPO->CurrentValue, $this->ID_EQUIPO->formatPattern());
-                }
-            }
+        if ($this->ID_EQUIPO->VirtualValue != "") {
+            $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->VirtualValue;
         } else {
-            $this->ID_EQUIPO->ViewValue = null;
+            $curVal = strval($this->ID_EQUIPO->CurrentValue);
+            if ($curVal != "") {
+                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
+                if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
+                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                    $conn = Conn();
+                    $config = $conn->getConfiguration();
+                    $config->setResultCacheImpl($this->Cache);
+                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                    $ari = count($rswrk);
+                    if ($ari > 0) { // Lookup values found
+                        $arwrk = $this->ID_EQUIPO->Lookup->renderViewRow($rswrk[0]);
+                        $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->displayValue($arwrk);
+                    } else {
+                        $this->ID_EQUIPO->ViewValue = FormatNumber($this->ID_EQUIPO->CurrentValue, $this->ID_EQUIPO->formatPattern());
+                    }
+                }
+            } else {
+                $this->ID_EQUIPO->ViewValue = null;
+            }
         }
         $this->ID_EQUIPO->ViewCustomAttributes = "";
 
@@ -1515,6 +1590,25 @@ class Equipotorneo extends DbTable
         // ID_TORNEO
         $this->ID_TORNEO->setupEditAttributes();
         $this->ID_TORNEO->EditCustomAttributes = "";
+        $curVal = trim(strval($this->ID_TORNEO->CurrentValue));
+        if ($curVal != "") {
+            $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
+        } else {
+            $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->Lookup !== null && is_array($this->ID_TORNEO->lookupOptions()) ? $curVal : null;
+        }
+        if ($this->ID_TORNEO->ViewValue !== null) { // Load from cache
+            $this->ID_TORNEO->EditValue = array_values($this->ID_TORNEO->lookupOptions());
+        } else { // Lookup from database
+            $filterWrk = "";
+            $sqlWrk = $this->ID_TORNEO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+            $conn = Conn();
+            $config = $conn->getConfiguration();
+            $config->setResultCacheImpl($this->Cache);
+            $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+            $ari = count($rswrk);
+            $arwrk = $rswrk;
+            $this->ID_TORNEO->EditValue = $arwrk;
+        }
         $this->ID_TORNEO->PlaceHolder = RemoveHtml($this->ID_TORNEO->caption());
 
         // ID_EQUIPO

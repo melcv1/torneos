@@ -113,6 +113,7 @@ loadjs.ready("fequipotorneoadd", function() {
         <label id="elh_equipotorneo_ID_EQUIPO" for="x_ID_EQUIPO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->ID_EQUIPO->caption() ?><?= $Page->ID_EQUIPO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->ID_EQUIPO->cellAttributes() ?>>
 <span id="el_equipotorneo_ID_EQUIPO">
+<div class="input-group flex-nowrap">
     <select
         id="x_ID_EQUIPO"
         name="x_ID_EQUIPO"
@@ -125,8 +126,10 @@ loadjs.ready("fequipotorneoadd", function() {
         <?= $Page->ID_EQUIPO->editAttributes() ?>>
         <?= $Page->ID_EQUIPO->selectOptionListHtml("x_ID_EQUIPO") ?>
     </select>
-    <?= $Page->ID_EQUIPO->getCustomMessage() ?>
-    <div class="invalid-feedback"><?= $Page->ID_EQUIPO->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_ID_EQUIPO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->ID_EQUIPO->caption() ?>" data-title="<?= $Page->ID_EQUIPO->caption() ?>" data-ew-action="add-option" data-el="x_ID_EQUIPO" data-url="<?= GetUrl("equipoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<?= $Page->ID_EQUIPO->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->ID_EQUIPO->getErrorMessage() ?></div>
 <?= $Page->ID_EQUIPO->Lookup->getParamTag($Page, "p_x_ID_EQUIPO") ?>
 <script>
 loadjs.ready("fequipotorneoadd", function() {

@@ -20,6 +20,12 @@ class EquipotorneoController extends ControllerBase
         return $this->runPage($request, $response, $args, "EquipotorneoAdd");
     }
 
+    // addopt
+    public function addopt(Request $request, Response $response, array $args): Response
+    {
+        return $this->runPage($request, $response, $args, "EquipotorneoAddopt", false);
+    }
+
     // view
     public function view(Request $request, Response $response, array $args): Response
     {

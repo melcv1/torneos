@@ -716,14 +716,23 @@ class EquipotorneoList extends Equipotorneo
 
             // Get default search criteria
             AddFilter($this->DefaultSearchWhere, $this->basicSearchWhere(true));
+            AddFilter($this->DefaultSearchWhere, $this->advancedSearchWhere(true));
 
             // Get basic search values
             $this->loadBasicSearchValues();
+
+            // Get and validate search values for advanced search
+            if (EmptyValue($this->UserAction)) { // Skip if user action
+                $this->loadSearchValues();
+            }
 
             // Process filter list
             if ($this->processFilterList()) {
                 $this->terminate();
                 return;
+            }
+            if (!$this->validateSearch()) {
+                // Nothing to do
             }
 
             // Restore search parms from Session if not searching / reset / export
@@ -740,6 +749,11 @@ class EquipotorneoList extends Equipotorneo
             // Get basic search criteria
             if (!$this->hasInvalidFields()) {
                 $srchBasic = $this->basicSearchWhere();
+            }
+
+            // Get search criteria for advanced search
+            if (!$this->hasInvalidFields()) {
+                $srchAdvanced = $this->advancedSearchWhere();
             }
         }
 
@@ -758,6 +772,16 @@ class EquipotorneoList extends Equipotorneo
             if ($this->BasicSearch->Keyword != "") {
                 $srchBasic = $this->basicSearchWhere();
             }
+
+            // Load advanced search from default
+            if ($this->loadAdvancedSearchDefault()) {
+                $srchAdvanced = $this->advancedSearchWhere();
+            }
+        }
+
+        // Restore search settings from Session
+        if (!$this->hasInvalidFields()) {
+            $this->loadAdvancedSearch();
         }
 
         // Build search criteria
@@ -1191,6 +1215,117 @@ class EquipotorneoList extends Equipotorneo
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
 
+    // Advanced search WHERE clause based on QueryString
+    protected function advancedSearchWhere($default = false)
+    {
+        global $Security;
+        $where = "";
+        if (!$Security->canSearch()) {
+            return "";
+        }
+        $this->buildSearchSql($where, $this->ID_EQUIPO_TORNEO, $default, false); // ID_EQUIPO_TORNEO
+        $this->buildSearchSql($where, $this->ID_TORNEO, $default, true); // ID_TORNEO
+        $this->buildSearchSql($where, $this->ID_EQUIPO, $default, false); // ID_EQUIPO
+        $this->buildSearchSql($where, $this->PARTIDOS_JUGADOS, $default, false); // PARTIDOS_JUGADOS
+        $this->buildSearchSql($where, $this->PARTIDOS_GANADOS, $default, false); // PARTIDOS_GANADOS
+        $this->buildSearchSql($where, $this->PARTIDOS_EMPATADOS, $default, false); // PARTIDOS_EMPATADOS
+        $this->buildSearchSql($where, $this->PARTIDOS_PERDIDOS, $default, false); // PARTIDOS_PERDIDOS
+        $this->buildSearchSql($where, $this->GF, $default, false); // GF
+        $this->buildSearchSql($where, $this->GC, $default, false); // GC
+        $this->buildSearchSql($where, $this->GD, $default, false); // GD
+        $this->buildSearchSql($where, $this->GRUPO, $default, false); // GRUPO
+        $this->buildSearchSql($where, $this->POSICION_EQUIPO_TORENO, $default, false); // POSICION_EQUIPO_TORENO
+        $this->buildSearchSql($where, $this->crea_dato, $default, false); // crea_dato
+        $this->buildSearchSql($where, $this->modifica_dato, $default, false); // modifica_dato
+        $this->buildSearchSql($where, $this->usuario_dato, $default, false); // usuario_dato
+
+        // Set up search parm
+        if (!$default && $where != "" && in_array($this->Command, ["", "reset", "resetall"])) {
+            $this->Command = "search";
+        }
+        if (!$default && $this->Command == "search") {
+            $this->ID_EQUIPO_TORNEO->AdvancedSearch->save(); // ID_EQUIPO_TORNEO
+            $this->ID_TORNEO->AdvancedSearch->save(); // ID_TORNEO
+            $this->ID_EQUIPO->AdvancedSearch->save(); // ID_EQUIPO
+            $this->PARTIDOS_JUGADOS->AdvancedSearch->save(); // PARTIDOS_JUGADOS
+            $this->PARTIDOS_GANADOS->AdvancedSearch->save(); // PARTIDOS_GANADOS
+            $this->PARTIDOS_EMPATADOS->AdvancedSearch->save(); // PARTIDOS_EMPATADOS
+            $this->PARTIDOS_PERDIDOS->AdvancedSearch->save(); // PARTIDOS_PERDIDOS
+            $this->GF->AdvancedSearch->save(); // GF
+            $this->GC->AdvancedSearch->save(); // GC
+            $this->GD->AdvancedSearch->save(); // GD
+            $this->GRUPO->AdvancedSearch->save(); // GRUPO
+            $this->POSICION_EQUIPO_TORENO->AdvancedSearch->save(); // POSICION_EQUIPO_TORENO
+            $this->crea_dato->AdvancedSearch->save(); // crea_dato
+            $this->modifica_dato->AdvancedSearch->save(); // modifica_dato
+            $this->usuario_dato->AdvancedSearch->save(); // usuario_dato
+        }
+        return $where;
+    }
+
+    // Build search SQL
+    protected function buildSearchSql(&$where, &$fld, $default, $multiValue)
+    {
+        $fldParm = $fld->Param;
+        $fldVal = $default ? $fld->AdvancedSearch->SearchValueDefault : $fld->AdvancedSearch->SearchValue;
+        $fldOpr = $default ? $fld->AdvancedSearch->SearchOperatorDefault : $fld->AdvancedSearch->SearchOperator;
+        $fldCond = $default ? $fld->AdvancedSearch->SearchConditionDefault : $fld->AdvancedSearch->SearchCondition;
+        $fldVal2 = $default ? $fld->AdvancedSearch->SearchValue2Default : $fld->AdvancedSearch->SearchValue2;
+        $fldOpr2 = $default ? $fld->AdvancedSearch->SearchOperator2Default : $fld->AdvancedSearch->SearchOperator2;
+        $wrk = "";
+        if (is_array($fldVal)) {
+            $fldVal = implode(Config("MULTIPLE_OPTION_SEPARATOR"), $fldVal);
+        }
+        if (is_array($fldVal2)) {
+            $fldVal2 = implode(Config("MULTIPLE_OPTION_SEPARATOR"), $fldVal2);
+        }
+        $fldOpr = strtoupper(trim($fldOpr ?? ""));
+        if ($fldOpr == "") {
+            $fldOpr = "=";
+        }
+        $fldOpr2 = strtoupper(trim($fldOpr2 ?? ""));
+        if ($fldOpr2 == "") {
+            $fldOpr2 = "=";
+        }
+        if (Config("SEARCH_MULTI_VALUE_OPTION") == 1 && !$fld->UseFilter || !IsMultiSearchOperator($fldOpr)) {
+            $multiValue = false;
+        }
+        if ($multiValue) {
+            $wrk = $fldVal != "" ? GetMultiSearchSql($fld, $fldOpr, $fldVal, $this->Dbid) : ""; // Field value 1
+            $wrk2 = $fldVal2 != "" ? GetMultiSearchSql($fld, $fldOpr2, $fldVal2, $this->Dbid) : ""; // Field value 2
+            AddFilter($wrk, $wrk2, $fldCond);
+        } else {
+            $fldVal = $this->convertSearchValue($fld, $fldVal);
+            $fldVal2 = $this->convertSearchValue($fld, $fldVal2);
+            $wrk = GetSearchSql($fld, $fldVal, $fldOpr, $fldCond, $fldVal2, $fldOpr2, $this->Dbid);
+        }
+        if ($this->SearchOption == "AUTO" && in_array($this->BasicSearch->getType(), ["AND", "OR"])) {
+            $cond = $this->BasicSearch->getType();
+        } else {
+            $cond = SameText($this->SearchOption, "OR") ? "OR" : "AND";
+        }
+        AddFilter($where, $wrk, $cond);
+    }
+
+    // Convert search value
+    protected function convertSearchValue(&$fld, $fldVal)
+    {
+        if ($fldVal == Config("NULL_VALUE") || $fldVal == Config("NOT_NULL_VALUE")) {
+            return $fldVal;
+        }
+        $value = $fldVal;
+        if ($fld->isBoolean()) {
+            if ($fldVal != "") {
+                $value = (SameText($fldVal, "1") || SameText($fldVal, "y") || SameText($fldVal, "t")) ? $fld->TrueValue : $fld->FalseValue;
+            }
+        } elseif ($fld->DataType == DATATYPE_DATE || $fld->DataType == DATATYPE_TIME) {
+            if ($fldVal != "") {
+                $value = UnFormatDateTime($fldVal, $fld->formatPattern());
+            }
+        }
+        return $value;
+    }
+
     // Return basic search WHERE clause based on search keyword and type
     protected function basicSearchWhere($default = false)
     {
@@ -1202,9 +1337,19 @@ class EquipotorneoList extends Equipotorneo
 
         // Fields to search
         $searchFlds = [];
+        $searchFlds[] = &$this->ID_EQUIPO_TORNEO;
+        $searchFlds[] = &$this->ID_TORNEO;
+        $searchFlds[] = &$this->ID_EQUIPO;
+        $searchFlds[] = &$this->PARTIDOS_JUGADOS;
+        $searchFlds[] = &$this->PARTIDOS_GANADOS;
+        $searchFlds[] = &$this->PARTIDOS_EMPATADOS;
+        $searchFlds[] = &$this->PARTIDOS_PERDIDOS;
+        $searchFlds[] = &$this->GF;
+        $searchFlds[] = &$this->GC;
+        $searchFlds[] = &$this->GD;
         $searchFlds[] = &$this->GRUPO;
         $searchFlds[] = &$this->POSICION_EQUIPO_TORENO;
-        $searchFlds[] = &$this->usuario_dato;
+        $searchFlds[] = &$this->crea_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1230,6 +1375,51 @@ class EquipotorneoList extends Equipotorneo
         if ($this->BasicSearch->issetSession()) {
             return true;
         }
+        if ($this->ID_EQUIPO_TORNEO->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->ID_TORNEO->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->ID_EQUIPO->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->PARTIDOS_JUGADOS->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->PARTIDOS_GANADOS->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->PARTIDOS_EMPATADOS->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->PARTIDOS_PERDIDOS->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->GF->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->GC->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->GD->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->GRUPO->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->POSICION_EQUIPO_TORENO->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->crea_dato->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->modifica_dato->AdvancedSearch->issetSession()) {
+            return true;
+        }
+        if ($this->usuario_dato->AdvancedSearch->issetSession()) {
+            return true;
+        }
         return false;
     }
 
@@ -1242,6 +1432,9 @@ class EquipotorneoList extends Equipotorneo
 
         // Clear basic search parameters
         $this->resetBasicSearchParms();
+
+        // Clear advanced search parameters
+        $this->resetAdvancedSearchParms();
     }
 
     // Load advanced search default values
@@ -1256,6 +1449,26 @@ class EquipotorneoList extends Equipotorneo
         $this->BasicSearch->unsetSession();
     }
 
+    // Clear all advanced search parameters
+    protected function resetAdvancedSearchParms()
+    {
+        $this->ID_EQUIPO_TORNEO->AdvancedSearch->unsetSession();
+        $this->ID_TORNEO->AdvancedSearch->unsetSession();
+        $this->ID_EQUIPO->AdvancedSearch->unsetSession();
+        $this->PARTIDOS_JUGADOS->AdvancedSearch->unsetSession();
+        $this->PARTIDOS_GANADOS->AdvancedSearch->unsetSession();
+        $this->PARTIDOS_EMPATADOS->AdvancedSearch->unsetSession();
+        $this->PARTIDOS_PERDIDOS->AdvancedSearch->unsetSession();
+        $this->GF->AdvancedSearch->unsetSession();
+        $this->GC->AdvancedSearch->unsetSession();
+        $this->GD->AdvancedSearch->unsetSession();
+        $this->GRUPO->AdvancedSearch->unsetSession();
+        $this->POSICION_EQUIPO_TORENO->AdvancedSearch->unsetSession();
+        $this->crea_dato->AdvancedSearch->unsetSession();
+        $this->modifica_dato->AdvancedSearch->unsetSession();
+        $this->usuario_dato->AdvancedSearch->unsetSession();
+    }
+
     // Restore all search parameters
     protected function restoreSearchParms()
     {
@@ -1263,6 +1476,23 @@ class EquipotorneoList extends Equipotorneo
 
         // Restore basic search values
         $this->BasicSearch->load();
+
+        // Restore advanced search values
+        $this->ID_EQUIPO_TORNEO->AdvancedSearch->load();
+        $this->ID_TORNEO->AdvancedSearch->load();
+        $this->ID_EQUIPO->AdvancedSearch->load();
+        $this->PARTIDOS_JUGADOS->AdvancedSearch->load();
+        $this->PARTIDOS_GANADOS->AdvancedSearch->load();
+        $this->PARTIDOS_EMPATADOS->AdvancedSearch->load();
+        $this->PARTIDOS_PERDIDOS->AdvancedSearch->load();
+        $this->GF->AdvancedSearch->load();
+        $this->GC->AdvancedSearch->load();
+        $this->GD->AdvancedSearch->load();
+        $this->GRUPO->AdvancedSearch->load();
+        $this->POSICION_EQUIPO_TORENO->AdvancedSearch->load();
+        $this->crea_dato->AdvancedSearch->load();
+        $this->modifica_dato->AdvancedSearch->load();
+        $this->usuario_dato->AdvancedSearch->load();
     }
 
     // Set up sort parameters
@@ -1273,6 +1503,10 @@ class EquipotorneoList extends Equipotorneo
             $defaultSort = ""; // Set up default sort
             if ($this->getSessionOrderBy() == "" && $defaultSort != "") {
                 $this->setSessionOrderBy($defaultSort);
+            }
+            $defaultSortList = ""; // Set up default sort
+            if ($this->getSessionOrderByList() == "" && $defaultSortList != "") {
+                $this->setSessionOrderByList($defaultSortList);
             }
         }
 
@@ -1319,6 +1553,7 @@ class EquipotorneoList extends Equipotorneo
             if ($this->Command == "resetsort") {
                 $orderBy = "";
                 $this->setSessionOrderBy($orderBy);
+                $this->setSessionOrderByList($orderBy);
                 $this->ID_EQUIPO_TORNEO->setSort("");
                 $this->ID_TORNEO->setSort("");
                 $this->ID_EQUIPO->setSort("");
@@ -1762,6 +1997,134 @@ class EquipotorneoList extends Equipotorneo
         $this->BasicSearch->setType(Get(Config("TABLE_BASIC_SEARCH_TYPE"), ""), false);
     }
 
+    // Load search values for validation
+    protected function loadSearchValues()
+    {
+        // Load search values
+        $hasValue = false;
+
+        // ID_EQUIPO_TORNEO
+        if ($this->ID_EQUIPO_TORNEO->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->ID_EQUIPO_TORNEO->AdvancedSearch->SearchValue != "" || $this->ID_EQUIPO_TORNEO->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // ID_TORNEO
+        if ($this->ID_TORNEO->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->ID_TORNEO->AdvancedSearch->SearchValue != "" || $this->ID_TORNEO->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // ID_EQUIPO
+        if ($this->ID_EQUIPO->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->ID_EQUIPO->AdvancedSearch->SearchValue != "" || $this->ID_EQUIPO->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // PARTIDOS_JUGADOS
+        if ($this->PARTIDOS_JUGADOS->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->PARTIDOS_JUGADOS->AdvancedSearch->SearchValue != "" || $this->PARTIDOS_JUGADOS->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // PARTIDOS_GANADOS
+        if ($this->PARTIDOS_GANADOS->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->PARTIDOS_GANADOS->AdvancedSearch->SearchValue != "" || $this->PARTIDOS_GANADOS->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // PARTIDOS_EMPATADOS
+        if ($this->PARTIDOS_EMPATADOS->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->PARTIDOS_EMPATADOS->AdvancedSearch->SearchValue != "" || $this->PARTIDOS_EMPATADOS->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // PARTIDOS_PERDIDOS
+        if ($this->PARTIDOS_PERDIDOS->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->PARTIDOS_PERDIDOS->AdvancedSearch->SearchValue != "" || $this->PARTIDOS_PERDIDOS->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // GF
+        if ($this->GF->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->GF->AdvancedSearch->SearchValue != "" || $this->GF->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // GC
+        if ($this->GC->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->GC->AdvancedSearch->SearchValue != "" || $this->GC->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // GD
+        if ($this->GD->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->GD->AdvancedSearch->SearchValue != "" || $this->GD->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // GRUPO
+        if ($this->GRUPO->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->GRUPO->AdvancedSearch->SearchValue != "" || $this->GRUPO->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // POSICION_EQUIPO_TORENO
+        if ($this->POSICION_EQUIPO_TORENO->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->POSICION_EQUIPO_TORENO->AdvancedSearch->SearchValue != "" || $this->POSICION_EQUIPO_TORENO->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // crea_dato
+        if ($this->crea_dato->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->crea_dato->AdvancedSearch->SearchValue != "" || $this->crea_dato->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // modifica_dato
+        if ($this->modifica_dato->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->modifica_dato->AdvancedSearch->SearchValue != "" || $this->modifica_dato->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+
+        // usuario_dato
+        if ($this->usuario_dato->AdvancedSearch->get()) {
+            $hasValue = true;
+            if (($this->usuario_dato->AdvancedSearch->SearchValue != "" || $this->usuario_dato->AdvancedSearch->SearchValue2 != "") && $this->Command == "") {
+                $this->Command = "search";
+            }
+        }
+        return $hasValue;
+    }
+
     // Load form values
     protected function loadFormValues()
     {
@@ -2034,6 +2397,11 @@ class EquipotorneoList extends Equipotorneo
         $this->ID_EQUIPO_TORNEO->setDbValue($row['ID_EQUIPO_TORNEO']);
         $this->ID_TORNEO->setDbValue($row['ID_TORNEO']);
         $this->ID_EQUIPO->setDbValue($row['ID_EQUIPO']);
+        if (array_key_exists('EV__ID_EQUIPO', $row)) {
+            $this->ID_EQUIPO->VirtualValue = $row['EV__ID_EQUIPO']; // Set up virtual field value
+        } else {
+            $this->ID_EQUIPO->VirtualValue = ""; // Clear value
+        }
         $this->PARTIDOS_JUGADOS->setDbValue($row['PARTIDOS_JUGADOS']);
         $this->PARTIDOS_GANADOS->setDbValue($row['PARTIDOS_GANADOS']);
         $this->PARTIDOS_EMPATADOS->setDbValue($row['PARTIDOS_EMPATADOS']);
@@ -2165,26 +2533,30 @@ class EquipotorneoList extends Equipotorneo
             $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // ID_EQUIPO
-            $curVal = strval($this->ID_EQUIPO->CurrentValue);
-            if ($curVal != "") {
-                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
-                if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                    $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                    $conn = Conn();
-                    $config = $conn->getConfiguration();
-                    $config->setResultCacheImpl($this->Cache);
-                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                    $ari = count($rswrk);
-                    if ($ari > 0) { // Lookup values found
-                        $arwrk = $this->ID_EQUIPO->Lookup->renderViewRow($rswrk[0]);
-                        $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->displayValue($arwrk);
-                    } else {
-                        $this->ID_EQUIPO->ViewValue = FormatNumber($this->ID_EQUIPO->CurrentValue, $this->ID_EQUIPO->formatPattern());
-                    }
-                }
+            if ($this->ID_EQUIPO->VirtualValue != "") {
+                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->VirtualValue;
             } else {
-                $this->ID_EQUIPO->ViewValue = null;
+                $curVal = strval($this->ID_EQUIPO->CurrentValue);
+                if ($curVal != "") {
+                    $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
+                    if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
+                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                        $conn = Conn();
+                        $config = $conn->getConfiguration();
+                        $config->setResultCacheImpl($this->Cache);
+                        $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                        $ari = count($rswrk);
+                        if ($ari > 0) { // Lookup values found
+                            $arwrk = $this->ID_EQUIPO->Lookup->renderViewRow($rswrk[0]);
+                            $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->displayValue($arwrk);
+                        } else {
+                            $this->ID_EQUIPO->ViewValue = FormatNumber($this->ID_EQUIPO->CurrentValue, $this->ID_EQUIPO->formatPattern());
+                        }
+                    }
+                } else {
+                    $this->ID_EQUIPO->ViewValue = null;
+                }
             }
             $this->ID_EQUIPO->ViewCustomAttributes = "";
 
@@ -2337,6 +2709,25 @@ class EquipotorneoList extends Equipotorneo
             // ID_TORNEO
             $this->ID_TORNEO->setupEditAttributes();
             $this->ID_TORNEO->EditCustomAttributes = "";
+            $curVal = trim(strval($this->ID_TORNEO->CurrentValue));
+            if ($curVal != "") {
+                $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
+            } else {
+                $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->Lookup !== null && is_array($this->ID_TORNEO->lookupOptions()) ? $curVal : null;
+            }
+            if ($this->ID_TORNEO->ViewValue !== null) { // Load from cache
+                $this->ID_TORNEO->EditValue = array_values($this->ID_TORNEO->lookupOptions());
+            } else { // Lookup from database
+                $filterWrk = "";
+                $sqlWrk = $this->ID_TORNEO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
+                $conn = Conn();
+                $config = $conn->getConfiguration();
+                $config->setResultCacheImpl($this->Cache);
+                $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                $ari = count($rswrk);
+                $arwrk = $rswrk;
+                $this->ID_TORNEO->EditValue = $arwrk;
+            }
             $this->ID_TORNEO->PlaceHolder = RemoveHtml($this->ID_TORNEO->caption());
 
             // ID_EQUIPO
@@ -2716,6 +3107,101 @@ class EquipotorneoList extends Equipotorneo
             $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
+        } elseif ($this->RowType == ROWTYPE_SEARCH) {
+            // ID_EQUIPO_TORNEO
+            $this->ID_EQUIPO_TORNEO->setupEditAttributes();
+            $this->ID_EQUIPO_TORNEO->EditCustomAttributes = "";
+            $this->ID_EQUIPO_TORNEO->EditValue = HtmlEncode($this->ID_EQUIPO_TORNEO->AdvancedSearch->SearchValue);
+            $this->ID_EQUIPO_TORNEO->PlaceHolder = RemoveHtml($this->ID_EQUIPO_TORNEO->caption());
+
+            // ID_TORNEO
+            if ($this->ID_TORNEO->UseFilter && !EmptyValue($this->ID_TORNEO->AdvancedSearch->SearchValue)) {
+                if (is_array($this->ID_TORNEO->AdvancedSearch->SearchValue)) {
+                    $this->ID_TORNEO->AdvancedSearch->SearchValue = implode(Config("MULTIPLE_OPTION_SEPARATOR"), $this->ID_TORNEO->AdvancedSearch->SearchValue);
+                }
+                $this->ID_TORNEO->EditValue = explode(Config("MULTIPLE_OPTION_SEPARATOR"), $this->ID_TORNEO->AdvancedSearch->SearchValue);
+            }
+
+            // ID_EQUIPO
+            $this->ID_EQUIPO->setupEditAttributes();
+            $this->ID_EQUIPO->EditCustomAttributes = "";
+            $this->ID_EQUIPO->EditValue = HtmlEncode($this->ID_EQUIPO->AdvancedSearch->SearchValue);
+            $this->ID_EQUIPO->PlaceHolder = RemoveHtml($this->ID_EQUIPO->caption());
+
+            // PARTIDOS_JUGADOS
+            $this->PARTIDOS_JUGADOS->setupEditAttributes();
+            $this->PARTIDOS_JUGADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_JUGADOS->EditValue = HtmlEncode($this->PARTIDOS_JUGADOS->AdvancedSearch->SearchValue);
+            $this->PARTIDOS_JUGADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_JUGADOS->caption());
+
+            // PARTIDOS_GANADOS
+            $this->PARTIDOS_GANADOS->setupEditAttributes();
+            $this->PARTIDOS_GANADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_GANADOS->EditValue = HtmlEncode($this->PARTIDOS_GANADOS->AdvancedSearch->SearchValue);
+            $this->PARTIDOS_GANADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_GANADOS->caption());
+
+            // PARTIDOS_EMPATADOS
+            $this->PARTIDOS_EMPATADOS->setupEditAttributes();
+            $this->PARTIDOS_EMPATADOS->EditCustomAttributes = "";
+            $this->PARTIDOS_EMPATADOS->EditValue = HtmlEncode($this->PARTIDOS_EMPATADOS->AdvancedSearch->SearchValue);
+            $this->PARTIDOS_EMPATADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_EMPATADOS->caption());
+
+            // PARTIDOS_PERDIDOS
+            $this->PARTIDOS_PERDIDOS->setupEditAttributes();
+            $this->PARTIDOS_PERDIDOS->EditCustomAttributes = "";
+            $this->PARTIDOS_PERDIDOS->EditValue = HtmlEncode($this->PARTIDOS_PERDIDOS->AdvancedSearch->SearchValue);
+            $this->PARTIDOS_PERDIDOS->PlaceHolder = RemoveHtml($this->PARTIDOS_PERDIDOS->caption());
+
+            // GF
+            $this->GF->setupEditAttributes();
+            $this->GF->EditCustomAttributes = "";
+            $this->GF->EditValue = HtmlEncode($this->GF->AdvancedSearch->SearchValue);
+            $this->GF->PlaceHolder = RemoveHtml($this->GF->caption());
+
+            // GC
+            $this->GC->setupEditAttributes();
+            $this->GC->EditCustomAttributes = "";
+            $this->GC->EditValue = HtmlEncode($this->GC->AdvancedSearch->SearchValue);
+            $this->GC->PlaceHolder = RemoveHtml($this->GC->caption());
+
+            // GD
+            $this->GD->setupEditAttributes();
+            $this->GD->EditCustomAttributes = "";
+            $this->GD->EditValue = HtmlEncode($this->GD->AdvancedSearch->SearchValue);
+            $this->GD->PlaceHolder = RemoveHtml($this->GD->caption());
+
+            // GRUPO
+            $this->GRUPO->setupEditAttributes();
+            $this->GRUPO->EditCustomAttributes = "";
+            $this->GRUPO->EditValue = $this->GRUPO->options(true);
+            $this->GRUPO->PlaceHolder = RemoveHtml($this->GRUPO->caption());
+
+            // POSICION_EQUIPO_TORENO
+            $this->POSICION_EQUIPO_TORENO->setupEditAttributes();
+            $this->POSICION_EQUIPO_TORENO->EditCustomAttributes = "";
+            $this->POSICION_EQUIPO_TORENO->EditValue = $this->POSICION_EQUIPO_TORENO->options(true);
+            $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
+
+            // crea_dato
+            $this->crea_dato->setupEditAttributes();
+            $this->crea_dato->EditCustomAttributes = "";
+            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime(UnFormatDateTime($this->crea_dato->AdvancedSearch->SearchValue, $this->crea_dato->formatPattern()), $this->crea_dato->formatPattern()));
+            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+
+            // modifica_dato
+            $this->modifica_dato->setupEditAttributes();
+            $this->modifica_dato->EditCustomAttributes = "";
+            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime(UnFormatDateTime($this->modifica_dato->AdvancedSearch->SearchValue, $this->modifica_dato->formatPattern()), $this->modifica_dato->formatPattern()));
+            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+
+            // usuario_dato
+            $this->usuario_dato->setupEditAttributes();
+            $this->usuario_dato->EditCustomAttributes = "";
+            if (!$this->usuario_dato->Raw) {
+                $this->usuario_dato->AdvancedSearch->SearchValue = HtmlDecode($this->usuario_dato->AdvancedSearch->SearchValue);
+            }
+            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->AdvancedSearch->SearchValue);
+            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -2725,6 +3211,26 @@ class EquipotorneoList extends Equipotorneo
         if ($this->RowType != ROWTYPE_AGGREGATEINIT) {
             $this->rowRendered();
         }
+    }
+
+    // Validate search
+    protected function validateSearch()
+    {
+        // Check if validation required
+        if (!Config("SERVER_VALIDATE")) {
+            return true;
+        }
+
+        // Return validate result
+        $validateSearch = !$this->hasInvalidFields();
+
+        // Call Form_CustomValidate event
+        $formCustomError = "";
+        $validateSearch = $validateSearch && $this->formCustomValidate($formCustomError);
+        if ($formCustomError != "") {
+            $this->setFailureMessage($formCustomError);
+        }
+        return $validateSearch;
     }
 
     // Validate form
@@ -3072,6 +3578,26 @@ class EquipotorneoList extends Equipotorneo
             WriteJson(["success" => true, $this->TableVar => $row]);
         }
         return $addRow;
+    }
+
+    // Load advanced search
+    public function loadAdvancedSearch()
+    {
+        $this->ID_EQUIPO_TORNEO->AdvancedSearch->load();
+        $this->ID_TORNEO->AdvancedSearch->load();
+        $this->ID_EQUIPO->AdvancedSearch->load();
+        $this->PARTIDOS_JUGADOS->AdvancedSearch->load();
+        $this->PARTIDOS_GANADOS->AdvancedSearch->load();
+        $this->PARTIDOS_EMPATADOS->AdvancedSearch->load();
+        $this->PARTIDOS_PERDIDOS->AdvancedSearch->load();
+        $this->GF->AdvancedSearch->load();
+        $this->GC->AdvancedSearch->load();
+        $this->GD->AdvancedSearch->load();
+        $this->GRUPO->AdvancedSearch->load();
+        $this->POSICION_EQUIPO_TORENO->AdvancedSearch->load();
+        $this->crea_dato->AdvancedSearch->load();
+        $this->modifica_dato->AdvancedSearch->load();
+        $this->usuario_dato->AdvancedSearch->load();
     }
 
     // Set up search options

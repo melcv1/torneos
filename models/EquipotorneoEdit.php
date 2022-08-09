@@ -919,6 +919,11 @@ class EquipotorneoEdit extends Equipotorneo
         $this->ID_EQUIPO_TORNEO->setDbValue($row['ID_EQUIPO_TORNEO']);
         $this->ID_TORNEO->setDbValue($row['ID_TORNEO']);
         $this->ID_EQUIPO->setDbValue($row['ID_EQUIPO']);
+        if (array_key_exists('EV__ID_EQUIPO', $row)) {
+            $this->ID_EQUIPO->VirtualValue = $row['EV__ID_EQUIPO']; // Set up virtual field value
+        } else {
+            $this->ID_EQUIPO->VirtualValue = ""; // Clear value
+        }
         $this->PARTIDOS_JUGADOS->setDbValue($row['PARTIDOS_JUGADOS']);
         $this->PARTIDOS_GANADOS->setDbValue($row['PARTIDOS_GANADOS']);
         $this->PARTIDOS_EMPATADOS->setDbValue($row['PARTIDOS_EMPATADOS']);
@@ -1059,26 +1064,30 @@ class EquipotorneoEdit extends Equipotorneo
             $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // ID_EQUIPO
-            $curVal = strval($this->ID_EQUIPO->CurrentValue);
-            if ($curVal != "") {
-                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
-                if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                    $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                    $conn = Conn();
-                    $config = $conn->getConfiguration();
-                    $config->setResultCacheImpl($this->Cache);
-                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                    $ari = count($rswrk);
-                    if ($ari > 0) { // Lookup values found
-                        $arwrk = $this->ID_EQUIPO->Lookup->renderViewRow($rswrk[0]);
-                        $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->displayValue($arwrk);
-                    } else {
-                        $this->ID_EQUIPO->ViewValue = FormatNumber($this->ID_EQUIPO->CurrentValue, $this->ID_EQUIPO->formatPattern());
-                    }
-                }
+            if ($this->ID_EQUIPO->VirtualValue != "") {
+                $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->VirtualValue;
             } else {
-                $this->ID_EQUIPO->ViewValue = null;
+                $curVal = strval($this->ID_EQUIPO->CurrentValue);
+                if ($curVal != "") {
+                    $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
+                    if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
+                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                        $conn = Conn();
+                        $config = $conn->getConfiguration();
+                        $config->setResultCacheImpl($this->Cache);
+                        $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                        $ari = count($rswrk);
+                        if ($ari > 0) { // Lookup values found
+                            $arwrk = $this->ID_EQUIPO->Lookup->renderViewRow($rswrk[0]);
+                            $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->displayValue($arwrk);
+                        } else {
+                            $this->ID_EQUIPO->ViewValue = FormatNumber($this->ID_EQUIPO->CurrentValue, $this->ID_EQUIPO->formatPattern());
+                        }
+                    }
+                } else {
+                    $this->ID_EQUIPO->ViewValue = null;
+                }
             }
             $this->ID_EQUIPO->ViewCustomAttributes = "";
 

@@ -62,7 +62,55 @@ loadjs.ready(["wrapper", "head"], function () {
     fequipotorneosrch = new ew.Form("fequipotorneosrch", "list");
     currentSearchForm = fequipotorneosrch;
 
+    // Add fields
+    var fields = currentTable.fields;
+    fequipotorneosrch.addFields([
+        ["ID_EQUIPO_TORNEO", [], fields.ID_EQUIPO_TORNEO.isInvalid],
+        ["ID_TORNEO", [], fields.ID_TORNEO.isInvalid],
+        ["ID_EQUIPO", [], fields.ID_EQUIPO.isInvalid],
+        ["PARTIDOS_JUGADOS", [], fields.PARTIDOS_JUGADOS.isInvalid],
+        ["PARTIDOS_GANADOS", [], fields.PARTIDOS_GANADOS.isInvalid],
+        ["PARTIDOS_EMPATADOS", [], fields.PARTIDOS_EMPATADOS.isInvalid],
+        ["PARTIDOS_PERDIDOS", [], fields.PARTIDOS_PERDIDOS.isInvalid],
+        ["GF", [], fields.GF.isInvalid],
+        ["GC", [], fields.GC.isInvalid],
+        ["GD", [], fields.GD.isInvalid],
+        ["GRUPO", [], fields.GRUPO.isInvalid],
+        ["POSICION_EQUIPO_TORENO", [], fields.POSICION_EQUIPO_TORENO.isInvalid],
+        ["crea_dato", [], fields.crea_dato.isInvalid],
+        ["modifica_dato", [], fields.modifica_dato.isInvalid],
+        ["usuario_dato", [], fields.usuario_dato.isInvalid]
+    ]);
+
+    // Validate form
+    fequipotorneosrch.validate = function () {
+        if (!this.validateRequired)
+            return true; // Ignore validation
+        var fobj = this.getForm();
+
+        // Validate fields
+        if (!this.validateFields())
+            return false;
+
+        // Call Form_CustomValidate event
+        if (!this.customValidate(fobj)) {
+            this.focus();
+            return false;
+        }
+        return true;
+    }
+
+    // Form_CustomValidate
+    fequipotorneosrch.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
+        // Your custom validation code here, return false if invalid.
+        return true;
+    }
+
+    // Use JavaScript validation or not
+    fequipotorneosrch.validateRequired = ew.CLIENT_VALIDATE;
+
     // Dynamic selection lists
+    fequipotorneosrch.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
 
     // Filters
     fequipotorneosrch.filterList = <?= $Page->getFilterList() ?>;
@@ -101,6 +149,52 @@ $Page->renderOtherOptions();
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="equipotorneo">
 <div class="ew-extended-search container-fluid">
+<div class="row mb-0<?= ($Page->SearchFieldsPerRow > 0) ? " row-cols-sm-" . $Page->SearchFieldsPerRow : "" ?>">
+<?php
+// Render search row
+$Page->RowType = ROWTYPE_SEARCH;
+$Page->resetAttributes();
+$Page->renderRow();
+?>
+<?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
+<?php
+if (!$Page->ID_TORNEO->UseFilter) {
+    $Page->SearchColumnCount++;
+}
+?>
+    <div id="xs_ID_TORNEO" class="col-sm-auto d-sm-flex mb-3 px-0 pe-sm-2<?= $Page->ID_TORNEO->UseFilter ? " ew-filter-field" : "" ?>">
+        <select
+            id="x_ID_TORNEO"
+            name="x_ID_TORNEO[]"
+            class="form-control ew-select<?= $Page->ID_TORNEO->isInvalidClass() ?>"
+            data-select2-id="fequipotorneosrch_x_ID_TORNEO"
+            data-table="equipotorneo"
+            data-field="x_ID_TORNEO"
+            data-caption="<?= HtmlEncode(RemoveHtml($Page->ID_TORNEO->caption())) ?>"
+            data-filter="true"
+            multiple
+            size="1"
+            data-value-separator="<?= $Page->ID_TORNEO->displayValueSeparatorAttribute() ?>"
+            data-placeholder="<?= HtmlEncode($Page->ID_TORNEO->getPlaceHolder()) ?>"
+            <?= $Page->ID_TORNEO->editAttributes() ?>>
+            <?= $Page->ID_TORNEO->selectOptionListHtml("x_ID_TORNEO", true) ?>
+        </select>
+        <div class="invalid-feedback"><?= $Page->ID_TORNEO->getErrorMessage(false) ?></div>
+        <?= $Page->ID_TORNEO->Lookup->getParamTag($Page, "p_x_ID_TORNEO") ?>
+        <script>
+        loadjs.ready("fequipotorneosrch", function() {
+            var options = {
+                name: "x_ID_TORNEO",
+                selectId: "fequipotorneosrch_x_ID_TORNEO",
+                ajax: { id: "x_ID_TORNEO", form: "fequipotorneosrch", limit: ew.FILTER_PAGE_SIZE, data: { ajax: "filter" } }
+            };
+            options = Object.assign({}, ew.filterOptions, options, ew.vars.tables.equipotorneo.fields.ID_TORNEO.filterOptions);
+            ew.createFilter(options);
+        });
+        </script>
+    </div><!-- /.col-sm-auto -->
+<?php } ?>
+</div><!-- /.row -->
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -364,6 +458,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="ID_EQUIPO"<?= $Page->ID_EQUIPO->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO" class="el_equipotorneo_ID_EQUIPO">
+<div class="input-group flex-nowrap">
     <select
         id="x<?= $Page->RowIndex ?>_ID_EQUIPO"
         name="x<?= $Page->RowIndex ?>_ID_EQUIPO"
@@ -376,7 +471,9 @@ loadjs.ready("fequipotorneolist", function() {
         <?= $Page->ID_EQUIPO->editAttributes() ?>>
         <?= $Page->ID_EQUIPO->selectOptionListHtml("x{$Page->RowIndex}_ID_EQUIPO") ?>
     </select>
-    <div class="invalid-feedback"><?= $Page->ID_EQUIPO->getErrorMessage() ?></div>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_ID_EQUIPO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->ID_EQUIPO->caption() ?>" data-title="<?= $Page->ID_EQUIPO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_ID_EQUIPO" data-url="<?= GetUrl("equipoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+</div>
+<div class="invalid-feedback"><?= $Page->ID_EQUIPO->getErrorMessage() ?></div>
 <?= $Page->ID_EQUIPO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_EQUIPO") ?>
 <script>
 loadjs.ready("fequipotorneolist", function() {

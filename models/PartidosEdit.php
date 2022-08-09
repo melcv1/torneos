@@ -997,7 +997,17 @@ class PartidosEdit extends Partidos
         $this->rowSelected($row);
         $this->ID_TORNEO->setDbValue($row['ID_TORNEO']);
         $this->equipo_local->setDbValue($row['equipo_local']);
+        if (array_key_exists('EV__equipo_local', $row)) {
+            $this->equipo_local->VirtualValue = $row['EV__equipo_local']; // Set up virtual field value
+        } else {
+            $this->equipo_local->VirtualValue = ""; // Clear value
+        }
         $this->equipo_visitante->setDbValue($row['equipo_visitante']);
+        if (array_key_exists('EV__equipo_visitante', $row)) {
+            $this->equipo_visitante->VirtualValue = $row['EV__equipo_visitante']; // Set up virtual field value
+        } else {
+            $this->equipo_visitante->VirtualValue = ""; // Clear value
+        }
         $this->ID_PARTIDO->setDbValue($row['ID_PARTIDO']);
         $this->FECHA_PARTIDO->setDbValue($row['FECHA_PARTIDO']);
         $this->HORA_PARTIDO->setDbValue($row['HORA_PARTIDO']);
@@ -1164,50 +1174,58 @@ class PartidosEdit extends Partidos
             $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // equipo_local
-            $curVal = strval($this->equipo_local->CurrentValue);
-            if ($curVal != "") {
-                $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
-                if ($this->equipo_local->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                    $sqlWrk = $this->equipo_local->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                    $conn = Conn();
-                    $config = $conn->getConfiguration();
-                    $config->setResultCacheImpl($this->Cache);
-                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                    $ari = count($rswrk);
-                    if ($ari > 0) { // Lookup values found
-                        $arwrk = $this->equipo_local->Lookup->renderViewRow($rswrk[0]);
-                        $this->equipo_local->ViewValue = $this->equipo_local->displayValue($arwrk);
-                    } else {
-                        $this->equipo_local->ViewValue = FormatNumber($this->equipo_local->CurrentValue, $this->equipo_local->formatPattern());
-                    }
-                }
+            if ($this->equipo_local->VirtualValue != "") {
+                $this->equipo_local->ViewValue = $this->equipo_local->VirtualValue;
             } else {
-                $this->equipo_local->ViewValue = null;
+                $curVal = strval($this->equipo_local->CurrentValue);
+                if ($curVal != "") {
+                    $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
+                    if ($this->equipo_local->ViewValue === null) { // Lookup from database
+                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $sqlWrk = $this->equipo_local->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                        $conn = Conn();
+                        $config = $conn->getConfiguration();
+                        $config->setResultCacheImpl($this->Cache);
+                        $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                        $ari = count($rswrk);
+                        if ($ari > 0) { // Lookup values found
+                            $arwrk = $this->equipo_local->Lookup->renderViewRow($rswrk[0]);
+                            $this->equipo_local->ViewValue = $this->equipo_local->displayValue($arwrk);
+                        } else {
+                            $this->equipo_local->ViewValue = FormatNumber($this->equipo_local->CurrentValue, $this->equipo_local->formatPattern());
+                        }
+                    }
+                } else {
+                    $this->equipo_local->ViewValue = null;
+                }
             }
             $this->equipo_local->ViewCustomAttributes = "";
 
             // equipo_visitante
-            $curVal = strval($this->equipo_visitante->CurrentValue);
-            if ($curVal != "") {
-                $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
-                if ($this->equipo_visitante->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
-                    $sqlWrk = $this->equipo_visitante->Lookup->getSql(false, $filterWrk, '', $this, true, true);
-                    $conn = Conn();
-                    $config = $conn->getConfiguration();
-                    $config->setResultCacheImpl($this->Cache);
-                    $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
-                    $ari = count($rswrk);
-                    if ($ari > 0) { // Lookup values found
-                        $arwrk = $this->equipo_visitante->Lookup->renderViewRow($rswrk[0]);
-                        $this->equipo_visitante->ViewValue = $this->equipo_visitante->displayValue($arwrk);
-                    } else {
-                        $this->equipo_visitante->ViewValue = FormatNumber($this->equipo_visitante->CurrentValue, $this->equipo_visitante->formatPattern());
-                    }
-                }
+            if ($this->equipo_visitante->VirtualValue != "") {
+                $this->equipo_visitante->ViewValue = $this->equipo_visitante->VirtualValue;
             } else {
-                $this->equipo_visitante->ViewValue = null;
+                $curVal = strval($this->equipo_visitante->CurrentValue);
+                if ($curVal != "") {
+                    $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
+                    if ($this->equipo_visitante->ViewValue === null) { // Lookup from database
+                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $sqlWrk = $this->equipo_visitante->Lookup->getSql(false, $filterWrk, '', $this, true, true);
+                        $conn = Conn();
+                        $config = $conn->getConfiguration();
+                        $config->setResultCacheImpl($this->Cache);
+                        $rswrk = $conn->executeCacheQuery($sqlWrk, [], [], $this->CacheProfile)->fetchAll();
+                        $ari = count($rswrk);
+                        if ($ari > 0) { // Lookup values found
+                            $arwrk = $this->equipo_visitante->Lookup->renderViewRow($rswrk[0]);
+                            $this->equipo_visitante->ViewValue = $this->equipo_visitante->displayValue($arwrk);
+                        } else {
+                            $this->equipo_visitante->ViewValue = FormatNumber($this->equipo_visitante->CurrentValue, $this->equipo_visitante->formatPattern());
+                        }
+                    }
+                } else {
+                    $this->equipo_visitante->ViewValue = null;
+                }
             }
             $this->equipo_visitante->ViewCustomAttributes = "";
 
