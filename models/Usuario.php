@@ -167,8 +167,6 @@ class Usuario extends DbTable
             'TEXTAREA'
         );
         $this->nombre->InputTextType = "text";
-        $this->nombre->Nullable = false; // NOT NULL field
-        $this->nombre->Required = true; // Required field
         $this->Fields['nombre'] = &$this->nombre;
 
         // Add Doctrine Cache

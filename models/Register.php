@@ -563,7 +563,6 @@ class Register extends Usuario
     // Load default values
     protected function loadDefaultValues()
     {
-      //  $this->nombre->DefaultValue = "torneos";
     }
 
     // Load form values
@@ -662,7 +661,6 @@ class Register extends Usuario
         $this->ID_USUARIO->setDbValue($row['ID_USUARIO']);
         $this->USER->setDbValue($row['USER']);
         $this->CONTRASENA->setDbValue($row['CONTRASENA']);
-        $this->nombre->setDbValue($row['nombre']);
     }
 
     // Return a row with default values
@@ -672,7 +670,6 @@ class Register extends Usuario
         $row['ID_USUARIO'] = $this->ID_USUARIO->DefaultValue;
         $row['USER'] = $this->USER->DefaultValue;
         $row['CONTRASENA'] = $this->CONTRASENA->DefaultValue;
-        $row['nombre'] = "torneo";
         return $row;
     }
 
@@ -696,9 +693,6 @@ class Register extends Usuario
 
         // CONTRASENA
         $this->CONTRASENA->RowCssClass = "row";
-
-        // nombre
-        $this->nombre->RowCssClass = "row";
 
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
