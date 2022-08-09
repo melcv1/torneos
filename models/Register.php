@@ -563,7 +563,8 @@ class Register extends Usuario
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->crea_dato->DefaultValue = current_timestamp();
+        $this->crea_dato->DefaultValue = "12345";
+
     }
 
     // Load form values
