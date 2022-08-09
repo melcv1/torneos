@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /torneo/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+RewriteCond %{REQUEST_URI} ^/simulador/.*
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^.*$ /simulador/index.html [L]
+
+
+https://torneo.primicias.ec/simulador/
