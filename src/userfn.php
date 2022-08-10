@@ -148,6 +148,11 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
         }    
         return $response;
     });
+    $app->get('/v1/tabla', function ($request, $response, $args) {
+        $myArray="todo ok";
+         $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.PARTIDOS_JUGADOS, b.PARTIDOS_GANADOS, b.PARTIDOS_EMPATADOS, b.PARTIDOS_PERDIDOS, b.GF, b.GC, b.GD FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO;"));
+        return $response;
+    });
 }
 
 // Container Build event
