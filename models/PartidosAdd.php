@@ -1817,10 +1817,10 @@ class PartidosAdd extends Partidos
         if ($tmpBool != "1" && $tmpBool != "0") {
             $tmpBool = !empty($tmpBool) ? "1" : "0";
         }
-        $this->automatico->setDbValueDef($rsnew, $tmpBool, 0, false);
+        $this->automatico->setDbValueDef($rsnew, $tmpBool, null, false);
 
         // actualizado
-        $this->actualizado->setDbValueDef($rsnew, $this->actualizado->CurrentValue, "", false);
+        $this->actualizado->setDbValueDef($rsnew, $this->actualizado->CurrentValue, null, false);
 
         // Update current values
         $this->setCurrentValues($rsnew);

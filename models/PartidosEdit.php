@@ -513,8 +513,6 @@ class PartidosEdit extends Partidos
         $this->automatico->setVisibility();
         $this->actualizado->setVisibility();
         $this->hideFieldsForAddEdit();
-        $this->crea_dato->Required = false;
-        $this->modifica_dato->Required = false;
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -2013,7 +2011,7 @@ class PartidosEdit extends Partidos
         if ($tmpBool != "1" && $tmpBool != "0") {
             $tmpBool = !empty($tmpBool) ? "1" : "0";
         }
-        $this->automatico->setDbValueDef($rsnew, $tmpBool, 0, $this->automatico->ReadOnly);
+        $this->automatico->setDbValueDef($rsnew, $tmpBool, null, $this->automatico->ReadOnly);
 
         // Update current values
         $this->setCurrentValues($rsnew);

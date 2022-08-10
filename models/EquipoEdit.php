@@ -499,12 +499,10 @@ class EquipoEdit extends Equipo
         $this->DETALLE_EQUIPO->setVisibility();
         $this->ESCUDO_EQUIPO->setVisibility();
         $this->NOM_ESTADIO->setVisibility();
-        $this->crea_dato->setVisibility();
-        $this->modifica_dato->setVisibility();
-        $this->usuario_dato->setVisibility();
+        $this->crea_dato->Visible = false;
+        $this->modifica_dato->Visible = false;
+        $this->usuario_dato->Visible = false;
         $this->hideFieldsForAddEdit();
-        $this->crea_dato->Required = false;
-        $this->modifica_dato->Required = false;
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -759,38 +757,6 @@ class EquipoEdit extends Equipo
                 $this->NOM_ESTADIO->setFormValue($val);
             }
         }
-
-        // Check field name 'crea_dato' first before field var 'x_crea_dato'
-        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
-        if (!$this->crea_dato->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->crea_dato->Visible = false; // Disable update for API request
-            } else {
-                $this->crea_dato->setFormValue($val);
-            }
-            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
-        }
-
-        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
-        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
-        if (!$this->modifica_dato->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->modifica_dato->Visible = false; // Disable update for API request
-            } else {
-                $this->modifica_dato->setFormValue($val);
-            }
-            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
-        }
-
-        // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
-        $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
-        if (!$this->usuario_dato->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->usuario_dato->Visible = false; // Disable update for API request
-            } else {
-                $this->usuario_dato->setFormValue($val);
-            }
-        }
         $this->getUploadFiles(); // Get upload files
     }
 
@@ -805,11 +771,6 @@ class EquipoEdit extends Equipo
         $this->REGION_EQUIPO->CurrentValue = $this->REGION_EQUIPO->FormValue;
         $this->DETALLE_EQUIPO->CurrentValue = $this->DETALLE_EQUIPO->FormValue;
         $this->NOM_ESTADIO->CurrentValue = $this->NOM_ESTADIO->FormValue;
-        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
-        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
-        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
-        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
-        $this->usuario_dato->CurrentValue = $this->usuario_dato->FormValue;
     }
 
     /**
@@ -1085,21 +1046,6 @@ class EquipoEdit extends Equipo
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
-
-            // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
-            $this->crea_dato->HrefValue = "";
-            $this->crea_dato->TooltipValue = "";
-
-            // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
-            $this->modifica_dato->HrefValue = "";
-            $this->modifica_dato->TooltipValue = "";
-
-            // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
-            $this->usuario_dato->HrefValue = "";
-            $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_EQUIPO
             $this->ID_EQUIPO->setupEditAttributes();
@@ -1184,26 +1130,6 @@ class EquipoEdit extends Equipo
             }
             $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
 
-            // crea_dato
-            $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
-            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
-            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->CssClass = "fst-italic";
-            $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
-
-            // modifica_dato
-            $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
-            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
-            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->CssClass = "fst-italic";
-            $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
-
-            // usuario_dato
-
             // Edit refer script
 
             // ID_EQUIPO
@@ -1246,21 +1172,6 @@ class EquipoEdit extends Equipo
             // NOM_ESTADIO
             $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
-
-            // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
-            $this->crea_dato->HrefValue = "";
-            $this->crea_dato->TooltipValue = "";
-
-            // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
-            $this->modifica_dato->HrefValue = "";
-            $this->modifica_dato->TooltipValue = "";
-
-            // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
-            $this->usuario_dato->HrefValue = "";
-            $this->usuario_dato->TooltipValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
             $this->setupFieldTitles();
@@ -1320,21 +1231,6 @@ class EquipoEdit extends Equipo
         if ($this->NOM_ESTADIO->Required) {
             if (!$this->NOM_ESTADIO->IsDetailKey && EmptyValue($this->NOM_ESTADIO->FormValue)) {
                 $this->NOM_ESTADIO->addErrorMessage(str_replace("%s", $this->NOM_ESTADIO->caption(), $this->NOM_ESTADIO->RequiredErrorMessage));
-            }
-        }
-        if ($this->crea_dato->Required) {
-            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
-                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
-            }
-        }
-        if ($this->modifica_dato->Required) {
-            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
-                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
-            }
-        }
-        if ($this->usuario_dato->Required) {
-            if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {
-                $this->usuario_dato->addErrorMessage(str_replace("%s", $this->usuario_dato->caption(), $this->usuario_dato->RequiredErrorMessage));
             }
         }
 

@@ -241,7 +241,7 @@ class Estadio extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXT'
+            'HIDDEN'
         );
         $this->usuario_dato->InputTextType = "text";
         $this->Fields['usuario_dato'] = &$this->usuario_dato;

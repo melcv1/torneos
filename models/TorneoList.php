@@ -2664,14 +2664,14 @@ class TorneoList extends Torneo
         }
 
         // crea_dato
-        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), null, false);
 
         // modifica_dato
-        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), null, false);
 
         // usuario_dato
         $this->usuario_dato->CurrentValue = CurrentUserName();
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "");
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, null);
         if ($this->LOGO_TORNEO->Visible && !$this->LOGO_TORNEO->Upload->KeepFile) {
             $oldFiles = EmptyValue($this->LOGO_TORNEO->Upload->DbValue) ? [] : [$this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)];
             if (!EmptyValue($this->LOGO_TORNEO->Upload->FileName)) {

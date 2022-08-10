@@ -538,8 +538,6 @@ class Partidos extends DbTable
             'TEXT'
         );
         $this->crea_dato->InputTextType = "text";
-        $this->crea_dato->Nullable = false; // NOT NULL field
-        $this->crea_dato->Required = true; // Required field
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
         $this->Fields['crea_dato'] = &$this->crea_dato;
 
@@ -563,8 +561,6 @@ class Partidos extends DbTable
             'TEXT'
         );
         $this->modifica_dato->InputTextType = "text";
-        $this->modifica_dato->Nullable = false; // NOT NULL field
-        $this->modifica_dato->Required = true; // Required field
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
@@ -588,7 +584,6 @@ class Partidos extends DbTable
             'TEXT'
         );
         $this->usuario_dato->InputTextType = "text";
-        $this->usuario_dato->Nullable = false; // NOT NULL field
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // automatico
@@ -611,7 +606,6 @@ class Partidos extends DbTable
             'CHECKBOX'
         );
         $this->automatico->InputTextType = "text";
-        $this->automatico->Nullable = false; // NOT NULL field
         $this->automatico->DataType = DATATYPE_BOOLEAN;
         switch ($CurrentLanguage) {
             case "en-US":
@@ -645,7 +639,6 @@ class Partidos extends DbTable
             'HIDDEN'
         );
         $this->actualizado->InputTextType = "text";
-        $this->actualizado->Nullable = false; // NOT NULL field
         $this->Fields['actualizado'] = &$this->actualizado;
 
         // Add Doctrine Cache

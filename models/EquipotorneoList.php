@@ -3528,14 +3528,14 @@ class EquipotorneoList extends Equipotorneo
         $this->POSICION_EQUIPO_TORENO->setDbValueDef($rsnew, $this->POSICION_EQUIPO_TORENO->CurrentValue, null, false);
 
         // crea_dato
-        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), null, false);
 
         // modifica_dato
-        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), null, false);
 
         // usuario_dato
         $this->usuario_dato->CurrentValue = CurrentUserName();
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "");
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, null);
 
         // Update current values
         $this->setCurrentValues($rsnew);

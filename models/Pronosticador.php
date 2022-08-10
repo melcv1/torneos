@@ -284,8 +284,6 @@ class Pronosticador extends DbTable
             'TEXT'
         );
         $this->crea_dato->InputTextType = "text";
-        $this->crea_dato->Nullable = false; // NOT NULL field
-        $this->crea_dato->Required = true; // Required field
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
         $this->Fields['crea_dato'] = &$this->crea_dato;
 
@@ -309,8 +307,6 @@ class Pronosticador extends DbTable
             'TEXT'
         );
         $this->modifica_dato->InputTextType = "text";
-        $this->modifica_dato->Nullable = false; // NOT NULL field
-        $this->modifica_dato->Required = true; // Required field
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
@@ -334,7 +330,6 @@ class Pronosticador extends DbTable
             'TEXTAREA'
         );
         $this->usuario_dato->InputTextType = "text";
-        $this->usuario_dato->Nullable = false; // NOT NULL field
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache

@@ -1157,7 +1157,6 @@ class EquipoList extends Equipo
         $searchFlds[] = &$this->REGION_EQUIPO;
         $searchFlds[] = &$this->DETALLE_EQUIPO;
         $searchFlds[] = &$this->NOM_ESTADIO;
-        $searchFlds[] = &$this->usuario_dato;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -2396,20 +2395,12 @@ class EquipoList extends Equipo
             // crea_dato
             $this->crea_dato->setupEditAttributes();
             $this->crea_dato->EditCustomAttributes = "";
-            $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
-            $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->CssClass = "fst-italic";
-            $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
+            $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
             $this->modifica_dato->EditCustomAttributes = "";
-            $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
-            $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->CssClass = "fst-italic";
-            $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
+            $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
             // usuario_dato
 
@@ -2795,14 +2786,14 @@ class EquipoList extends Equipo
         $this->NOM_ESTADIO->setDbValueDef($rsnew, $this->NOM_ESTADIO->CurrentValue, null, false);
 
         // crea_dato
-        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), null, false);
 
         // modifica_dato
-        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), null, false);
 
         // usuario_dato
         $this->usuario_dato->CurrentValue = CurrentUserName();
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "");
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, null);
         if ($this->ESCUDO_EQUIPO->Visible && !$this->ESCUDO_EQUIPO->Upload->KeepFile) {
             $oldFiles = EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue) ? [] : [$this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)];
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->FileName)) {

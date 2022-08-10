@@ -502,8 +502,6 @@ class TorneoEdit extends Torneo
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
         $this->hideFieldsForAddEdit();
-        $this->crea_dato->Required = false;
-        $this->modifica_dato->Required = false;
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {

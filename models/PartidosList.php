@@ -4061,7 +4061,7 @@ class PartidosList extends Partidos
         if ($tmpBool != "1" && $tmpBool != "0") {
             $tmpBool = !empty($tmpBool) ? "1" : "0";
         }
-        $this->automatico->setDbValueDef($rsnew, $tmpBool, 0, $this->automatico->ReadOnly);
+        $this->automatico->setDbValueDef($rsnew, $tmpBool, null, $this->automatico->ReadOnly);
 
         // Update current values
         $this->setCurrentValues($rsnew);
@@ -4200,24 +4200,24 @@ class PartidosList extends Partidos
         $this->ESTADO_PARTIDO->setDbValueDef($rsnew, $this->ESTADO_PARTIDO->CurrentValue, null, false);
 
         // crea_dato
-        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), CurrentDate(), false);
+        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), null, false);
 
         // modifica_dato
-        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), CurrentDate(), false);
+        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), null, false);
 
         // usuario_dato
         $this->usuario_dato->CurrentValue = CurrentUserName();
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, "");
+        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, null);
 
         // automatico
         $tmpBool = $this->automatico->CurrentValue;
         if ($tmpBool != "1" && $tmpBool != "0") {
             $tmpBool = !empty($tmpBool) ? "1" : "0";
         }
-        $this->automatico->setDbValueDef($rsnew, $tmpBool, 0, false);
+        $this->automatico->setDbValueDef($rsnew, $tmpBool, null, false);
 
         // actualizado
-        $this->actualizado->setDbValueDef($rsnew, $this->actualizado->CurrentValue, "", false);
+        $this->actualizado->setDbValueDef($rsnew, $this->actualizado->CurrentValue, null, false);
 
         // Update current values
         $this->setCurrentValues($rsnew);
