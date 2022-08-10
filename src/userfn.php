@@ -153,6 +153,13 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
          $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.PARTIDOS_JUGADOS, b.PARTIDOS_GANADOS, b.PARTIDOS_EMPATADOS, b.PARTIDOS_PERDIDOS, b.GF, b.GC, b.GD FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO;"));
         return $response;
     });
+      $app->get('/v1/tabla/{ID_TORNEO}', function ($request, $response, $args) {
+        $ID_TORNEO = $args["ID_TORNEO"] ?? null; // Get the input value
+        if ($ID_TORNEO !== null) {
+            $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.PARTIDOS_JUGADOS, b.PARTIDOS_GANADOS, b.PARTIDOS_EMPATADOS, b.PARTIDOS_PERDIDOS, b.GF, b.GC, b.GD FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO WHERE b.ID_TORNEO = '" . AdjustSql($ID_TORNEO) . "'"));
+        }    
+        return $response;
+    });
 }
 
 // Container Build event
