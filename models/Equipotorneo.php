@@ -420,7 +420,7 @@ class Equipotorneo extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXT'
+            'HIDDEN'
         );
         $this->crea_dato->InputTextType = "text";
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
@@ -443,7 +443,7 @@ class Equipotorneo extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXT'
+            'HIDDEN'
         );
         $this->modifica_dato->InputTextType = "text";
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
@@ -466,7 +466,7 @@ class Equipotorneo extends DbTable
             false,
             false,
             'FORMATTED TEXT',
-            'TEXT'
+            'HIDDEN'
         );
         $this->usuario_dato->InputTextType = "text";
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
@@ -1689,20 +1689,12 @@ class Equipotorneo extends DbTable
         // crea_dato
         $this->crea_dato->setupEditAttributes();
         $this->crea_dato->EditCustomAttributes = "";
-        $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
-        $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-        $this->crea_dato->CssClass = "fst-italic";
-        $this->crea_dato->CellCssStyle .= "text-align: right;";
-        $this->crea_dato->ViewCustomAttributes = "";
+        $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
         // modifica_dato
         $this->modifica_dato->setupEditAttributes();
         $this->modifica_dato->EditCustomAttributes = "";
-        $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
-        $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-        $this->modifica_dato->CssClass = "fst-italic";
-        $this->modifica_dato->CellCssStyle .= "text-align: right;";
-        $this->modifica_dato->ViewCustomAttributes = "";
+        $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
         // usuario_dato
 

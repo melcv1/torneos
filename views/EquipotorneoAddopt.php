@@ -31,8 +31,8 @@ loadjs.ready(["wrapper", "head"], function () {
         ["GD", [fields.GD.visible && fields.GD.required ? ew.Validators.required(fields.GD.caption) : null, ew.Validators.integer], fields.GD.isInvalid],
         ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
         ["POSICION_EQUIPO_TORENO", [fields.POSICION_EQUIPO_TORENO.visible && fields.POSICION_EQUIPO_TORENO.required ? ew.Validators.required(fields.POSICION_EQUIPO_TORENO.caption) : null], fields.POSICION_EQUIPO_TORENO.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null, ew.Validators.datetime(fields.crea_dato.clientFormatPattern)], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null, ew.Validators.datetime(fields.modifica_dato.clientFormatPattern)], fields.modifica_dato.isInvalid],
+        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
         ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
     ]);
 
@@ -277,75 +277,17 @@ loadjs.ready("fequipotorneoaddopt", function() {
 <?php } ?>
 <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
     <div<?= $Page->crea_dato->rowAttributes() ?>>
-        <label class="col-sm-2 col-form-label ew-label" for="x_crea_dato"><?= $Page->crea_dato->caption() ?><?= $Page->crea_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <label class="col-sm-2 col-form-label ew-label"><?= $Page->crea_dato->caption() ?><?= $Page->crea_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="col-sm-10"><div<?= $Page->crea_dato->cellAttributes() ?>>
-<input type="<?= $Page->crea_dato->getInputTextType() ?>" name="x_crea_dato" id="x_crea_dato" data-table="equipotorneo" data-field="x_crea_dato" value="<?= $Page->crea_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->crea_dato->getPlaceHolder()) ?>"<?= $Page->crea_dato->editAttributes() ?>>
-<div class="invalid-feedback"><?= $Page->crea_dato->getErrorMessage() ?></div>
-<?php if (!$Page->crea_dato->ReadOnly && !$Page->crea_dato->Disabled && !isset($Page->crea_dato->EditAttrs["readonly"]) && !isset($Page->crea_dato->EditAttrs["disabled"])) { ?>
-<script>
-loadjs.ready(["fequipotorneoaddopt", "datetimepicker"], function () {
-    let format = "<?= DateFormat(15) ?>",
-        options = {
-            localization: {
-                locale: ew.LANGUAGE_ID + "-u-nu-" + ew.getNumberingSystem()
-            },
-            display: {
-                icons: {
-                    previous: ew.IS_RTL ? "fas fa-chevron-right" : "fas fa-chevron-left",
-                    next: ew.IS_RTL ? "fas fa-chevron-left" : "fas fa-chevron-right"
-                },
-                components: {
-                    hours: !!format.match(/h/i),
-                    minutes: !!format.match(/m/),
-                    seconds: !!format.match(/s/i),
-                    useTwentyfourHour: !!format.match(/H/)
-                }
-            },
-            meta: {
-                format
-            }
-        };
-    ew.createDateTimePicker("fequipotorneoaddopt", "x_crea_dato", jQuery.extend(true, {"useCurrent":false}, options));
-});
-</script>
-<?php } ?>
+<input type="hidden" data-table="equipotorneo" data-field="x_crea_dato" data-hidden="1" name="x_crea_dato" id="x_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
 </div></div>
     </div>
 <?php } ?>
 <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
     <div<?= $Page->modifica_dato->rowAttributes() ?>>
-        <label class="col-sm-2 col-form-label ew-label" for="x_modifica_dato"><?= $Page->modifica_dato->caption() ?><?= $Page->modifica_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <label class="col-sm-2 col-form-label ew-label"><?= $Page->modifica_dato->caption() ?><?= $Page->modifica_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="col-sm-10"><div<?= $Page->modifica_dato->cellAttributes() ?>>
-<input type="<?= $Page->modifica_dato->getInputTextType() ?>" name="x_modifica_dato" id="x_modifica_dato" data-table="equipotorneo" data-field="x_modifica_dato" value="<?= $Page->modifica_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->modifica_dato->getPlaceHolder()) ?>"<?= $Page->modifica_dato->editAttributes() ?>>
-<div class="invalid-feedback"><?= $Page->modifica_dato->getErrorMessage() ?></div>
-<?php if (!$Page->modifica_dato->ReadOnly && !$Page->modifica_dato->Disabled && !isset($Page->modifica_dato->EditAttrs["readonly"]) && !isset($Page->modifica_dato->EditAttrs["disabled"])) { ?>
-<script>
-loadjs.ready(["fequipotorneoaddopt", "datetimepicker"], function () {
-    let format = "<?= DateFormat(15) ?>",
-        options = {
-            localization: {
-                locale: ew.LANGUAGE_ID + "-u-nu-" + ew.getNumberingSystem()
-            },
-            display: {
-                icons: {
-                    previous: ew.IS_RTL ? "fas fa-chevron-right" : "fas fa-chevron-left",
-                    next: ew.IS_RTL ? "fas fa-chevron-left" : "fas fa-chevron-right"
-                },
-                components: {
-                    hours: !!format.match(/h/i),
-                    minutes: !!format.match(/m/),
-                    seconds: !!format.match(/s/i),
-                    useTwentyfourHour: !!format.match(/H/)
-                }
-            },
-            meta: {
-                format
-            }
-        };
-    ew.createDateTimePicker("fequipotorneoaddopt", "x_modifica_dato", jQuery.extend(true, {"useCurrent":false}, options));
-});
-</script>
-<?php } ?>
+<input type="hidden" data-table="equipotorneo" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
 </div></div>
     </div>
 <?php } ?>

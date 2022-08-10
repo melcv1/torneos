@@ -623,14 +623,14 @@ class EquipotorneoAddopt extends Equipotorneo
         // Check field name 'crea_dato' first before field var 'x_crea_dato'
         $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
         if (!$this->crea_dato->IsDetailKey) {
-            $this->crea_dato->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->crea_dato->setFormValue(ConvertFromUtf8($val));
             $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
         }
 
         // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
         $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
         if (!$this->modifica_dato->IsDetailKey) {
-            $this->modifica_dato->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->modifica_dato->setFormValue(ConvertFromUtf8($val));
             $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
         }
 
@@ -1145,14 +1145,12 @@ class EquipotorneoAddopt extends Equipotorneo
             // crea_dato
             $this->crea_dato->setupEditAttributes();
             $this->crea_dato->EditCustomAttributes = "";
-            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
-            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
+            $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
             $this->modifica_dato->EditCustomAttributes = "";
-            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
-            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
+            $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
             // usuario_dato
             $this->usuario_dato->setupEditAttributes();
@@ -1318,16 +1316,10 @@ class EquipotorneoAddopt extends Equipotorneo
                 $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
             }
         }
-        if (!CheckDate($this->crea_dato->FormValue, $this->crea_dato->formatPattern())) {
-            $this->crea_dato->addErrorMessage($this->crea_dato->getErrorMessage(false));
-        }
         if ($this->modifica_dato->Required) {
             if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
                 $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
             }
-        }
-        if (!CheckDate($this->modifica_dato->FormValue, $this->modifica_dato->formatPattern())) {
-            $this->modifica_dato->addErrorMessage($this->modifica_dato->getErrorMessage(false));
         }
         if ($this->usuario_dato->Required) {
             if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {

@@ -326,31 +326,13 @@ loadjs.ready("fequipotorneoedit", function() {
 </div></div>
     </div>
 <?php } ?>
-<?php if ($Page->crea_dato->Visible) { // crea_dato ?>
-    <div id="r_crea_dato"<?= $Page->crea_dato->rowAttributes() ?>>
-        <label id="elh_equipotorneo_crea_dato" for="x_crea_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->crea_dato->caption() ?><?= $Page->crea_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->crea_dato->cellAttributes() ?>>
-<span id="el_equipotorneo_crea_dato">
-<span<?= $Page->crea_dato->viewAttributes() ?>>
-<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
-</span>
-<input type="hidden" data-table="equipotorneo" data-field="x_crea_dato" data-hidden="1" name="x_crea_dato" id="x_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
-</div></div>
-    </div>
-<?php } ?>
-<?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
-    <div id="r_modifica_dato"<?= $Page->modifica_dato->rowAttributes() ?>>
-        <label id="elh_equipotorneo_modifica_dato" for="x_modifica_dato" class="<?= $Page->LeftColumnClass ?>"><?= $Page->modifica_dato->caption() ?><?= $Page->modifica_dato->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
-        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->modifica_dato->cellAttributes() ?>>
-<span id="el_equipotorneo_modifica_dato">
-<span<?= $Page->modifica_dato->viewAttributes() ?>>
-<input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
-</span>
-<input type="hidden" data-table="equipotorneo" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
-</div></div>
-    </div>
-<?php } ?>
 </div><!-- /page* -->
+<span id="el_equipotorneo_crea_dato">
+<input type="hidden" data-table="equipotorneo" data-field="x_crea_dato" data-hidden="1" name="x_crea_dato" id="x_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+</span>
+<span id="el_equipotorneo_modifica_dato">
+<input type="hidden" data-table="equipotorneo" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</span>
 <?php if (!$Page->IsModal) { ?>
 <div class="row"><!-- buttons .row -->
     <div class="<?= $Page->OffsetColumnClass ?>"><!-- buttons offset -->
