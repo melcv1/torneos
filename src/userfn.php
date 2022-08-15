@@ -168,6 +168,14 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
         }    
         return $response;
     });
+
+    $app->get('/v1/equipo/{ID_EQUIPO}', function ($request, $response, $args) {
+        $ID_TORNEO = $args["ID_EQUIPO"] ?? null; // Get the input value
+        if ($ID_TORNEO !== null) {
+            $response = $response->withJson(ExecuteRows("SELECT a.NOM_EQUIPO_CORTO, a.NOM_EQUIPO_LARGO, a.ESCUDO_EQUIPO, b.GRUPO FROM equipotorneo as b INNER JOIN equipo as a ON a.id_equipo=b.ID_EQUIPO WHERE a.ID_EQUIPO = '" . AdjustSql($ID_EQUIPO) . "'"));
+        }    
+        return $response;
+    });
 }
 
 // Container Build event
