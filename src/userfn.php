@@ -160,6 +160,14 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
         }    
         return $response;
     });
+
+    $app->get('/v1/partidos/{ID_TORNEO}', function ($request, $response, $args) {
+        $ID_TORNEO = $args["ID_TORNEO"] ?? null; // Get the input value
+        if ($ID_TORNEO !== null) {
+            $response = $response->withJson(ExecuteRows("SELECT * FROM partidos WHERE ID_TORNEO = '" . AdjustSql($ID_TORNEO) . "'"));
+        }    
+        return $response;
+    });
 }
 
 // Container Build event
