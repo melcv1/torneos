@@ -100,7 +100,7 @@ class EquipoView extends Equipo
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -169,8 +169,7 @@ class EquipoView extends Equipo
             $GLOBALS["equipo"] = &$this;
         }
 
-        // Page URL
-        $pageUrl = $this->pageUrl();
+        // Set up record key
         if (($keyValue = Get("ID_EQUIPO") ?? Route("ID_EQUIPO")) !== null) {
             $this->RecKey["ID_EQUIPO"] = $keyValue;
         }

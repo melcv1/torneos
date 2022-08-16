@@ -75,7 +75,7 @@ class Logout
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";

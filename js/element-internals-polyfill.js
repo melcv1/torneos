@@ -23,8 +23,14 @@
             if (target.constructor['formAssociated']) {
                 const isDisabled = target.hasAttribute('disabled');
                 target.toggleAttribute('internals-disabled', isDisabled);
+                if (isDisabled) {
+                    target.setAttribute('aria-disabled', 'true');
+                }
+                else {
+                    target.removeAttribute('aria-disabled');
+                }
                 if (target.formDisabledCallback) {
-                    target.formDisabledCallback.apply(target, [target.hasAttribute('disabled')]);
+                    target.formDisabledCallback.apply(target, [isDisabled]);
                 }
             }
         }
@@ -65,10 +71,10 @@
         const nativeControlValidity = Array.from(form.elements)
             .filter((element) => element.validity)
             .map((element) => element.validity.valid);
-        const polyfilledVaidity = Array.from(formElementsMap.get(form))
+        const polyfilledValidity = Array.from(formElementsMap.get(form))
             .filter(control => control.isConnected)
             .map((control) => internalsMap.get(control).validity.valid);
-        const hasInvalid = [...nativeControlValidity, ...polyfilledVaidity].includes(false);
+        const hasInvalid = [...nativeControlValidity, ...polyfilledValidity].includes(false);
         form.toggleAttribute('internals-invalid', hasInvalid);
         form.toggleAttribute('internals-valid', !hasInvalid);
     };
@@ -270,9 +276,12 @@
         validityObject.valueMissing = false;
         return validityObject;
     };
-    const reconcileValidity = (validityObject, newState) => {
+    const reconcileValidity = (validityObject, newState, form) => {
         validityObject.valid = isValid(newState);
         Object.keys(newState).forEach(key => validityObject[key] = newState[key]);
+        if (form) {
+            setFormValidity(form);
+        }
         return validityObject;
     };
     const isValid = (validityState) => {
@@ -438,7 +447,7 @@
             const id = ref.getAttribute('id');
             const hostRoot = ref.getRootNode();
             if (hostRoot && id) {
-                return hostRoot ? hostRoot.querySelectorAll(`[for=${id}]`) : [];
+                return hostRoot.querySelectorAll(`[for=${id}]`);
             }
             return [];
         }
@@ -451,7 +460,7 @@
             const valid = this.checkValidity();
             const anchor = validationAnchorMap.get(this);
             if (anchor && !ref.constructor['formAssociated']) {
-                throw new DOMException(`Failed to execute 'setValidity' on 'ElementInternals': The target element is not a form-associated custom element.`);
+                throw new DOMException(`Failed to execute 'reportValidity' on 'ElementInternals': The target element is not a form-associated custom element.`);
             }
             if (!valid && anchor) {
                 ref.focus();
@@ -497,7 +506,7 @@
             }
             const check = { ...validity, ...validityChangesObj };
             delete check.valid;
-            const { valid } = reconcileValidity(validity, check);
+            const { valid } = reconcileValidity(validity, check, this.form);
             if (!valid && !validationMessage) {
                 throw new DOMException(`Failed to execute 'setValidity' on 'ElementInternals': The second argument should not be empty if one or more flags in the first argument are true.`);
             }
@@ -567,7 +576,12 @@
             const shadowRoot = attachShadow.apply(this, args);
             const observer = new MutationObserver(observerCallback);
             shadowRootMap.set(this, shadowRoot);
-            observer.observe(shadowRoot, observerConfig);
+            if (window.ShadyDOM) {
+                observer.observe(this, observerConfig);
+            }
+            else {
+                observer.observe(shadowRoot, observerConfig);
+            }
             shadowHostsMap.set(this, observer);
             return shadowRoot;
         }

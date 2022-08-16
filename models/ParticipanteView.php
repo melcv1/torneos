@@ -100,7 +100,7 @@ class ParticipanteView extends Participante
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -169,8 +169,7 @@ class ParticipanteView extends Participante
             $GLOBALS["participante"] = &$this;
         }
 
-        // Page URL
-        $pageUrl = $this->pageUrl();
+        // Set up record key
         if (($keyValue = Get("ID_PARTICIPANTE") ?? Route("ID_PARTICIPANTE")) !== null) {
             $this->RecKey["ID_PARTICIPANTE"] = $keyValue;
         }

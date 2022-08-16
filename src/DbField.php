@@ -1146,8 +1146,9 @@ class DbField
     {
         $ar = [];
         if ($this->Lookup) {
+            $options = $this->Lookup->hasParentTable() ? [] : $this->getOptions();
             $ar = array_merge($this->Lookup->toClientList($currentPage), [
-                "lookupOptions" => $this->getOptions(),
+                "lookupOptions" => $options,
                 "multiple" => $this->isMultiSelect()
             ]);
         }

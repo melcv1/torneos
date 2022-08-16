@@ -1,5 +1,5 @@
 /*!
- * JavaScript for PHPMaker v2022.11.0
+ * JavaScript for PHPMaker v2022.12.0
  * Copyright (c) e.World Technology Limited. All rights reserved.
  */
 (function (ew$1, $$1, luxon) {
@@ -979,14 +979,21 @@
       var form = this.getForm();
       $__default["default"](form).find(":submit:not(.dropdown-toggle)").prop("disabled", true).addClass("disabled");
       this.trigger("disabled");
+    }; // Disable form
+
+    this.disableForm = function () {
+      let form = this.getForm();
+      $__default["default"](form.elements).filter(":submit:not(.dropdown-toggle), .ew-submit").prop("disabled", true).addClass("disabled");
+      this.trigger("disabled");
     }; // Enable form
 
     this.enableForm = function () {
-      var form = this.getForm(),
-          $form = $__default["default"](form);
-      $form.find(".ew-disabled-element").removeClass("ew-disabled-element").prop("disabled", false);
-      $form.find(".ew-enabled-element").removeClass("ew-enabled-element").prop("disabled", true);
-      $form.find(":submit:not(.dropdown-toggle)").prop("disabled", false).removeClass("disabled");
+      let form = this.getForm(),
+          $elements = $__default["default"](form.elements);
+      $elements.filter(".ew-disabled-element").removeClass("ew-disabled-element").prop("disabled", false);
+      $elements.filter(".ew-enabled-element").removeClass("ew-enabled-element").prop("disabled", true);
+      $elements.filter(":submit:not(.dropdown-toggle), .ew-submit").not(".ew-disabled") // Exclude submit buttons with .ew-disabled (disabled purposely)
+      .prop("disabled", false).removeClass("disabled");
       this.trigger("enabled");
     }; // Append hidden element with form name
 

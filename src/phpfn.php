@@ -1241,7 +1241,7 @@ function GetFileViewTag(&$fld, $val, $tooltip = false)
                     $cnt = count($wrknames);
                     $name = $wrknames[$wrkcnt] ?? $wrknames[$cnt - 1];
                     $pathinfo = pathinfo($wrkfile);
-                    $ext = strtolower(@$pathinfo["extension"]);
+                    $ext = strtolower($pathinfo["extension"] ?? "");
                 }
                 $isPdf = SameText($ext, "pdf");
                 if ($url != "") {
@@ -1388,7 +1388,7 @@ function IsImageFile($fn)
             }
         }
         $pathinfo = pathinfo($fn);
-        $ext = strtolower(@$pathinfo["extension"]);
+        $ext = strtolower($pathinfo["extension"] ?? "");
         return in_array($ext, explode(",", Config("IMAGE_ALLOWED_FILE_EXT")));
     }
     return false;
@@ -1588,10 +1588,11 @@ function ConnectDb($info)
         }
     } elseif ($dbtype == "MSSQL") {
         $info["driver"] = $info["driver"] ?? "sqlsrv";
-        $info["driverOptions"] = $info["driverOptions"] ?? [];
+        $info["driverOptions"] = $info["driverOptions"] ?? []; // See https://docs.microsoft.com/en-us/sql/connect/php/connection-options?view=sql-server-ver16
         // Use TransactionIsolation = SQLSRV_TXN_READ_UNCOMMITTED to avoid record locking
         // https://docs.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql?view=sql-server-ver15
         $info["driverOptions"]["TransactionIsolation"] = 1; // SQLSRV_TXN_READ_UNCOMMITTED
+        $info["driverOptions"]["TrustServerCertificate"] = 1;
         if (SameText(Config("PROJECT_CHARSET"), "utf-8")) {
             $info["driverOptions"]["CharacterSet"] = "UTF-8";
         }
@@ -2621,8 +2622,8 @@ function RenderUploadField(&$fld, $idx = -1)
                 if ($filename != "") {
                     $pathinfo = pathinfo($filename);
                     $filename = $pathinfo["basename"];
-                    $dirname = @$pathinfo["dirname"];
-                    $ext = strtolower(@$pathinfo["extension"]);
+                    $dirname = $pathinfo["dirname"] ?? "";
+                    $ext = strtolower($pathinfo["extension"] ?? "");
                     $filepath = ($dirname != "" && $dirname != ".") ? PathCombine($fld->UploadPath, $dirname, !IsRemote($fld->UploadPath)) : $fld->UploadPath;
                     $srcfile = ServerMapPath($filepath) . $filename;
                     $f = IncludeTrailingDelimiter($folder, $physical) . $filename;

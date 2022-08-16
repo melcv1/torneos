@@ -21,7 +21,7 @@ class Language
         global $CurrentLanguage;
         $this->LanguageFolder = Config("LANGUAGE_FOLDER");
         $this->loadFileList(); // Set up file list
-        if (Param("language", "") != "") {
+        if (Param("language", "") != "" && !EmptyValue($this->getFileName(Param("language")))) {
             $this->LanguageId = Param("language");
             $_SESSION[SESSION_LANGUAGE_ID] = $this->LanguageId;
         } elseif (Session(SESSION_LANGUAGE_ID) != "") {

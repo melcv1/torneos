@@ -106,7 +106,7 @@ class EstadioList extends Estadio
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -1615,6 +1615,7 @@ class EstadioList extends Estadio
     protected function loadDefaultValues()
     {
         $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
     // Load basic search values
@@ -2561,7 +2562,7 @@ class EstadioList extends Estadio
     protected function setupSearchOptions()
     {
         global $Language, $Security;
-        $pageUrl = $this->pageUrl();
+        $pageUrl = $this->pageUrl(false);
         $this->SearchOptions = new ListOptions(["TagClassName" => "ew-search-option"]);
 
         // Search button

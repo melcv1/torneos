@@ -271,6 +271,9 @@ class Lookup
             foreach ($rsarr as &$row) {
                 $keys = array_keys($row);
                 if ($linkField = @$renderer->Fields[$this->LinkField]) {
+                    if (IsFloatFormat($linkField->Type) && is_numeric($row[$keys[0]])) { // Format float format field as string
+                        $row[$keys[0]] = strval((float)$row[$keys[0]]);
+                    }
                     $linkField->setDbValue($row[$keys[0]]);
                 }
                 for ($i = 1; $i < count($keys); $i++) {

@@ -83,7 +83,7 @@ class EstadioAddopt extends Estadio
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -530,6 +530,7 @@ class EstadioAddopt extends Estadio
     protected function loadDefaultValues()
     {
         $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
     // Load form values

@@ -223,7 +223,7 @@ class ChartJsRenderer implements ChartRendererInterface
                 $this->Options->import(["responsive" => false, "plugins" => ["legend" => ["display" => true], "title" => ["display" => true, "text" => $title]]]);
                 // Set up tooltips for stacked charts
                 if ($this->Chart->isStackedChart()) {
-                    $this->Options["tooltips"] = ["mode" => "index"];
+                    $this->Options["interaction"] = ["mode" => "index"];
                 }
 
                 // Set up X/Y Axes

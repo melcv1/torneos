@@ -27,7 +27,7 @@ class Recordset
     public function __construct($result, $sql = null, $c = null)
     {
         if ($result) {
-            $this->Result =& $result;
+            $this->Result = &$result;
         }
         $this->Sql = $sql;
         $this->Connection = $c;

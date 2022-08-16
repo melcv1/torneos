@@ -155,7 +155,9 @@ return function (App $app) {
 
     // Route Action event
     if (function_exists(PROJECT_NAMESPACE . "Route_Action")) {
-        Route_Action($app);
+        if (Route_Action($app) === false) {
+            return;
+        }
     }
 
     /**

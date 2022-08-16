@@ -1,5 +1,5 @@
 /*!
- * Core JavaScript for PHPMaker v2022.11.0
+ * Core JavaScript for PHPMaker v2022.12.0
  * Copyright (c) e.World Technology Limited. All rights reserved.
  */
 var ew = (function () {
@@ -1232,7 +1232,8 @@ var ew = (function () {
       for (let prop in obj) {
         if (obj.hasOwnProperty(prop)) {
           // If property is an object, merge properties
-          if (typeof obj[prop] == "object") {
+          if (typeof obj[prop] == "object" && !Array.isArray(obj[prop]) && obj[prop] !== null) {
+            // Note: Type of array/null is "object"
             extended[prop] = deepAssign(overwrite, extended[prop], obj[prop]);
           } else {
             if (overwrite) {

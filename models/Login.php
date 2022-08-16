@@ -77,7 +77,7 @@ class Login extends Usuario
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -332,8 +332,8 @@ class Login extends Usuario
         } elseif (Config("USE_TWO_FACTOR_AUTHENTICATION") && IsLoggingIn2FA()) { // Logging in via 2FA, redirect
             $this->terminate("login2fa");
             return;
-        } elseif (Get("provider")) { // OAuth provider
-            $provider = ucfirst(strtolower(trim(Get("provider")))); // e.g. Google, Facebook
+        } elseif ($provider = trim(Get("provider", ""))) { // OAuth provider
+            $provider = ucfirst(strtolower($provider)); // e.g. Google, Facebook
             $validate = $Security->validateUser($this->Username->CurrentValue, $this->Password->CurrentValue, false, $provider); // Authenticate by provider
             $validPwd = $validate;
             if ($validate) {

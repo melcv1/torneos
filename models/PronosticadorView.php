@@ -108,7 +108,7 @@ class PronosticadorView extends Pronosticador
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -177,8 +177,7 @@ class PronosticadorView extends Pronosticador
             $GLOBALS["pronosticador"] = &$this;
         }
 
-        // Page URL
-        $pageUrl = $this->pageUrl();
+        // Set up record key
         if (($keyValue = Get("ID_ENCUESTA") ?? Route("ID_ENCUESTA")) !== null) {
             $this->RecKey["ID_ENCUESTA"] = $keyValue;
         }

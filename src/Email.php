@@ -49,7 +49,7 @@ class Email
         if ($pos !== false) {
             $wrkname = substr($fn, 0, $pos); // Get file name
             $wrkext = substr($fn, $pos + 1); // Get file extension
-            $wrkpath = PathCombine(ScriptFolder(), Config("EMAIL_TEMPLATE_PATH"), true); // Get file path
+            $wrkpath = ServerMapPath(Config("EMAIL_TEMPLATE_PATH")); // Get file path
             $ar = ($langId != "") ? ["_" . $langId, "-" . $langId, ""] : [""];
             $exist = false;
             foreach ($ar as $suffix) {

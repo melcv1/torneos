@@ -100,7 +100,7 @@ class EstadioView extends Estadio
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -169,8 +169,7 @@ class EstadioView extends Estadio
             $GLOBALS["estadio"] = &$this;
         }
 
-        // Page URL
-        $pageUrl = $this->pageUrl();
+        // Set up record key
         if (($keyValue = Get("id_estadio") ?? Route("id_estadio")) !== null) {
             $this->RecKey["id_estadio"] = $keyValue;
         }

@@ -245,10 +245,10 @@ class Partidos extends DbTable
             'x_HORA_PARTIDO',
             'HORA_PARTIDO',
             '`HORA_PARTIDO`',
-            CastDateFieldForLike("`HORA_PARTIDO`", 3, "DB"),
+            CastDateFieldForLike("`HORA_PARTIDO`", 4, "DB"),
             134,
             10,
-            3,
+            4,
             false,
             '`HORA_PARTIDO`',
             false,
@@ -258,7 +258,7 @@ class Partidos extends DbTable
             'TEXT'
         );
         $this->HORA_PARTIDO->InputTextType = "text";
-        $this->HORA_PARTIDO->DefaultErrorMessage = str_replace("%s", DateFormat(3), $Language->phrase("IncorrectTime"));
+        $this->HORA_PARTIDO->DefaultErrorMessage = str_replace("%s", DateFormat(4), $Language->phrase("IncorrectTime"));
         $this->Fields['HORA_PARTIDO'] = &$this->HORA_PARTIDO;
 
         // ESTADIO
@@ -2194,6 +2194,7 @@ class Partidos extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
+                $this->ExportDoc = &$doc;
                 $this->rowExport($row);
             }
             $recordset->moveNext();

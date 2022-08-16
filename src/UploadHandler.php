@@ -539,7 +539,7 @@ class UploadHandler
             if (!empty($extensions)) {
                 $parts = explode('.', $name);
                 $extIndex = count($parts) - 1;
-                $ext = strtolower(@$parts[$extIndex]);
+                $ext = strtolower($parts[$extIndex] ?? ""); //*** PHP 8.1
                 if (!in_array($ext, $extensions)) {
                     $parts[$extIndex] = $extensions[0];
                     $name = implode('.', $parts);
@@ -787,21 +787,21 @@ class UploadHandler
             return true;
         }
         if (empty($options['crop'])) {
-            $new_width = $img_width * $scale;
-            $new_height = $img_height * $scale;
+            $new_width = round($img_width * $scale); //*** PHP 8.1
+            $new_height = round($img_height * $scale); //*** PHP 8.1
             $dst_x = 0;
             $dst_y = 0;
             $new_img = imagecreatetruecolor($new_width, $new_height);
         } else {
             if (($img_width / $img_height) >= ($max_width / $max_height)) {
-                $new_width = $img_width / ($img_height / $max_height);
+                $new_width = round($img_width / ($img_height / $max_height)); //*** PHP 8.1
                 $new_height = $max_height;
             } else {
                 $new_width = $max_width;
-                $new_height = $img_height / ($img_width / $max_width);
+                $new_height = round($img_height / ($img_width / $max_width)); //*** PHP 8.1
             }
-            $dst_x = 0 - ($new_width - $max_width) / 2;
-            $dst_y = 0 - ($new_height - $max_height) / 2;
+            $dst_x = 0 - round(($new_width - $max_width) / 2); //*** PHP 8.1
+            $dst_y = 0 - round(($new_height - $max_height) / 2); //*** PHP 8.1
             $new_img = imagecreatetruecolor($max_width, $max_height);
         }
         // Handle transparency in GIF and PNG images:
@@ -1336,7 +1336,7 @@ class UploadHandler
         $this->response = $content;
         if ($print_response) {
             $json = json_encode($content);
-            $redirect = stripslashes($this->get_post_param('redirect'));
+            $redirect = stripslashes($this->get_post_param('redirect') ?? ""); //*** PHP 8.1
             if ($redirect && preg_match($this->options['redirect_allow_target'], $redirect)) {
                 return $this->header('Location: '.sprintf($redirect, rawurlencode($json)));
             }
@@ -1468,7 +1468,7 @@ class UploadHandler
         return $this->generate_response($response, $print_response);
     }
 
-    protected function basename($filepath, $suffix = null) {
+    protected function basename($filepath, $suffix = '') { //*** PHP 8.1
         $splited = preg_split('/\//', rtrim ($filepath, '/ '));
         return substr(basename('X'.$splited[count($splited)-1], $suffix), 1);
     }

@@ -106,7 +106,7 @@ class PartidosList extends Partidos
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -2099,14 +2099,23 @@ class PartidosList extends Partidos
     protected function loadDefaultValues()
     {
         $this->FECHA_PARTIDO->DefaultValue = "07/01/2022";
+        $this->FECHA_PARTIDO->OldValue = $this->FECHA_PARTIDO->DefaultValue;
         $this->HORA_PARTIDO->DefaultValue = "00:00";
+        $this->HORA_PARTIDO->OldValue = $this->HORA_PARTIDO->DefaultValue;
         $this->GOLES_LOCAL->DefaultValue = 0;
+        $this->GOLES_LOCAL->OldValue = $this->GOLES_LOCAL->DefaultValue;
         $this->GOLES_VISITANTE->DefaultValue = 0;
+        $this->GOLES_VISITANTE->OldValue = $this->GOLES_VISITANTE->DefaultValue;
         $this->GOLES_EXTRA_EQUIPO1->DefaultValue = 0;
+        $this->GOLES_EXTRA_EQUIPO1->OldValue = $this->GOLES_EXTRA_EQUIPO1->DefaultValue;
         $this->GOLES_EXTRA_EQUIPO2->DefaultValue = 0;
+        $this->GOLES_EXTRA_EQUIPO2->OldValue = $this->GOLES_EXTRA_EQUIPO2->DefaultValue;
         $this->ESTADO_PARTIDO->DefaultValue = "Por jugar";
+        $this->ESTADO_PARTIDO->OldValue = $this->ESTADO_PARTIDO->DefaultValue;
         $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
         $this->actualizado->DefaultValue = "0";
+        $this->actualizado->OldValue = $this->actualizado->DefaultValue;
     }
 
     // Load basic search values
@@ -4292,7 +4301,7 @@ class PartidosList extends Partidos
     protected function setupSearchOptions()
     {
         global $Language, $Security;
-        $pageUrl = $this->pageUrl();
+        $pageUrl = $this->pageUrl(false);
         $this->SearchOptions = new ListOptions(["TagClassName" => "ew-search-option"]);
 
         // Search button

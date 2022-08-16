@@ -83,7 +83,7 @@ class EquipotorneoAddopt extends Equipotorneo
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -538,13 +538,21 @@ class EquipotorneoAddopt extends Equipotorneo
     protected function loadDefaultValues()
     {
         $this->PARTIDOS_JUGADOS->DefaultValue = 0;
+        $this->PARTIDOS_JUGADOS->OldValue = $this->PARTIDOS_JUGADOS->DefaultValue;
         $this->PARTIDOS_GANADOS->DefaultValue = 0;
+        $this->PARTIDOS_GANADOS->OldValue = $this->PARTIDOS_GANADOS->DefaultValue;
         $this->PARTIDOS_EMPATADOS->DefaultValue = 0;
+        $this->PARTIDOS_EMPATADOS->OldValue = $this->PARTIDOS_EMPATADOS->DefaultValue;
         $this->PARTIDOS_PERDIDOS->DefaultValue = 0;
+        $this->PARTIDOS_PERDIDOS->OldValue = $this->PARTIDOS_PERDIDOS->DefaultValue;
         $this->GF->DefaultValue = 0;
+        $this->GF->OldValue = $this->GF->DefaultValue;
         $this->GC->DefaultValue = 0;
+        $this->GC->OldValue = $this->GC->DefaultValue;
         $this->GD->DefaultValue = 0;
+        $this->GD->OldValue = $this->GD->DefaultValue;
         $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
     // Load form values

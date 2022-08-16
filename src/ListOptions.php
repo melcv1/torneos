@@ -317,6 +317,7 @@ class ListOptions implements \ArrayAccess
         $this->TemplateId = $templateId;
         $this->TemplateClassName = $templateClass;
         $res = "";
+        $tag = $this->Tag; // Save Tag
         if ($templateId != "") {
             if ($templateType != "block") {
                 AppendClass($this->TagClassName, "d-inline-block");
@@ -332,6 +333,7 @@ class ListOptions implements \ArrayAccess
                     $res .= $this->customTemplateTag($templateId, "of", $templateClass);
                 }
             } elseif ($templateType == "inline") {
+                $this->Tag = "div"; // Use div
                 if ($part == "header") {
                     $res .= $this->customTemplateTag($templateId, "o2h", $templateClass);
                 } elseif ($part == "body") {
@@ -375,6 +377,7 @@ class ListOptions implements \ArrayAccess
         }
         if (in_array($templateType, ["block", "inline"]) && $templateId != "") {
             $res .= "</template>"; // End <template id="...">
+            $this->Tag = $tag; // Restore Tag
         }
         return $res;
     }

@@ -146,7 +146,7 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'ksnXniM60r8pT49G', // Random key for encryption
+    "RANDOM_KEY" => 'JoEEs7fzji9dXZ8j', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project11.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
@@ -311,6 +311,7 @@ $CONFIG = [
     "USE_MODAL_REGISTER" => false, // Use modal register
     "USE_MODAL_CHANGE_PASSWORD" => false, // Use modal change password
     "USE_MODAL_RESET_PASSWORD" => false, // Use modal reset password
+    "RESET_PASSWORD_TIME_LIMIT" => 60,
 
     // Default User ID allowed permissions
     "DEFAULT_USER_ID_ALLOW_SECURITY" => 360,

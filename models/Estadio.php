@@ -1309,6 +1309,7 @@ class Estadio extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
+                $this->ExportDoc = &$doc;
                 $this->rowExport($row);
             }
             $recordset->moveNext();

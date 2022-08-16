@@ -114,7 +114,7 @@ class PronosticadorList extends Pronosticador
     public function pageUrl($withArgs = true)
     {
         $route = GetRoute();
-        $args = $route->getArguments();
+        $args = RemoveXss($route->getArguments());
         if (!$withArgs) {
             foreach ($args as $key => &$val) {
                 $val = "";
@@ -1680,6 +1680,7 @@ class PronosticadorList extends Pronosticador
     protected function loadDefaultValues()
     {
         $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
     // Load basic search values
@@ -2558,7 +2559,7 @@ class PronosticadorList extends Pronosticador
     protected function setupSearchOptions()
     {
         global $Language, $Security;
-        $pageUrl = $this->pageUrl();
+        $pageUrl = $this->pageUrl(false);
         $this->SearchOptions = new ListOptions(["TagClassName" => "ew-search-option"]);
 
         // Search button

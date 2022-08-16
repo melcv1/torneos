@@ -1173,78 +1173,60 @@ li.ui-timepicker-selected,
   .w-col-1 {
     width: 8.33333% !important;
   }
-
   .w-col-2 {
     width: 16.66667% !important;
   }
-
   .w-col-3 {
     width: 25% !important;
   }
-
   .w-col-4 {
     width: 33.33333% !important;
   }
-
   .w-col-5 {
     width: 41.66667% !important;
   }
-
   .w-col-6 {
     width: 50% !important;
   }
-
   .w-col-7 {
     width: 58.33333% !important;
   }
-
   .w-col-8 {
     width: 66.66667% !important;
   }
-
   .w-col-9 {
     width: 75% !important;
   }
-
   .w-col-10 {
     width: 83.33333% !important;
   }
-
   .w-col-11 {
     width: 91.66667% !important;
   }
-
   .w-col-12 {
     width: 100% !important;
   }
-
   .ew-grid {
     min-width: 550px;
   }
-
   .form-control:not(.form-control-color) {
     display: inline;
     max-width: none;
   }
-
   .form-control:not(.form-control-color):not(textarea), .form-select {
     width: auto;
   }
-
   .form-range {
     width: 18rem;
   }
-
   .input-group > .form-control:not(.form-control-navbar),
 .input-group > .form-select {
     width: auto;
     flex: initial;
   }
-
   [id^=fd_] > .input-group {
     width: 50%;
   }
-
   .ew-grid-add-edit .input-group {
     flex-wrap: nowrap;
   }
@@ -1252,32 +1234,25 @@ li.ui-timepicker-selected,
     width: 100%;
     min-width: 200px;
   }
-
   .ew-search-operator .form-control-plaintext {
     width: auto;
   }
-
   input[type=text]:not([size]):not(.ew-page-no):not(.cke_dialog_ui_input_text):not(.form-control-plaintext),
 input[type=password]:not([size]) {
     min-width: 250px;
   }
-
   .ew-custom-select, .ew-custom-file {
     max-width: 20em;
   }
-
   .ew-auto-suggest {
     display: inline-block;
   }
-
   .ew-upload-table {
     width: auto;
   }
-
   .ew-editor, .mce-tinymce {
     width: auto !important;
   }
-
   .modal-body .ew-editor, .modal-body .mce-tinymce {
     width: auto !important;
   }
@@ -1333,24 +1308,19 @@ input[type=password]:not([size]) {
   .ew-grid {
     display: block;
   }
-
   .ew-grid .ew-grid-middle-panel {
     overflow-x: auto;
     overflow-y: visible;
   }
-
   .ew-multicolumn-form > .ew-multi-column-row > div[class^=col-]:not(:last-child) {
     margin-bottom: 15px;
   }
-
   .ew-auto-suggest {
     display: block;
   }
-
   #ew-map {
     width: 100% !important;
   }
-
   .ew-desktop {
     display: block;
   }
@@ -1368,22 +1338,18 @@ input[type=password]:not([size]) {
   .ew-desktop .ew-desktop-table > tbody > tr > td:last-of-type {
     display: block;
   }
-
   .table-striped > tbody > tr:nth-child(odd),
 .table-striped > tbody > tr:nth-child(even),
 .table-striped > tbody > tr:nth-child(odd) > td,
 .table-striped > tbody > tr:nth-child(even) > td {
     background-color: transparent;
   }
-
   .ew-login-box .ew-recaptcha-normal, .ew-reset-pwd-box .ew-recaptcha-normal, .ew-change-pwd-box .ew-recaptcha-normal {
     margin-left: calc((100% - 300px) / 2);
   }
-
   .select2 {
     width: 100%;
   }
-
   .select2-container--bootstrap5 .ew-select-dropdown.ew-select-multiple div.select2-results__option[role=option] {
     border-radius: 0 !important;
   }
