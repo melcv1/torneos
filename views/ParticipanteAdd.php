@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $ParticipanteAdd = &$Page;
@@ -8,37 +8,46 @@ $ParticipanteAdd = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { participante: currentTable } });
-var currentForm, currentPageID;
+var currentPageID = ew.PAGE_ID = "add";
+var currentForm;
 var fparticipanteadd;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fparticipanteadd = new ew.Form("fparticipanteadd", "add");
-    currentPageID = ew.PAGE_ID = "add";
-    currentForm = fparticipanteadd;
+    let form = new ew.FormBuilder()
+        .setId("fparticipanteadd")
+        .setPageId("add")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fparticipanteadd.addFields([
-        ["NOMBRE", [fields.NOMBRE.visible && fields.NOMBRE.required ? ew.Validators.required(fields.NOMBRE.caption) : null], fields.NOMBRE.isInvalid],
-        ["APELLIDO", [fields.APELLIDO.visible && fields.APELLIDO.required ? ew.Validators.required(fields.APELLIDO.caption) : null], fields.APELLIDO.isInvalid],
-        ["FECHA_NACIMIENTO", [fields.FECHA_NACIMIENTO.visible && fields.FECHA_NACIMIENTO.required ? ew.Validators.required(fields.FECHA_NACIMIENTO.caption) : null], fields.FECHA_NACIMIENTO.isInvalid],
-        ["CEDULA", [fields.CEDULA.visible && fields.CEDULA.required ? ew.Validators.required(fields.CEDULA.caption) : null], fields.CEDULA.isInvalid],
-        ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
-        ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["NOMBRE", [fields.NOMBRE.visible && fields.NOMBRE.required ? ew.Validators.required(fields.NOMBRE.caption) : null], fields.NOMBRE.isInvalid],
+            ["APELLIDO", [fields.APELLIDO.visible && fields.APELLIDO.required ? ew.Validators.required(fields.APELLIDO.caption) : null], fields.APELLIDO.isInvalid],
+            ["FECHA_NACIMIENTO", [fields.FECHA_NACIMIENTO.visible && fields.FECHA_NACIMIENTO.required ? ew.Validators.required(fields.FECHA_NACIMIENTO.caption) : null], fields.FECHA_NACIMIENTO.isInvalid],
+            ["CEDULA", [fields.CEDULA.visible && fields.CEDULA.required ? ew.Validators.required(fields.CEDULA.caption) : null], fields.CEDULA.isInvalid],
+            ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
+            ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fparticipanteadd.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fparticipanteadd.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    loadjs.done("fparticipanteadd");
+        // Dynamic selection lists
+        .setLists({
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -50,7 +59,7 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fparticipanteadd" id="fparticipanteadd" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post">
+<form name="fparticipanteadd" id="fparticipanteadd" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -58,6 +67,9 @@ $Page->showMessage();
 <input type="hidden" name="t" value="participante">
 <input type="hidden" name="action" id="action" value="insert">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
+<?php if (IsJsonResponse()) { ?>
+<input type="hidden" name="json" value="1">
+<?php } ?>
 <input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <div class="ew-add-div"><!-- page* -->
 <?php if ($Page->NOMBRE->Visible) { // NOMBRE ?>
@@ -101,7 +113,7 @@ $Page->showMessage();
         <label id="elh_participante_CEDULA" for="x_CEDULA" class="<?= $Page->LeftColumnClass ?>"><?= $Page->CEDULA->caption() ?><?= $Page->CEDULA->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->CEDULA->cellAttributes() ?>>
 <span id="el_participante_CEDULA">
-<input type="<?= $Page->CEDULA->getInputTextType() ?>" name="x_CEDULA" id="x_CEDULA" data-table="participante" data-field="x_CEDULA" value="<?= $Page->CEDULA->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->CEDULA->getPlaceHolder()) ?>"<?= $Page->CEDULA->editAttributes() ?> aria-describedby="x_CEDULA_help">
+<input type="<?= $Page->CEDULA->getInputTextType() ?>" name="x_CEDULA" id="x_CEDULA" data-table="participante" data-field="x_CEDULA" value="<?= $Page->CEDULA->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->CEDULA->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->CEDULA->formatPattern()) ?>"<?= $Page->CEDULA->editAttributes() ?> aria-describedby="x_CEDULA_help">
 <?= $Page->CEDULA->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->CEDULA->getErrorMessage() ?></div>
 </span>
@@ -125,7 +137,7 @@ $Page->showMessage();
         <label id="elh_participante_TELEFONO" for="x_TELEFONO" class="<?= $Page->LeftColumnClass ?>"><?= $Page->TELEFONO->caption() ?><?= $Page->TELEFONO->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->TELEFONO->cellAttributes() ?>>
 <span id="el_participante_TELEFONO">
-<input type="<?= $Page->TELEFONO->getInputTextType() ?>" name="x_TELEFONO" id="x_TELEFONO" data-table="participante" data-field="x_TELEFONO" value="<?= $Page->TELEFONO->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->TELEFONO->getPlaceHolder()) ?>"<?= $Page->TELEFONO->editAttributes() ?> aria-describedby="x_TELEFONO_help">
+<input type="<?= $Page->TELEFONO->getInputTextType() ?>" name="x_TELEFONO" id="x_TELEFONO" data-table="participante" data-field="x_TELEFONO" value="<?= $Page->TELEFONO->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->TELEFONO->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->TELEFONO->formatPattern()) ?>"<?= $Page->TELEFONO->editAttributes() ?> aria-describedby="x_TELEFONO_help">
 <?= $Page->TELEFONO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->TELEFONO->getErrorMessage() ?></div>
 </span>
@@ -133,14 +145,16 @@ $Page->showMessage();
     </div>
 <?php } ?>
 </div><!-- /page* -->
-<?php if (!$Page->IsModal) { ?>
-<div class="row"><!-- buttons .row -->
+<?= $Page->IsModal ? '<template class="ew-modal-buttons">' : '<div class="row ew-buttons">' ?><!-- buttons .row -->
     <div class="<?= $Page->OffsetColumnClass ?>"><!-- buttons offset -->
-<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit"><?= $Language->phrase("AddBtn") ?></button>
-<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
-    </div><!-- /buttons offset -->
-</div><!-- /buttons .row -->
+<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit" form="fparticipanteadd"><?= $Language->phrase("AddBtn") ?></button>
+<?php if (IsJsonResponse()) { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button>
+<?php } else { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" form="fparticipanteadd" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
 <?php } ?>
+    </div><!-- /buttons offset -->
+<?= $Page->IsModal ? "</template>" : "</div>" ?><!-- /buttons .row -->
 </form>
 <?php
 $Page->showPageFooter();

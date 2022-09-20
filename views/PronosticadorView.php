@@ -1,25 +1,11 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PronosticadorView = &$Page;
 ?>
 <?php if (!$Page->isExport()) { ?>
-<script>
-var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
-ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
-var currentForm, currentPageID;
-var fpronosticadorview;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object
-    fpronosticadorview = new ew.Form("fpronosticadorview", "view");
-    currentPageID = ew.PAGE_ID = "view";
-    currentForm = fpronosticadorview;
-    loadjs.done("fpronosticadorview");
-});
-</script>
 <script>
 loadjs.ready("head", function () {
     // Write your table-specific client script here, no need to add script tags.
@@ -36,14 +22,37 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fpronosticadorview" id="fpronosticadorview" class="ew-form ew-view-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<main class="view">
+<form name="fpronosticadorview" id="fpronosticadorview" class="ew-form ew-view-form overlay-wrapper" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
+<?php if (!$Page->isExport()) { ?>
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
+var currentPageID = ew.PAGE_ID = "view";
+var currentForm;
+var fpronosticadorview;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
+    // Form object
+    let form = new ew.FormBuilder()
+        .setId("fpronosticadorview")
+        .setPageId("view")
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
+});
+</script>
+<?php } ?>
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="pronosticador">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
-<table class="table table-striped table-bordered table-hover table-sm ew-view-table">
+<table class="<?= $Page->TableClass ?>">
 <?php if ($Page->ID_ENCUESTA->Visible) { // ID_ENCUESTA ?>
     <tr id="r_ID_ENCUESTA"<?= $Page->ID_ENCUESTA->rowAttributes() ?>>
         <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_pronosticador_ID_ENCUESTA"><?= $Page->ID_ENCUESTA->caption() ?></span></td>
@@ -145,6 +154,7 @@ $Page->showMessage();
 <?php } ?>
 </table>
 </form>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

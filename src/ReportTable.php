@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 
@@ -10,27 +10,17 @@ use Doctrine\DBAL\Query\QueryBuilder;
 class ReportTable extends DbTableBase
 {
     public $ReportSourceTable;
-    public $TableReportType;
-    public $SourceTableIsCustomView = false;
-    public $ShowCurrentFilter;
-    public $ShowDrillDownFilter;
-    public $UseDrillDownPanel; // Use drill down panel
-    public $DrillDown = false;
-    public $DrillDownInPanel = false;
-    public $ExportChartPageBreak = true; // Page break for chart when export
-    public $PageBreakContent;
     public $RowTotalType; // Row total type
     public $RowTotalSubType; // Row total subtype
     public $RowGroupLevel; // Row group level
+    public $ShowReport = true;
 
     // Constructor
     public function __construct()
     {
         parent::__construct();
-        $this->ShowCurrentFilter = Config("SHOW_CURRENT_FILTER");
         $this->ShowDrillDownFilter = Config("SHOW_DRILLDOWN_FILTER");
         $this->UseDrillDownPanel = Config("USE_DRILLDOWN_PANEL");
-        $this->PageBreakContent = Config("PAGE_BREAK_HTML");
     }
 
     // Session Group Per Page

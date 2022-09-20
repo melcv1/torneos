@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,6 +20,12 @@ class PersonalData
     // Project ID
     public $ProjectID = PROJECT_ID;
 
+    // Table name
+    public $TableName;
+
+    // Table variable
+    public $TableVar;
+
     // Page object name
     public $PageObjName = "PersonalData";
 
@@ -31,6 +37,9 @@ class PersonalData
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "estadiodelete";
 
     // Page headings
     public $Heading = "";
@@ -84,8 +93,7 @@ class PersonalData
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -108,17 +116,13 @@ class PersonalData
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
@@ -133,14 +137,14 @@ class PersonalData
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? GetConnection();
+        $GLOBALS["Conn"] ??= GetConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -187,7 +191,7 @@ class PersonalData
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -195,17 +199,17 @@ class PersonalData
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
 
-        // Export
-
         // Close connection
         CloseConnections();
 
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -235,22 +239,24 @@ class PersonalData
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $Breadcrumb;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $Breadcrumb;
 
         // Create Password field object (used by validation only)
-        $this->Password = new DbField("personaldata", "personaldata", "password", "password", "password", "", 202, 255, -1, false, "", false, false, false);
+        $this->Password = new DbField(Container("usertable"), "password", "password", "password", "", 202, 255, -1, false, "", false, false, false);
         $this->Password->EditAttrs->appendClass("form-control ew-form-control");
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Global Page Loading event (in userfn*.php)
         Page_Loading();
         $Breadcrumb = new Breadcrumb("index");
         $Breadcrumb->add("personal_data", "PersonalDataTitle", CurrentUrl(), "ew-personal-data", "", true);
         $this->Heading = $Language->phrase("PersonalDataTitle");
-        $cmd = Get("cmd", "");
+        $cmd = Param("cmd");
         if (SameText($cmd, "Download")) {
             if ($this->personalDataResult()) {
                 $this->terminate();

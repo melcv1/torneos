@@ -13,20 +13,43 @@
 /*BEGIN_SYSTEM_STYLES*/
 @import "bootstrap/functions";
 @import "variables"; // Bootstrap + AdminLTE variables in temp folder
+@import "adminlte/variables-alt";
 @import "bootstrap/mixins";
 @import "adminlte/mixins";
-@function get-bg-color($color) {
-    @if (type-of($color) != color) {
-        @return transparent;
+@mixin table-color($color, $bgcolor) {
+    @if (type-of($bgcolor) != color) {
+        background-color: transparent;
     } @else {
-        @return $color;
+        background-color: $bgcolor;
+    }
+    @if (type-of($color) == color) {
+        color: $color;
+    } @else {
+        color: #{color-contrast(opaque($body-bg, $bgcolor))};
     }
 }
-@function get-text-color($color, $bgcolor) {
-    @if (type-of($color) == color) {
-        @return $color;
+@mixin table-cell-color($color, $bgcolor) {
+    @if (type-of($bgcolor) == color) {
+        --#{$prefix}table-accent-bg: #{$bgcolor};
     } @else {
-        @return color-contrast(opaque($body-bg, $bgcolor));
+        --#{$prefix}table-accent-bg: var(--#{$prefix}table-bg);
+    }
+    @if (type-of($color) == color) {
+        color: $color;
+    } @else {
+        color: var(--#{$prefix}table-color);
+    }
+}
+@mixin table-header-color($color, $bgcolor) {
+    @if (type-of($bgcolor) == color) {
+        --#{$prefix}table-accent-bg: #{$bgcolor};
+    } @else {
+        --#{$prefix}table-accent-bg: var(--#{$prefix}table-bg);
+    }
+    @if (type-of($color) == color) {
+        color: $color;
+    } @else {
+        color: #{color-contrast($ThemeTableHeaderBackgroundColor)};
     }
 }
 $ThemePaceColor: #0251C6;
@@ -49,7 +72,7 @@ $ThemeGridBorderColor: #0A53BE;
 $ThemeGridLineColor: $table-border-color;
 $ThemeGridPagerPanelBackgroundColor: $card-cap-bg;
 $ThemeGridPagerPanelColor: null;
-$ThemeBaseFontFamily: Verdana, var(--#{$variable-prefix}font-sans-serif);
+$ThemeBaseFontFamily: Verdana, var(--#{$prefix}font-sans-serif);
 $ThemeSidebarPaddingX: .5rem;
 $ThemeSidebarPaddingY: null;
 $ThemeSidebarLightHoverColor: $gray-900;
@@ -100,8 +123,9 @@ $ew-icon-size: max(#{$font-size-base}, #{$ew-min-icon-size});
 $ew-padding-y-xs: .125rem;
 $ew-padding-x-xs: .25rem;
 :root {
-    --modal-options-limit: 10;
-    --filter-options-limit: 6;
+    --modal-options-limit: 10; // ~Number of rows in modal lookup
+    --filter-options-limit: 6; // ~Number of rows in table header filter dropdown
+    --select2-options-limit: 10; // ~Number of rows in Select2 dropdown
 }
 @font-face {
     font-family: 'ew';
@@ -288,6 +312,8 @@ a:not(.btn) {
 }
 .ew-single-map {
     margin-bottom: 1rem;
+    max-width: 100%;
+    height: auto;
 }
 .brand-link .ew-brand-image { // Override AdminLTE
     float: none;
@@ -356,7 +382,7 @@ label.form-check-label {
     margin-bottom: 1rem;
 }
 .ew-desktop {
-    .ew-desktop-button {
+    .ew-desktop-buttons {
         text-align: center;
         margin-bottom: 1rem;
     }
@@ -406,29 +432,12 @@ label.form-check-label {
 }
 .ew-grid {
     padding: 0;
-    border: $ThemeGridBorderWidth solid $ThemeGridBorderColor;
+    border: $ThemeGridBorderWidth solid;
     margin-bottom: 1rem;
     display: table;
-    .ew-grid-upper-panel {
-        border-bottom: $table-border-width solid $ThemeTableHeaderBorderColor;
-    }
     .ew-table {
-        tbody,
-        tfoot,
-        :not(thead) > tr,
-        td,
-        th {
-            border-color: $border-color; // Override Bootstrap reboot
-        }
         &.table-bordered > thead > tr:first-child { // First row in thead
             border-top-width: 0; // Override Bootstrap
-        }
-        > thead > *,
-        > thead > * > * {
-            border-bottom-color: $ThemeTableHeaderBorderColor !important;
-        }
-        > :not(:last-child):not(thead) > :last-child > * {
-            border-bottom-color: $border-color;
         }
     }
     .ew-table, .ew-grid-middle-panel {
@@ -436,13 +445,35 @@ label.form-check-label {
         padding: 0;
         margin-bottom: 0;
     }
-
-    // Grid minimum height example
-    // .card-body.ew-grid-middle-panel {
-    //     min-height: 300px;
-    // }
-    .ew-grid-lower-panel {
-        border-top: $table-border-width solid $ThemeGridLineColor;
+}
+body:not(.dark-mode) {
+    .ew-grid {
+        border-color: $ThemeGridBorderColor;
+        &.ew-loading {
+            border-color: rgba($ThemeGridBorderColor, 0.25);
+        }
+        .ew-grid-upper-panel {
+            border-bottom: $table-border-width solid $ThemeTableHeaderBorderColor;
+        }
+        .ew-table {
+            tbody,
+            tfoot,
+            :not(thead) > tr,
+            td,
+            th {
+                border-color: $border-color; // Override Bootstrap reboot
+            }
+            > thead > *,
+            > thead > * > * {
+                border-bottom-color: $ThemeTableHeaderBorderColor !important;
+            }
+            > :not(:last-child):not(thead) > :last-child > * {
+                border-bottom-color: $border-color;
+            }
+        }
+        .ew-grid-lower-panel {
+            border-top: $table-border-width solid $ThemeGridLineColor;
+        }
     }
 }
 .ew-form .row {
@@ -468,7 +499,7 @@ label.form-check-label {
     /*rtl:ignore*/ direction: ltr;
     .input-group {
         flex-wrap: nowrap;
-        > input.ew-page-no {
+        > input.ew-page-number {
             width: 6em;
         }
     }
@@ -487,9 +518,6 @@ label.form-check-label {
 }
 .ew-list-other-options {
     margin-bottom: 2px;
-    display: inline-flex;
-}
-.ew-pager-form {
     display: inline-flex;
 }
 
@@ -521,8 +549,7 @@ a.ew-btn {
 .ew-aggregate::after {
     content: ": ";
 }
-.ew-table-header .ew-table-header-btn,
-.jtable-column-header-container {
+.ew-table-header .ew-table-header-btn {
     white-space: nowrap;
     display: flex;
     .ew-table-header-caption {
@@ -542,7 +569,6 @@ a.ew-btn {
 
 // Main table
 .ew-grid .ew-table {
-    color: $table-color;
     border: 0;
     width: 100%;
 
@@ -567,43 +593,19 @@ a.ew-btn {
     td.ew-table-last-row.ew-table-border-bottom,
     .ew-table-border-bottom {
         border-bottom: $table-border-width solid; // Border width
-        border-color: $table-border-color; // Border color
     }
     > thead > tr > th,
     > thead > tr > td {
-        @if (type-of($ThemeTableHeaderBackgroundColor) == color) {
-            font-weight: normal;
-        }
-        @if (type-of($ThemeTableHeaderBorderColor) == color) {
-            border-color: $ThemeTableHeaderBorderColor;
-        }
         vertical-align: top;
         label { // Checkboxes
             margin-bottom: 0;
         }
     }
 
-    // Main table header
-    .ew-table-header, .ew-rpt-col-summary, .ew-rpt-col-header {
-        $background: get-bg-color($ThemeTableHeaderBackgroundColor);
-        background-color: $background;
-        color: get-text-color($ThemeTableHeaderColor, $background);
-    }
-
-    // Main table footer
-    .ew-table-footer {
-        $background: get-bg-color($ThemeTableFooterBackgroundColor);
-        background-color: $background;
-        color: get-text-color($ThemeTableHeaderColor, $background);
-    }
-
     // Main table active
     .table-active {
-        --bs-table-bg: null;
-        --bs-table-accent-bg: null;
-        $background: get-bg-color($ThemeTableBodyActiveBackgroundColor);
-        background-color: $background !important;
-        color: get-text-color($ThemeTableBodyActiveColor, $background) !important;
+        --#{$prefix}table-bg: null;
+        --#{$prefix}table-accent-bg: null;
     }
 
     // Main table first column cell
@@ -622,29 +624,78 @@ a.ew-btn {
     td.ew-table-last-col, th.ew-table-last-col {
         border-right: 0;
     }
+}
 
-    // Table row
-    tr:not([class^=ew-]):not(.table-active) {
-        $background: get-bg-color($ThemeTableBodyBackgroundColor);
-        background-color: $background;
-        color: get-text-color($ThemeTableBodyColor, $background);
-    }
-
-    // Striped table row
-    @if ($ThemeTableStriped) {
-        .ew-table-alt-row:not(.table-active) {
-            $background: get-bg-color($ThemeTableBodyStripedBackgroundColor);
-            --bs-table-accent-bg: #{$background};
-            color: get-text-color($ThemeTableBodyStripedColor, $background);
+// Main table
+body:not(.dark-mode) {
+    .ew-grid .ew-table {
+        // Main table last row cell with border-bottom
+        > tbody:last-child > tr:last-child > td.ew-table-border-bottom,
+        > tfoot > tr:last-child > td.ew-table-border-bottom,
+        td.ew-table-last-row.ew-table-border-bottom,
+        .ew-table-border-bottom {
+            border-color: $table-border-color; // Border color
         }
-    }
+        > thead > tr > th,
+        > thead > tr > td {
+            @if (type-of($ThemeTableHeaderBackgroundColor) == color) {
+                font-weight: normal;
+            }
+            @if (type-of($ThemeTableHeaderBorderColor) == color) {
+                border-color: $ThemeTableHeaderBorderColor;
+            }
+        }
 
-    // Hover
-    &.table-hover {
-        > tbody > tr:not(.expandable-body):hover {
-            $background: get-bg-color($ThemeTableBodyHoverBackgroundColor);
-            --bs-table-accent-bg: #{$background};
-            color: get-text-color($ThemeTableBodyHoverColor, $background);
+        // Main table header
+        .ew-table-header, .ew-rpt-col-summary, .ew-rpt-col-header {
+            //*** $background: get-bg-color($ThemeTableHeaderBackgroundColor);
+            // background-color: $background;
+            // color: get-text-color($ThemeTableHeaderColor, $background);
+            @include table-header-color($ThemeTableHeaderColor, $ThemeTableHeaderBackgroundColor);
+        }
+
+        // Main table footer
+        .ew-table-footer {
+            //*** $background: get-bg-color($ThemeTableFooterBackgroundColor);
+            // background-color: $background;
+            // color: get-text-color($ThemeTableHeaderColor, $background);
+            @include table-cell-color($ThemeTableFooterColor, $ThemeTableFooterBackgroundColor);
+        }
+
+        // Main table active
+        .table-active {
+            //*** $background: get-bg-color($ThemeTableBodyActiveBackgroundColor);
+            // background-color: $background !important;
+            // color: get-text-color($ThemeTableBodyActiveColor, $background) !important;
+            @include table-cell-color($ThemeTableBodyActiveColor, $ThemeTableBodyActiveBackgroundColor);
+        }
+
+        // Table row
+        tr:not([class^=ew-]):not(.table-active) {
+            //*** $background: get-bg-color($ThemeTableBodyBackgroundColor);
+            // background-color: $background;
+            // color: get-text-color($ThemeTableBodyColor, $background);
+            @include table-cell-color($ThemeTableBodyColor, $ThemeTableBodyBackgroundColor);
+        }
+
+        // Striped table row
+        @if ($ThemeTableStriped) {
+            .ew-table-alt-row:not(.table-active) {
+                //*** $background: get-bg-color($ThemeTableBodyStripedBackgroundColor);
+                // --#{$prefix}table-accent-bg: #{$background};
+                // color: get-text-color($ThemeTableBodyStripedColor, $background);
+                @include table-cell-color($ThemeTableBodyStripedColor, $ThemeTableBodyStripedBackgroundColor);
+            }
+        }
+
+        // Hover
+        &.table-hover {
+            > tbody > tr:not(.expandable-body):hover {
+                //*** $background: get-bg-color($ThemeTableBodyHoverBackgroundColor);
+                // --#{$prefix}table-accent-bg: #{$background};
+                // color: get-text-color($ThemeTableBodyHoverColor, $background);
+                @include table-cell-color($ThemeTableBodyHoverColor, $ThemeTableBodyHoverBackgroundColor);
+            }
         }
     }
 }
@@ -670,6 +721,7 @@ a.ew-btn {
 .ew-multi-column-form {
     > .ew-multi-column-row {
         margin-bottom: 1rem;
+        position: relative; // For overlay
         .card .ew-table-header-btn {
             display: inline-flex;
             .ew-table-header-sort {
@@ -755,15 +807,6 @@ a.ew-btn {
     padding-left: $spacer * .5;
 }
 
-// .ew-btn-dropdown.btn-group-sm > .btn {
-// 	padding: $ew-padding-y-xs $ew-padding-x-xs;
-// }
-
-// .ew-btn-group.btn-group-sm > .btn {
-// 	padding-top: $ew-padding-y-xs;
-// 	padding-bottom: $ew-padding-y-xs;
-// }
-
 // Table for view
 .ew-view-table {
     min-width: 300px;
@@ -772,8 +815,10 @@ a.ew-btn {
         //text-align: right;
     }
 }
-.ew-view-table, .ew-desktop-table {
-    background-color: $body-bg;
+body:not(.dark-mode) {
+    .ew-view-table, .ew-desktop-table {
+        background-color: $body-bg;
+    }
 }
 
 // Preview lower panel
@@ -792,31 +837,39 @@ a.ew-btn {
     cursor: pointer;
 }
 
-// Table for export to HTML
+// Page breaks (for export)
+.break-before-page {
+    break-before: page;
+}
+.break-before-avoid {
+    break-before: avoid;
+}
+.break-after-page {
+    break-after: page;
+}
+.break-after-avoid {
+    break-after: avoid;
+}
+
+// Table for export to HTML (Do not use CSS variables)
 .ew-export-table {
     border: 0;
+    border-collapse: collapse;
     td {
         border: $table-border-width solid;
         border-color: $table-border-color; // Border color
     }
-    .ew-table-header, .ew-export-table-header td {
-        $background: get-bg-color($ThemeTableHeaderBackgroundColor);
-        background-color: $background;
-        color: get-text-color($ThemeTableHeaderColor, $background);
-        vertical-align: top;
+    .ew-table-header, .ew-rpt-col-summary, .ew-rpt-col-header, .ew-export-table-header td {
+        @include table-color($ThemeTableHeaderColor, $ThemeTableHeaderBackgroundColor);
     }
     .ew-export-table-row > td {
-        background-color: var(--bs-table-bg);
-        color: $table-color;
+        @include table-color($ThemeTableBodyColor, $ThemeTableBodyBackgroundColor);
     }
     .ew-export-table-alt-row > td {
-        background-color: var(--bs-table-striped-bg); // Striped color
-        color: var(--bs-table-striped-color);
+        @include table-color($ThemeTableBodyStripedColor, $ThemeTableBodyStripedBackgroundColor);
     }
     .ew-export-table-footer {
-        $background: get-bg-color($ThemeTableFooterBackgroundColor);
-        background-color: $background;
-        color: get-text-color($ThemeTableHeaderColor, $background);
+        @include table-color($ThemeTableFooterColor, $ThemeTableFooterBackgroundColor);
     }
 }
 .ew-list-export-options, .ew-view-export-options, .ew-view-other-options {
@@ -845,13 +898,10 @@ a.ew-btn {
 .ew-search-field-single {
     display: inline-flex;
 }
-.modal, .ew-search-div { // Advanced Search
+@mixin modal-mobile-search { // Advanced Search
     .ew-search-cond, .ew-search-and {
         display: inline-flex;
         height: $input-height;
-    }
-    .ew-search-field, .ew-search-field2 {
-        display: block;
     }
     .ew-search-operator select { // User Select
         margin-bottom: $spacer * .5;
@@ -864,13 +914,16 @@ a.ew-btn {
         margin-top: $spacer * .5;
     }
 }
+.modal {
+    @include modal-mobile-search;
+}
 .ew-search-and label {
     display: inline-block;
     margin-bottom: 0;
     font-weight: normal;
 }
 .ew-search-operator, .ew-search-operator2 {
-    color: maroon;
+    color: $secondary;
     font-weight: normal;
 }
 
@@ -886,30 +939,41 @@ a.ew-btn {
 .ew-rpt-grp-header {
     border-bottom: $table-border-width solid; // Header border width
     border-right: $table-border-width solid; // Header border width
-    border-color: $ThemeTableHeaderBorderColor; // Header border color
     font-weight: bold;
     a:link, a:active, a:visited {
         color: inherit;
         text-decoration: none;
     }
 }
+
+// Groups
+body:not(.dark-mode) {
+    .ew-rpt-grp-header {
+        border-color: $ThemeTableHeaderBorderColor; // Header border color
+    }
+}
 @mixin ew-rpt-grp($i, $color, $bgcolor, $summary-color, $summary-bgcolor) {
     .ew-rpt-grp-hide-#{$i} {
         display: none !important;
     }
-    .ew-rpt-grp-header-#{$i} {
-        $background: get-bg-color($bgcolor);
-        background-color: $background !important;
-        color: get-text-color($color, $background) !important;
-        @extend .ew-rpt-grp-header;
-    }
-    .ew-rpt-grp-field-#{$i} {
-        background-color: get-bg-color($bgcolor) !important;
-    }
-    .ew-rpt-grp-summary-#{$i} {
-        $background: get-bg-color($summary-bgcolor);
-        background-color: $background !important;
-        color: get-text-color($summary-color, $background) !important;
+    body:not(.dark-mode) {
+        //*** .ew-rpt-grp-header-#{$i} {
+        //     // $background: get-bg-color($bgcolor);
+        //     // background-color: $background !important;
+        //     // color: get-text-color($color, $background) !important;
+        //     @include table-cell-color($color, $bgcolor);
+        //     @extend .ew-rpt-grp-header;
+        // }
+        .ew-rpt-grp-field-#{$i} {
+            //*** background-color: get-bg-color($bgcolor) !important;
+            @include table-cell-color($color, $bgcolor);
+        }
+        .ew-rpt-grp-summary-#{$i} {
+            //*** $background: get-bg-color($summary-bgcolor);
+            // background-color: $background !important;
+            // color: get-text-color($summary-color, $background) !important;
+            @include table-cell-color($summary-color, $summary-bgcolor);
+        }
     }
 }
 @include ew-rpt-grp(1, $ThemeReportGroupColor1, $ThemeReportGroupBackgroundColor1, $ThemeReportGroupSummaryColor1, $ThemeReportGroupSummaryBackgroundColor1);
@@ -939,12 +1003,14 @@ tr[data-group] {
     font-weight: bold;
 }
 .ew-rpt-page-summary {
-    color: $ThemeReportPageSummaryColor; // Page summary text color
-    background-color: $ThemeReportPageSummaryBackgroundColor; // Page total background color
+    //*** color: $ThemeReportPageSummaryColor; // Page summary text color
+    // background-color: $ThemeReportPageSummaryBackgroundColor; // Page total background color
+    @include table-cell-color($ThemeReportPageSummaryColor, $ThemeReportPageSummaryBackgroundColor);
 }
 .ew-rpt-grand-summary {
-    color: $ThemeReportGrandSummaryColor; // Grand summary text color
-    background-color: $ThemeReportGrandSummaryBackgroundColor; // Grand summary background color
+    //*** color: $ThemeReportGrandSummaryColor; // Grand summary text color
+    // background-color: $ThemeReportGrandSummaryBackgroundColor; // Grand summary background color
+    @include table-cell-color($ThemeReportGrandSummaryColor, $ThemeReportGrandSummaryBackgroundColor);
 }
 
 // Crosstab report
@@ -987,10 +1053,6 @@ tr[data-group] {
 .ew-message-dialog {
     display: table;
     min-width: 300px;
-}
-.ew-captcha-image {
-    width: 200px;
-    height: 50px;
 }
 
 // Required field indicator
@@ -1095,6 +1157,18 @@ li.ui-timepicker-selected,
 .ew-debug {
     margin-bottom: 1rem;
 }
+.ew-chart-top, .ew-chart-bottom {
+    &~ .ew-debug {
+        margin-top: 1rem;
+    }
+}
+
+// Submenu
+.dropdown-submenu > a::after { // Note: .3em border-width by AdminLTE
+    position: absolute;
+    right: .5em; // Larger than border-width
+    top: calc((#{$font-size-base * $line-height-base} + #{$dropdown-item-padding-y} * 2 - .3em) / 2);
+}
 
 // Left aligned submenus
 .dropdown-submenu.float-start {
@@ -1169,7 +1243,7 @@ li.ui-timepicker-selected,
     .ew-search-operator .form-control-plaintext {
         width: auto;
     }
-    input[type=text]:not([size]):not(.ew-page-no):not(.cke_dialog_ui_input_text):not(.form-control-plaintext),
+    input[type=text]:not([size]):not(.ew-page-number):not(.cke_dialog_ui_input_text):not(.form-control-plaintext),
     input[type=password]:not([size]) {
         min-width: 250px;
     }
@@ -1198,12 +1272,16 @@ li.ui-timepicker-selected,
 
     // Automatically set form's width for larger viewports
     @media (min-width: $screen-md-min) { // >= 768
-        .ew-form:not(.ew-list-form):not(.ew-pager-form), table.ew-master-table.ew-vertical {
+        .ew-form:not(.ew-list-form):not(.ew-user-priv-form),
+        table.ew-master-table.ew-vertical,
+        .query-builder {
             max-width: $modal-lg; // 800
         }
     }
     @media (min-width: $screen-lg-min) { // >= 992
-        .ew-form:not(.ew-list-form):not(.ew-pager-form), table.ew-master-table.ew-vertical {
+        .ew-form:not(.ew-list-form):not(.ew-user-priv-form),
+        table.ew-master-table.ew-vertical,
+        .query-builder {
             max-width: $modal-xl; // 1140
         }
     }
@@ -1233,6 +1311,10 @@ li.ui-timepicker-selected,
     }
 }
 @mixin media-mobile {
+    @include modal-mobile-search;
+    .ew-search-field, .ew-search-field2 {
+        display: block;
+    }
     .ew-grid {
         display: block;
     }
@@ -1361,25 +1443,17 @@ li.ui-timepicker-selected,
     margin-top: 0.4rem;
 }
 
-// Navbar dropdown
-.main-header {
-    .dropdown-item {
-        color: $dropdown-link-color !important;
-        &:hover,
-        &:focus {
-            color: $dropdown-link-hover-color !important;
-            text-decoration: none;
-            @include gradient-bg($dropdown-link-hover-bg);
-        }
-        &.active,
-        &:active {
-            color: $dropdown-link-active-color !important;
-            @include gradient-bg($dropdown-link-active-bg);
-        }
-        &.disabled,
-        &:disabled {
-            color: $dropdown-link-disabled-color !important;
-        }
+// Hidden element
+.ew-hidden {
+    display: none !important;
+}
+
+// Disabled element
+.ew-disabled {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    &.btn {
+        opacity: $btn-disabled-opacity !important;
     }
 }
 
@@ -1401,56 +1475,34 @@ li.ui-timepicker-selected,
     border-top-right-radius: 0 !important;
 }
 
-// JTable
-div.jtable-busy-panel-background {
-    opacity: 0.1;
-    filter: alpha(opacity=50);
-    z-index: 998;
-    position: absolute;
-    background-color: #000;
-    &.jtable-busy-panel-background-invisible {
-        background-color: transparent;
-    }
-}
-div.jtable-busy-message {
-    cursor: wait;
-    z-index: 999;
-    position: absolute;
-    margin: 5px;
-}
-div.jtable-main-container {
-    table.jtable {
-        margin-bottom: 0;
-        .jtable-selecting-column,
-        .jtable-command-column-header.jtable-column-header-selecting,
-        .jtable-no-data-row td {
-            padding-left: 1.5rem;
-            width: 1%;
-        }
-        thead {
-            tr, th {
-                border-top: 0;
-            }
-            th.jtable-column-header-sortable {
-                cursor: pointer;
-            }
+// Tabulator
+.tabulator {
+    font-size: $font-size-base !important;
+    .tabulator-header .tabulator-col .tabulator-col-content {
+        padding: 0 !important;
+        .tabulator-col-title {
+            padding: $table-cell-padding-y-sm $table-cell-padding-x !important;
         }
     }
+    .tabulator-row .tabulator-cell {
+        padding: $table-cell-padding-y-sm $table-cell-padding-x !important;
+    }
 }
-.jtable.ew-fixed-header-table {
-    &.table-head-fixed {
-        thead tr:nth-child(1) th {
-            box-shadow: none;
-            border-bottom: (2 * $table-border-width) solid $table-border-color;
+#ew-import-dialog {
+    .tabulator {
+        font-size: $font-size-sm !important;
+    }
+    .tooltip-inner {
+        max-width: 500px;
+        background-color: $danger;
+    }
+    .tooltip-arrow {
+        &::before {
+          border-bottom-color: $danger;
         }
-        &.table-dark {
-            thead tr {
-                &:nth-child(1) th {
-                    box-shadow: none;
-                    border-bottom: (2 * $table-border-width) solid $table-border-color;
-                }
-            }
-        }
+    }
+    .progress-bar {
+        transition-duration: .4s; // Override Bootstrap
     }
 }
 
@@ -1544,11 +1596,15 @@ body > .dropdown-menu {
 .ew-toast {
     min-width: 350px;
     z-index: 1070; // Higher than swal backdrop
-}
-
-// Chart
-.ew-chart-container {
-    position: relative;
+    @each $color, $value in $theme-colors {
+        &.bg-#{$color} {
+            @if color-contrast($value) == $white {
+                .btn-close {
+                    filter: $btn-close-white-filter;
+                }
+            }
+        }
+    }
 }
 
 // RTL (Bootstrap)
@@ -1589,6 +1645,8 @@ body.ew-layout-top-nav {
             background-color: $ThemeTableHeaderBackgroundColor; // Header bgcolor
             color: $ThemeTableHeaderColor; // Header font color
             box-shadow: none;
+            outline: $table-border-width solid $ThemeTableHeaderBorderColor;
+	        outline-offset: $table-border-width * -1;
         }
         &.table-dark {
             thead tr {
@@ -1596,6 +1654,8 @@ body.ew-layout-top-nav {
                     background-color: $ThemeTableHeaderBackgroundColor; // Header bgcolor
                     color: $ThemeTableHeaderColor; // Header font color
                     box-shadow: none;
+                    outline: $table-border-width solid $ThemeTableHeaderBorderColor;
+	                outline-offset: $table-border-width * -1;
                 }
             }
         }
@@ -1656,14 +1716,198 @@ body.ew-layout-top-nav {
     border-radius: 0 !important;
 }
 .ew-swal2-actions {
-    @each $color, $value in $theme-colors {
-        .btn-#{$color} { // Override SweetAlert2
-            @include button-variant($value, $value);
+    .btn { // Copied from Bootstrap 5.2, override SweetAlert2
+        display: inline-block;
+        padding: var(--#{$prefix}btn-padding-y) var(--#{$prefix}btn-padding-x);
+        font-family: var(--#{$prefix}btn-font-family);
+        @include font-size(var(--#{$prefix}btn-font-size));
+        font-weight: var(--#{$prefix}btn-font-weight);
+        line-height: var(--#{$prefix}btn-line-height);
+        color: var(--#{$prefix}btn-color);
+        text-align: center;
+        text-decoration: if($link-decoration == none, null, none);
+        white-space: $btn-white-space;
+        vertical-align: middle;
+        cursor: if($enable-button-pointers, pointer, null);
+        user-select: none;
+        border: var(--#{$prefix}btn-border-width) solid var(--#{$prefix}btn-border-color);
+        @include border-radius(var(--#{$prefix}btn-border-radius));
+        @include gradient-bg(var(--#{$prefix}btn-bg));
+        @include box-shadow(var(--#{$prefix}btn-box-shadow));
+        @include transition($btn-transition);
+        &:hover {
+            color: var(--#{$prefix}btn-hover-color);
+            text-decoration: if($link-hover-decoration == underline, none, null);
+            background-color: var(--#{$prefix}btn-hover-bg);
+            border-color: var(--#{$prefix}btn-hover-border-color);
+        }
+        .btn-check:focus + &,
+        &:focus {
+            color: var(--#{$prefix}btn-hover-color);
+            @include gradient-bg(var(--#{$prefix}btn-hover-bg));
+            border-color: var(--#{$prefix}btn-hover-border-color);
+            outline: 0;
+            // Avoid using mixin so we can pass custom focus shadow properly
+            @if $enable-shadows {
+                box-shadow: var(--#{$prefix}btn-box-shadow), var(--#{$prefix}btn-focus-box-shadow);
+            } @else {
+                box-shadow: var(--#{$prefix}btn-focus-box-shadow);
+            }
+        }
+        .btn-check:checked + &,
+        .btn-check:active + &,
+        &:active,
+        &.active,
+        &.show {
+            color: var(--#{$prefix}btn-active-color);
+            background-color: var(--#{$prefix}btn-active-bg);
+            // Remove CSS gradients if they're enabled
+            background-image: if($enable-gradients, none, null);
+            border-color: var(--#{$prefix}btn-active-border-color);
+            @include box-shadow(var(--#{$prefix}btn-active-shadow));
+            &:focus {
+                // Avoid using mixin so we can pass custom focus shadow properly
+                @if $enable-shadows {
+                    box-shadow: var(--#{$prefix}btn-active-shadow), var(--#{$prefix}btn-focus-box-shadow);
+                } @else {
+                    box-shadow: var(--#{$prefix}btn-focus-box-shadow);
+                }
+            }
+        }
+        &:disabled,
+        &.disabled,
+        fieldset:disabled & {
+            color: var(--#{$prefix}btn-disabled-color);
+            pointer-events: none;
+            background-color: var(--#{$prefix}btn-disabled-bg);
+            background-image: if($enable-gradients, none, null);
+            border-color: var(--#{$prefix}btn-disabled-border-color);
+            opacity: var(--#{$prefix}btn-disabled-opacity);
+            @include box-shadow(none);
         }
     }
 }
 .ew-swal2-title {
     font-size: $font-size-base * 1.5;
+}
+.swal2-html-container {
+    font-size: $font-size-base;
+}
+
+// AdminLTE colors
+$adminlte-colors: (
+    "lightblue": $lightblue-alt,
+    "navy": $navy-alt,
+    "olive": $olive-alt,
+    "lime": $lime-alt,
+    "fuchsia": $fuchsia-alt,
+    "maroon": $maroon-alt
+) !default;
+
+// Named colors
+$named-colors: () !default;
+$named-colors: map-merge($colors, $theme-colors);
+$named-colors: map-merge($named-colors, $adminlte-colors);
+
+// Button outline
+@each $color, $value in $adminlte-colors {
+    .btn-outline-#{$color} {
+        @include button-outline-variant($value);
+    }
+}
+
+// Border and popover colors
+@each $name, $color in $named-colors {
+    .border-#{$name} {
+        border-color: $color;
+    }
+    .popover-#{$name} {
+        --#{$prefix}popover-border-color: #{$color};
+        --#{$prefix}popover-arrow-border: #{$color};
+        --#{$prefix}popover-arrow-width: #{$popover-arrow-width};
+        --#{$prefix}popover-arrow-height: #{$popover-arrow-height};
+        &.bs-popover-start,
+        &.bs-popover-auto[data-popper-placement^=start],
+        &.bs-popover-end,
+        &.bs-popover-auto[data-popper-placement^=end] {
+            .popover-arrow::before {
+                border-left-color: var(--#{$prefix}popover-arrow-border);
+                border-right-color: var(--#{$prefix}popover-arrow-border);
+            }
+        }
+        &.bs-popover-top,
+        &.bs-popover-auto[data-popper-placement^=top] {
+            .popover-arrow::before {
+                border-top-color: var(--#{$prefix}popover-arrow-border);
+            }
+        }
+        &.bs-popover-bottom,
+        &.bs-popover-auto[data-popper-placement^=bottom] {
+            .popover-arrow::before {
+                border-bottom-color: var(--#{$prefix}popover-arrow-border);
+            }
+            .popover-arrow::after {
+                border-bottom-color: var(--#{$prefix}popover-arrow-border);
+            }
+            .popover-header::before {
+                border-bottom-color: var(--#{$prefix}popover-arrow-border);
+            }
+        }
+        .popover-header {
+            --#{$prefix}popover-header-bg: #{$color};
+            border-bottom-color: var(--#{$prefix}popover-header-bg);
+            --#{$prefix}popover-header-color: #{color-contrast($color)};
+        }
+    }
+}
+
+// Full calender default popover
+.popover-default {
+    --#{$prefix}popover-arrow-width: #{$popover-arrow-width};
+    --#{$prefix}popover-arrow-height: #{$popover-arrow-height};
+    --#{$prefix}popover-arrow-border: #{var(--fc-event-border-color, #3788d8)};
+    border-color: #{var(--fc-event-border-color, #3788d8)}; // Use FullCalendar color
+    &.bs-popover-start,
+    &.bs-popover-auto[data-popper-placement^=start],
+    &.bs-popover-end,
+    &.bs-popover-auto[data-popper-placement^=end] {
+        .popover-arrow::before {
+            border-left-color: #{var(--fc-event-border-color, #3788d8)};
+            border-right-color: #{var(--fc-event-border-color, #3788d8)};
+        }
+    }
+    &.bs-popover-top,
+    &.bs-popover-auto[data-popper-placement^=top] {
+        .popover-arrow::before {
+            border-top-color: #{var(--fc-event-border-color, #3788d8)};
+        }
+    }
+    &.bs-popover-bottom,
+    &.bs-popover-auto[data-popper-placement^=bottom] {
+        .popover-arrow::before {
+            border-bottom-color: #{var(--fc-event-border-color, #3788d8)};
+        }
+        .popover-arrow::after {
+            border-bottom-color: #{var(--fc-event-border-color, #3788d8)};
+        }
+        .popover-header::before {
+            border-bottom-color: #{var(--fc-event-border-color, #3788d8)};
+        }
+    }
+    .popover-header {
+        background-color: #{var(--fc-event-border-color, #3788d8)};
+        border-bottom-color: #{var(--fc-event-border-color, #3788d8)};
+        color: #{var(--fc-event-text-color, #fff)};
+    }
+}
+
+// Full calender event colors
+@each $name, $color in $named-colors {
+    .event-#{$name} {
+        --fc-event-bg-color: #{$color};
+        --fc-event-border-color: #{$color};
+        --fc-event-text-color: #{color-contrast($color)};
+    }
 }
 
 // Toasts containers
@@ -1675,13 +1919,22 @@ body.ew-layout-top-nav {
     z-index: 1050;
 }
 
-// Select2
-.select2-container--bootstrap5 .select2-selection {
-    color: $input-color;
-}
-
 // Select2 (from AdminLTE)
 .select2-container--bootstrap5 {
+    .select2-results > .select2-results__options {
+        $results-options-height: calc((#{$font-size-base * $line-height-base} + #{$dropdown-item-padding-y} * 2) * var(--select2-options-limit));
+        max-height: $results-options-height;
+    }
+    .select2-selection {
+        color: $input-color;
+        padding: $input-padding-y ($input-padding-x + 1.5rem) $input-padding-y $input-padding-x;
+    }
+    .select2-results__group { // Use Bootstrap dropdown header styles
+        --#{$prefix}dropdown-header-color: #{$dropdown-header-color};
+        @include font-size($font-size-sm);
+        color: var(--#{$prefix}dropdown-header-color);
+        white-space: nowrap; // as with > li > a
+    }
     &.select2-container--focus.select2-container--open .select2-selection {
         border-bottom-width: $input-border-width;
         border-bottom-style: solid;
@@ -1813,7 +2066,7 @@ body.ew-layout-top-nav {
                 background-color: $form-check-input-checked-bg-color;
                 border-color: $form-check-input-checked-border-color;
                 @if $enable-gradients {
-                    background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$variable-prefix}gradient);
+                    background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$prefix}gradient);
                 } @else {
                     background-image: escape-svg($form-check-input-checked-bg-image);
                 }
@@ -1883,7 +2136,7 @@ body.ew-layout-top-nav {
             background-color: $form-check-input-checked-bg-color;
             border-color: $form-check-input-checked-border-color;
             @if $enable-gradients {
-                background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$variable-prefix}gradient);
+                background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$prefix}gradient);
             } @else {
                 background-image: escape-svg($form-check-input-checked-bg-image);
             }
@@ -1895,9 +2148,13 @@ body.ew-layout-top-nav {
 .modal-header {
     > .modal-tools {
         float: right;
+        margin-right: -$spacer * .5;
         .input,
         .input-group {
             margin: 0;
+        }
+        [data-bs-toggle="tooltip"] {
+            position: relative;
         }
     }
 }
@@ -2056,6 +2313,331 @@ img.ew-barcode {
     margin: $spacer * .5;
 }
 
+// No record
+.ew-no-record {
+    .ew-grid {
+        display: none;
+    }
+}
+
+// Heights
+@for $i from 1 through 19 {
+    $h: $i * 5;
+    .vh-#{$h} {
+        height: #{$h}vh;
+    }
+}
+@for $i from 1 through 20 {
+    $h: $i * 50;
+    .h-#{$h}px {
+        height: #{$h}px;
+    }
+    .mh-#{$h}px {
+        max-height: #{$h}px;
+    }
+}
+
+// Overlay
+.card {
+    .overlay { // Override AdminLTE
+        border-radius: 0;
+    }
+}
+.overlay-wrapper {
+    position: relative;
+    min-height: 3rem; // For overlay
+}
+
+// Selection list
+div[id^=dsl_] .ew-loading {
+    --#{$prefix}spinner-width: #{$spinner-width-sm};
+    --#{$prefix}spinner-height: #{$spinner-height-sm};
+    --#{$prefix}spinner-border-width: #{$spinner-border-width-sm};
+    margin: 0.5rem !important;
+}
+
+// Overlays for Card, InfoBox and SmallBox
+.card,
+.overlay-wrapper,
+.info-box,
+.small-box {
+    .overlay { // Override AdminLTE
+        background-color: rgba($white, .5);
+    }
+}
+.ew-calendar-wrapper {
+    min-height: 6rem; // For overlay
+}
+
+// Box Tools Buttons (for AdminLTE)
+.btn-tool {
+    --#{$prefix}btn-font-weight: #{$font-weight-normal};
+    --#{$prefix}btn-color: #{$gray-500};
+    --#{$prefix}btn-bg: transparent;
+    --#{$prefix}btn-border-color: transparent;
+    --#{$prefix}btn-hover-color: #{$gray-700};
+    --#{$prefix}btn-hover-bg: transparent;
+    --#{$prefix}btn-hover-border-color: transparent;
+    --#{$prefix}btn-active-color: #{$gray-700};
+    --#{$prefix}btn-active-bg: transparent;
+    --#{$prefix}btn-active-border-color: transparent;
+    --#{$prefix}btn-disabled-color: #{$gray-300};
+    --#{$prefix}btn-disabled-bg: transparent;
+    --#{$prefix}btn-disabled-border-color: transparent;
+    --#{$prefix}btn-box-shadow: none;
+    --#{$prefix}btn-focus-box-shadow: none;
+}
+.btn:not([class*="btn-"]) {
+    --#{$prefix}btn-border-color: transparent;
+    --#{$prefix}btn-hover-border-color: transparent;
+    --#{$prefix}btn-active-border-color: transparent;
+    --#{$prefix}btn-disabled-border-color: transparent;
+    --#{$prefix}btn-focus-shadow-rgb: #{to-rgb($gray-300)};
+}
+
+// Calendar
+.ew-calendar {
+    .fc-toolbar {
+        flex-direction: row;
+    }
+    .table-bordered {
+        border: $table-border-width solid $table-border-color;
+    }
+    .table-bordered td, .table-bordered th {
+        border: $table-border-width solid $table-border-color;
+    }
+}
+.ew-event-popover {
+    min-width: 150px;
+}
+
+// Query builder
+.ew-view-rules {
+    max-height: 300px;
+}
+
+// Navbar dropdown
+@if $enable-dark-mode == false {
+    .main-header {
+        .dropdown-item {
+            color: $dropdown-link-color !important;
+            &:hover,
+            &:focus {
+                color: $dropdown-link-hover-color !important;
+                text-decoration: none;
+                @include gradient-bg($dropdown-link-hover-bg);
+            }
+            &.active,
+            &:active {
+                color: $dropdown-link-active-color !important;
+                @include gradient-bg($dropdown-link-active-bg);
+            }
+            &.disabled,
+            &:disabled {
+                color: $dropdown-link-disabled-color !important;
+            }
+        }
+    }
+}
+
+// Dark mode
+@include dark-mode () {
+    $background: $dark;
+    $color: color-contrast(opaque($body-bg, $background));
+    $bordercolor: $gray-600; // Use AdminLTE, not Bootstrap, setting
+
+    // siderbar
+    [class*="sidebar-dark-"] {
+        // Sidebar Menu. First level links
+        .nav-sidebar > .nav-item {
+            --#{$prefix}nav-link-hover-color: $sidebar-dark-hover-color;
+            > .nav-link.active {
+                color: $sidebar-dark-hover-color !important;
+            }
+        }
+
+        // All submenus
+        .nav-treeview {
+            > .nav-item {
+                --#{$prefix}nav-link-hover-color: $sidebar-dark-submenu-hover-color;
+                > .nav-link.active {
+                    &,
+                    &:hover,
+                    &:focus {
+                        color: $sidebar-dark-submenu-active-color !important;
+                    }
+                }
+            }
+        }
+    }
+    .ew-search-operator, .ew-search-operator2 {
+        color: $color;
+    }
+
+    // Grid
+    .ew-grid {
+        border-color: $bordercolor;
+        &.ew-loading {
+            border-color: rgba($bordercolor, 0.25);
+        }
+        .ew-grid-upper-panel {
+            border-bottom-color: $bordercolor;
+        }
+        .ew-grid-lower-panel {
+            border-top-color: $bordercolor;
+        }
+    }
+
+    // Table
+    .table {
+        // From Bootstrap (begin)
+        $hover-bg: mix($color, $background, percentage($table-hover-bg-factor));
+        $striped-bg: mix($color, $background, percentage($table-striped-bg-factor));
+        $active-bg: mix($color, $background, percentage($table-active-bg-factor));
+        --#{$prefix}table-bg: #{$background};
+        --#{$prefix}table-striped-bg: #{$striped-bg};
+        --#{$prefix}table-striped-color: #{color-contrast($striped-bg)};
+        --#{$prefix}table-active-bg: #{$active-bg};
+        --#{$prefix}table-active-color: #{color-contrast($active-bg)};
+        --#{$prefix}table-hover-bg: #{$hover-bg};
+        --#{$prefix}table-hover-color: #{color-contrast($hover-bg)};
+        color: $color;
+        // From Bootstrap (end)
+        border-color: $bordercolor;
+        tbody,
+        tfoot,
+        :not(thead) > tr,
+        td,
+        th {
+            border-color: $bordercolor; // Override Bootstrap reboot
+        }
+        > thead > *,
+        > thead > * > * {
+            border-bottom-color: $bordercolor !important;
+        }
+        > :not(:last-child):not(thead) > :last-child > * {
+            border-bottom-color: $bordercolor;
+        }
+        .ew-rpt-grp-header {
+            border-color: $bordercolor; // Header border color
+        }
+
+        // Main table last row cell with border-bottom
+        > tbody:last-child > tr:last-child > td.ew-table-border-bottom,
+        > tfoot > tr:last-child > td.ew-table-border-bottom,
+        td.ew-table-last-row.ew-table-border-bottom,
+        .ew-table-border-bottom {
+            border-color: $bordercolor; // Border color
+        }
+        > thead > tr > th,
+        > thead > tr > td {
+            font-weight: normal;
+            border-color: $bordercolor;
+        }
+
+        // Main table header
+        .ew-table-header, .ew-rpt-col-summary, .ew-rpt-col-header {
+            --#{$prefix}table-accent-bg: var(--#{$prefix}table-bg);
+            color: var(--#{$prefix}table-active-color);
+        }
+
+        // Main table footer
+        .ew-table-footer {
+            --#{$prefix}table-accent-bg: var(--#{$prefix}table-bg);
+            color: var(--#{$prefix}table-active-color);
+        }
+
+        // Main table active
+        .table-active {
+            --#{$prefix}table-accent-bg: var(--#{$prefix}table-active-bg);
+            color: var(--#{$prefix}table-active-color);
+        }
+
+        // Table row
+        tr:not([class^=ew-]):not(.table-active) {
+            background-color: $background;
+            color: $color;
+        }
+
+        // Striped table row
+        @if ($ThemeTableStriped) {
+            .ew-table-alt-row:not(.table-active) {
+                --#{$prefix}table-accent-bg: #{$striped-bg};
+            }
+        }
+
+        // Hover
+        &.table-hover {
+            > tbody > tr:not(.expandable-body):hover {
+                --#{$prefix}table-accent-bg: #{$hover-bg};
+                color: var(--#{$prefix}table-hover-color);
+            }
+        }
+        .ew-rpt-page-summary,
+        .ew-rpt-grand-summary {
+            --#{$prefix}table-accent-bg: var(--#{$prefix}table-bg);
+            color: var(--#{$prefix}table-active-color);
+        }
+    }
+
+    // Select2
+    .select2-container--bootstrap5 .select2-selection--single {
+        background-image: escape-svg($form-select-dark-indicator);
+    }
+    select.is-valid~.select2-container--bootstrap5 .select2-selection--single,
+    form.was-validated select:valid~.select2-container--bootstrap5 .select2-selection--single {
+        background-image: escape-svg($form-select-dark-indicator), escape-svg($form-feedback-icon-valid);
+    }
+    select.is-invalid~.select2-container--bootstrap5 .select2-selection--single,
+    form.was-validated select:invalid~.select2-container--bootstrap5 .select2-selection--single {
+        background-image: escape-svg($form-select-dark-indicator), escape-svg($form-feedback-icon-invalid);
+    }
+
+    // Dark dropdowns (Copied from Bootstrap .dropdown-menu-dark)
+    .dropdown-menu {
+        --#{$prefix}dropdown-color: #{$dropdown-dark-color};
+        --#{$prefix}dropdown-bg: #{$dropdown-dark-bg};
+        --#{$prefix}dropdown-border-color: #{$dropdown-dark-border-color};
+        --#{$prefix}dropdown-box-shadow: #{$dropdown-dark-box-shadow};
+        --#{$prefix}dropdown-link-color: #{$dropdown-dark-link-color};
+        --#{$prefix}dropdown-link-hover-color: #{$dropdown-dark-link-hover-color};
+        --#{$prefix}dropdown-divider-bg: #{$dropdown-dark-divider-bg};
+        --#{$prefix}dropdown-link-hover-bg: #{$dropdown-dark-link-hover-bg};
+        --#{$prefix}dropdown-link-active-color: #{$dropdown-dark-link-active-color};
+        --#{$prefix}dropdown-link-active-bg: #{$dropdown-dark-link-active-bg};
+        --#{$prefix}dropdown-link-disabled-color: #{$dropdown-dark-link-disabled-color};
+        --#{$prefix}dropdown-header-color: #{$dropdown-dark-header-color};
+    }
+
+    // AdminLTE dark dropdowns (overridden by Boostrap 5 dark dropdowns variables)
+    .dropdown-menu {
+        background-color: var(--#{$prefix}dropdown-bg) !important;
+        color: var(--#{$prefix}dropdown-color) !important;
+    }
+    .dropdown-item {
+        color: var(--#{$prefix}dropdown-link-color) !important;
+        &:hover,
+        &:focus {
+            color: var(--#{$prefix}dropdown-link-hover-color) !important;
+            background-color: var(--#{$prefix}dropdown-link-hover-bg) !important;
+        }
+        &.active,
+        &:active {
+            color: var(--#{$prefix}dropdown-link-active-color);
+            background-color: var(--#{$prefix}dropdown-link-active-bg) !important;
+        }
+        &.disabled,
+        &:disabled {
+            color: var(--#{$prefix}dropdown-link-disabled-color) !important;
+        }
+    }
+    .dropdown-divider {
+        border-color: var(--#{$prefix}dropdown-divider-bg) !important;
+    }
+    a.nav-link:not(.btn):hover { // Override AdminLTE
+        color: var(--bs-nav-link-hover-color) !important;
+    }
+}
 /*END_SYSTEM_STYLES*/
 
 /*BEGIN_USER_STYLES*/

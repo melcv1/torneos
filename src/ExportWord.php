@@ -1,24 +1,31 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
+
+use DiDom\Document;
+use DiDom\Element;
 
 /**
  * Export to Word
  */
-class ExportWord extends ExportBase
+class ExportWord extends AbstractExport
 {
+    public $FileExtension = "doc";
+    public $UseCharset = true; // Add charset to content type
+    public $UseBom = true; // Output byte order mark
+    public $UseInlineStyles = true; // Use inline styles (Does not support multiple CSS classes)
+    public $ExportImages = false; // Does not support images
+
     // Export
-    public function export()
+    public function export($fileName = "", $output = true, $save = false)
     {
-        global $ExportFileName;
-        if (!Config("DEBUG") && ob_get_length()) {
-            ob_end_clean();
+        $this->adjustHtml();
+        if ($save) { // Save to folder
+            SaveFile(ExportPath(true), $this->getSaveFileName(), $this->Text);
         }
-        AddHeader('Content-Type', 'application/msword' . ((Config("PROJECT_CHARSET") != '') ? '; charset=' . Config("PROJECT_CHARSET") : ''));
-        AddHeader('Content-Disposition', 'attachment; filename=' . $ExportFileName . '.doc');
-        if (SameText(Config("PROJECT_CHARSET"), "utf-8")) {
-            Write("\xEF\xBB\xBF");
+        if ($output) { // Output
+            $this->writeHeaders($fileName);
+            $this->write();
         }
-        Write($this->Text);
     }
 }

@@ -1,13 +1,13 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Langauge class
  */
 class Language
 {
-    protected $Phrases = null;
+    public $Data = null;
     public $LanguageId;
     public $LanguageFolder;
     public $Template = ""; // JsRender template
@@ -42,24 +42,72 @@ class Language
     {
         global $LANGUAGES;
         if (is_array($LANGUAGES)) {
-            $cnt = count($LANGUAGES);
-            for ($i = 0; $i < $cnt; $i++) {
-                $LANGUAGES[$i][1] = $this->loadFileDesc($this->LanguageFolder . $LANGUAGES[$i][2]);
+            foreach ($LANGUAGES as &$lang) {
+                $lang[1] = $this->loadFileDesc($this->LanguageFolder . $lang[2]);
             }
         }
+    }
+
+    // Parse XML
+    protected function parseXml($xml, &$values)
+    {
+        $parser = xml_parser_create();
+        xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, "UTF-8"); // Always return in utf-8
+        xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+        xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
+        xml_parse_into_struct($parser, $xml, $values);
+        xml_parser_free($parser);
     }
 
     // Load language file description
     protected function loadFileDesc($file)
     {
-        $ar = Xml2Array(substr(file_get_contents($file), 0, 512)); // Just read the first part
-        return (is_array($ar)) ? @$ar["ew-language"]["attr"]["desc"] : "";
+        $xml = substr(file_get_contents($file), 0, 512); // Just parse the first part
+        $this->parseXml(trim($xml), $values);
+        return $values[0]["attributes"]["desc"] ?? "";
+    }
+
+    // Load XML
+    protected function loadXml($xml)
+    {
+        $data = new \Dflydev\DotAccessData\Data();
+        $xml = trim($xml);
+        if (!$xml) {
+            return $data;
+        }
+        $this->parseXml(trim($xml), $xmlValues);
+        if (!is_array($xmlValues)) {
+            return $data;
+        }
+        $tags = [];
+        foreach ($xmlValues as $xmlValue) {
+            $attributes = null; // Reset attributesfirst
+            extract($xmlValue); // Extract as $tag (string), $type (string), $level (int) and $attributes (array)
+            if ($level == 1) {
+                continue; // Skip root tag
+            }
+            if ($type == "open" || $type == "complete") { // Open tag like '<tag ...>' or complete tag like '<tag/>'
+                if ($attributes["id"] ?? false) { // Has "id" attribute
+                    if ($type == "open") {
+                        $tag .= "." . $attributes["id"];
+                    } elseif ($type == "complete") { // <phrase/>
+                        $tag = $attributes["id"];
+                    }
+                    unset($attributes["id"]);
+                }
+                $tags[$level] = $tag;
+                if (is_array($attributes) && count($attributes) > 0 && $level > 1) {
+                    $data->set(implode(".", array_filter(array_slice($tags, 0, $level - 1))), ConvertFromUtf8($attributes));
+                }
+            }
+        }
+        return $data;
     }
 
     // Load language file
     protected function loadLanguage($id)
     {
-        global $CURRENCY_CODE, $CURRENCY_SYMBOL, $DECIMAL_SEPARATOR, $GROUPING_SEPARATOR, 
+        global $CURRENCY_CODE, $CURRENCY_SYMBOL, $DECIMAL_SEPARATOR, $GROUPING_SEPARATOR,
             $NUMBER_FORMAT, $CURRENCY_FORMAT, $PERCENT_SYMBOL, $PERCENT_FORMAT, $NUMBERING_SYSTEM,
             $DATE_FORMAT, $TIME_FORMAT, $DATE_SEPARATOR, $TIME_SEPARATOR, $TIME_ZONE;
         $fileName = $this->getFileName($id) ?: $this->getFileName(Config("LANGUAGE_DEFAULT_ID"));
@@ -68,9 +116,9 @@ class Language
         }
         $phrases = Session(PROJECT_NAME . "_" . $fileName);
         if (is_array($phrases)) {
-            $this->Phrases = $phrases;
+            $this->Data = new \Dflydev\DotAccessData\Data($phrases);
         } else {
-            $this->Phrases = Xml2Array(file_get_contents($fileName));
+            $this->Data = $this->loadXml(file_get_contents($fileName));
         }
 
         // Set up locale for the language
@@ -101,14 +149,19 @@ class Language
     {
         global $LANGUAGES;
         if (is_array($LANGUAGES)) {
-            $cnt = count($LANGUAGES);
-            for ($i = 0; $i < $cnt; $i++) {
-                if ($LANGUAGES[$i][0] == $id) {
-                    return $this->LanguageFolder . $LANGUAGES[$i][2];
+            foreach ($LANGUAGES as $lang) {
+                if ($lang[0] == $id) {
+                    return $this->LanguageFolder . $lang[2];
                 }
             }
         }
         return "";
+    }
+
+    // Compact value (return value only)
+    protected function compact($value)
+    {
+        return $value["value"] ?? (is_array($value) ? array_map(fn($v) => $this->compact($v), $value) : $value);
     }
 
     /**
@@ -120,14 +173,15 @@ class Language
      */
     public function phrase($id, $useText = false)
     {
-        $className = ConvertFromUtf8(@$this->Phrases["ew-language"]["global"]["phrase"][strtolower($id)]["attr"]["class"]);
-        if (isset($this->Phrases["ew-language"]["global"]["phrase"][strtolower($id)])) {
-            $text = ConvertFromUtf8(@$this->Phrases["ew-language"]["global"]["phrase"][strtolower($id)]["attr"]["value"]);
+        $className = $this->Data->get("global." . strtolower($id) . ".class", "");
+        if ($this->Data->has("global." . strtolower($id))) {
+            $value = $this->Data->get("global." . strtolower($id), "");
+            $text = $this->compact($value);
         } else {
             $text = $id;
         }
         $res = $text;
-        if ($useText !== true && $className != "") {
+        if (is_string($res) && $useText !== true && $className != "") {
             if ($useText === null && $text !== "") { // Use both icon and text
                 AppendClass($className, "me-2");
             }
@@ -144,84 +198,81 @@ class Language
     }
 
     // Set phrase
-    public function setPhrase($id, $value, $client = false)
+    public function setPhrase($id, $value)
     {
         $this->setPhraseAttr($id, "value", $value);
-        if ($client === true) {
-            $this->setPhraseAttr($id, "client", true);
-        }
     }
 
     // Get project phrase
     public function projectPhrase($id)
     {
-        return ConvertFromUtf8(@$this->Phrases["ew-language"]["project"]["phrase"][strtolower($id)]["attr"]["value"]);
+        return $this->Data->get("project." . strtolower($id) . ".value", "");
     }
 
     // Set project phrase
     public function setProjectPhrase($id, $value)
     {
-        $this->Phrases["ew-language"]["project"]["phrase"][strtolower($id)]["attr"]["value"] = $value;
+        $this->Data->set("project." . strtolower($id) . ".value", $value);
     }
 
     // Get menu phrase
     public function menuPhrase($menuId, $id)
     {
-        return ConvertFromUtf8(@$this->Phrases["ew-language"]["project"]["menu"][$menuId]["phrase"][strtolower($id)]["attr"]["value"]);
+        return $this->Data->get("project.menu." . $menuId . "." . strtolower($id) . ".value", "");
     }
 
     // Set menu phrase
     public function setMenuPhrase($menuId, $id, $value)
     {
-        $this->Phrases["ew-language"]["project"]["menu"][$menuId]["phrase"][strtolower($id)]["attr"]["value"] = $value;
+        $this->Data->set("project.menu." . $menuId . "." . strtolower($id) . ".value", $value);
     }
 
     // Get table phrase
     public function tablePhrase($tblVar, $id)
     {
-        return ConvertFromUtf8(@$this->Phrases["ew-language"]["project"]["table"][strtolower($tblVar)]["phrase"][strtolower($id)]["attr"]["value"]);
+        return $this->Data->get("project.table." . strtolower($tblVar) .  "." . strtolower($id) . ".value", "");
     }
 
     // Set table phrase
     public function setTablePhrase($tblVar, $id, $value)
     {
-        $this->Phrases["ew-language"]["project"]["table"][strtolower($tblVar)]["phrase"][strtolower($id)]["attr"]["value"] = $value;
+        $this->Data->set("project.table." . strtolower($tblVar) .  "." . strtolower($id) . ".value", $value);
     }
 
     // Get chart phrase
     public function chartPhrase($tblVar, $chtVar, $id)
     {
-        return ConvertFromUtf8(@$this->Phrases["ew-language"]["project"]["table"][strtolower($tblVar)]["chart"][strtolower($chtVar)]["phrase"][strtolower($id)]["attr"]["value"]);
+        return $this->Data->get("project.table." . strtolower($tblVar) .  ".chart." . strtolower($chtVar) . "." . strtolower($id) . ".value", "");
     }
 
     // Set chart phrase
     public function setChartPhrase($tblVar, $chtVar, $id, $value)
     {
-        $this->Phrases["ew-language"]["project"]["table"][strtolower($tblVar)]["chart"][strtolower($chtVar)]["phrase"][strtolower($id)]["attr"]["value"] = $value;
+        $this->Data->set("project.table." . strtolower($tblVar) .  ".chart." . strtolower($chtVar) . "." . strtolower($id) . ".value", $value);
     }
 
     // Get field phrase
     public function fieldPhrase($tblVar, $fldVar, $id)
     {
-        return ConvertFromUtf8(@$this->Phrases["ew-language"]["project"]["table"][strtolower($tblVar)]["field"][strtolower($fldVar)]["phrase"][strtolower($id)]["attr"]["value"]);
+        return $this->Data->get("project.table." . strtolower($tblVar) .  ".field." . strtolower($fldVar) . "." . strtolower($id) . ".value", "");
     }
 
     // Set field phrase
     public function setFieldPhrase($tblVar, $fldVar, $id, $value)
     {
-        $this->Phrases["ew-language"]["project"]["table"][strtolower($tblVar)]["field"][strtolower($fldVar)]["phrase"][strtolower($id)]["attr"]["value"] = $value;
+        $this->Data->set("project.table." . strtolower($tblVar) .  ".field." . strtolower($fldVar) . "." . strtolower($id) . ".value", $value);
     }
 
     // Get phrase attribute
     protected function phraseAttr($id, $name)
     {
-        return ConvertFromUtf8(@$this->Phrases["ew-language"]["global"]["phrase"][strtolower($id)]["attr"][strtolower($name)]);
+        return $this->Data->get("global." . strtolower($id) . "." . strtolower($name), "");
     }
 
     // Set phrase attribute
     protected function setPhraseAttr($id, $name, $value)
     {
-        $this->Phrases["ew-language"]["global"]["phrase"][strtolower($id)]["attr"][strtolower($name)] = $value;
+        $this->Data->set("global." . strtolower($id) . "." . strtolower($name), $value);
     }
 
     // Get phrase class
@@ -236,44 +287,19 @@ class Language
         $this->setPhraseAttr($id, "class", $value);
     }
 
-    // Output XML as JSON
-    public function xmlToJson($xpath)
-    {
-        $nodeList = $this->Phrases->selectNodes($xpath);
-        $res = [];
-        foreach ($nodeList as $node) {
-            $id = $this->getNodeAtt($node, "id");
-            $res[$id] = $this->phrase($id);
-        }
-        return JsonEncode($res);
-    }
-
     // Output array as JSON
-    public function arrayToJson($client)
+    public function arrayToJson()
     {
-        $ar = @$this->Phrases["ew-language"]["global"]["phrase"];
-        $res = [];
-        if (is_array($ar)) {
-            foreach ($ar as $id => $node) {
-                $isClient = @$node["attr"]["client"] == '1';
-                if (!$client || $isClient) {
-                    $res[$id] = $this->phrase($id, true);
-                }
-            }
-        }
+        $ar = $this->Data->get("global");
+        $keys = array_keys($ar);
+        $res = array_combine($keys, array_map(fn($id) => $this->phrase($id, true), $keys));
         return JsonEncode($res);
     }
 
-    // Output all phrases as JSON
-    public function allToJson()
-    {
-        return "ew.language = new ew.Language(" . $this->arrayToJson(false) . ");";
-    }
-
-    // Output client phrases as JSON
+    // Output phrases to client side as JSON
     public function toJson()
     {
-        return "ew.language = new ew.Language(" . $this->arrayToJson(true) . ");";
+        return "ew.language.phrases = " . $this->arrayToJson() . ";";
     }
 
     // Output languages as array
@@ -281,18 +307,15 @@ class Language
     {
         global $LANGUAGES, $CurrentLanguage;
         $ar = [];
-        if (is_array($LANGUAGES)) {
-            $cnt = count($LANGUAGES);
-            if ($cnt > 1) {
-                for ($i = 0; $i < $cnt; $i++) {
-                    $langId = $LANGUAGES[$i][0];
-                    $phrase = $this->phrase($langId);
-                    if ($phrase == $langId && $LANGUAGES[$i][1]) {
-                        $phrase = $LANGUAGES[$i][1];
-                    }
-                    $ar[] = ["id" => $langId, "desc" => $phrase, "selected" => $langId == $CurrentLanguage];
+        if (is_array($LANGUAGES) && count($LANGUAGES) > 1) {
+            $ar = array_map(function ($lang) use ($CurrentLanguage) {
+                $langId = $lang[0];
+                $phrase = $this->phrase($langId);
+                if ($phrase == $langId && $lang[1]) {
+                    $phrase = $lang[1];
                 }
-            }
+                return ["id" => $langId, "desc" => $phrase, "selected" => $langId == $CurrentLanguage];
+            }, $LANGUAGES);
         }
         return $ar;
     }
@@ -304,11 +327,11 @@ class Language
             if (SameText($this->Type, "LI")) { // LI template (for used with top Navbar)
                 return '{{for languages}}<li class="nav-item"><a class="nav-link{{if selected}} active{{/if}} ew-tooltip" title="{{>desc}}" data-ew-action="language" data-language="{{:id}}">{{:id}}</a></li>{{/for}}';
             } elseif (SameText($this->Type, "DROPDOWN")) { // DROPDOWN template (for used with top Navbar)
-                return '<li class="nav-item dropdown"><a class="nav-link" data-bs-toggle="dropdown"><i class="fas fa-globe ew-icon"></i></span></a><div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">{{for languages}}<a class="dropdown-item{{if selected}} active{{/if}}" data-ew-action="language" data-language="{{:id}}">{{>desc}}</a>{{/for}}</div></li>';
+                return '<li class="nav-item dropdown"><a class="nav-link" data-bs-toggle="dropdown"><i class="fa-solid fa-globe ew-icon"></i></span></a><div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">{{for languages}}<a class="dropdown-item{{if selected}} active{{/if}}" data-ew-action="language" data-language="{{:id}}">{{>desc}}</a>{{/for}}</div></li>';
             } elseif (SameText($this->Type, "SELECT")) { // SELECT template (NOT for used with top Navbar)
-                return '<div class="ew-language-option"><select class="form-select" id="ew-language" name="ew-language" onchange="ew.setLanguage(this);">{{for languages}}<option value="{{:id}}"{{if selected}} selected{{/if}}>{{:desc}}</option>{{/for}}</select></div>';
+                return '<div class="ew-language-option"><select class="form-select" id="ew-language" name="ew-language" data-ew-action="language">{{for languages}}<option value="{{:id}}"{{if selected}} selected{{/if}}>{{:desc}}</option>{{/for}}</select></div>';
             } elseif (SameText($this->Type, "RADIO")) { // RADIO template (NOT for used with top Navbar)
-                return '<div class="ew-language-option"><div class="btn-group" data-bs-toggle="buttons">{{for languages}}<input type="radio" name="ew-language" id="ew-Language-{{:id}}" onchange="ew.setLanguage(this);{{if selected}} checked{{/if}}" value="{{:id}}"><label class="btn btn-default ew-tooltip" for="ew-language-{{:id}}" data-container="body" data-bs-placement="bottom" title="{{>desc}}">{{:id}}</label>{{/for}}</div></div>';
+                return '<div class="ew-language-option"><div class="btn-group" data-bs-toggle="buttons">{{for languages}}<input type="radio" name="ew-language" id="ew-Language-{{:id}}" data-ew-action="language"{{if selected}} checked{{/if}}" value="{{:id}}"><label class="btn btn-default ew-tooltip" for="ew-language-{{:id}}" data-container="body" data-bs-placement="bottom" title="{{>desc}}">{{:id}}</label>{{/for}}</div></div>';
             }
         }
         return $this->Template;
@@ -319,6 +342,6 @@ class Language
     {
         // Example:
         //$this->setPhrase("MyID", "MyValue"); // Refer to language file for the actual phrase id
-        //$this->setPhraseClass("MyID", "fas fa-xxx ew-icon"); // Refer to https://fontawesome.com/icons?d=gallery&m=free [^] for icon name
+        //$this->setPhraseClass("MyID", "fa-solid fa-xxx ew-icon"); // Refer to https://fontawesome.com/icons?d=gallery&m=free [^] for icon name
     }
 }

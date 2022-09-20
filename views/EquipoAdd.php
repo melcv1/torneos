@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $EquipoAdd = &$Page;
@@ -8,40 +8,49 @@ $EquipoAdd = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { equipo: currentTable } });
-var currentForm, currentPageID;
+var currentPageID = ew.PAGE_ID = "add";
+var currentForm;
 var fequipoadd;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fequipoadd = new ew.Form("fequipoadd", "add");
-    currentPageID = ew.PAGE_ID = "add";
-    currentForm = fequipoadd;
+    let form = new ew.FormBuilder()
+        .setId("fequipoadd")
+        .setPageId("add")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fequipoadd.addFields([
-        ["NOM_EQUIPO_CORTO", [fields.NOM_EQUIPO_CORTO.visible && fields.NOM_EQUIPO_CORTO.required ? ew.Validators.required(fields.NOM_EQUIPO_CORTO.caption) : null], fields.NOM_EQUIPO_CORTO.isInvalid],
-        ["NOM_EQUIPO_LARGO", [fields.NOM_EQUIPO_LARGO.visible && fields.NOM_EQUIPO_LARGO.required ? ew.Validators.required(fields.NOM_EQUIPO_LARGO.caption) : null], fields.NOM_EQUIPO_LARGO.isInvalid],
-        ["PAIS_EQUIPO", [fields.PAIS_EQUIPO.visible && fields.PAIS_EQUIPO.required ? ew.Validators.required(fields.PAIS_EQUIPO.caption) : null], fields.PAIS_EQUIPO.isInvalid],
-        ["REGION_EQUIPO", [fields.REGION_EQUIPO.visible && fields.REGION_EQUIPO.required ? ew.Validators.required(fields.REGION_EQUIPO.caption) : null], fields.REGION_EQUIPO.isInvalid],
-        ["DETALLE_EQUIPO", [fields.DETALLE_EQUIPO.visible && fields.DETALLE_EQUIPO.required ? ew.Validators.required(fields.DETALLE_EQUIPO.caption) : null], fields.DETALLE_EQUIPO.isInvalid],
-        ["ESCUDO_EQUIPO", [fields.ESCUDO_EQUIPO.visible && fields.ESCUDO_EQUIPO.required ? ew.Validators.fileRequired(fields.ESCUDO_EQUIPO.caption) : null], fields.ESCUDO_EQUIPO.isInvalid],
-        ["NOM_ESTADIO", [fields.NOM_ESTADIO.visible && fields.NOM_ESTADIO.required ? ew.Validators.required(fields.NOM_ESTADIO.caption) : null], fields.NOM_ESTADIO.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["NOM_EQUIPO_CORTO", [fields.NOM_EQUIPO_CORTO.visible && fields.NOM_EQUIPO_CORTO.required ? ew.Validators.required(fields.NOM_EQUIPO_CORTO.caption) : null], fields.NOM_EQUIPO_CORTO.isInvalid],
+            ["NOM_EQUIPO_LARGO", [fields.NOM_EQUIPO_LARGO.visible && fields.NOM_EQUIPO_LARGO.required ? ew.Validators.required(fields.NOM_EQUIPO_LARGO.caption) : null], fields.NOM_EQUIPO_LARGO.isInvalid],
+            ["PAIS_EQUIPO", [fields.PAIS_EQUIPO.visible && fields.PAIS_EQUIPO.required ? ew.Validators.required(fields.PAIS_EQUIPO.caption) : null], fields.PAIS_EQUIPO.isInvalid],
+            ["REGION_EQUIPO", [fields.REGION_EQUIPO.visible && fields.REGION_EQUIPO.required ? ew.Validators.required(fields.REGION_EQUIPO.caption) : null], fields.REGION_EQUIPO.isInvalid],
+            ["DETALLE_EQUIPO", [fields.DETALLE_EQUIPO.visible && fields.DETALLE_EQUIPO.required ? ew.Validators.required(fields.DETALLE_EQUIPO.caption) : null], fields.DETALLE_EQUIPO.isInvalid],
+            ["ESCUDO_EQUIPO", [fields.ESCUDO_EQUIPO.visible && fields.ESCUDO_EQUIPO.required ? ew.Validators.fileRequired(fields.ESCUDO_EQUIPO.caption) : null], fields.ESCUDO_EQUIPO.isInvalid],
+            ["NOM_ESTADIO", [fields.NOM_ESTADIO.visible && fields.NOM_ESTADIO.required ? ew.Validators.required(fields.NOM_ESTADIO.caption) : null], fields.NOM_ESTADIO.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fequipoadd.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fequipoadd.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    fequipoadd.lists.REGION_EQUIPO = <?= $Page->REGION_EQUIPO->toClientList($Page) ?>;
-    fequipoadd.lists.NOM_ESTADIO = <?= $Page->NOM_ESTADIO->toClientList($Page) ?>;
-    loadjs.done("fequipoadd");
+        // Dynamic selection lists
+        .setLists({
+            "REGION_EQUIPO": <?= $Page->REGION_EQUIPO->toClientList($Page) ?>,
+            "NOM_ESTADIO": <?= $Page->NOM_ESTADIO->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -53,7 +62,7 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fequipoadd" id="fequipoadd" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post">
+<form name="fequipoadd" id="fequipoadd" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -61,6 +70,9 @@ $Page->showMessage();
 <input type="hidden" name="t" value="equipo">
 <input type="hidden" name="action" id="action" value="insert">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
+<?php if (IsJsonResponse()) { ?>
+<input type="hidden" name="json" value="1">
+<?php } ?>
 <input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <div class="ew-add-div"><!-- page* -->
 <?php if ($Page->NOM_EQUIPO_CORTO->Visible) { // NOM_EQUIPO_CORTO ?>
@@ -122,8 +134,9 @@ $Page->showMessage();
 loadjs.ready("fequipoadd", function() {
     var options = { name: "x_REGION_EQUIPO", selectId: "fequipoadd_x_REGION_EQUIPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipoadd.lists.REGION_EQUIPO.lookupOptions.length) {
+    if (fequipoadd.lists.REGION_EQUIPO?.lookupOptions.length) {
         options.data = { id: "x_REGION_EQUIPO", form: "fequipoadd" };
     } else {
         options.ajax = { id: "x_REGION_EQUIPO", form: "fequipoadd", limit: ew.LOOKUP_PAGE_SIZE };
@@ -155,16 +168,30 @@ loadjs.ready("fequipoadd", function() {
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->ESCUDO_EQUIPO->cellAttributes() ?>>
 <span id="el_equipo_ESCUDO_EQUIPO">
 <div id="fd_x_ESCUDO_EQUIPO" class="fileinput-button ew-file-drop-zone">
-    <input type="file" class="form-control ew-file-input" title="<?= $Page->ESCUDO_EQUIPO->title() ?>" data-table="equipo" data-field="x_ESCUDO_EQUIPO" name="x_ESCUDO_EQUIPO" id="x_ESCUDO_EQUIPO" lang="<?= CurrentLanguageID() ?>"<?= $Page->ESCUDO_EQUIPO->editAttributes() ?> aria-describedby="x_ESCUDO_EQUIPO_help"<?= ($Page->ESCUDO_EQUIPO->ReadOnly || $Page->ESCUDO_EQUIPO->Disabled) ? " disabled" : "" ?>>
+    <input
+        type="file"
+        id="x_ESCUDO_EQUIPO"
+        name="x_ESCUDO_EQUIPO"
+        class="form-control ew-file-input"
+        title="<?= $Page->ESCUDO_EQUIPO->title() ?>"
+        lang="<?= CurrentLanguageID() ?>"
+        data-table="equipo"
+        data-field="x_ESCUDO_EQUIPO"
+        data-size="1024"
+        data-accept-file-types="<?= $Page->ESCUDO_EQUIPO->acceptFileTypes() ?>"
+        data-max-file-size="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>"
+        data-max-number-of-files="null"
+        data-disable-image-crop="<?= $Page->ESCUDO_EQUIPO->ImageCropper ? 0 : 1 ?>"
+        aria-describedby="x_ESCUDO_EQUIPO_help"
+        <?= ($Page->ESCUDO_EQUIPO->ReadOnly || $Page->ESCUDO_EQUIPO->Disabled) ? " disabled" : "" ?>
+        <?= $Page->ESCUDO_EQUIPO->editAttributes() ?>
+    >
     <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
 </div>
 <?= $Page->ESCUDO_EQUIPO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->ESCUDO_EQUIPO->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x_ESCUDO_EQUIPO" id= "fn_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->Upload->FileName ?>">
 <input type="hidden" name="fa_x_ESCUDO_EQUIPO" id= "fa_x_ESCUDO_EQUIPO" value="0">
-<input type="hidden" name="fs_x_ESCUDO_EQUIPO" id= "fs_x_ESCUDO_EQUIPO" value="1024">
-<input type="hidden" name="fx_x_ESCUDO_EQUIPO" id= "fx_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadAllowedFileExt ?>">
-<input type="hidden" name="fm_x_ESCUDO_EQUIPO" id= "fm_x_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>">
 <table id="ft_x_ESCUDO_EQUIPO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
 </span>
 </div></div>
@@ -188,7 +215,7 @@ loadjs.ready("fequipoadd", function() {
         <?= $Page->NOM_ESTADIO->editAttributes() ?>>
         <?= $Page->NOM_ESTADIO->selectOptionListHtml("x_NOM_ESTADIO") ?>
     </select>
-    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_NOM_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->NOM_ESTADIO->caption() ?>" data-title="<?= $Page->NOM_ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x_NOM_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x_NOM_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->NOM_ESTADIO->caption() ?>" data-title="<?= $Page->NOM_ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x_NOM_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fa-solid fa-plus ew-icon"></i></button>
 </div>
 <?= $Page->NOM_ESTADIO->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NOM_ESTADIO->getErrorMessage() ?></div>
@@ -197,8 +224,9 @@ loadjs.ready("fequipoadd", function() {
 loadjs.ready("fequipoadd", function() {
     var options = { name: "x_NOM_ESTADIO", selectId: "fequipoadd_x_NOM_ESTADIO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipoadd.lists.NOM_ESTADIO.lookupOptions.length) {
+    if (fequipoadd.lists.NOM_ESTADIO?.lookupOptions.length) {
         options.data = { id: "x_NOM_ESTADIO", form: "fequipoadd" };
     } else {
         options.ajax = { id: "x_NOM_ESTADIO", form: "fequipoadd", limit: ew.LOOKUP_PAGE_SIZE };
@@ -213,14 +241,16 @@ loadjs.ready("fequipoadd", function() {
     </div>
 <?php } ?>
 </div><!-- /page* -->
-<?php if (!$Page->IsModal) { ?>
-<div class="row"><!-- buttons .row -->
+<?= $Page->IsModal ? '<template class="ew-modal-buttons">' : '<div class="row ew-buttons">' ?><!-- buttons .row -->
     <div class="<?= $Page->OffsetColumnClass ?>"><!-- buttons offset -->
-<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit"><?= $Language->phrase("AddBtn") ?></button>
-<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
-    </div><!-- /buttons offset -->
-</div><!-- /buttons .row -->
+<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit" form="fequipoadd"><?= $Language->phrase("AddBtn") ?></button>
+<?php if (IsJsonResponse()) { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button>
+<?php } else { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" form="fequipoadd" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
 <?php } ?>
+    </div><!-- /buttons offset -->
+<?= $Page->IsModal ? "</template>" : "</div>" ?><!-- /buttons .row -->
 </form>
 <?php
 $Page->showPageFooter();

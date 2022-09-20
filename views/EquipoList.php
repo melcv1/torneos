@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $EquipoList = &$Page;
@@ -9,58 +9,55 @@ $EquipoList = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { equipo: currentTable } });
-var currentForm, currentPageID;
-var fequipolist;
+var currentPageID = ew.PAGE_ID = "list";
+var currentForm;
+var <?= $Page->FormName ?>;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fequipolist = new ew.Form("fequipolist", "list");
-    currentPageID = ew.PAGE_ID = "list";
-    currentForm = fequipolist;
-    fequipolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+    let form = new ew.FormBuilder()
+        .setId("<?= $Page->FormName ?>")
+        .setPageId("list")
+        .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
+        .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fequipolist.addFields([
-        ["ID_EQUIPO", [fields.ID_EQUIPO.visible && fields.ID_EQUIPO.required ? ew.Validators.required(fields.ID_EQUIPO.caption) : null], fields.ID_EQUIPO.isInvalid],
-        ["NOM_EQUIPO_CORTO", [fields.NOM_EQUIPO_CORTO.visible && fields.NOM_EQUIPO_CORTO.required ? ew.Validators.required(fields.NOM_EQUIPO_CORTO.caption) : null], fields.NOM_EQUIPO_CORTO.isInvalid],
-        ["NOM_EQUIPO_LARGO", [fields.NOM_EQUIPO_LARGO.visible && fields.NOM_EQUIPO_LARGO.required ? ew.Validators.required(fields.NOM_EQUIPO_LARGO.caption) : null], fields.NOM_EQUIPO_LARGO.isInvalid],
-        ["PAIS_EQUIPO", [fields.PAIS_EQUIPO.visible && fields.PAIS_EQUIPO.required ? ew.Validators.required(fields.PAIS_EQUIPO.caption) : null], fields.PAIS_EQUIPO.isInvalid],
-        ["REGION_EQUIPO", [fields.REGION_EQUIPO.visible && fields.REGION_EQUIPO.required ? ew.Validators.required(fields.REGION_EQUIPO.caption) : null], fields.REGION_EQUIPO.isInvalid],
-        ["DETALLE_EQUIPO", [fields.DETALLE_EQUIPO.visible && fields.DETALLE_EQUIPO.required ? ew.Validators.required(fields.DETALLE_EQUIPO.caption) : null], fields.DETALLE_EQUIPO.isInvalid],
-        ["ESCUDO_EQUIPO", [fields.ESCUDO_EQUIPO.visible && fields.ESCUDO_EQUIPO.required ? ew.Validators.fileRequired(fields.ESCUDO_EQUIPO.caption) : null], fields.ESCUDO_EQUIPO.isInvalid],
-        ["NOM_ESTADIO", [fields.NOM_ESTADIO.visible && fields.NOM_ESTADIO.required ? ew.Validators.required(fields.NOM_ESTADIO.caption) : null], fields.NOM_ESTADIO.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
-        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["ID_EQUIPO", [fields.ID_EQUIPO.visible && fields.ID_EQUIPO.required ? ew.Validators.required(fields.ID_EQUIPO.caption) : null], fields.ID_EQUIPO.isInvalid],
+            ["NOM_EQUIPO_CORTO", [fields.NOM_EQUIPO_CORTO.visible && fields.NOM_EQUIPO_CORTO.required ? ew.Validators.required(fields.NOM_EQUIPO_CORTO.caption) : null], fields.NOM_EQUIPO_CORTO.isInvalid],
+            ["NOM_EQUIPO_LARGO", [fields.NOM_EQUIPO_LARGO.visible && fields.NOM_EQUIPO_LARGO.required ? ew.Validators.required(fields.NOM_EQUIPO_LARGO.caption) : null], fields.NOM_EQUIPO_LARGO.isInvalid],
+            ["PAIS_EQUIPO", [fields.PAIS_EQUIPO.visible && fields.PAIS_EQUIPO.required ? ew.Validators.required(fields.PAIS_EQUIPO.caption) : null], fields.PAIS_EQUIPO.isInvalid],
+            ["REGION_EQUIPO", [fields.REGION_EQUIPO.visible && fields.REGION_EQUIPO.required ? ew.Validators.required(fields.REGION_EQUIPO.caption) : null], fields.REGION_EQUIPO.isInvalid],
+            ["DETALLE_EQUIPO", [fields.DETALLE_EQUIPO.visible && fields.DETALLE_EQUIPO.required ? ew.Validators.required(fields.DETALLE_EQUIPO.caption) : null], fields.DETALLE_EQUIPO.isInvalid],
+            ["ESCUDO_EQUIPO", [fields.ESCUDO_EQUIPO.visible && fields.ESCUDO_EQUIPO.required ? ew.Validators.fileRequired(fields.ESCUDO_EQUIPO.caption) : null], fields.ESCUDO_EQUIPO.isInvalid],
+            ["NOM_ESTADIO", [fields.NOM_ESTADIO.visible && fields.NOM_ESTADIO.required ? ew.Validators.required(fields.NOM_ESTADIO.caption) : null], fields.NOM_ESTADIO.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+            ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fequipolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fequipolist.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    fequipolist.lists.REGION_EQUIPO = <?= $Page->REGION_EQUIPO->toClientList($Page) ?>;
-    fequipolist.lists.NOM_ESTADIO = <?= $Page->NOM_ESTADIO->toClientList($Page) ?>;
-    loadjs.done("fequipolist");
-});
-var fequiposrch, currentSearchForm, currentAdvancedSearchForm;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object for search
-    fequiposrch = new ew.Form("fequiposrch", "list");
-    currentSearchForm = fequiposrch;
-
-    // Dynamic selection lists
-
-    // Filters
-    fequiposrch.filterList = <?= $Page->getFilterList() ?>;
-    loadjs.done("fequiposrch");
+        // Dynamic selection lists
+        .setLists({
+            "REGION_EQUIPO": <?= $Page->REGION_EQUIPO->toClientList($Page) ?>,
+            "NOM_ESTADIO": <?= $Page->NOM_ESTADIO->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -85,16 +82,42 @@ loadjs.ready("head", function () {
 <?php } ?>
 </div>
 <?php } ?>
-<?php
-$Page->renderOtherOptions();
-?>
 <?php if ($Security->canSearch()) { ?>
-<?php if (!$Page->isExport() && !$Page->CurrentAction && $Page->hasSearchFields()) { ?>
-<form name="fequiposrch" id="fequiposrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isExport() && !($Page->CurrentAction && $Page->CurrentAction != "search") && $Page->hasSearchFields()) { ?>
+<form name="fequiposrch" id="fequiposrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>" novalidate autocomplete="on">
 <div id="fequiposrch_search_panel" class="mb-2 mb-sm-0 <?= $Page->SearchPanelClass ?>"><!-- .ew-search-panel -->
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { equipo: currentTable } });
+var currentForm;
+var fequiposrch, currentSearchForm, currentAdvancedSearchForm;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery,
+        fields = currentTable.fields;
+
+    // Form object for search
+    let form = new ew.FormBuilder()
+        .setId("fequiposrch")
+        .setPageId("list")
+<?php if ($Page->UseAjaxActions) { ?>
+        .setSubmitWithFetch(true)
+<?php } ?>
+
+        // Dynamic selection lists
+        .setLists({
+        })
+
+        // Filters
+        .setFilterList(<?= $Page->getFilterList() ?>)
+        .build();
+    window[form.id] = form;
+    currentSearchForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="equipo">
-<div class="ew-extended-search container-fluid">
+<div class="ew-extended-search container-fluid ps-2">
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -124,17 +147,22 @@ $Page->renderOtherOptions();
 <?php
 $Page->showMessage();
 ?>
+<main class="list<?= ($Page->TotalRecords == 0) ? " ew-no-record" : "" ?>">
+<div id="ew-list">
 <?php if ($Page->TotalRecords > 0 || $Page->CurrentAction) { ?>
-<div class="card ew-card ew-grid<?php if ($Page->isAddOrEdit()) { ?> ew-grid-add-edit<?php } ?> equipo">
-<form name="fequipolist" id="fequipolist" class="ew-form ew-list-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<div class="card ew-card ew-grid<?= $Page->isAddOrEdit() ? " ew-grid-add-edit" : "" ?> <?= $Page->TableGridClass ?>">
+<form name="<?= $Page->FormName ?>" id="<?= $Page->FormName ?>" class="ew-form ew-list-form" action="<?= $Page->PageAction ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="equipo">
-<div id="gmp_equipo" class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit()) { ?>
-<table id="tbl_equipolist" class="table table-bordered table-hover table-sm ew-table"><!-- .ew-table -->
+<?php if ($Page->IsModal) { ?>
+<input type="hidden" name="modal" value="1">
+<?php } ?>
+<div id="gmp_equipo" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<table id="tbl_equipolist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
 <?php
@@ -186,94 +214,13 @@ $Page->ListOptions->render("header", "right");
 ?>
     </tr>
 </thead>
-<tbody>
+<tbody data-page="<?= $Page->getPageNumber() ?>">
 <?php
-if ($Page->ExportAll && $Page->isExport()) {
-    $Page->StopRecord = $Page->TotalRecords;
-} else {
-    // Set the last record to display
-    if ($Page->TotalRecords > $Page->StartRecord + $Page->DisplayRecords - 1) {
-        $Page->StopRecord = $Page->StartRecord + $Page->DisplayRecords - 1;
-    } else {
-        $Page->StopRecord = $Page->TotalRecords;
-    }
-}
-
-// Restore number of post back records
-if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
-    $CurrentForm->Index = -1;
-    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
-        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
-        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
-    }
-}
-$Page->RecordCount = $Page->StartRecord - 1;
-if ($Page->Recordset && !$Page->Recordset->EOF) {
-    // Nothing to do
-} elseif ($Page->isGridAdd() && !$Page->AllowAddDeleteRow && $Page->StopRecord == 0) {
-    $Page->StopRecord = $Page->GridAddRowCount;
-}
-
-// Initialize aggregate
-$Page->RowType = ROWTYPE_AGGREGATEINIT;
-$Page->resetAttributes();
-$Page->renderRow();
-$Page->EditRowCount = 0;
-if ($Page->isEdit()) {
-    $Page->RowIndex = 1;
-}
+$Page->setupGrid();
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
-        $Page->RowCount++;
-
-        // Set up key count
-        $Page->KeyCount = $Page->RowIndex;
-
-        // Init row class and style
-        $Page->resetAttributes();
-        $Page->CssClass = "";
-        if ($Page->isGridAdd()) {
-            $Page->loadRowValues(); // Load default values
-            $Page->OldKey = "";
-            $Page->setKey($Page->OldKey);
-        } else {
-            $Page->loadRowValues($Page->Recordset); // Load row values
-            if ($Page->isGridEdit()) {
-                $Page->OldKey = $Page->getKey(true); // Get from CurrentValue
-                $Page->setKey($Page->OldKey);
-            }
-        }
-        $Page->RowType = ROWTYPE_VIEW; // Render view
-        if ($Page->isEdit()) {
-            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
-                $Page->RowType = ROWTYPE_EDIT; // Render edit
-            }
-        }
-        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
-            $CurrentForm->Index = 1;
-            $Page->restoreFormValues(); // Restore form values
-        }
-        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
-            $Page->EditRowCount++;
-        }
-
-        // Set up row attributes
-        $Page->RowAttrs->merge([
-            "data-rowindex" => $Page->RowCount,
-            "id" => "r" . $Page->RowCount . "_equipo",
-            "data-rowtype" => $Page->RowType,
-            "class" => ($Page->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
-        ]);
-        if ($Page->isAdd() && $Page->RowType == ROWTYPE_ADD || $Page->isEdit() && $Page->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
-            $Page->RowAttrs->appendClass("table-active");
-        }
-
-        // Render row
-        $Page->renderRow();
-
-        // Render list options
-        $Page->renderListOptions();
+        $Page->setupRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
 <?php
@@ -286,8 +233,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_equipo_ID_EQUIPO" class="el_equipo_ID_EQUIPO">
 <span<?= $Page->ID_EQUIPO->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_EQUIPO->getDisplayValue($Page->ID_EQUIPO->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="equipo" data-field="x_ID_EQUIPO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_EQUIPO" id="x<?= $Page->RowIndex ?>_ID_EQUIPO" value="<?= HtmlEncode($Page->ID_EQUIPO->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_ID_EQUIPO" class="el_equipo_ID_EQUIPO">
@@ -355,7 +302,7 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
         id="x<?= $Page->RowIndex ?>_REGION_EQUIPO"
         name="x<?= $Page->RowIndex ?>_REGION_EQUIPO"
         class="form-select ew-select<?= $Page->REGION_EQUIPO->isInvalidClass() ?>"
-        data-select2-id="fequipolist_x<?= $Page->RowIndex ?>_REGION_EQUIPO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_REGION_EQUIPO"
         data-table="equipo"
         data-field="x_REGION_EQUIPO"
         data-value-separator="<?= $Page->REGION_EQUIPO->displayValueSeparatorAttribute() ?>"
@@ -365,14 +312,15 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
     </select>
     <div class="invalid-feedback"><?= $Page->REGION_EQUIPO->getErrorMessage() ?></div>
 <script>
-loadjs.ready("fequipolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", selectId: "fequipolist_x<?= $Page->RowIndex ?>_REGION_EQUIPO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_REGION_EQUIPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipolist.lists.REGION_EQUIPO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", form: "fequipolist" };
+    if (<?= $Page->FormName ?>.lists.REGION_EQUIPO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", form: "fequipolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_REGION_EQUIPO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.REGION_EQUIPO.selectOptions);
@@ -410,15 +358,28 @@ loadjs.ready("fequipolist", function() {
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipo_ESCUDO_EQUIPO" class="el_equipo_ESCUDO_EQUIPO">
 <div id="fd_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" class="fileinput-button ew-file-drop-zone">
-    <input type="file" class="form-control ew-file-input" title="<?= $Page->ESCUDO_EQUIPO->title() ?>" data-table="equipo" data-field="x_ESCUDO_EQUIPO" name="x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id="x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" lang="<?= CurrentLanguageID() ?>"<?= $Page->ESCUDO_EQUIPO->editAttributes() ?><?= ($Page->ESCUDO_EQUIPO->ReadOnly || $Page->ESCUDO_EQUIPO->Disabled) ? " disabled" : "" ?>>
+    <input
+        type="file"
+        id="x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO"
+        name="x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO"
+        class="form-control ew-file-input"
+        title="<?= $Page->ESCUDO_EQUIPO->title() ?>"
+        lang="<?= CurrentLanguageID() ?>"
+        data-table="equipo"
+        data-field="x_ESCUDO_EQUIPO"
+        data-size="1024"
+        data-accept-file-types="<?= $Page->ESCUDO_EQUIPO->acceptFileTypes() ?>"
+        data-max-file-size="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>"
+        data-max-number-of-files="null"
+        data-disable-image-crop="<?= $Page->ESCUDO_EQUIPO->ImageCropper ? 0 : 1 ?>"
+        <?= ($Page->ESCUDO_EQUIPO->ReadOnly || $Page->ESCUDO_EQUIPO->Disabled) ? " disabled" : "" ?>
+        <?= $Page->ESCUDO_EQUIPO->editAttributes() ?>
+    >
     <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
 </div>
 <div class="invalid-feedback"><?= $Page->ESCUDO_EQUIPO->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fn_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->Upload->FileName ?>">
 <input type="hidden" name="fa_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fa_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= (Post("fa_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO") == "0") ? "0" : "1" ?>">
-<input type="hidden" name="fs_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fs_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="1024">
-<input type="hidden" name="fx_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fx_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadAllowedFileExt ?>">
-<input type="hidden" name="fm_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" id= "fm_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" value="<?= $Page->ESCUDO_EQUIPO->UploadMaxFileSize ?>">
 <table id="ft_x<?= $Page->RowIndex ?>_ESCUDO_EQUIPO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
 </span>
 <?php } ?>
@@ -440,7 +401,7 @@ loadjs.ready("fequipolist", function() {
         id="x<?= $Page->RowIndex ?>_NOM_ESTADIO"
         name="x<?= $Page->RowIndex ?>_NOM_ESTADIO"
         class="form-select ew-select<?= $Page->NOM_ESTADIO->isInvalidClass() ?>"
-        data-select2-id="fequipolist_x<?= $Page->RowIndex ?>_NOM_ESTADIO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_NOM_ESTADIO"
         data-table="equipo"
         data-field="x_NOM_ESTADIO"
         data-value-separator="<?= $Page->NOM_ESTADIO->displayValueSeparatorAttribute() ?>"
@@ -448,19 +409,20 @@ loadjs.ready("fequipolist", function() {
         <?= $Page->NOM_ESTADIO->editAttributes() ?>>
         <?= $Page->NOM_ESTADIO->selectOptionListHtml("x{$Page->RowIndex}_NOM_ESTADIO") ?>
     </select>
-    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_NOM_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->NOM_ESTADIO->caption() ?>" data-title="<?= $Page->NOM_ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_NOM_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_NOM_ESTADIO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->NOM_ESTADIO->caption() ?>" data-title="<?= $Page->NOM_ESTADIO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_NOM_ESTADIO" data-url="<?= GetUrl("estadioaddopt") ?>"><i class="fa-solid fa-plus ew-icon"></i></button>
 </div>
 <div class="invalid-feedback"><?= $Page->NOM_ESTADIO->getErrorMessage() ?></div>
 <?= $Page->NOM_ESTADIO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_NOM_ESTADIO") ?>
 <script>
-loadjs.ready("fequipolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", selectId: "fequipolist_x<?= $Page->RowIndex ?>_NOM_ESTADIO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_NOM_ESTADIO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipolist.lists.NOM_ESTADIO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", form: "fequipolist" };
+    if (<?= $Page->FormName ?>.lists.NOM_ESTADIO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", form: "fequipolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_NOM_ESTADIO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipo.fields.NOM_ESTADIO.selectOptions);
@@ -525,8 +487,8 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
 <?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
-<script>
-loadjs.ready(["fequipolist","load"], () => fequipolist.updateLists(<?= $Page->RowIndex ?>));
+<script data-rowindex="<?= $Page->RowIndex ?>">
+loadjs.ready(["<?= $Page->FormName ?>","load"], () => <?= $Page->FormName ?>.updateLists(<?= $Page->RowIndex ?><?= $Page->RowIndex === '$rowindex$' ? ", true" : "" ?>));
 </script>
 <?php } ?>
 <?php
@@ -539,12 +501,11 @@ loadjs.ready(["fequipolist","load"], () => fequipolist.updateLists(<?= $Page->Ro
 </tbody>
 </table><!-- /.ew-table -->
 <?php } ?>
-</div><!-- /.ew-grid-middle-panel -->
 <?php if ($Page->isEdit()) { ?>
 <input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
-<?php if (!$Page->CurrentAction) { ?>
+</div><!-- /.ew-grid-middle-panel -->
+<?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>
 </form><!-- /.ew-list-form -->
@@ -556,10 +517,8 @@ if ($Page->Recordset) {
 ?>
 <?php if (!$Page->isExport()) { ?>
 <div class="card-footer ew-grid-lower-panel">
-<?php if (!$Page->isGridAdd()) { ?>
-<form name="ew-pager-form" class="ew-form ew-pager-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isGridAdd() && !($Page->isGridEdit() && $Page->ModalGridEdit) && !$Page->isMultiEdit()) { ?>
 <?= $Page->Pager->render() ?>
-</form>
 <?php } ?>
 <div class="ew-list-other-options">
 <?php $Page->OtherOptions->render("body", "bottom") ?>
@@ -572,6 +531,8 @@ if ($Page->Recordset) {
 <?php $Page->OtherOptions->render("body") ?>
 </div>
 <?php } ?>
+</div>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

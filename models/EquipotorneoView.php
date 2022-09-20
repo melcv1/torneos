@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EquipotorneoView extends Equipotorneo
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'equipotorneo';
-
     // Page object name
     public $PageObjName = "EquipotorneoView";
 
@@ -35,12 +32,15 @@ class EquipotorneoView extends Equipotorneo
     // Rendering View
     public $RenderingView = false;
 
+    // CSS class/style
+    public $CurrentPageName = "equipotorneoview";
+
     // Page URLs
     public $AddUrl;
     public $EditUrl;
-    public $CopyUrl;
     public $DeleteUrl;
     public $ViewUrl;
+    public $CopyUrl;
     public $ListUrl;
 
     // Update URLs
@@ -49,6 +49,7 @@ class EquipotorneoView extends Equipotorneo
     public $InlineEditUrl;
     public $GridAddUrl;
     public $GridEditUrl;
+    public $MultiEditUrl;
     public $MultiDeleteUrl;
     public $MultiUpdateUrl;
 
@@ -107,11 +108,7 @@ class EquipotorneoView extends Equipotorneo
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -134,35 +131,22 @@ class EquipotorneoView extends Equipotorneo
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'equipotorneo';
+        $this->TableName = 'equipotorneo';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (equipotorneo)
         if (!isset($GLOBALS["equipotorneo"]) || get_class($GLOBALS["equipotorneo"]) == PROJECT_NAMESPACE . "equipotorneo") {
@@ -186,7 +170,7 @@ class EquipotorneoView extends Equipotorneo
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
@@ -206,7 +190,7 @@ class EquipotorneoView extends Equipotorneo
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -253,7 +237,7 @@ class EquipotorneoView extends Equipotorneo
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -265,27 +249,6 @@ class EquipotorneoView extends Equipotorneo
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("equipotorneo");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -296,9 +259,11 @@ class EquipotorneoView extends Equipotorneo
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -315,18 +280,17 @@ class EquipotorneoView extends Equipotorneo
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => GetUrl($url), "modal" => "1"];
+                $result = ["url" => GetUrl($url), "modal" => "1"];
                 $pageName = GetPageName($url);
-                if ($pageName != $this->getListUrl()) { // Not List page
-                    $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "equipotorneoview") {
-                        $row["view"] = "1";
-                    }
-                } else { // List page should not be shown as modal => error
-                    $row["error"] = $this->getFailureMessage();
+                if ($pageName != $this->getListUrl()) { // Not List page => View page
+                    $result["caption"] = $this->getModalCaption($pageName);
+                    $result["view"] = $pageName == "equipotorneoview";
+                } else { // List page
+                    // $result["list"] = $this->PageID == "search"; // Refresh List page if current page is Search page
+                    $result["error"] = $this->getFailureMessage(); // List page should not be shown as modal => error
                     $this->clearFailureMessage();
                 }
-                WriteJson($row);
+                WriteJson($result);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -435,6 +399,11 @@ class EquipotorneoView extends Equipotorneo
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -510,15 +479,17 @@ class EquipotorneoView extends Equipotorneo
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $SkipHeaderFooter;
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->ID_EQUIPO_TORNEO->setVisibility();
         $this->ID_TORNEO->setVisibility();
@@ -535,7 +506,6 @@ class EquipotorneoView extends Equipotorneo
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -548,6 +518,15 @@ class EquipotorneoView extends Equipotorneo
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -565,46 +544,42 @@ class EquipotorneoView extends Equipotorneo
         $loadCurrentRecord = false;
         $returnUrl = "";
         $matchRecord = false;
-        if ($this->isPageRequest()) { // Validate request
-            if (($keyValue = Get("ID_EQUIPO_TORNEO") ?? Route("ID_EQUIPO_TORNEO")) !== null) {
-                $this->ID_EQUIPO_TORNEO->setQueryStringValue($keyValue);
-                $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->QueryStringValue;
-            } elseif (Post("ID_EQUIPO_TORNEO") !== null) {
-                $this->ID_EQUIPO_TORNEO->setFormValue(Post("ID_EQUIPO_TORNEO"));
-                $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->FormValue;
-            } elseif (IsApi() && ($keyValue = Key(0) ?? Route(2)) !== null) {
-                $this->ID_EQUIPO_TORNEO->setQueryStringValue($keyValue);
-                $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->QueryStringValue;
-            } elseif (!$loadCurrentRecord) {
-                $returnUrl = "equipotorneolist"; // Return to list
-            }
+        if (($keyValue = Get("ID_EQUIPO_TORNEO") ?? Route("ID_EQUIPO_TORNEO")) !== null) {
+            $this->ID_EQUIPO_TORNEO->setQueryStringValue($keyValue);
+            $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->QueryStringValue;
+        } elseif (Post("ID_EQUIPO_TORNEO") !== null) {
+            $this->ID_EQUIPO_TORNEO->setFormValue(Post("ID_EQUIPO_TORNEO"));
+            $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->FormValue;
+        } elseif (IsApi() && ($keyValue = Key(0) ?? Route(2)) !== null) {
+            $this->ID_EQUIPO_TORNEO->setQueryStringValue($keyValue);
+            $this->RecKey["ID_EQUIPO_TORNEO"] = $this->ID_EQUIPO_TORNEO->QueryStringValue;
+        } elseif (!$loadCurrentRecord) {
+            $returnUrl = "equipotorneolist"; // Return to list
+        }
 
-            // Get action
-            $this->CurrentAction = "show"; // Display
-            switch ($this->CurrentAction) {
-                case "show": // Get a record to display
+        // Get action
+        $this->CurrentAction = "show"; // Display
+        switch ($this->CurrentAction) {
+            case "show": // Get a record to display
 
-                        // Load record based on key
-                        if (IsApi()) {
-                            $filter = $this->getRecordFilter();
-                            $this->CurrentFilter = $filter;
-                            $sql = $this->getCurrentSql();
-                            $conn = $this->getConnection();
-                            $this->Recordset = LoadRecordset($sql, $conn);
-                            $res = $this->Recordset && !$this->Recordset->EOF;
-                        } else {
-                            $res = $this->loadRow();
+                    // Load record based on key
+                    if (IsApi()) {
+                        $filter = $this->getRecordFilter();
+                        $this->CurrentFilter = $filter;
+                        $sql = $this->getCurrentSql();
+                        $conn = $this->getConnection();
+                        $this->Recordset = LoadRecordset($sql, $conn);
+                        $res = $this->Recordset && !$this->Recordset->EOF;
+                    } else {
+                        $res = $this->loadRow();
+                    }
+                    if (!$res) { // Load record based on key
+                        if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
+                            $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
                         }
-                        if (!$res) { // Load record based on key
-                            if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "") {
-                                $this->setFailureMessage($Language->phrase("NoRecord")); // Set no record message
-                            }
-                            $returnUrl = "equipotorneolist"; // No matching record, return to list
-                        }
-                    break;
-            }
-        } else {
-            $returnUrl = "equipotorneolist"; // Not page request, return to list
+                        $returnUrl = "equipotorneolist"; // No matching record, return to list
+                    }
+                break;
         }
         if ($returnUrl != "") {
             $this->terminate($returnUrl);
@@ -623,10 +598,12 @@ class EquipotorneoView extends Equipotorneo
 
         // Normal return
         if (IsApi()) {
-            $rows = $this->getRecordsFromRecordset($this->Recordset, true); // Get current record only
-            $this->Recordset->close();
-            WriteJson(["success" => true, $this->TableVar => $rows]);
-            $this->terminate(true);
+            if (!$this->isExport()) {
+                $row = $this->getRecordsFromRecordset($this->Recordset, true); // Get current record only
+                $this->Recordset->close();
+                WriteJson(["success" => true, "action" => Config("API_VIEW_ACTION"), $this->TableVar => $row]);
+                $this->terminate(true);
+            }
             return;
         }
 
@@ -657,6 +634,14 @@ class EquipotorneoView extends Equipotorneo
     protected function setupOtherOptions()
     {
         global $Language, $Security;
+
+        // Disable Add/Edit/Copy/Delete for Modal and UseAjaxActions
+        if ($this->IsModal && $this->UseAjaxActions) {
+            $this->AddUrl = "";
+            $this->EditUrl = "";
+            $this->CopyUrl = "";
+            $this->DeleteUrl = "";
+        }
         $options = &$this->OtherOptions;
         $option = $options["action"];
 
@@ -668,7 +653,7 @@ class EquipotorneoView extends Equipotorneo
         } else {
             $item->Body = "<a class=\"ew-action ew-add\" title=\"" . $addcaption . "\" data-caption=\"" . $addcaption . "\" href=\"" . HtmlEncode(GetUrl($this->AddUrl)) . "\">" . $Language->phrase("ViewPageAddLink") . "</a>";
         }
-        $item->Visible = ($this->AddUrl != "" && $Security->canAdd());
+        $item->Visible = $this->AddUrl != "" && $Security->canAdd();
 
         // Edit
         $item = &$option->add("edit");
@@ -678,7 +663,7 @@ class EquipotorneoView extends Equipotorneo
         } else {
             $item->Body = "<a class=\"ew-action ew-edit\" title=\"" . $editcaption . "\" data-caption=\"" . $editcaption . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("ViewPageEditLink") . "</a>";
         }
-        $item->Visible = ($this->EditUrl != "" && $Security->canEdit());
+        $item->Visible = $this->EditUrl != "" && $Security->canEdit();
 
         // Copy
         $item = &$option->add("copy");
@@ -688,21 +673,21 @@ class EquipotorneoView extends Equipotorneo
         } else {
             $item->Body = "<a class=\"ew-action ew-copy\" title=\"" . $copycaption . "\" data-caption=\"" . $copycaption . "\" href=\"" . HtmlEncode(GetUrl($this->CopyUrl)) . "\">" . $Language->phrase("ViewPageCopyLink") . "</a>";
         }
-        $item->Visible = ($this->CopyUrl != "" && $Security->canAdd());
+        $item->Visible = $this->CopyUrl != "" && $Security->canAdd();
 
         // Delete
         $item = &$option->add("delete");
-        if ($this->IsModal) { // Handle as inline delete
-            $item->Body = "<a data-ew-action=\"inline-delete\" class=\"ew-action ew-delete\" title=\"" . HtmlTitle($Language->phrase("ViewPageDeleteLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("ViewPageDeleteLink")) . "\" href=\"" . HtmlEncode(UrlAddQuery(GetUrl($this->DeleteUrl), "action=1")) . "\">" . $Language->phrase("ViewPageDeleteLink") . "</a>";
-        } else {
-            $item->Body = "<a class=\"ew-action ew-delete\" title=\"" . HtmlTitle($Language->phrase("ViewPageDeleteLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("ViewPageDeleteLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->DeleteUrl)) . "\">" . $Language->phrase("ViewPageDeleteLink") . "</a>";
-        }
-        $item->Visible = ($this->DeleteUrl != "" && $Security->canDelete());
+        $url = GetUrl($this->DeleteUrl);
+        $item->Body = "<a class=\"ew-action ew-delete\"" .
+            ($this->InlineDelete || $this->IsModal ? " data-ew-action=\"inline-delete\"" : "") .
+            " title=\"" . HtmlTitle($Language->phrase("ViewPageDeleteLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("ViewPageDeleteLink")) .
+            "\" href=\"" . HtmlEncode($url) . "\">" . $Language->phrase("ViewPageDeleteLink") . "</a>";
+        $item->Visible = $this->DeleteUrl != "" && $Security->canDelete();
 
         // Set up action default
         $option = $options["action"];
         $option->DropDownButtonPhrase = $Language->phrase("ButtonActions");
-        $option->UseDropDownButton = false;
+        $option->UseDropDownButton = !IsJsonResponse() && false;
         $option->UseButtonGroup = true;
         $item = &$option->addGroupOption();
         $item->Body = "";
@@ -852,14 +837,13 @@ class EquipotorneoView extends Equipotorneo
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_EQUIPO_TORNEO
             $this->ID_EQUIPO_TORNEO->ViewValue = $this->ID_EQUIPO_TORNEO->CurrentValue;
-            $this->ID_EQUIPO_TORNEO->ViewCustomAttributes = "";
 
             // ID_TORNEO
             $curVal = strval($this->ID_TORNEO->CurrentValue);
             if ($curVal != "") {
                 $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
                 if ($this->ID_TORNEO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ID_TORNEO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -876,7 +860,6 @@ class EquipotorneoView extends Equipotorneo
             } else {
                 $this->ID_TORNEO->ViewValue = null;
             }
-            $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // ID_EQUIPO
             if ($this->ID_EQUIPO->VirtualValue != "") {
@@ -886,7 +869,7 @@ class EquipotorneoView extends Equipotorneo
                 if ($curVal != "") {
                     $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
                     if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -904,42 +887,34 @@ class EquipotorneoView extends Equipotorneo
                     $this->ID_EQUIPO->ViewValue = null;
                 }
             }
-            $this->ID_EQUIPO->ViewCustomAttributes = "";
 
             // PARTIDOS_JUGADOS
             $this->PARTIDOS_JUGADOS->ViewValue = $this->PARTIDOS_JUGADOS->CurrentValue;
             $this->PARTIDOS_JUGADOS->ViewValue = FormatNumber($this->PARTIDOS_JUGADOS->ViewValue, $this->PARTIDOS_JUGADOS->formatPattern());
-            $this->PARTIDOS_JUGADOS->ViewCustomAttributes = "";
 
             // PARTIDOS_GANADOS
             $this->PARTIDOS_GANADOS->ViewValue = $this->PARTIDOS_GANADOS->CurrentValue;
             $this->PARTIDOS_GANADOS->ViewValue = FormatNumber($this->PARTIDOS_GANADOS->ViewValue, $this->PARTIDOS_GANADOS->formatPattern());
-            $this->PARTIDOS_GANADOS->ViewCustomAttributes = "";
 
             // PARTIDOS_EMPATADOS
             $this->PARTIDOS_EMPATADOS->ViewValue = $this->PARTIDOS_EMPATADOS->CurrentValue;
             $this->PARTIDOS_EMPATADOS->ViewValue = FormatNumber($this->PARTIDOS_EMPATADOS->ViewValue, $this->PARTIDOS_EMPATADOS->formatPattern());
-            $this->PARTIDOS_EMPATADOS->ViewCustomAttributes = "";
 
             // PARTIDOS_PERDIDOS
             $this->PARTIDOS_PERDIDOS->ViewValue = $this->PARTIDOS_PERDIDOS->CurrentValue;
             $this->PARTIDOS_PERDIDOS->ViewValue = FormatNumber($this->PARTIDOS_PERDIDOS->ViewValue, $this->PARTIDOS_PERDIDOS->formatPattern());
-            $this->PARTIDOS_PERDIDOS->ViewCustomAttributes = "";
 
             // GF
             $this->GF->ViewValue = $this->GF->CurrentValue;
             $this->GF->ViewValue = FormatNumber($this->GF->ViewValue, $this->GF->formatPattern());
-            $this->GF->ViewCustomAttributes = "";
 
             // GC
             $this->GC->ViewValue = $this->GC->CurrentValue;
             $this->GC->ViewValue = FormatNumber($this->GC->ViewValue, $this->GC->formatPattern());
-            $this->GC->ViewCustomAttributes = "";
 
             // GD
             $this->GD->ViewValue = $this->GD->CurrentValue;
             $this->GD->ViewValue = FormatNumber($this->GD->ViewValue, $this->GD->formatPattern());
-            $this->GD->ViewCustomAttributes = "";
 
             // GRUPO
             if (strval($this->GRUPO->CurrentValue) != "") {
@@ -947,7 +922,6 @@ class EquipotorneoView extends Equipotorneo
             } else {
                 $this->GRUPO->ViewValue = null;
             }
-            $this->GRUPO->ViewCustomAttributes = "";
 
             // POSICION_EQUIPO_TORENO
             if (strval($this->POSICION_EQUIPO_TORENO->CurrentValue) != "") {
@@ -955,98 +929,79 @@ class EquipotorneoView extends Equipotorneo
             } else {
                 $this->POSICION_EQUIPO_TORENO->ViewValue = null;
             }
-            $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_EQUIPO_TORNEO
-            $this->ID_EQUIPO_TORNEO->LinkCustomAttributes = "";
             $this->ID_EQUIPO_TORNEO->HrefValue = "";
             $this->ID_EQUIPO_TORNEO->TooltipValue = "";
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
             $this->ID_TORNEO->TooltipValue = "";
 
             // ID_EQUIPO
-            $this->ID_EQUIPO->LinkCustomAttributes = "";
             $this->ID_EQUIPO->HrefValue = "";
             $this->ID_EQUIPO->TooltipValue = "";
 
             // PARTIDOS_JUGADOS
-            $this->PARTIDOS_JUGADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_JUGADOS->HrefValue = "";
             $this->PARTIDOS_JUGADOS->TooltipValue = "";
 
             // PARTIDOS_GANADOS
-            $this->PARTIDOS_GANADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_GANADOS->HrefValue = "";
             $this->PARTIDOS_GANADOS->TooltipValue = "";
 
             // PARTIDOS_EMPATADOS
-            $this->PARTIDOS_EMPATADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_EMPATADOS->HrefValue = "";
             $this->PARTIDOS_EMPATADOS->TooltipValue = "";
 
             // PARTIDOS_PERDIDOS
-            $this->PARTIDOS_PERDIDOS->LinkCustomAttributes = "";
             $this->PARTIDOS_PERDIDOS->HrefValue = "";
             $this->PARTIDOS_PERDIDOS->TooltipValue = "";
 
             // GF
-            $this->GF->LinkCustomAttributes = "";
             $this->GF->HrefValue = "";
             $this->GF->TooltipValue = "";
 
             // GC
-            $this->GC->LinkCustomAttributes = "";
             $this->GC->HrefValue = "";
             $this->GC->TooltipValue = "";
 
             // GD
-            $this->GD->LinkCustomAttributes = "";
             $this->GD->HrefValue = "";
             $this->GD->TooltipValue = "";
 
             // GRUPO
-            $this->GRUPO->LinkCustomAttributes = "";
             $this->GRUPO->HrefValue = "";
             $this->GRUPO->TooltipValue = "";
 
             // POSICION_EQUIPO_TORENO
-            $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
             $this->POSICION_EQUIPO_TORENO->HrefValue = "";
             $this->POSICION_EQUIPO_TORENO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         }
@@ -1107,7 +1062,11 @@ class EquipotorneoView extends Equipotorneo
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1120,26 +1079,32 @@ class EquipotorneoView extends Equipotorneo
         if ($this->DisplayRecords == 0) {
             return;
         }
-        if ($this->isPageRequest()) { // Validate request
-            $startRec = Get(Config("TABLE_START_REC"));
-            if ($startRec !== null && is_numeric($startRec)) { // Check for "start" parameter
-                $this->StartRecord = $startRec;
-                $this->setStartRecordNumber($this->StartRecord);
-            }
+        $pageNo = Get(Config("TABLE_PAGE_NUMBER"));
+        $startRec = Get(Config("TABLE_START_REC"));
+        $infiniteScroll = false;
+        $recordNo = $pageNo ?? $startRec; // Record number = page number or start record
+        if ($recordNo !== null && is_numeric($recordNo)) {
+            $this->StartRecord = $recordNo;
+        } else {
+            $this->StartRecord = $this->getStartRecordNumber();
         }
-        $this->StartRecord = $this->getStartRecordNumber();
 
         // Check if correct start record counter
-        if (!is_numeric($this->StartRecord) || $this->StartRecord == "") { // Avoid invalid start record counter
+        if (!is_numeric($this->StartRecord) || intval($this->StartRecord) <= 0) { // Avoid invalid start record counter
             $this->StartRecord = 1; // Reset start record counter
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif ($this->StartRecord > $this->TotalRecords) { // Avoid starting record > total records
             $this->StartRecord = (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to last page first record
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif (($this->StartRecord - 1) % $this->DisplayRecords != 0) {
             $this->StartRecord = (int)(($this->StartRecord - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to page boundary
+        }
+        if (!$infiniteScroll) {
             $this->setStartRecordNumber($this->StartRecord);
         }
+    }
+
+    // Get page count
+    public function PageCount() {
+        return ceil($this->TotalRecords / $this->DisplayRecords);
     }
 
     // Page Load event
@@ -1196,27 +1161,35 @@ class EquipotorneoView extends Equipotorneo
         //$footer = "your footer";
     }
 
-    // Page Exporting event
-    // $this->ExportDoc = export document object
-    public function pageExporting()
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
     {
-        //$this->ExportDoc->Text = "my header"; // Export header
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
+    }
+
+    // Page Exporting event
+    // $doc = export object
+    public function pageExporting(&$doc)
+    {
+        //$doc->Text = "my header"; // Export header
         //return false; // Return false to skip default export and use Row_Export event
         return true; // Return true to use default export and skip Row_Export event
     }
 
     // Row Export event
-    // $this->ExportDoc = export document object
-    public function rowExport($rs)
+    // $doc = export document object
+    public function rowExport($doc, $rs)
     {
-        //$this->ExportDoc->Text .= "my content"; // Build HTML with field value: $rs["MyField"] or $this->MyField->ViewValue
+        //$doc->Text .= "my content"; // Build HTML with field value: $rs["MyField"] or $this->MyField->ViewValue
     }
 
     // Page Exported event
-    // $this->ExportDoc = export document object
-    public function pageExported()
+    // $doc = export document object
+    public function pageExported($doc)
     {
-        //$this->ExportDoc->Text .= "my footer"; // Export footer
-        //Log($this->ExportDoc->Text);
+        //$doc->Text .= "my footer"; // Export footer
+        //Log($doc->Text);
     }
 }

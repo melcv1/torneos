@@ -1,17 +1,26 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Export to CSV
  */
-class ExportCsv extends ExportBase
+class ExportCsv extends AbstractExport
 {
+    public $FileExtension = "csv";
+    public $UseCharset = true; // Add charset to content type
+    public $UseBom = true; // Output byte order mark
     public $QuoteChar = "\"";
     public $Separator = ",";
 
     // Style
     public function setStyle($style)
+    {
+        $this->Horizontal = true;
+    }
+
+    // Set horizontal
+    public function setHorizontal(bool $value)
     {
         $this->Horizontal = true;
     }
@@ -22,7 +31,7 @@ class ExportCsv extends ExportBase
     }
 
     // Export a value (caption, field value, or aggregate)
-    protected function exportValueEx(&$fld, $val, $useStyle = true)
+    protected function exportValueEx($fld, $val)
     {
         if ($fld->DataType != DATATYPE_BLOB) {
             if ($this->Line != "") {
@@ -32,8 +41,13 @@ class ExportCsv extends ExportBase
         }
     }
 
+    // Field aggregate
+    public function exportAggregate($fld, $type)
+    {
+    }
+
     // Begin a row
-    public function beginExportRow($rowCnt = 0, $useStyle = true)
+    public function beginExportRow($rowCnt = 0)
     {
         $this->Line = "";
     }
@@ -51,7 +65,7 @@ class ExportCsv extends ExportBase
     }
 
     // Export a field
-    public function exportField(&$fld)
+    public function exportField($fld)
     {
         if (!$fld->Exportable) {
             return;
@@ -74,17 +88,14 @@ class ExportCsv extends ExportBase
     }
 
     // Export
-    public function export()
+    public function export($fileName = "", $output = true, $save = false)
     {
-        global $ExportFileName;
-        if (!Config("DEBUG") && ob_get_length()) {
-            ob_end_clean();
+        if ($save) { // Save to folder
+            SaveFile(ExportPath(true), $this->getSaveFileName(), $this->Text);
         }
-        AddHeader('Content-Type', 'text/csv' . ((Config("PROJECT_CHARSET") != "") ? '; charset=' . Config("PROJECT_CHARSET") : ''));
-        AddHeader('Content-Disposition', 'attachment; filename=' . $ExportFileName . '.csv');
-        if (SameText(Config("PROJECT_CHARSET"), "utf-8")) {
-            Write("\xEF\xBB\xBF");
+        if ($output) { // Output
+            $this->writeHeaders($fileName);
+            $this->write();
         }
-        Write($this->Text);
     }
 }

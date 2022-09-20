@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 
@@ -31,6 +31,8 @@ class Lookup
     public $Distinct = false;
     public $LinkField = "";
     public $DisplayFields = [];
+    public $GroupByField = "";
+    public $GroupByExpression = "";
     public $ParentFields = [];
     public $ChildFields = [];
     public $FilterFieldVars = [];
@@ -39,6 +41,7 @@ class Lookup
     public $Table = null;
     public $FormatAutoFill = false;
     public $UseParentFilter = false;
+    public $LookupAllDisplayFields = false;
     private $rendering = false;
     private $cache; // Doctrine cache
     private $cacheProfile; // Doctrine cache profile
@@ -52,6 +55,8 @@ class Lookup
      * @param bool $distinct
      * @param string $linkField
      * @param array $displayFields
+     * @param string $groupByField
+     * @param string $groupByExpression
      * @param array $parentFields
      * @param array $childFields
      * @param array $filterFields
@@ -67,6 +72,8 @@ class Lookup
         $distinct,
         $linkField,
         $displayFields = [],
+        $groupByField = "",
+        $groupByExpression = "",
         $parentFields = [],
         $childFields = [],
         $filterFields = [],
@@ -82,6 +89,8 @@ class Lookup
         $this->Distinct = $distinct;
         $this->LinkField = $linkField;
         $this->DisplayFields = $displayFields;
+        $this->GroupByField = $groupByField;
+        $this->GroupByExpression = $groupByExpression;
         $this->ParentFields = $parentFields;
         $this->ChildFields = $childFields;
         foreach ($filterFields as $filterField) {
@@ -95,6 +104,7 @@ class Lookup
         $this->SearchExpression = $searchExpression;
         $this->cache = new ArrayCache();
         $this->cacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $name);
+        $this->LookupAllDisplayFields = Config("LOOKUP_ALL_DISPLAY_FIELDS");
     }
 
     /**
@@ -118,7 +128,7 @@ class Lookup
         if ($page !== null) {
             $filter = $this->getUserFilter($useParentFilter);
             $newFilter = $filter;
-            $fld = @$page->Fields[$this->Name];
+            $fld = $page->Fields[$this->Name] ?? null;
             if ($fld && method_exists($page, "lookupSelecting")) {
                 $page->lookupSelecting($fld, $newFilter); // Call Lookup Selecting
             }
@@ -159,7 +169,7 @@ class Lookup
      */
     public function setFilterOperator($name, $opr)
     {
-        if (array_key_exists($name, $this->FilterFields) && $this->isValidOperator($opr)) {
+        if (array_key_exists($name, $this->FilterFields) && IsValidOperator($opr)) {
             $this->FilterFields[$name] = $opr;
         }
     }
@@ -197,17 +207,18 @@ class Lookup
      *
      * @return string
      */
-    public function toClientList($currentPage)
+    public function toClientList($page)
     {
         return [
-            "page" => $currentPage->PageObjName,
+            "page" => $page->PageObjName,
             "field" => $this->Name,
             "linkField" => $this->LinkField,
             "displayFields" => $this->DisplayFields,
-            "parentFields" => $currentPage->PageID != "grid" && $this->hasParentTable() ? [] : $this->ParentFields,
+            "groupByField" => $this->GroupByField,
+            "parentFields" => $page->PageID != "grid" && $this->hasParentTable() ? [] : $this->ParentFields,
             "childFields" => $this->ChildFields,
-            "filterFields" => $currentPage->PageID != "grid" && $this->hasParentTable() ? [] : array_keys($this->FilterFields),
-            "filterFieldVars" => $currentPage->PageID != "grid" && $this->hasParentTable() ? [] : $this->FilterFieldVars,
+            "filterFields" => $page->PageID != "grid" && $this->hasParentTable() ? [] : array_keys($this->FilterFields),
+            "filterFieldVars" => $page->PageID != "grid" && $this->hasParentTable() ? [] : $this->FilterFieldVars,
             "ajax" => $this->LinkTable != "",
             "autoFillTargetFields" => $this->AutoFillTargetFields,
             "template" => $this->Template
@@ -229,15 +240,15 @@ class Lookup
         $tbl = $this->getTable();
 
         // Check if lookup to report source table
-        $isReport = $page->TableType == "REPORT" && in_array($tbl->TableVar, [$page->ReportSourceTable, $page->TableVar]);
+        $isReport = $page->TableType == "REPORT" && property_exists($page, "ReportSourceTable") && in_array($tbl->TableVar, [$page->ReportSourceTable, $page->TableVar]);
         $renderer = $isReport ? $page : $tbl;
 
         // Update expression for grouping fields (reports)
         if ($isReport) {
             foreach ($this->DisplayFields as $i => $displayField) {
                 if (!EmptyValue($displayField)) {
-                    $pageDisplayField = @$page->Fields[$displayField];
-                    $tblDisplayField = @$tbl->Fields[$displayField];
+                    $pageDisplayField = $page->Fields[$displayField] ?? null;
+                    $tblDisplayField = $tbl->Fields[$displayField] ?? null;
                     if ($pageDisplayField && $tblDisplayField && !EmptyValue($pageDisplayField->LookupExpression)) {
                         if (!EmptyValue($this->UserOrderBy)) {
                             $this->UserOrderBy = str_replace($tblDisplayField->Expression, $pageDisplayField->LookupExpression, $this->UserOrderBy);
@@ -254,12 +265,12 @@ class Lookup
         $orderBy = $this->UserOrderBy;
         $pageSize = $this->PageSize;
         $offset = $this->Offset;
-        $tableCnt = ($pageSize > 0) ? $tbl->getRecordCount($sql) : 0; // Get table count first
+        $recordCnt = ($pageSize > 0) ? $tbl->getRecordCount($sql) : 0; // Get record count first
         $stmt = $this->executeQuery($sql, $orderBy, $pageSize, $offset);
         if ($stmt) {
             $rsarr = $stmt->fetchAllAssociative();
             $rowCnt = count($rsarr);
-            $totalCnt = ($pageSize > 0) ? $tableCnt : $rowCnt;
+            $totalCnt = ($pageSize > 0) ? $recordCnt : $rowCnt;
             $fldCnt = $stmt->columnCount();
 
             // Clean output buffer
@@ -270,20 +281,20 @@ class Lookup
             // Output
             foreach ($rsarr as &$row) {
                 $keys = array_keys($row);
-                if ($linkField = @$renderer->Fields[$this->LinkField]) {
-                    if (IsFloatFormat($linkField->Type) && is_numeric($row[$keys[0]])) { // Format float format field as string
+                $keyCnt = count($keys);
+                $linkField = $renderer->Fields[$this->LinkField] ?? null;
+                if ($linkField) {
+                    if (IsFloatType($linkField->Type) && is_numeric($row[$keys[0]])) { // Format float format field as string
                         $row[$keys[0]] = strval((float)$row[$keys[0]]);
                     }
                     $linkField->setDbValue($row[$keys[0]]);
                 }
-                for ($i = 1; $i < count($keys); $i++) {
+                for ($i = 1; $i < $keyCnt; $i++) {
                     $val = &$row[$keys[$i]];
-                    $str = ConvertToUtf8(strval($val));
-                    $str = str_replace(["\r", "\n", "\t"], $this->KeepCrLf ? ["\\r", "\\n", "\\t"] : [" ", " ", " "], $str);
-                    $val = $str;
+                    $val = str_replace(["\r", "\n", "\t"], $this->KeepCrLf ? ["\\r", "\\n", "\\t"] : [" ", " ", " "], ConvertToUtf8(strval($val)));
                     if (SameText($this->LookupType, "autofill")) {
-                        $autoFillSourceField = @$this->AutoFillSourceFields[$i - 1];
-                        $autoFillSourceField = @$renderer->Fields[$autoFillSourceField];
+                        $autoFillSourceFieldName = $this->AutoFillSourceFields[$i - 1] ?? "";
+                        $autoFillSourceField = $renderer->Fields[$autoFillSourceFieldName] ?? null;
                         if ($autoFillSourceField) {
                             $autoFillSourceField->setDbValue($val);
                         }
@@ -298,10 +309,14 @@ class Lookup
                             $renderer->$fn();
                         }
                         for ($i = 0; $i < $fldCnt; $i++) {
-                            $autoFillSourceField = @$this->AutoFillSourceFields[$i];
-                            $autoFillSourceField = @$renderer->Fields[$autoFillSourceField];
+                            $autoFillSourceFieldName = $this->AutoFillSourceFields[$i] ?? "";
+                            $autoFillSourceField = $renderer->Fields[$autoFillSourceFieldName] ?? null;
                             if ($autoFillSourceField) {
-                                $row["af" . $i] = (!$render || $autoFillSourceField->AutoFillOriginalValue) ? $autoFillSourceField->CurrentValue : ((is_array($autoFillSourceField->EditValue) || $autoFillSourceField->EditValue === null) ? $autoFillSourceField->CurrentValue : $autoFillSourceField->EditValue);
+                                $row["af" . $i] = (!$render || $autoFillSourceField->AutoFillOriginalValue)
+                                    ? $autoFillSourceField->CurrentValue
+                                    : ((is_array($autoFillSourceField->EditValue) || $autoFillSourceField->EditValue === null)
+                                        ? $autoFillSourceField->CurrentValue
+                                        : $autoFillSourceField->EditValue);
                             }
                         }
                     }
@@ -316,7 +331,7 @@ class Lookup
                     if (method_exists($page, "pageFilterLoad")) {
                         $page->pageFilterLoad();
                     }
-                    $linkField = @$page->Fields[$this->LinkField];
+                    $linkField = $page->Fields[$this->LinkField] ?? null;
                     if ($linkField && is_array($linkField->AdvancedFilters)) {
                         $ar = [];
                         foreach ($linkField->AdvancedFilters as $filter) {
@@ -374,7 +389,7 @@ class Lookup
 
         // Set up DbValue / CurrentValue
         foreach ($this->DisplayFields as $index => $name) {
-            $displayField = @$renderer->Fields[$name];
+            $displayField = $renderer->Fields[$name] ?? null;
             if ($displayField) {
                 $sfx = $index > 0 ? $index + 1 : "";
                 $displayField->setDbValue($row["df" . $sfx]);
@@ -389,11 +404,11 @@ class Lookup
 
         // Output data from ViewValue
         foreach ($this->DisplayFields as $index => $name) {
-            $displayField = @$renderer->Fields[$name];
+            $displayField = $renderer->Fields[$name] ?? null;
             if ($displayField) {
                 $sfx = $index > 0 ? $index + 1 : "";
                 $viewValue = $displayField->getViewValue();
-                if (!EmptyString($viewValue) && !($sameTable && $name == $this->Name)) { // Make sure that ViewValue is not empty and not self lookup field
+                if (!EmptyString($viewValue) && !($sameTable && $name == $this->Name && !in_array($displayField->DataType, [DATATYPE_DATE, DATATYPE_TIME]))) { // Make sure that ViewValue is not empty and not self lookup field (except Date/Time)
                     $row["df" . $sfx] = $viewValue;
                 }
             }
@@ -429,17 +444,6 @@ class Lookup
     }
 
     /**
-     * Check if filter operator is valid
-     *
-     * @param string $opr Operator, e.g. '<', '>'
-     * @return bool
-     */
-    protected function isValidOperator($opr)
-    {
-        return in_array($opr, ['=', '<>', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE', 'STARTS WITH', 'ENDS WITH']);
-    }
-
-    /**
      * Get part of lookup SQL
      *
      * @param string $part Part of the SQL (select|where|orderby|"")
@@ -461,8 +465,9 @@ class Lookup
         if ($this->Distinct) {
             $queryBuilder->distinct();
         }
+
         // Set up link field
-        $linkField = @$tbl->Fields[$this->LinkField];
+        $linkField = $tbl->Fields[$this->LinkField] ?? null;
         if (!$linkField) {
             return "";
         }
@@ -471,12 +476,16 @@ class Lookup
             $select .= " AS " . QuotedName("lf", $dbid);
         }
         $queryBuilder->select($select);
+
+        // Group By field
+        $groupByField = $tbl->Fields[$this->GroupByField] ?? null;
+
         // Set up lookup fields
         $lookupCnt = 0;
         if (SameText($this->LookupType, "autofill")) {
             if (is_array($this->AutoFillSourceFields)) {
                 foreach ($this->AutoFillSourceFields as $i => $autoFillSourceField) {
-                    $autoFillSourceField = @$tbl->Fields[$autoFillSourceField];
+                    $autoFillSourceField = $tbl->Fields[$autoFillSourceField] ?? null;
                     if (!$autoFillSourceField) {
                         $select = "'' AS " . QuotedName("af" . $i, $dbid);
                     } else {
@@ -492,13 +501,13 @@ class Lookup
         } else {
             if (is_array($this->DisplayFields)) {
                 foreach ($this->DisplayFields as $i => $displayField) {
-                    $displayField = @$tbl->Fields[$displayField];
+                    $displayField = $tbl->Fields[$displayField] ?? null;
                     if (!$displayField) {
-                        $select = "'' AS " . QuotedName("df" . (($i == 0) ? "" : $i + 1), $dbid);
+                        $select = "'' AS " . QuotedName("df" . ($i == 0 ? "" : $i + 1), $dbid);
                     } else {
                         $select = $displayField->Expression;
                         if ($this->LookupType != "unknown") { // Known lookup types
-                            $select .= " AS " . QuotedName("df" . (($i == 0) ? "" : $i + 1), $dbid);
+                            $select .= " AS " . QuotedName("df" . ($i == 0 ? "" : $i + 1), $dbid);
                         }
                     }
                     $queryBuilder->addSelect($select);
@@ -508,19 +517,26 @@ class Lookup
             if (is_array($this->FilterFields) && !$useParentFilter && !$skipFilterFields) {
                 $i = 0;
                 foreach ($this->FilterFields as $filterField => $filterOpr) {
-                    $filterField = @$tbl->Fields[$filterField];
+                    $filterField = $tbl->Fields[$filterField] ?? null;
                     if (!$filterField) {
-                        $select = "'' AS " . QuotedName("ff" . (($i == 0) ? "" : $i + 1), $dbid);
+                        $select = "'' AS " . QuotedName("ff" . ($i == 0 ? "" : $i + 1), $dbid);
                     } else {
                         $select = $filterField->Expression;
                         if ($this->LookupType != "unknown") { // Known lookup types
-                            $select .= " AS " . QuotedName("ff" . (($i == 0) ? "" : $i + 1), $dbid);
+                            $select .= " AS " . QuotedName("ff" . ($i == 0 ? "" : $i + 1), $dbid);
                         }
                     }
                     $queryBuilder->addSelect($select);
                     $i++;
                     $lookupCnt++;
                 }
+            }
+            if ($groupByField) {
+                $select = $this->GroupByExpression;
+                if ($this->LookupType != "unknown") { // Known lookup types
+                    $select .= " AS " . QuotedName("gf", $dbid);
+                }
+                $queryBuilder->addSelect($select);
             }
         }
         if ($lookupCnt == 0) {
@@ -556,7 +572,7 @@ class Lookup
                 $i = 1;
                 foreach ($this->FilterFields as $filterField => $filterOpr) {
                     if ($filterField != "") {
-                        $filterField = @$tbl->Fields[$filterField];
+                        $filterField = $tbl->Fields[$filterField] ?? null;
                         if (!$filterField) {
                             return "";
                         }
@@ -575,7 +591,7 @@ class Lookup
         // Set up search
         if ($this->SearchValue != "") {
             // Normal autosuggest
-            if (SameText($this->LookupType, "autosuggest") && !Config("LOOKUP_ALL_DISPLAY_FIELDS")) {
+            if (SameText($this->LookupType, "autosuggest") && !$this->LookupAllDisplayFields) {
                 AddFilter($where, $this->getAutoSuggestFilter($this->SearchValue));
             } else { // Use quick search logic
                 AddFilter($where, $this->getModalSearchFilter($this->SearchValue, $tbl->Dbid));
@@ -594,6 +610,14 @@ class Lookup
 
         // Set up ORDER BY
         $orderBy = $this->UserOrderBy;
+        if ($groupByField) { // Sort GroupByField first
+            if (StartsString("(", $this->GroupByExpression) && EndsString(")", $this->GroupByExpression)) {
+                $groupByExpression = QuotedName("gf", $dbid);
+            } else {
+                $groupByExpression = $this->GroupByExpression;
+            }
+            $orderBy = $groupByExpression . " ASC" . (EmptyValue($orderBy) ? "" : ", " . $orderBy);
+        }
 
         // Return SQL part
         if ($part == "select") {
@@ -635,7 +659,7 @@ class Lookup
     /**
      * Get filter
      *
-     * @param object $fld Field Object
+     * @param DbField $fld Field Object
      * @param string $opr Search Operator
      * @param string $val Search Value
      * @param string $dbid Database Id
@@ -643,42 +667,49 @@ class Lookup
      */
     protected function getFilter($fld, $opr, $val, $dbid)
     {
-        $validValue = $val != "";
+        $valid = $val != "";
         $where = "";
-        $arVal = explode(Config("MULTIPLE_OPTION_SEPARATOR"), $val);
+        $ar = explode(Config("MULTIPLE_OPTION_SEPARATOR"), $val);
         if ($fld->DataType == DATATYPE_NUMBER) { // Validate numeric fields
-            foreach ($arVal as $val) {
+            foreach ($ar as $val) {
                 if (!is_numeric($val)) {
-                    $validValue = false;
+                    $valid = false;
                 }
             }
         }
-        if ($validValue) {
+        if ($valid) {
             if ($opr == "=") { // Use the IN operator
-                foreach ($arVal as &$val) {
+                foreach ($ar as &$val) {
                     $val = QuotedValue($val, $fld->DataType, $dbid);
                 }
-                $where = $fld->Expression . " IN (" . implode(", ", $arVal) . ")";
+                $where = $fld->Expression . " IN (" . implode(", ", $ar) . ")";
             } else { // Custom operator
-                foreach ($arVal as $val) {
-                    if (in_array($opr, ['LIKE', 'NOT LIKE', 'STARTS WITH', 'ENDS WITH'])) {
-                        if ($opr == 'STARTS WITH') {
-                            $val .= '%';
-                        } elseif ($opr == 'ENDS WITH') {
-                            $val = '%' . $val;
-                        } else {
-                            $val = '%' . $val . '%';
+                $dbtype = GetConnectionType($dbid);
+                foreach ($ar as $val) {
+                    if (in_array($opr, ["LIKE", "NOT LIKE", "STARTS WITH", "ENDS WITH"])) {
+                        $fldOpr = ($opr == "NOT LIKE") ? "NOT LIKE" : "LIKE";
+                        if (Config("REMOVE_XSS")) {
+                            $val = RemoveXss($val);
                         }
-                        $fldOpr = ($opr == 'NOT LIKE') ? ' NOT LIKE ' : ' LIKE ';
-                        $val = QuotedValue($val, DATATYPE_STRING, $dbid);
+                        $val = AdjustSqlForLike($val, $dbid);
+                        if ($opr == "STARTS WITH") {
+                            $val .= "%";
+                        } elseif ($opr == "ENDS WITH") {
+                            $val = "%" . $val;
+                        } else {
+                            $val = "%" . $val . "%";
+                        }
+                        $val = ($dbtype == "MSSQL" ? "N'" : "'") . $val . "'";
+                        $where = LikeOrNotLike($fldOpr, $val, $dbid);
                     } else {
                         $fldOpr = $opr;
                         $val = QuotedValue($val, $fld->DataType, $dbid);
+                        $filter = $fld->Expression . $fldOpr . $val;
                     }
                     if ($where != "") {
                         $where .= " OR ";
                     }
-                    $where .= $fld->Expression . $fldOpr . $val;
+                    $where .= $filter;
                 }
             }
         } else {
@@ -736,8 +767,10 @@ class Lookup
     {
         if (EmptyValue($this->SearchExpression)) {
             $tbl = $this->getTable();
-            $displayField = @$tbl->Fields[$this->DisplayFields[0]];
-            $this->SearchExpression = @$displayField->Expression;
+            $displayField = $tbl->Fields[$this->DisplayFields[0]] ?? null;
+            if ($displayField) {
+                $this->SearchExpression = $displayField->Expression;
+            }
         }
         return $this->SearchExpression;
     }
@@ -750,7 +783,7 @@ class Lookup
      */
     protected function getAutoSuggestFilter($sv)
     {
-        return $this->getSearchExpression() . Like(QuotedValue($sv . "%", DATATYPE_STRING, $this->Table->Dbid));
+        return $this->getSearchExpression() . Like("'" . AdjustSqlForLike($sv, $this->Table->Dbid) . "%'");
     }
 
     /**
@@ -771,7 +804,7 @@ class Lookup
         $filter = "";
         foreach ($ar as $keyword) {
             if ($keyword != "") {
-                $thisFilter = $this->getSearchExpression() . Like(QuotedValue("%$keyword%", DATATYPE_STRING, $dbid));
+                $thisFilter = $this->getSearchExpression() . Like("'%" . AdjustSqlForLike($keyword, $dbid) . "%'");
                 AddFilter($filter, $thisFilter, $searchType);
             }
         }
@@ -782,9 +815,9 @@ class Lookup
      * Format options
      *
      * @param array $options Input options with formats:
-     *  1. Manual input data, e.g.: [ ["lv1", "dv", "dv2", "dv3", "dv4"], ["lv2", "dv", "dv2", "dv3", "dv4"], etc...]
-     *  2. Data from $rs->getRows(), e.g.: [ ["Field1" => "lv1", "Field2" => "dv2", ...], ["Field1" => "lv2", "Field2" => "dv2", ...], etc...]
-     * @return array ["lv1" => ["lf" => "lv1", "df" => "dv", etc...], etc...]
+     *  1. Manual input data, e.g. [ ["lv", "dv", "dv2", "dv3", "dv4"], ["lv", "dv", "dv2", "dv3", "dv4"], ... ]
+     *  2. Data from database, e.g. [ ["Field1" => "lv", "Field2" => "dv", ...], ["Field1" => "lv", "Field2" => "dv", ...], ... ]
+     * @return array ["lv" => ["lf" => "lv", "df" => "dv", ...], ...]
      */
     protected function formatOptions($options)
     {

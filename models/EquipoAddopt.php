@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EquipoAddopt extends Equipo
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'equipo';
-
     // Page object name
     public $PageObjName = "EquipoAddopt";
 
@@ -34,6 +31,9 @@ class EquipoAddopt extends Equipo
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "equipoaddopt";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class EquipoAddopt extends Equipo
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class EquipoAddopt extends Equipo
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'equipo';
+        $this->TableName = 'equipo';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (equipo)
         if (!isset($GLOBALS["equipo"]) || get_class($GLOBALS["equipo"]) == PROJECT_NAMESPACE . "equipo") {
@@ -164,14 +147,14 @@ class EquipoAddopt extends Equipo
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class EquipoAddopt extends Equipo
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class EquipoAddopt extends Equipo
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("equipo");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class EquipoAddopt extends Equipo
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -383,6 +347,11 @@ class EquipoAddopt extends Equipo
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -449,10 +418,13 @@ class EquipoAddopt extends Equipo
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -468,7 +440,6 @@ class EquipoAddopt extends Equipo
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -481,6 +452,15 @@ class EquipoAddopt extends Equipo
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -534,7 +514,7 @@ class EquipoAddopt extends Equipo
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
         $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
@@ -548,57 +528,57 @@ class EquipoAddopt extends Equipo
         // Check field name 'NOM_EQUIPO_CORTO' first before field var 'x_NOM_EQUIPO_CORTO'
         $val = $CurrentForm->hasValue("NOM_EQUIPO_CORTO") ? $CurrentForm->getValue("NOM_EQUIPO_CORTO") : $CurrentForm->getValue("x_NOM_EQUIPO_CORTO");
         if (!$this->NOM_EQUIPO_CORTO->IsDetailKey) {
-            $this->NOM_EQUIPO_CORTO->setFormValue(ConvertFromUtf8($val));
+            $this->NOM_EQUIPO_CORTO->setFormValue($val);
         }
 
         // Check field name 'NOM_EQUIPO_LARGO' first before field var 'x_NOM_EQUIPO_LARGO'
         $val = $CurrentForm->hasValue("NOM_EQUIPO_LARGO") ? $CurrentForm->getValue("NOM_EQUIPO_LARGO") : $CurrentForm->getValue("x_NOM_EQUIPO_LARGO");
         if (!$this->NOM_EQUIPO_LARGO->IsDetailKey) {
-            $this->NOM_EQUIPO_LARGO->setFormValue(ConvertFromUtf8($val));
+            $this->NOM_EQUIPO_LARGO->setFormValue($val);
         }
 
         // Check field name 'PAIS_EQUIPO' first before field var 'x_PAIS_EQUIPO'
         $val = $CurrentForm->hasValue("PAIS_EQUIPO") ? $CurrentForm->getValue("PAIS_EQUIPO") : $CurrentForm->getValue("x_PAIS_EQUIPO");
         if (!$this->PAIS_EQUIPO->IsDetailKey) {
-            $this->PAIS_EQUIPO->setFormValue(ConvertFromUtf8($val));
+            $this->PAIS_EQUIPO->setFormValue($val);
         }
 
         // Check field name 'REGION_EQUIPO' first before field var 'x_REGION_EQUIPO'
         $val = $CurrentForm->hasValue("REGION_EQUIPO") ? $CurrentForm->getValue("REGION_EQUIPO") : $CurrentForm->getValue("x_REGION_EQUIPO");
         if (!$this->REGION_EQUIPO->IsDetailKey) {
-            $this->REGION_EQUIPO->setFormValue(ConvertFromUtf8($val));
+            $this->REGION_EQUIPO->setFormValue($val);
         }
 
         // Check field name 'DETALLE_EQUIPO' first before field var 'x_DETALLE_EQUIPO'
         $val = $CurrentForm->hasValue("DETALLE_EQUIPO") ? $CurrentForm->getValue("DETALLE_EQUIPO") : $CurrentForm->getValue("x_DETALLE_EQUIPO");
         if (!$this->DETALLE_EQUIPO->IsDetailKey) {
-            $this->DETALLE_EQUIPO->setFormValue(ConvertFromUtf8($val));
+            $this->DETALLE_EQUIPO->setFormValue($val);
         }
 
         // Check field name 'NOM_ESTADIO' first before field var 'x_NOM_ESTADIO'
         $val = $CurrentForm->hasValue("NOM_ESTADIO") ? $CurrentForm->getValue("NOM_ESTADIO") : $CurrentForm->getValue("x_NOM_ESTADIO");
         if (!$this->NOM_ESTADIO->IsDetailKey) {
-            $this->NOM_ESTADIO->setFormValue(ConvertFromUtf8($val));
+            $this->NOM_ESTADIO->setFormValue($val);
         }
 
         // Check field name 'crea_dato' first before field var 'x_crea_dato'
         $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
         if (!$this->crea_dato->IsDetailKey) {
-            $this->crea_dato->setFormValue(ConvertFromUtf8($val));
+            $this->crea_dato->setFormValue($val);
             $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
         }
 
         // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
         $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
         if (!$this->modifica_dato->IsDetailKey) {
-            $this->modifica_dato->setFormValue(ConvertFromUtf8($val));
+            $this->modifica_dato->setFormValue($val);
             $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
         }
 
         // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
         $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
         if (!$this->usuario_dato->IsDetailKey) {
-            $this->usuario_dato->setFormValue(ConvertFromUtf8($val));
+            $this->usuario_dato->setFormValue($val);
         }
 
         // Check field name 'ID_EQUIPO' first before field var 'x_ID_EQUIPO'
@@ -756,19 +736,15 @@ class EquipoAddopt extends Equipo
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_EQUIPO
             $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
-            $this->ID_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_CORTO
             $this->NOM_EQUIPO_CORTO->ViewValue = $this->NOM_EQUIPO_CORTO->CurrentValue;
-            $this->NOM_EQUIPO_CORTO->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_LARGO
             $this->NOM_EQUIPO_LARGO->ViewValue = $this->NOM_EQUIPO_LARGO->CurrentValue;
-            $this->NOM_EQUIPO_LARGO->ViewCustomAttributes = "";
 
             // PAIS_EQUIPO
             $this->PAIS_EQUIPO->ViewValue = $this->PAIS_EQUIPO->CurrentValue;
-            $this->PAIS_EQUIPO->ViewCustomAttributes = "";
 
             // REGION_EQUIPO
             if (strval($this->REGION_EQUIPO->CurrentValue) != "") {
@@ -776,11 +752,9 @@ class EquipoAddopt extends Equipo
             } else {
                 $this->REGION_EQUIPO->ViewValue = null;
             }
-            $this->REGION_EQUIPO->ViewCustomAttributes = "";
 
             // DETALLE_EQUIPO
             $this->DETALLE_EQUIPO->ViewValue = $this->DETALLE_EQUIPO->CurrentValue;
-            $this->DETALLE_EQUIPO->ViewCustomAttributes = "";
 
             // ESCUDO_EQUIPO
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
@@ -792,7 +766,6 @@ class EquipoAddopt extends Equipo
             } else {
                 $this->ESCUDO_EQUIPO->ViewValue = "";
             }
-            $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_ESTADIO
             if ($this->NOM_ESTADIO->VirtualValue != "") {
@@ -802,7 +775,7 @@ class EquipoAddopt extends Equipo
                 if ($curVal != "") {
                     $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
                     if ($this->NOM_ESTADIO->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`id_estadio`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -820,53 +793,43 @@ class EquipoAddopt extends Equipo
                     $this->NOM_ESTADIO->ViewValue = null;
                 }
             }
-            $this->NOM_ESTADIO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_CORTO
-            $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
             $this->NOM_EQUIPO_CORTO->HrefValue = "";
             $this->NOM_EQUIPO_CORTO->TooltipValue = "";
 
             // NOM_EQUIPO_LARGO
-            $this->NOM_EQUIPO_LARGO->LinkCustomAttributes = "";
             $this->NOM_EQUIPO_LARGO->HrefValue = "";
             $this->NOM_EQUIPO_LARGO->TooltipValue = "";
 
             // PAIS_EQUIPO
-            $this->PAIS_EQUIPO->LinkCustomAttributes = "";
             $this->PAIS_EQUIPO->HrefValue = "";
             $this->PAIS_EQUIPO->TooltipValue = "";
 
             // REGION_EQUIPO
-            $this->REGION_EQUIPO->LinkCustomAttributes = "";
             $this->REGION_EQUIPO->HrefValue = "";
             $this->REGION_EQUIPO->TooltipValue = "";
 
             // DETALLE_EQUIPO
-            $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
             $this->DETALLE_EQUIPO->HrefValue = "";
             $this->DETALLE_EQUIPO->TooltipValue = "";
 
             // ESCUDO_EQUIPO
-            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
                 $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
                 $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
@@ -887,58 +850,48 @@ class EquipoAddopt extends Equipo
             }
 
             // NOM_ESTADIO
-            $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
             $this->NOM_ESTADIO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // NOM_EQUIPO_CORTO
             $this->NOM_EQUIPO_CORTO->setupEditAttributes();
-            $this->NOM_EQUIPO_CORTO->EditCustomAttributes = "";
             $this->NOM_EQUIPO_CORTO->EditValue = HtmlEncode($this->NOM_EQUIPO_CORTO->CurrentValue);
             $this->NOM_EQUIPO_CORTO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_CORTO->caption());
 
             // NOM_EQUIPO_LARGO
             $this->NOM_EQUIPO_LARGO->setupEditAttributes();
-            $this->NOM_EQUIPO_LARGO->EditCustomAttributes = "";
             $this->NOM_EQUIPO_LARGO->EditValue = HtmlEncode($this->NOM_EQUIPO_LARGO->CurrentValue);
             $this->NOM_EQUIPO_LARGO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_LARGO->caption());
 
             // PAIS_EQUIPO
             $this->PAIS_EQUIPO->setupEditAttributes();
-            $this->PAIS_EQUIPO->EditCustomAttributes = "";
             $this->PAIS_EQUIPO->EditValue = HtmlEncode($this->PAIS_EQUIPO->CurrentValue);
             $this->PAIS_EQUIPO->PlaceHolder = RemoveHtml($this->PAIS_EQUIPO->caption());
 
             // REGION_EQUIPO
             $this->REGION_EQUIPO->setupEditAttributes();
-            $this->REGION_EQUIPO->EditCustomAttributes = "";
             $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->options(true);
             $this->REGION_EQUIPO->PlaceHolder = RemoveHtml($this->REGION_EQUIPO->caption());
 
             // DETALLE_EQUIPO
             $this->DETALLE_EQUIPO->setupEditAttributes();
-            $this->DETALLE_EQUIPO->EditCustomAttributes = "";
             $this->DETALLE_EQUIPO->EditValue = HtmlEncode($this->DETALLE_EQUIPO->CurrentValue);
             $this->DETALLE_EQUIPO->PlaceHolder = RemoveHtml($this->DETALLE_EQUIPO->caption());
 
             // ESCUDO_EQUIPO
             $this->ESCUDO_EQUIPO->setupEditAttributes();
-            $this->ESCUDO_EQUIPO->EditCustomAttributes = "";
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
                 $this->ESCUDO_EQUIPO->ImageWidth = 50;
                 $this->ESCUDO_EQUIPO->ImageHeight = 0;
@@ -957,7 +910,6 @@ class EquipoAddopt extends Equipo
 
             // NOM_ESTADIO
             $this->NOM_ESTADIO->setupEditAttributes();
-            $this->NOM_ESTADIO->EditCustomAttributes = "";
             $curVal = trim(strval($this->NOM_ESTADIO->CurrentValue));
             if ($curVal != "") {
                 $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
@@ -970,7 +922,7 @@ class EquipoAddopt extends Equipo
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`id_estadio`" . SearchString("=", $this->NOM_ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`id_estadio`", "=", $this->NOM_ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -985,43 +937,34 @@ class EquipoAddopt extends Equipo
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
             // usuario_dato
             $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
             $this->usuario_dato->CurrentValue = CurrentUserName();
 
             // Add refer script
 
             // NOM_EQUIPO_CORTO
-            $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
             $this->NOM_EQUIPO_CORTO->HrefValue = "";
 
             // NOM_EQUIPO_LARGO
-            $this->NOM_EQUIPO_LARGO->LinkCustomAttributes = "";
             $this->NOM_EQUIPO_LARGO->HrefValue = "";
 
             // PAIS_EQUIPO
-            $this->PAIS_EQUIPO->LinkCustomAttributes = "";
             $this->PAIS_EQUIPO->HrefValue = "";
 
             // REGION_EQUIPO
-            $this->REGION_EQUIPO->LinkCustomAttributes = "";
             $this->REGION_EQUIPO->HrefValue = "";
 
             // DETALLE_EQUIPO
-            $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
             $this->DETALLE_EQUIPO->HrefValue = "";
 
             // ESCUDO_EQUIPO
-            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
                 $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
                 $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
@@ -1034,19 +977,15 @@ class EquipoAddopt extends Equipo
             $this->ESCUDO_EQUIPO->ExportHrefValue = $this->ESCUDO_EQUIPO->UploadPath . $this->ESCUDO_EQUIPO->Upload->DbValue;
 
             // NOM_ESTADIO
-            $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
@@ -1062,7 +1001,7 @@ class EquipoAddopt extends Equipo
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -1178,7 +1117,11 @@ class EquipoAddopt extends Equipo
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1237,5 +1180,13 @@ class EquipoAddopt extends Equipo
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

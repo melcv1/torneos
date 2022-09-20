@@ -1,53 +1,10 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PronosticadorEdit = &$Page;
 ?>
-<script>
-var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
-ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
-var currentForm, currentPageID;
-var fpronosticadoredit;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object
-    fpronosticadoredit = new ew.Form("fpronosticadoredit", "edit");
-    currentPageID = ew.PAGE_ID = "edit";
-    currentForm = fpronosticadoredit;
-
-    // Add fields
-    var fields = currentTable.fields;
-    fpronosticadoredit.addFields([
-        ["ID_ENCUESTA", [fields.ID_ENCUESTA.visible && fields.ID_ENCUESTA.required ? ew.Validators.required(fields.ID_ENCUESTA.caption) : null], fields.ID_ENCUESTA.isInvalid],
-        ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
-        ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
-        ["EQUIPO", [fields.EQUIPO.visible && fields.EQUIPO.required ? ew.Validators.required(fields.EQUIPO.caption) : null], fields.EQUIPO.isInvalid],
-        ["POSICION", [fields.POSICION.visible && fields.POSICION.required ? ew.Validators.required(fields.POSICION.caption) : null], fields.POSICION.isInvalid],
-        ["NUMERACION", [fields.NUMERACION.visible && fields.NUMERACION.required ? ew.Validators.required(fields.NUMERACION.caption) : null], fields.NUMERACION.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
-        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
-    ]);
-
-    // Form_CustomValidate
-    fpronosticadoredit.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
-
-    // Use JavaScript validation or not
-    fpronosticadoredit.validateRequired = ew.CLIENT_VALIDATE;
-
-    // Dynamic selection lists
-    fpronosticadoredit.lists.ID_PARTICIPANTE = <?= $Page->ID_PARTICIPANTE->toClientList($Page) ?>;
-    fpronosticadoredit.lists.GRUPO = <?= $Page->GRUPO->toClientList($Page) ?>;
-    fpronosticadoredit.lists.EQUIPO = <?= $Page->EQUIPO->toClientList($Page) ?>;
-    fpronosticadoredit.lists.POSICION = <?= $Page->POSICION->toClientList($Page) ?>;
-    loadjs.done("fpronosticadoredit");
-});
-</script>
 <script>
 loadjs.ready("head", function () {
     // Write your table-specific client script here, no need to add script tags.
@@ -57,7 +14,60 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fpronosticadoredit" id="fpronosticadoredit" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post">
+<main class="edit">
+<form name="fpronosticadoredit" id="fpronosticadoredit" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
+var currentPageID = ew.PAGE_ID = "edit";
+var currentForm;
+var fpronosticadoredit;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
+    // Form object
+    let form = new ew.FormBuilder()
+        .setId("fpronosticadoredit")
+        .setPageId("edit")
+
+        // Add fields
+        .setFields([
+            ["ID_ENCUESTA", [fields.ID_ENCUESTA.visible && fields.ID_ENCUESTA.required ? ew.Validators.required(fields.ID_ENCUESTA.caption) : null], fields.ID_ENCUESTA.isInvalid],
+            ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
+            ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
+            ["EQUIPO", [fields.EQUIPO.visible && fields.EQUIPO.required ? ew.Validators.required(fields.EQUIPO.caption) : null], fields.EQUIPO.isInvalid],
+            ["POSICION", [fields.POSICION.visible && fields.POSICION.required ? ew.Validators.required(fields.POSICION.caption) : null], fields.POSICION.isInvalid],
+            ["NUMERACION", [fields.NUMERACION.visible && fields.NUMERACION.required ? ew.Validators.required(fields.NUMERACION.caption) : null], fields.NUMERACION.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+            ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+        ])
+
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
+
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
+
+        // Dynamic selection lists
+        .setLists({
+            "ID_PARTICIPANTE": <?= $Page->ID_PARTICIPANTE->toClientList($Page) ?>,
+            "GRUPO": <?= $Page->GRUPO->toClientList($Page) ?>,
+            "EQUIPO": <?= $Page->EQUIPO->toClientList($Page) ?>,
+            "POSICION": <?= $Page->POSICION->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -65,6 +75,9 @@ $Page->showMessage();
 <input type="hidden" name="t" value="pronosticador">
 <input type="hidden" name="action" id="action" value="update">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
+<?php if (IsJsonResponse()) { ?>
+<input type="hidden" name="json" value="1">
+<?php } ?>
 <input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <div class="ew-edit-div"><!-- page* -->
 <?php if ($Page->ID_ENCUESTA->Visible) { // ID_ENCUESTA ?>
@@ -74,8 +87,8 @@ $Page->showMessage();
 <span id="el_pronosticador_ID_ENCUESTA">
 <span<?= $Page->ID_ENCUESTA->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_ENCUESTA->getDisplayValue($Page->ID_ENCUESTA->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="pronosticador" data-field="x_ID_ENCUESTA" data-hidden="1" name="x_ID_ENCUESTA" id="x_ID_ENCUESTA" value="<?= HtmlEncode($Page->ID_ENCUESTA->CurrentValue) ?>">
+</span>
 </div></div>
     </div>
 <?php } ?>
@@ -103,8 +116,9 @@ $Page->showMessage();
 loadjs.ready("fpronosticadoredit", function() {
     var options = { name: "x_ID_PARTICIPANTE", selectId: "fpronosticadoredit_x_ID_PARTICIPANTE" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoredit.lists.ID_PARTICIPANTE.lookupOptions.length) {
+    if (fpronosticadoredit.lists.ID_PARTICIPANTE?.lookupOptions.length) {
         options.data = { id: "x_ID_PARTICIPANTE", form: "fpronosticadoredit" };
     } else {
         options.ajax = { id: "x_ID_PARTICIPANTE", form: "fpronosticadoredit", limit: ew.LOOKUP_PAGE_SIZE };
@@ -141,8 +155,9 @@ loadjs.ready("fpronosticadoredit", function() {
 loadjs.ready("fpronosticadoredit", function() {
     var options = { name: "x_GRUPO", selectId: "fpronosticadoredit_x_GRUPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoredit.lists.GRUPO.lookupOptions.length) {
+    if (fpronosticadoredit.lists.GRUPO?.lookupOptions.length) {
         options.data = { id: "x_GRUPO", form: "fpronosticadoredit" };
     } else {
         options.ajax = { id: "x_GRUPO", form: "fpronosticadoredit", limit: ew.LOOKUP_PAGE_SIZE };
@@ -180,8 +195,9 @@ loadjs.ready("fpronosticadoredit", function() {
 loadjs.ready("fpronosticadoredit", function() {
     var options = { name: "x_EQUIPO", selectId: "fpronosticadoredit_x_EQUIPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoredit.lists.EQUIPO.lookupOptions.length) {
+    if (fpronosticadoredit.lists.EQUIPO?.lookupOptions.length) {
         options.data = { id: "x_EQUIPO", form: "fpronosticadoredit" };
     } else {
         options.ajax = { id: "x_EQUIPO", form: "fpronosticadoredit", limit: ew.LOOKUP_PAGE_SIZE };
@@ -218,8 +234,9 @@ loadjs.ready("fpronosticadoredit", function() {
 loadjs.ready("fpronosticadoredit", function() {
     var options = { name: "x_POSICION", selectId: "fpronosticadoredit_x_POSICION" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoredit.lists.POSICION.lookupOptions.length) {
+    if (fpronosticadoredit.lists.POSICION?.lookupOptions.length) {
         options.data = { id: "x_POSICION", form: "fpronosticadoredit" };
     } else {
         options.ajax = { id: "x_POSICION", form: "fpronosticadoredit", limit: ew.LOOKUP_PAGE_SIZE };
@@ -238,7 +255,7 @@ loadjs.ready("fpronosticadoredit", function() {
         <label id="elh_pronosticador_NUMERACION" for="x_NUMERACION" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NUMERACION->caption() ?><?= $Page->NUMERACION->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NUMERACION->cellAttributes() ?>>
 <span id="el_pronosticador_NUMERACION">
-<input type="<?= $Page->NUMERACION->getInputTextType() ?>" name="x_NUMERACION" id="x_NUMERACION" data-table="pronosticador" data-field="x_NUMERACION" value="<?= $Page->NUMERACION->EditValue ?>" size="30" maxlength="4" placeholder="<?= HtmlEncode($Page->NUMERACION->getPlaceHolder()) ?>"<?= $Page->NUMERACION->editAttributes() ?> aria-describedby="x_NUMERACION_help">
+<input type="<?= $Page->NUMERACION->getInputTextType() ?>" name="x_NUMERACION" id="x_NUMERACION" data-table="pronosticador" data-field="x_NUMERACION" value="<?= $Page->NUMERACION->EditValue ?>" size="30" maxlength="4" placeholder="<?= HtmlEncode($Page->NUMERACION->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->NUMERACION->formatPattern()) ?>"<?= $Page->NUMERACION->editAttributes() ?> aria-describedby="x_NUMERACION_help">
 <?= $Page->NUMERACION->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NUMERACION->getErrorMessage() ?></div>
 </span>
@@ -252,8 +269,8 @@ loadjs.ready("fpronosticadoredit", function() {
 <span id="el_pronosticador_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="pronosticador" data-field="x_crea_dato" data-hidden="1" name="x_crea_dato" id="x_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+</span>
 </div></div>
     </div>
 <?php } ?>
@@ -264,21 +281,24 @@ loadjs.ready("fpronosticadoredit", function() {
 <span id="el_pronosticador_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="pronosticador" data-field="x_modifica_dato" data-hidden="1" name="x_modifica_dato" id="x_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</span>
 </div></div>
     </div>
 <?php } ?>
 </div><!-- /page* -->
-<?php if (!$Page->IsModal) { ?>
-<div class="row"><!-- buttons .row -->
+<?= $Page->IsModal ? '<template class="ew-modal-buttons">' : '<div class="row ew-buttons">' ?><!-- buttons .row -->
     <div class="<?= $Page->OffsetColumnClass ?>"><!-- buttons offset -->
-<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit"><?= $Language->phrase("SaveBtn") ?></button>
-<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
-    </div><!-- /buttons offset -->
-</div><!-- /buttons .row -->
+<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit" form="fpronosticadoredit"><?= $Language->phrase("SaveBtn") ?></button>
+<?php if (IsJsonResponse()) { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button>
+<?php } else { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" form="fpronosticadoredit" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
 <?php } ?>
+    </div><!-- /buttons offset -->
+<?= $Page->IsModal ? "</template>" : "</div>" ?><!-- /buttons .row -->
 </form>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

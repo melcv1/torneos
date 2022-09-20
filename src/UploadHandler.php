@@ -72,9 +72,9 @@ class UploadHandler
             ),
             // By default, allow redirects to the referer protocol+host:
             'redirect_allow_target' => '/^'.preg_quote(
-                    parse_url($this->get_server_var('HTTP_REFERER'), PHP_URL_SCHEME)
+                    parse_url($this->get_server_var('HTTP_REFERER') ?? "", PHP_URL_SCHEME)
                     .'://'
-                    .parse_url($this->get_server_var('HTTP_REFERER'), PHP_URL_HOST)
+                    .parse_url($this->get_server_var('HTTP_REFERER') ?? "", PHP_URL_HOST)
                     .'/', // Trailing slash to not match subdomains by mistake
                     '/' // preg_quote delimiter param
                 ).'/',
@@ -539,7 +539,7 @@ class UploadHandler
             if (!empty($extensions)) {
                 $parts = explode('.', $name);
                 $extIndex = count($parts) - 1;
-                $ext = strtolower($parts[$extIndex] ?? ""); //*** PHP 8.1
+                $ext = strtolower($parts[$extIndex] ?? "");
                 if (!in_array($ext, $extensions)) {
                     $parts[$extIndex] = $extensions[0];
                     $name = implode('.', $parts);
@@ -554,7 +554,7 @@ class UploadHandler
         // Remove path information and dots around the filename, to prevent uploading
         // into different directories or replacing hidden system files.
         // Also remove control characters and spaces (\x00..\x20) around the filename:
-        $name = trim($this->basename(stripslashes($name)), ".\x00..\x20");
+        $name = trim($this->basename(stripslashes($name) ?? ''), ".\x00..\x20");
         // Replace dots in filenames to avoid security issues with servers
         // that interpret multiple file extensions, e.g. "example.php.png":
         $replacement = $this->options['replace_dots_in_filenames'];
@@ -787,22 +787,22 @@ class UploadHandler
             return true;
         }
         if (empty($options['crop'])) {
-            $new_width = round($img_width * $scale); //*** PHP 8.1
-            $new_height = round($img_height * $scale); //*** PHP 8.1
+            $new_width = $img_width * $scale;
+            $new_height = $img_height * $scale;
             $dst_x = 0;
             $dst_y = 0;
-            $new_img = imagecreatetruecolor($new_width, $new_height);
+            $new_img = imagecreatetruecolor(intval($new_width), intval($new_height));
         } else {
             if (($img_width / $img_height) >= ($max_width / $max_height)) {
-                $new_width = round($img_width / ($img_height / $max_height)); //*** PHP 8.1
+                $new_width = $img_width / ($img_height / $max_height);
                 $new_height = $max_height;
             } else {
                 $new_width = $max_width;
-                $new_height = round($img_height / ($img_width / $max_width)); //*** PHP 8.1
+                $new_height = $img_height / ($img_width / $max_width);
             }
-            $dst_x = 0 - round(($new_width - $max_width) / 2); //*** PHP 8.1
-            $dst_y = 0 - round(($new_height - $max_height) / 2); //*** PHP 8.1
-            $new_img = imagecreatetruecolor($max_width, $max_height);
+            $dst_x = 0 - ($new_width - $max_width) / 2;
+            $dst_y = 0 - ($new_height - $max_height) / 2;
+            $new_img = imagecreatetruecolor(intval($max_width), intval($max_height));
         }
         // Handle transparency in GIF and PNG images:
         switch ($type) {
@@ -818,14 +818,14 @@ class UploadHandler
         $success = imagecopyresampled(
                 $new_img,
                 $src_img,
-                $dst_x,
-                $dst_y,
+                intval($dst_x),
+                intval($dst_y),
                 0,
                 0,
-                $new_width,
-                $new_height,
-                $img_width,
-                $img_height
+                intval($new_width),
+                intval($new_height),
+                intval($img_width),
+                intval($img_height)
             ) && $write_func($new_img, $new_file_path, $image_quality);
         $this->gd_set_image_object($file_path, $new_img);
         return $success;
@@ -1234,7 +1234,7 @@ class UploadHandler
     }
 
     protected function get_version_param() {
-        return $this->basename(stripslashes($this->get_query_param('version')));
+        return $this->basename(stripslashes($this->get_query_param('version') ?? ''));
     }
 
     protected function get_singular_param_name() {
@@ -1243,7 +1243,7 @@ class UploadHandler
 
     protected function get_file_name_param() {
         $name = $this->get_singular_param_name();
-        return $this->basename(stripslashes($this->get_query_param($name)));
+        return $this->basename(stripslashes($this->get_query_param($name) ?? ''));
     }
 
     protected function get_file_names_params() {
@@ -1252,7 +1252,7 @@ class UploadHandler
             return null;
         }
         foreach ($params as $key => $value) {
-            $params[$key] = $this->basename(stripslashes($value));
+            $params[$key] = $this->basename(stripslashes($value ?? ''));
         }
         return $params;
     }
@@ -1336,7 +1336,7 @@ class UploadHandler
         $this->response = $content;
         if ($print_response) {
             $json = json_encode($content);
-            $redirect = stripslashes($this->get_post_param('redirect') ?? ""); //*** PHP 8.1
+            $redirect = stripslashes($this->get_post_param('redirect') ?? '');
             if ($redirect && preg_match($this->options['redirect_allow_target'], $redirect)) {
                 return $this->header('Location: '.sprintf($redirect, rawurlencode($json)));
             }
@@ -1468,7 +1468,7 @@ class UploadHandler
         return $this->generate_response($response, $print_response);
     }
 
-    protected function basename($filepath, $suffix = '') { //*** PHP 8.1
+    protected function basename($filepath, $suffix = '') {
         $splited = preg_split('/\//', rtrim ($filepath, '/ '));
         return substr(basename('X'.$splited[count($splited)-1], $suffix), 1);
     }

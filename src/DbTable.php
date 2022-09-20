@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Class for table
@@ -42,19 +42,19 @@ class DbTable extends DbTableBase
     // Add
     public function isAdd()
     {
-        return $this->CurrentAction == "add";
+        return in_array($this->CurrentAction, ["add", "inlineadd"]);
     }
 
     // Copy
     public function isCopy()
     {
-        return $this->CurrentAction == "copy";
+        return in_array($this->CurrentAction, ["copy", "inlinecopy"]);
     }
 
     // Edit
     public function isEdit()
     {
-        return $this->CurrentAction == "edit";
+        return in_array($this->CurrentAction, ["edit", "inlineedit"]);
     }
 
     // Delete
@@ -93,22 +93,28 @@ class DbTable extends DbTableBase
         return $this->CurrentAction == "gridedit";
     }
 
-    // Add/Copy/Edit/GridAdd/GridEdit
+    // Multi edit
+    public function isMultiEdit()
+    {
+        return $this->CurrentAction == "multiedit";
+    }
+
+    // Add/Copy/Edit/GridAdd/GridEdit/MultiEdit
     public function isAddOrEdit()
     {
-        return $this->isAdd() || $this->isCopy() || $this->isEdit() || $this->isGridAdd() || $this->isGridEdit();
+        return $this->isAdd() || $this->isCopy() || $this->isEdit() || $this->isGridAdd() || $this->isGridEdit() || $this->isMultiEdit();
     }
 
     // Insert
     public function isInsert()
     {
-        return $this->CurrentAction == "insert";
+        return in_array($this->CurrentAction, ["insert", "inlineinsert"]);
     }
 
     // Update
     public function isUpdate()
     {
-        return $this->CurrentAction == "update";
+        return in_array($this->CurrentAction, ["update", "inlineupdate"]);
     }
 
     // Grid update
@@ -121,6 +127,12 @@ class DbTable extends DbTableBase
     public function isGridInsert()
     {
         return $this->CurrentAction == "gridinsert";
+    }
+
+    // Multi update
+    public function isMultiUpdate()
+    {
+        return $this->CurrentAction == "multiupdate";
     }
 
     // Grid overwrite
@@ -154,13 +166,19 @@ class DbTable extends DbTableBase
     // Inline inserted
     public function isInlineInserted()
     {
-        return $this->LastAction == "insert" && !$this->CurrentAction;
+        return in_array($this->LastAction, ["insert", "inlineinsert"]) && !$this->CurrentAction;
     }
 
     // Inline updated
     public function isInlineUpdated()
     {
-        return $this->LastAction == "update" && !$this->CurrentAction;
+        return in_array($this->LastAction, ["update", "inlineupdate"]) && !$this->CurrentAction;
+    }
+
+    // Inline edit cancelled
+    public function isInlineEditCancelled()
+    {
+        return in_array($this->LastAction, ["edit", "inlineedit"]) && !$this->CurrentAction;
     }
 
     // Grid updated
@@ -173,6 +191,12 @@ class DbTable extends DbTableBase
     public function isGridInserted()
     {
         return $this->LastAction == "gridinsert" && !$this->CurrentAction;
+    }
+
+    // Multi updated
+    public function isMultiUpdated()
+    {
+        return $this->LastAction == "multiupdate" && !$this->CurrentAction;
     }
 
     /**
@@ -257,13 +281,13 @@ class DbTable extends DbTableBase
         $oprs = ["=", "LIKE", "STARTS WITH", "ENDS WITH"]; // Valid operators for highlight
         if (in_array($fld->AdvancedSearch->getValue("z"), $oprs)) {
             $akw = $fld->AdvancedSearch->getValue("x");
-            if (strlen($akw) > 0) {
+            if ($akw && strlen($akw) > 0) {
                 $kwlist[] = $akw;
             }
         }
         if (in_array($fld->AdvancedSearch->getValue("w"), $oprs)) {
             $akw = $fld->AdvancedSearch->getValue("y");
-            if (strlen($akw) > 0) {
+            if ($akw && strlen($akw) > 0) {
                 $kwlist[] = $akw;
             }
         }
@@ -273,7 +297,7 @@ class DbTable extends DbTableBase
         }
         $pos1 = 0;
         $val = "";
-        if (preg_match_all('/<([^>]*)>/i', $src, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        if (preg_match_all('/<([^>]*)>/i', $src ?: "", $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
             foreach ($matches as $match) {
                 $pos2 = $match[0][1];
                 if ($pos2 > $pos1) {
@@ -284,7 +308,7 @@ class DbTable extends DbTableBase
                 $pos1 = $pos2 + strlen($match[0][0]);
             }
         }
-        $pos2 = strlen($src);
+        $pos2 = strlen($src ?: "");
         if ($pos2 > $pos1) {
             $src1 = substr($src, $pos1, $pos2 - $pos1);
             $val .= $this->highlight($kwlist, $src1);
@@ -305,9 +329,7 @@ class DbTable extends DbTableBase
         $pattern = '/(' . $pattern . ')/' . (SameText(Config("PROJECT_CHARSET"), 'utf-8') ? 'u' : '') . (Config("HIGHLIGHT_COMPARE") ? 'i' : '');
         $src = preg_replace_callback(
             $pattern,
-            function ($match) {
-                return '<mark class="' . $this->highlightName() . ' mark ew-mark">' . $match[0] . '</mark>';
-            },
+            fn($match) => '<mark class="' . $this->highlightName() . ' mark ew-mark">' . $match[0] . '</mark>',
             $src
         );
         return $src;
@@ -344,6 +366,17 @@ class DbTable extends DbTableBase
     public function setSessionOrderBy($v)
     {
         $_SESSION[PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_ORDER_BY")] = $v;
+    }
+
+    // Session Rule (QueryBuilder)
+    public function getSessionRules()
+    {
+        return Session(PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_RULES"));
+    }
+
+    public function setSessionRules($v)
+    {
+        $_SESSION[PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_RULES")] = $v;
     }
 
     // Session layout

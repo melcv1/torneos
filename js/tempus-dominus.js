@@ -1,5 +1,5 @@
 /*!
-  * Tempus Dominus v6.0.0-beta9 (https://getdatepicker.com/)
+  * Tempus Dominus v6.0.0 (https://getdatepicker.com/)
   * Copyright 2013-2022 Jonathan Peterson
   * Licensed under MIT (https://github.com/Eonasdan/tempus-dominus/blob/master/LICENSE)
   */
@@ -96,6 +96,14 @@ var tempusDominus = (function ($, core, luxon) {
             if (!date)
                 throw new Error(`A date is required`);
             return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()).setLocale(locale);
+        }
+        /**
+         * Attempts to create a DateTime from a string. A customDateFormat is required for non US dates.
+         * @param input
+         * @param localization
+         */
+        static fromString(input, localization) {
+            return new DateTime(input);
         }
         /**
          * Native date manipulations are not pure functions. This function creates a duplicate of the DateTime object.
@@ -340,9 +348,7 @@ var tempusDominus = (function ($, core, luxon) {
          * Returns two digit hours
          */
         get hoursFormatted() {
-            let formatted = this.parts(undefined, twoDigitTwentyFourTemplate).hour;
-            //if (formatted === '24') formatted = '00';
-            return formatted;
+            return this.parts(undefined, twoDigitTwentyFourTemplate).hour;
         }
         /**
          * Returns two digit hours but in twelve hour mode e.g. 13 -> 1
@@ -576,11 +582,19 @@ var tempusDominus = (function ($, core, luxon) {
             throw error;
         }
         /**
+         * customDateFormat errors
+         */
+        customDateFormatError(message) {
+            const error = new TdError(`${this.base} customDateFormat: ${message}`);
+            error.code = 9;
+            throw error;
+        }
+        /**
          * Logs a warning if a date option value is provided as a string, instead of
          * a date/datetime object.
          */
         dateString() {
-            console.warn(`${this.base} Using a string for date options is not recommended unless you specify an ISO string.`);
+            console.warn(`${this.base} Using a string for date options is not recommended unless you specify an ISO string or use the customDateFormat plugin.`);
         }
         throwError(message) {
             const error = new TdError(`${this.base} ${message}`);
@@ -590,7 +604,7 @@ var tempusDominus = (function ($, core, luxon) {
     }
 
     // this is not the way I want this to stay but nested classes seemed to blown up once its compiled.
-    const NAME = 'tempus-dominus', version$1 = '6.0.0-beta9', dataKey = 'td';
+    const NAME = 'tempus-dominus', dataKey = 'td';
     /**
      * Events
      */
@@ -645,7 +659,7 @@ var tempusDominus = (function ($, core, luxon) {
              */
             this.switch = 'picker-switch';
             /**
-             * The elements for all of the toolbar options
+             * The elements for all the toolbar options
              */
             this.toolbar = 'toolbar';
             /**
@@ -685,11 +699,11 @@ var tempusDominus = (function ($, core, luxon) {
             this.active = 'active';
             //#region date element
             /**
-             * The outer most element for the calendar view.
+             * The outer element for the calendar view.
              */
             this.dateContainer = 'date-container';
             /**
-             * The outer most element for the decades view.
+             * The outer element for the decades view.
              */
             this.decadesContainer = `${this.dateContainer}-decades`;
             /**
@@ -697,7 +711,7 @@ var tempusDominus = (function ($, core, luxon) {
              */
             this.decade = 'decade';
             /**
-             * The outer most element for the years view.
+             * The outer element for the years view.
              */
             this.yearsContainer = `${this.dateContainer}-years`;
             /**
@@ -705,7 +719,7 @@ var tempusDominus = (function ($, core, luxon) {
              */
             this.year = 'year';
             /**
-             * The outer most element for the month view.
+             * The outer element for the month view.
              */
             this.monthsContainer = `${this.dateContainer}-months`;
             /**
@@ -713,7 +727,7 @@ var tempusDominus = (function ($, core, luxon) {
              */
             this.month = 'month';
             /**
-             * The outer most element for the calendar view.
+             * The outer element for the calendar view.
              */
             this.daysContainer = `${this.dateContainer}-days`;
             /**
@@ -740,7 +754,7 @@ var tempusDominus = (function ($, core, luxon) {
             //#endregion
             //#region time element
             /**
-             * The outer most element for all time related elements.
+             * The outer element for all time related elements.
              */
             this.timeContainer = 'time-container';
             /**
@@ -748,19 +762,19 @@ var tempusDominus = (function ($, core, luxon) {
              */
             this.separator = 'separator';
             /**
-             * The outer most element for the clock view.
+             * The outer element for the clock view.
              */
             this.clockContainer = `${this.timeContainer}-clock`;
             /**
-             * The outer most element for the hours selection view.
+             * The outer element for the hours selection view.
              */
             this.hourContainer = `${this.timeContainer}-hour`;
             /**
-             * The outer most element for the minutes selection view.
+             * The outer element for the minutes selection view.
              */
             this.minuteContainer = `${this.timeContainer}-minute`;
             /**
-             * The outer most element for the seconds selection view.
+             * The outer element for the seconds selection view.
              */
             this.secondContainer = `${this.timeContainer}-second`;
             /**
@@ -810,14 +824,13 @@ var tempusDominus = (function ($, core, luxon) {
             /**
             * Used for detecting if the system color preference is dark mode
             */
-            this.isDarkPreferedQuery = '(prefers-color-scheme: dark)';
+            this.isDarkPreferredQuery = '(prefers-color-scheme: dark)';
         }
     }
     class Namespace {
     }
     Namespace.NAME = NAME;
     // noinspection JSUnusedGlobalSymbols
-    Namespace.version = version$1;
     Namespace.dataKey = dataKey;
     Namespace.events = new Events();
     Namespace.css = new Css();
@@ -1022,7 +1035,7 @@ var tempusDominus = (function ($, core, luxon) {
                 callback(value);
             });
         }
-        destory() {
+        destroy() {
             this.subscribers = null;
             this.subscribers = [];
         }
@@ -1034,11 +1047,11 @@ var tempusDominus = (function ($, core, luxon) {
             this.updateDisplay = new EventEmitter();
             this.action = new EventEmitter();
         }
-        destory() {
-            this.triggerEvent.destory();
-            this.viewUpdate.destory();
-            this.updateDisplay.destory();
-            this.action.destory();
+        destroy() {
+            this.triggerEvent.destroy();
+            this.viewUpdate.destroy();
+            this.updateDisplay.destroy();
+            this.action.destroy();
         }
     }
 
@@ -1123,7 +1136,26 @@ var tempusDominus = (function ($, core, luxon) {
             selectDate: 'Select Date',
             dayViewHeaderFormat: { month: 'long', year: '2-digit' },
             locale: 'default',
-            startOfTheWeek: 0
+            startOfTheWeek: 0,
+            /**
+             * This is only used with the customDateFormat plugin
+             */
+            dateFormats: {
+                LTS: 'h:mm:ss T',
+                LT: 'h:mm T',
+                L: 'MM/dd/yyyy',
+                LL: 'MMMM d, yyyy',
+                LLL: 'MMMM d, yyyy h:mm T',
+                LLLL: 'dddd, MMMM d, yyyy h:mm T',
+            },
+            /**
+             * This is only used with the customDateFormat plugin
+             */
+            ordinal: (n) => n,
+            /**
+             * This is only used with the customDateFormat plugin
+             */
+            format: 'L'
         },
         keepInvalid: false,
         debug: false,
@@ -1176,9 +1208,9 @@ var tempusDominus = (function ($, core, luxon) {
          * @param provided An option from new providedOptions
          * @param copyTo Destination object. This was added to prevent reference copies
          * @param path
-         * @param locale
+       * @param localization
          */
-        static spread(provided, copyTo, path = '', locale = '') {
+        static spread(provided, copyTo, path = '', localization) {
             const defaultOptions = OptionConverter.objectPath(path, DefaultOptions);
             const unsupportedOptions = Object.keys(provided).filter((x) => !Object.keys(defaultOptions).includes(x));
             if (unsupportedOptions.length > 0) {
@@ -1192,7 +1224,7 @@ var tempusDominus = (function ($, core, luxon) {
                 });
                 Namespace.errorMessages.unexpectedOptions(errors);
             }
-            Object.keys(provided).forEach((key) => {
+            Object.keys(provided).filter(key => key !== '__proto__' && key !== 'constructor').forEach((key) => {
                 path += `.${key}`;
                 if (path.charAt(0) === '.')
                     path = path.slice(1);
@@ -1208,29 +1240,29 @@ var tempusDominus = (function ($, core, luxon) {
                 if (typeof defaultOptionValue === 'object' &&
                     !Array.isArray(provided[key]) &&
                     !(defaultOptionValue instanceof Date || OptionConverter.ignoreProperties.includes(key))) {
-                    OptionConverter.spread(provided[key], copyTo[key], path, locale);
+                    OptionConverter.spread(provided[key], copyTo[key], path, localization);
                 }
                 else {
-                    copyTo[key] = OptionConverter.processKey(key, value, providedType, defaultType, path, locale);
+                    copyTo[key] = OptionConverter.processKey(key, value, providedType, defaultType, path, localization);
                 }
                 path = path.substring(0, path.lastIndexOf(`.${key}`));
             });
         }
-        static processKey(key, value, providedType, defaultType, path, locale) {
+        static processKey(key, value, providedType, defaultType, path, localization) {
             switch (key) {
                 case 'defaultDate': {
-                    const dateTime = this.dateConversion(value, 'defaultDate');
+                    const dateTime = this.dateConversion(value, 'defaultDate', localization);
                     if (dateTime !== undefined) {
-                        dateTime.setLocale(locale);
+                        dateTime.setLocale(localization.locale);
                         return dateTime;
                     }
                     Namespace.errorMessages.typeMismatch('defaultDate', providedType, 'DateTime or Date');
                     break;
                 }
                 case 'viewDate': {
-                    const dateTime = this.dateConversion(value, 'viewDate');
+                    const dateTime = this.dateConversion(value, 'viewDate', localization);
                     if (dateTime !== undefined) {
-                        dateTime.setLocale(locale);
+                        dateTime.setLocale(localization.locale);
                         return dateTime;
                     }
                     Namespace.errorMessages.typeMismatch('viewDate', providedType, 'DateTime or Date');
@@ -1240,9 +1272,9 @@ var tempusDominus = (function ($, core, luxon) {
                     if (value === undefined) {
                         return value;
                     }
-                    const dateTime = this.dateConversion(value, 'restrictions.minDate');
+                    const dateTime = this.dateConversion(value, 'restrictions.minDate', localization);
                     if (dateTime !== undefined) {
-                        dateTime.setLocale(locale);
+                        dateTime.setLocale(localization.locale);
                         return dateTime;
                     }
                     Namespace.errorMessages.typeMismatch('restrictions.minDate', providedType, 'DateTime or Date');
@@ -1252,9 +1284,9 @@ var tempusDominus = (function ($, core, luxon) {
                     if (value === undefined) {
                         return value;
                     }
-                    const dateTime = this.dateConversion(value, 'restrictions.maxDate');
+                    const dateTime = this.dateConversion(value, 'restrictions.maxDate', localization);
                     if (dateTime !== undefined) {
-                        dateTime.setLocale(locale);
+                        dateTime.setLocale(localization.locale);
                         return dateTime;
                     }
                     Namespace.errorMessages.typeMismatch('restrictions.maxDate', providedType, 'DateTime or Date');
@@ -1288,13 +1320,13 @@ var tempusDominus = (function ($, core, luxon) {
                     if (value === undefined) {
                         return [];
                     }
-                    this._typeCheckDateArray('restrictions.enabledDates', value, providedType, locale);
+                    this._typeCheckDateArray('restrictions.enabledDates', value, providedType, localization);
                     return value;
                 case 'disabledDates':
                     if (value === undefined) {
                         return [];
                     }
-                    this._typeCheckDateArray('restrictions.disabledDates', value, providedType, locale);
+                    this._typeCheckDateArray('restrictions.disabledDates', value, providedType, localization);
                     return value;
                 case 'disabledTimeIntervals':
                     if (value === undefined) {
@@ -1308,11 +1340,11 @@ var tempusDominus = (function ($, core, luxon) {
                         Object.keys(valueObject[i]).forEach((vk) => {
                             const subOptionName = `${key}[${i}].${vk}`;
                             let d = valueObject[i][vk];
-                            const dateTime = this.dateConversion(d, subOptionName);
+                            const dateTime = this.dateConversion(d, subOptionName, localization);
                             if (!dateTime) {
                                 Namespace.errorMessages.typeMismatch(subOptionName, typeof d, 'DateTime or Date');
                             }
-                            dateTime.setLocale(locale);
+                            dateTime.setLocale(localization.locale);
                             valueObject[i][vk] = dateTime;
                         });
                     }
@@ -1320,10 +1352,12 @@ var tempusDominus = (function ($, core, luxon) {
                 case 'toolbarPlacement':
                 case 'type':
                 case 'viewMode':
+                case 'theme':
                     const optionValues = {
                         toolbarPlacement: ['top', 'bottom', 'default'],
                         type: ['icons', 'sprites'],
                         viewMode: ['clock', 'calendar', 'months', 'years', 'decades'],
+                        theme: ['light', 'dark', 'auto']
                     };
                     const keyOptions = optionValues[key];
                     if (!keyOptions.includes(value))
@@ -1340,13 +1374,11 @@ var tempusDominus = (function ($, core, luxon) {
                         Namespace.errorMessages.typeMismatch(path.substring(1), typeof value, 'HTMLElement');
                     }
                     return value;
-                case 'useTwentyfourHour': { //***
-                    if (value === undefined || typeof value == 'boolean') {
+                case 'useTwentyfourHour':
+                    if (value === undefined || providedType === 'boolean')
                         return value;
-                    }
-                    Namespace.errorMessages.typeMismatch('display.components.components', providedType, 'boolean or undefined');
+                    Namespace.errorMessages.typeMismatch(path, providedType, defaultType);
                     break;
-                }
                 default:
                     switch (defaultType) {
                         case 'boolean':
@@ -1368,10 +1400,10 @@ var tempusDominus = (function ($, core, luxon) {
             var _a;
             const newConfig = OptionConverter.deepCopy(mergeTo);
             //see if the options specify a locale
-            const locale = mergeTo.localization.locale !== 'default'
-                ? mergeTo.localization.locale
-                : ((_a = providedOptions === null || providedOptions === void 0 ? void 0 : providedOptions.localization) === null || _a === void 0 ? void 0 : _a.locale) || 'default';
-            OptionConverter.spread(providedOptions, newConfig, '', locale);
+            const localization = ((_a = mergeTo.localization) === null || _a === void 0 ? void 0 : _a.locale) !== 'default'
+                ? mergeTo.localization
+                : (providedOptions === null || providedOptions === void 0 ? void 0 : providedOptions.localization) || DefaultOptions.localization;
+            OptionConverter.spread(providedOptions, newConfig, '', localization);
             return newConfig;
         }
         static _dataToOptions(element, options) {
@@ -1439,16 +1471,17 @@ var tempusDominus = (function ($, core, luxon) {
         /**
          * Attempts to prove `d` is a DateTime or Date or can be converted into one.
          * @param d If a string will attempt creating a date from it.
+       * @param localization object containing locale and format settings. Only used with the custom formats
          * @private
          */
-        static _dateTypeCheck(d) {
+        static _dateTypeCheck(d, localization) {
             if (d.constructor.name === DateTime.name)
                 return d;
             if (d.constructor.name === Date.name) {
                 return DateTime.convert(d);
             }
             if (typeof d === typeof '') {
-                const dateTime = new DateTime(d);
+                const dateTime = DateTime.fromString(d, localization);
                 if (JSON.stringify(dateTime) === 'null') {
                     return null;
                 }
@@ -1461,19 +1494,20 @@ var tempusDominus = (function ($, core, luxon) {
          * @param optionName Provides text to error messages e.g. disabledDates
          * @param value Option value
          * @param providedType Used to provide text to error messages
-         * @param locale
+       * @param localization
          */
-        static _typeCheckDateArray(optionName, value, providedType, locale = 'default') {
+        static _typeCheckDateArray(optionName, value, providedType, localization) {
+            var _a;
             if (!Array.isArray(value)) {
                 Namespace.errorMessages.typeMismatch(optionName, providedType, 'array of DateTime or Date');
             }
             for (let i = 0; i < value.length; i++) {
                 let d = value[i];
-                const dateTime = this.dateConversion(d, optionName);
+                const dateTime = this.dateConversion(d, optionName, localization);
                 if (!dateTime) {
                     Namespace.errorMessages.typeMismatch(optionName, typeof d, 'DateTime or Date');
                 }
-                dateTime.setLocale(locale);
+                dateTime.setLocale((_a = localization === null || localization === void 0 ? void 0 : localization.locale) !== null && _a !== void 0 ? _a : 'default');
                 value[i] = dateTime;
             }
         }
@@ -1492,12 +1526,13 @@ var tempusDominus = (function ($, core, luxon) {
          * Attempts to convert `d` to a DateTime object
          * @param d value to convert
          * @param optionName Provides text to error messages e.g. disabledDates
+       * @param localization object containing locale and format settings. Only used with the custom formats
          */
-        static dateConversion(d, optionName) {
+        static dateConversion(d, optionName, localization) {
             if (typeof d === typeof '' && optionName !== 'input') {
                 Namespace.errorMessages.dateString();
             }
-            const converted = this._dateTypeCheck(d);
+            const converted = this._dateTypeCheck(d, localization);
             if (!converted) {
                 Namespace.errorMessages.failedToParseDate(optionName, d, optionName === 'input');
             }
@@ -1542,7 +1577,8 @@ var tempusDominus = (function ($, core, luxon) {
             }
         }
     }
-    OptionConverter.ignoreProperties = ['meta', 'dayViewHeaderFormat', 'container'];
+    OptionConverter.ignoreProperties = ['meta', 'dayViewHeaderFormat',
+        'container', 'dateForms', 'ordinal'];
     OptionConverter.isValue = a => a != null; // everything except undefined + null
 
     class Dates {
@@ -1599,7 +1635,7 @@ var tempusDominus = (function ($, core, luxon) {
          * this can be overwritten to supply your own parsing.
          */
         parseInput(value) {
-            return OptionConverter.dateConversion(value, 'input');
+            return OptionConverter.dateConversion(value, 'input', this.optionsStore.options.localization);
         }
         /**
          * Tries to convert the provided value to a DateTime object.
@@ -1871,7 +1907,7 @@ var tempusDominus = (function ($, core, luxon) {
                 .forEach((containerClone) => {
                 if (this.optionsStore.options.display.calendarWeeks &&
                     containerClone.classList.contains(Namespace.css.calendarWeeks)) {
-                    if (containerClone.innerText === '#')
+                    if (containerClone.innerText === "#")
                         return;
                     containerClone.innerText = `${innerDate.week}`;
                     return;
@@ -2099,7 +2135,59 @@ var tempusDominus = (function ($, core, luxon) {
          * @private
          */
         _update(widget, paint) {
-            return;
+            const [start, end] = Dates.getStartEndYear(100, this.optionsStore.viewDate.year);
+            this._startDecade = this.optionsStore.viewDate.clone.startOf(Unit.year);
+            this._startDecade.year = start;
+            this._endDecade = this.optionsStore.viewDate.clone.startOf(Unit.year);
+            this._endDecade.year = end;
+            const container = widget.getElementsByClassName(Namespace.css.decadesContainer)[0];
+            const [previous, switcher, next] = container.parentElement
+                .getElementsByClassName(Namespace.css.calendarHeader)[0]
+                .getElementsByTagName("div");
+            if (this.optionsStore.currentView === 'decades') {
+                switcher.setAttribute(Namespace.css.decadesContainer, `${this._startDecade.format({ year: "numeric" })}-${this._endDecade.format({ year: "numeric" })}`);
+                this.validation.isValid(this._startDecade, Unit.year)
+                    ? previous.classList.remove(Namespace.css.disabled)
+                    : previous.classList.add(Namespace.css.disabled);
+                this.validation.isValid(this._endDecade, Unit.year)
+                    ? next.classList.remove(Namespace.css.disabled)
+                    : next.classList.add(Namespace.css.disabled);
+            }
+            const pickedYears = this.dates.picked.map((x) => x.year);
+            container
+                .querySelectorAll(`[data-action="${ActionTypes$1.selectDecade}"]`)
+                .forEach((containerClone, index) => {
+                if (index === 0) {
+                    containerClone.classList.add(Namespace.css.old);
+                    if (this._startDecade.year - 10 < 0) {
+                        containerClone.textContent = " ";
+                        previous.classList.add(Namespace.css.disabled);
+                        containerClone.classList.add(Namespace.css.disabled);
+                        containerClone.setAttribute("data-value", ``);
+                        return;
+                    }
+                    else {
+                        containerClone.innerText = this._startDecade.clone.manipulate(-10, Unit.year).format({ year: "numeric" });
+                        containerClone.setAttribute("data-value", `${this._startDecade.year}`);
+                        return;
+                    }
+                }
+                let classes = [];
+                classes.push(Namespace.css.decade);
+                const startDecadeYear = this._startDecade.year;
+                const endDecadeYear = this._startDecade.year + 9;
+                if (!this.optionsStore.unset &&
+                    pickedYears.filter((x) => x >= startDecadeYear && x <= endDecadeYear)
+                        .length > 0) {
+                    classes.push(Namespace.css.active);
+                }
+                paint("decade", this._startDecade, classes, containerClone);
+                containerClone.classList.remove(...containerClone.classList);
+                containerClone.classList.add(...classes);
+                containerClone.setAttribute("data-value", `${this._startDecade.year}`);
+                containerClone.innerText = `${this._startDecade.format({ year: "numeric" })}`;
+                this._startDecade.manipulate(10, Unit.year);
+            });
         }
     }
 
@@ -2390,7 +2478,7 @@ var tempusDominus = (function ($, core, luxon) {
                 paint(Unit.minutes, innerDate, classes, containerClone);
                 containerClone.classList.remove(...containerClone.classList);
                 containerClone.classList.add(...classes);
-                containerClone.setAttribute('data-value', `${innerDate.minutesFormatted}`);
+                containerClone.setAttribute('data-value', `${innerDate.minutes}`);
                 containerClone.innerText = innerDate.minutesFormatted;
                 innerDate.manipulate(step, Unit.minutes);
             });
@@ -2668,7 +2756,7 @@ var tempusDominus = (function ($, core, luxon) {
         /**
          * Shows the picker and creates a Popper instance if needed.
          * Add document click event to hide when clicking outside the picker.
-         * @fires Events#show
+         * fires Events#show
          */
         show() {
             var _a, _b;
@@ -2822,19 +2910,19 @@ var tempusDominus = (function ($, core, luxon) {
             this.widget.classList.add(this._getThemeClass());
             if (this.optionsStore.options.display.theme === 'auto') {
                 window
-                    .matchMedia(Namespace.css.isDarkPreferedQuery)
+                    .matchMedia(Namespace.css.isDarkPreferredQuery)
                     .addEventListener('change', () => this._updateTheme());
             }
             else {
                 window
-                    .matchMedia(Namespace.css.isDarkPreferedQuery)
+                    .matchMedia(Namespace.css.isDarkPreferredQuery)
                     .removeEventListener('change', () => this._updateTheme());
             }
         }
         _getThemeClass() {
             const currentTheme = this.optionsStore.options.display.theme || 'auto';
             const isDarkMode = window.matchMedia &&
-                window.matchMedia(Namespace.css.isDarkPreferedQuery).matches;
+                window.matchMedia(Namespace.css.isDarkPreferredQuery).matches;
             switch (currentTheme) {
                 case 'light':
                     return Namespace.css.lightTheme;
@@ -2879,7 +2967,7 @@ var tempusDominus = (function ($, core, luxon) {
         /**
          * Hides the picker if needed.
          * Remove document click event to hide when clicking outside the picker.
-         * @fires Events#hide
+         * fires Events#hide
          */
         hide() {
             if (!this.widget || !this._isVisible)
@@ -3066,14 +3154,16 @@ var tempusDominus = (function ($, core, luxon) {
             const previous = document.createElement('div');
             previous.classList.add(Namespace.css.previous);
             previous.setAttribute('data-action', ActionTypes$1.previous);
-            previous.appendChild(this._iconTag(this.optionsStore.options.display.icons.previous));
+            previous.appendChild(this._iconTag(this.optionsStore.options.display.icons[document.documentElement.dir === 'rtl' ? 'next' : 'previous']) //***
+            );
             const switcher = document.createElement('div');
             switcher.classList.add(Namespace.css.switch);
             switcher.setAttribute('data-action', ActionTypes$1.changeCalendarView);
             const next = document.createElement('div');
             next.classList.add(Namespace.css.next);
             next.setAttribute('data-action', ActionTypes$1.next);
-            next.appendChild(this._iconTag(this.optionsStore.options.display.icons.next));
+            next.appendChild(this._iconTag(this.optionsStore.options.display.icons[document.documentElement.dir === 'rtl' ? 'previous' : 'next']) //***
+            );
             calendarHeader.append(previous, switcher, next);
             return calendarHeader;
         }
@@ -3376,7 +3466,7 @@ var tempusDominus = (function ($, core, luxon) {
                     return;
                 const setViewDate = () => {
                     if (this.dates.lastPicked)
-                        this.optionsStore.viewDate = this.dates.lastPicked;
+                        this.optionsStore.viewDate = this.dates.lastPicked.clone;
                 };
                 const value = this.optionsStore.input.value;
                 if (this.optionsStore.options.multipleDates) {
@@ -3792,53 +3882,29 @@ var tempusDominus = (function ($, core, luxon) {
      * @param option
      */
     const extend = function (plugin, option) {
-        if (!plugin.$i) {
+        if (!plugin)
+            return tempusDominus;
+        if (!plugin.installed) {
             // install plugin only once
-            plugin.load(option, { TempusDominus, Dates, Display }, this);
-            plugin.$i = true;
+            plugin(option, { TempusDominus, Dates, Display, DateTime, ErrorMessages }, tempusDominus);
+            plugin.installed = true;
         }
-        return this;
+        return tempusDominus;
     };
-    const version = '6.0.0-beta9';
-
-    var _tempusDominus = {
-        __proto__: null,
-        TempusDominus: TempusDominus,
-        extend: extend,
-        loadLocale: loadLocale,
-        locale: locale,
-        Namespace: Namespace,
-        DefaultOptions: DefaultOptions,
-        DateTime: DateTime,
-        get Unit () { return Unit; },
-        version: version
+    const version = '6.0.0';
+    const tempusDominus = {
+        TempusDominus,
+        extend,
+        loadLocale,
+        locale,
+        Namespace,
+        DefaultOptions,
+        DateTime,
+        Unit,
+        version
     };
 
-    // this obviously requires the FA 6 libraries to be loaded
-    const faFiveIcons = {
-        type: 'icons',
-        time: 'fas fa-clock',
-        date: 'fas fa-calendar',
-        up: 'fas fa-arrow-up',
-        down: 'fas fa-arrow-down',
-        previous: 'fas fa-chevron-left',
-        next: 'fas fa-chevron-right',
-        today: 'fas fa-calendar-check',
-        clear: 'fas fa-trash',
-        close: 'fas fa-times',
-    };
-    // noinspection JSUnusedGlobalSymbols
-    const load$1 = (_, __, tdFactory) => {
-        tdFactory.DefaultOptions.display.icons = faFiveIcons;
-    };
-
-    var fa_five = {
-        __proto__: null,
-        faFiveIcons: faFiveIcons,
-        load: load$1
-    };
-
-    const load = (option, tdClasses, tdFactory) => {
+    var luxon_parse = (option, tdClasses, tdFactory) => {
         tdClasses.Dates.prototype.setFromInput = function (value, index) {
             if (this.optionsStore.options.meta.format) {
                 let options = {
@@ -3871,21 +3937,15 @@ var tempusDominus = (function ($, core, luxon) {
         };
     };
 
-    var luxon_parse = {
-        __proto__: null,
-        load: load
-    };
-
     /*global $ */
 
     //window.tempusDominus.Namespace.Events
-    const tempusDominus = _tempusDominus; //***
 
     tempusDominus.extend(luxon_parse); //***
-    tempusDominus.extend(fa_five); //*** for v2022 only
+    // tempusDominus.extend(fa_five); //*** for v2022 only
 
     /*!
-      * Tempus Dominus v6.0.0-beta9 (https://getdatepicker.com/)
+      * Tempus Dominus v6.0.0 (https://getdatepicker.com/)
       * Copyright 2013-2021 Jonathan Peterson
       * Licensed under MIT (https://github.com/Eonasdan/tempus-dominus/blob/master/LICENSE)
       */

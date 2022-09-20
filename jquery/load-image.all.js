@@ -409,7 +409,7 @@
     }
     function replaceHead(blob, head, callback) {
         var options = {
-            maxMetaDataSize: 256,
+            maxMetaDataSize: 1024,
             disableMetaDataParsers: true
         };
         if (!callback && global.Promise) {

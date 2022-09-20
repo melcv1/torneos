@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PHPMaker 2022 configuration file (Development)
+ * PHPMaker 2023 configuration file (Development)
  */
 
 return [
@@ -17,7 +17,7 @@ return [
         "SERVER_PASSWORD" => "", // SMTP server password
     ],
     "JWT" => [
-        "SECRET_KEY" => "XqsJitrNw2XoFbuo", // API Secret Key
+        "SECRET_KEY" => "mwp12tu42DGjHwaq", // API Secret Key
         "ALGORITHM" => "HS512", // API Algorithm
         "AUTH_HEADER" => "X-Authorization", // API Auth Header (Note: The "Authorization" header is removed by IIS, use "X-Authorization" instead.)
         "NOT_BEFORE_TIME" => 0, // API access time before login

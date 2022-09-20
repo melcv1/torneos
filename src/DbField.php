@@ -1,12 +1,14 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Field class
  */
 class DbField
 {
+    private $Table; // Table object
+    private $Methods = []; // Methods
     public $TableName; // Table name
     public $TableVar; // Table variable name
     public $SourceTableVar = ""; // Source Table variable name (for Report only)
@@ -44,6 +46,7 @@ class DbField
     public $Raw; // Raw value (save without removing XSS)
     public $Nullable = true; // Nullable
     public $Required = false; // Required
+    public $SearchOperators = []; // Search operators
     public $AdvancedSearch; // AdvancedSearch Object
     public $AdvancedFilters; // Advanced Filters
     public $Upload; // Upload Object
@@ -102,6 +105,7 @@ class DbField
     public $UploadAllowedFileExt; // Allowed file extensions
     public $UploadMaxFileSize; // Upload max file size
     public $UploadMaxFileCount; // Upload max file count
+    public $ImageCropper = false; // Upload cropper
     public $UploadMultiple = false; // Multiple Upload
     public $UseColorbox; // Use Colorbox
     public $DisplayValueSeparator = ", ";
@@ -122,7 +126,7 @@ class DbField
     public $UseFilter = false; // Use table header filter
 
     // Constructor
-    public function __construct($tblvar, $tblname, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag = "")
+    public function __construct($tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag = "")
     {
         global $Language;
         $this->CellAttrs = new Attributes();
@@ -130,23 +134,6 @@ class DbField
         $this->LinkAttrs = new Attributes();
         $this->RowAttrs = new Attributes();
         $this->ViewAttrs = new Attributes();
-        $this->Raw = !Config("REMOVE_XSS");
-        $this->UploadPath = Config("UPLOAD_DEST_PATH");
-        $this->OldUploadPath = Config("UPLOAD_DEST_PATH");
-        $this->HrefPath = Config("UPLOAD_HREF_PATH");
-        $this->UploadAllowedFileExt = Config("UPLOAD_ALLOWED_FILE_EXT");
-        $this->UploadMaxFileSize = Config("MAX_FILE_SIZE");
-        $this->UploadMaxFileCount = Config("MAX_FILE_COUNT");
-        $this->UseColorbox = Config("USE_COLORBOX");
-        $this->AutoFillOriginalValue = Config("AUTO_FILL_ORIGINAL_VALUE");
-        $this->UseLookupCache = Config("USE_LOOKUP_CACHE");
-        $this->LookupCacheCount = Config("LOOKUP_CACHE_COUNT");
-        $this->ExportOriginalValue = Config("EXPORT_ORIGINAL_VALUE");
-        $this->ExportFieldCaption = Config("EXPORT_FIELD_CAPTION");
-        $this->ExportFieldImage = Config("EXPORT_FIELD_IMAGE");
-        $this->DefaultNumberFormat = Config("DEFAULT_NUMBER_FORMAT");
-        $this->TableVar = $tblvar;
-        $this->TableName = $tblname;
         $this->FieldVar = $fldvar;
         $this->Param = preg_replace('/^x_/', "", $this->FieldVar); // Remove "x_"
         $this->Name = $fldname;
@@ -156,10 +143,7 @@ class DbField
         $this->Size = $fldsize;
         $this->DataType = FieldDataType($fldtype);
         $this->DateTimeFormat = $flddtfmt;
-        $this->AdvancedSearch = new AdvancedSearch($this->TableVar, $this->Param);
-        if ($upload) {
-            $this->Upload = new HttpUpload($this);
-        }
+        $this->Upload = $upload ? new HttpUpload($this) : null;
         $this->VirtualExpression = $fldvirtualexp;
         $this->IsVirtual = $fldvirtual;
         $this->ForceSelection = $forceselect;
@@ -168,6 +152,61 @@ class DbField
         $this->HtmlTag = $fldhtmltag;
         $this->RequiredErrorMessage = $Language->phrase("EnterRequiredField");
         $this->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
+        if (is_object($tbl)) {
+            $this->Table = $tbl;
+            $this->TableVar = $tbl->TableVar;
+            $this->TableName = $tbl->TableName;
+            $this->Raw = $tbl->Raw;
+            $this->UploadPath = $tbl->UploadPath;
+            $this->OldUploadPath = $tbl->OldUploadPath;
+            $this->HrefPath = $tbl->HrefPath;
+            $this->UploadAllowedFileExt = $tbl->UploadAllowedFileExt;
+            $this->UploadMaxFileSize = $tbl->UploadMaxFileSize;
+            $this->UploadMaxFileCount = $tbl->UploadMaxFileCount;
+            $this->ImageCropper = $tbl->ImageCropper;
+            $this->UseColorbox = $tbl->UseColorbox;
+            $this->AutoFillOriginalValue = $tbl->AutoFillOriginalValue;
+            $this->UseLookupCache = $tbl->UseLookupCache;
+            $this->LookupCacheCount = $tbl->LookupCacheCount;
+            $this->ExportOriginalValue = $tbl->ExportOriginalValue;
+            $this->ExportFieldCaption = $tbl->ExportFieldCaption;
+            $this->ExportFieldImage = $tbl->ExportFieldImage;
+            $this->DefaultNumberFormat = $tbl->DefaultNumberFormat;
+        } elseif (is_string($tbl)) {
+            $this->TableVar = $tbl;
+            $this->TableName = $tbl;
+        }
+        $this->AdvancedSearch = new AdvancedSearch($this);
+    }
+
+    // Get table object
+    public function getTable()
+    {
+        return $this->Table;
+    }
+
+    // Add method
+    public function addMethod($methodName, $methodCallable)
+    {
+        if (!is_callable($methodCallable)) {
+            throw new \Exception("DbField::addMethod: " . $methodName . " must be callable"); // PHP
+        }
+        $this->Methods[$methodName] = \Closure::bind($methodCallable, $this->Table, get_class($this->Table));
+    }
+
+    // Has method
+    public function hasMethod($methodName)
+    {
+        return isset($this->Methods[$methodName]);
+    }
+
+    // Call method
+    public function __call($methodName, array $args)
+    {
+        if (isset($this->Methods[$methodName])) {
+            return call_user_func_array($this->Methods[$methodName], $args);
+        }
+        throw new \Exception("DbField::__call: " . $methodName . " is not found"); // PHP
     }
 
     // Get ICU format pattern
@@ -332,18 +371,21 @@ class DbField
     // Set field visibility
     public function setVisibility()
     {
-        $this->Visible = Container($this->TableVar)->getFieldVisibility($this->Param);
+        $this->Visible = $this->Table->getFieldVisibility($this->Param);
     }
 
     // Check if multiple selection
     public function isMultiSelect()
     {
-        return $this->HtmlTag == "SELECT" && $this->SelectMultiple || $this->HtmlTag == "CHECKBOX";
+        return $this->HtmlTag == "SELECT" && $this->SelectMultiple || $this->HtmlTag == "CHECKBOX" && !$this->isBoolean() && $this->DataType == DATATYPE_STRING;
     }
 
     // Field lookup cache option
     public function lookupCacheOption($val)
     {
+        if (IsFloatType($this->Type)) { // Handle float field
+            $val = (float)$val;
+        }
         $val = strval($val);
         if ($val == "" || $this->Lookup === null || !is_array($this->Lookup->Options) || count($this->Lookup->Options) == 0) {
             return null;
@@ -376,10 +418,8 @@ class DbField
     public function hasLookupOptions()
     {
         if ($this->Lookup) {
-            if ($this->OptionCount > 0) { // User values
-                return true;
-            }
-            return is_array($this->Lookup->Options) && count($this->Lookup->Options) > 0; // Lookup table
+            return $this->OptionCount > 0 || // User values
+                is_array($this->Lookup->Options) && count($this->Lookup->Options) > 0; // Lookup table
         }
         return false;
     }
@@ -412,8 +452,8 @@ class DbField
         return $val;
     }
 
-    // Get field user options as array
-    public function options($pleaseSelect = false, $client = false)
+    // Get field user options as [ ["lf" => "value", "df" => "caption"], ... ]
+    public function options($pleaseSelect = false)
     {
         global $Language;
         $arwrk = [];
@@ -467,7 +507,7 @@ class DbField
         $empty = true;
         $curValue = (CurrentPage()->RowType == ROWTYPE_SEARCH) ? (StartsString("y", $name) ? $this->AdvancedSearch->SearchValue2 : $this->AdvancedSearch->SearchValue) : $this->CurrentValue;
         $str = "";
-        $multiple = $multiple ?? $this->isMultiSelect();
+        $multiple ??= $this->isMultiSelect();
         if ($multiple) {
             $armulti = (strval($curValue) != "") ? explode(",", strval($curValue)) : [];
             $cnt = count($armulti);
@@ -540,7 +580,7 @@ class DbField
     protected function getDisplayValueSeparator($idx)
     {
         $sep = $this->DisplayValueSeparator;
-        return (is_array($sep)) ? @$sep[$idx - 1] : ($sep ?: ", ");
+        return is_array($sep) ? @$sep[$idx - 1] : ($sep ?: ", ");
     }
 
     // Get display field value separator as attribute value
@@ -841,10 +881,9 @@ class DbField
     // Get view value
     public function getViewValue()
     {
-        if (is_object($this->ViewValue)) {
-            return $this->ViewValue->toHtml();
-        }
-        return $this->ViewValue;
+        return is_object($this->ViewValue) && method_exists($this->ViewValue, "toHtml") // OptionValues
+            ? $this->ViewValue->toHtml()
+            : $this->ViewValue;
     }
 
     // Export caption
@@ -859,12 +898,13 @@ class DbField
     // Export value
     public function exportValue()
     {
-        return ($this->ExportOriginalValue) ? $this->CurrentValue : $this->ViewValue;
+        return $this->ExportOriginalValue ? $this->CurrentValue : $this->ViewValue;
     }
 
     // Get temp image
     public function getTempImage()
     {
+        $tmpimages = [];
         if ($this->DataType == DATATYPE_BLOB) {
             $wrkdata = $this->Upload->DbValue;
             if (is_resource($wrkdata) && get_resource_type($wrkdata) == "stream") { // Byte array
@@ -876,7 +916,7 @@ class DbField
                     $wrkheight = $this->ImageHeight;
                     ResizeBinary($wrkdata, $wrkwidth, $wrkheight);
                 }
-                return TempImage($wrkdata);
+                $tmpimages[] = TempImage($wrkdata);
             }
         } else {
             $wrkfile = $this->HtmlTag == "FILE" ? $this->Upload->DbValue : $this->DbValue;
@@ -893,7 +933,7 @@ class DbField
                                 $wrkheight = $this->ImageHeight;
                                 ResizeBinary($wrkdata, $wrkwidth, $wrkheight);
                             }
-                            return TempImage($wrkdata);
+                            $tmpimages[] = TempImage($wrkdata);
                         }
                     } else {
                         $imagefn = $this->physicalUploadPath() . $wrkfile;
@@ -902,15 +942,14 @@ class DbField
                                 $wrkwidth = $this->ImageWidth;
                                 $wrkheight = $this->ImageHeight;
                                 $wrkdata = ResizeFileToBinary($imagefn, $wrkwidth, $wrkheight);
-                                return TempImage($wrkdata);
+                                $tmpimages[] = TempImage($wrkdata);
                             } else { // Use global upload path (not $this->UploadPath) to make sure the path is in dompdf's "chroot"
-                                return TempImage(file_get_contents($imagefn)); // Use global upload path to make sure the path is in dompdf's "chroot"
+                                $tmpimages[] = TempImage(file_get_contents($imagefn)); // Use global upload path to make sure the path is in dompdf's "chroot"
                             }
                         }
                     }
                 } else {
                     $tmpfiles = explode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $wrkfile);
-                    $tmpimages = [];
                     foreach ($tmpfiles as $tmpfile) {
                         if ($tmpfile != "") {
                             if (IsRemote($tmpfile)) {
@@ -939,16 +978,18 @@ class DbField
                             }
                         }
                     }
-                    return implode(",", $tmpimages);
                 }
             }
         }
-        return "";
+        return $tmpimages;
     }
 
     // Form value
     public function setFormValue($v, $current = true, $validate = true)
     {
+        if ($this->Table && $this->Table->UseAjaxActions || Post("addopt") == "1") {
+            $v = ConvertFromUtf8($v);
+        }
         if (!$this->Raw && $this->DataType != DATATYPE_XML) {
             $v = RemoveXss($v);
         }
@@ -1012,7 +1053,7 @@ class DbField
     // Database value
     public function setDbValue($v)
     {
-        if (IsFloatFormat($this->Type) && $v !== null) {
+        if (IsFloatType($this->Type) && $v !== null) {
             $v = (float)$v;
         }
         $this->DbValue = $v;
@@ -1040,7 +1081,7 @@ class DbField
             case 16:
             case 17:
             case 18: // Integer
-                $value = trim($value);
+                $value = trim($value ?? "");
                 $value = $this->Lookup === null
                     ? ParseInteger($value, "", \NumberFormatter::TYPE_INT32)
                     : (IsFormatted($value) ? ParseInteger($value, "", \NumberFormatter::TYPE_INT32) : $value);
@@ -1049,7 +1090,7 @@ class DbField
             case 19:
             case 20:
             case 21: // Big integer
-                $value = trim($value);
+                $value = trim($value ?? "");
                 $value = $this->Lookup === null
                     ? ParseInteger($value)
                     : (IsFormatted($value) ? ParseInteger($value) : $value);
@@ -1061,7 +1102,7 @@ class DbField
             case 131: // Double
             case 139:
             case 4: // Single
-                $value = trim($value);
+                $value = trim($value ?? "");
                 $value = $this->Lookup === null
                     ? ParseNumber($value)
                     : (IsFormatted($value) ? ParseNumber($value) : $value);
@@ -1074,7 +1115,7 @@ class DbField
             case 141: // XML
             case 134: // Time
             case 145:
-                $value = trim($value);
+                $value = trim($value ?? "");
                 $dbValue = $value == "" ? $default : $value;
                 break;
             case 201:
@@ -1083,7 +1124,7 @@ class DbField
             case 130:
             case 200:
             case 202: // String
-                $value = trim($value);
+                $value = trim($value ?? "");
                 $dbValue = $value == "" ? $default : ($this->isEncrypt() ? PhpEncrypt($value) : $value);
                 break;
             case 128:
@@ -1092,7 +1133,7 @@ class DbField
                 $dbValue = $value ?? $default;
                 break;
             case 72: // GUID
-                $value = trim($value);
+                $value = trim($value ?? "");
                 $dbValue = $value != "" && CheckGuid($value) ? $value : $default;
                 break;
             case 11: // Boolean
@@ -1126,15 +1167,50 @@ class DbField
     }
 
     /**
+     * Allowed file types (for jQuery File Upload)
+     *
+     * @return string Regular expression
+     */
+    public function acceptFileTypes()
+    {
+        return $this->UploadAllowedFileExt ? '/\\.(' . str_replace(",", "|", $this->UploadAllowedFileExt) . ')$/i' : null;
+    }
+
+    /**
      * Get options
      *
      * @return array
      */
     public function getOptions()
     {
-        return $this->Options ?? (($this->OptionCount > 0)
-            ? $this->options(false, true) // User values
-            : $this->lookupOptions()); // Lookup table
+        if (is_array($this->Options)) {
+            return $this->Options;
+        } elseif ($this->OptionCount > 0) {
+            return $this->options(false); // User values
+        } else {
+            return $this->lookupOptions(); // Lookup table
+        }
+    }
+
+    /**
+     * Set options
+     *
+     * @param array $options Options with format [ ["lf" => "lv", "df" => "dv", ...], ...]
+     * @return void
+     */
+    public function setOptions(array $options)
+    {
+        $this->Options = $options;
+    }
+
+    /**
+     * Client side search operators
+     *
+     * @return array
+     */
+    public function clientSearchOperators()
+    {
+        return array_map(fn($opr) => Config("CLIENT_SEARCH_OPERATORS")[$opr], $this->SearchOperators);
     }
 
     /**
@@ -1149,7 +1225,7 @@ class DbField
             $options = $this->Lookup->hasParentTable() ? [] : $this->getOptions();
             $ar = array_merge($this->Lookup->toClientList($currentPage), [
                 "lookupOptions" => $options,
-                "multiple" => $this->isMultiSelect()
+                "multiple" => $this->HtmlTag == "SELECT" && $this->SelectMultiple || $this->HtmlTag == "CHECKBOX" && !$this->isBoolean() // Do not use isMultiSelect() since data type could be int
             ]);
         }
         return ArrayToJson($ar);

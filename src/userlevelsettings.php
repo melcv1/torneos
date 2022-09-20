@@ -1,8 +1,8 @@
 <?php
 /**
- * PHPMaker 2022 user level settings
+ * PHPMaker 2023 user level settings
  */
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // User level info
 $USER_LEVELS = [["-2","Anonymous"]];

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Slim\Routing\RouteContext;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
@@ -32,12 +32,11 @@ class ApiPermissionMiddleware
         $checkTokenActions = [
             Config("API_JQUERY_UPLOAD_ACTION"),
             Config("API_SESSION_ACTION"),
-            Config("API_PROGRESS_ACTION"),
             Config("API_EXPORT_CHART_ACTION"),
             Config("API_2FA_ACTION")
         ];
-        if (in_array($action, $checkTokenActions)) { // Check token
-            if (Config("CHECK_TOKEN") && !ValidateCsrf()) {
+        if (Config("CHECK_TOKEN") && in_array($action, $checkTokenActions)) { // Check token
+            if (!ValidateCsrf($request)) {
                 return $response->withStatus(401); // Not authorized
             }
         }
@@ -52,8 +51,9 @@ class ApiPermissionMiddleware
 
         // Set up Route
         $routeValues = $params == "" ? [] : explode("/", $params);
-        $GLOBALS["RouteValues"] = array_merge([$action], $routeValues);
-        $table = $isCustom ? "" : ($routeValues[0] ?? Post(Config("API_OBJECT_NAME"))); // Get from Post
+        $GLOBALS["RouteValues"] = [$action, ...$routeValues];
+        $index = $action == Config("API_EXPORT_ACTION") ? 1 : 0;
+        $table = $isCustom ? "" : ($routeValues[$index] ?? Post(Config("API_OBJECT_NAME"))); // Get from route or Post
 
         // Set up request
         $GLOBALS["Request"] = $request;
@@ -70,6 +70,7 @@ class ApiPermissionMiddleware
 
         // Actions for table
         $apiTableActions = [
+            Config("API_EXPORT_ACTION"),
             Config("API_LIST_ACTION"),
             Config("API_VIEW_ACTION"),
             Config("API_ADD_ACTION"),
@@ -85,17 +86,21 @@ class ApiPermissionMiddleware
             $action == Config("API_REGISTER_ACTION") || // Register
             $action == Config("API_PERMISSIONS_ACTION") && $request->getMethod() == "GET" || // Permissions (GET)
             $action == Config("API_PERMISSIONS_ACTION") && $request->getMethod() == "POST" && $Security->isAdmin() || // Permissions (POST)
-            $action == Config("API_UPLOAD_ACTION") && $Security->isLoggedIn() // Upload
+            $action == Config("API_UPLOAD_ACTION") && $Security->isLoggedIn() || // Upload
+            $action == Config("API_METADATA_ACTION") // Metadata
         ) {
             $authorised = true;
         } elseif (in_array($action, $apiTableActions) && $table != "") { // Table actions
             $Security->loadTablePermissions($table);
             $authorised = $action == Config("API_LIST_ACTION") && $Security->canList() ||
+                $action == Config("API_EXPORT_ACTION") && $Security->canExport() ||
                 $action == Config("API_VIEW_ACTION") && $Security->canView() ||
                 $action == Config("API_ADD_ACTION") && $Security->canAdd() ||
                 $action == Config("API_EDIT_ACTION") && $Security->canEdit() ||
                 $action == Config("API_DELETE_ACTION") && $Security->canDelete() ||
                 $action == Config("API_FILE_ACTION") && ($Security->canList() || $Security->canView());
+        } elseif ($action == Config("API_EXPORT_ACTION") && EmptyValue($table)) { // Get exported file
+            $authorised = true; // Check table permission in ExportHandler.php
         } elseif ($action == Config("API_LOOKUP_ACTION")) { // Lookup
             $canLookup = function ($params) use ($Security) {
                 $object = $params[Config("API_LOOKUP_PAGE")]; // Get lookup page
@@ -141,6 +146,8 @@ class ApiPermissionMiddleware
                 $authorized = $Security->IsSysAdmin();
             } elseif ($action == Config("API_2FA_BACKUP_CODES") || $action == Config("API_2FA_NEW_BACKUP_CODES")) {
                 $authorized = $Security->isLoggedIn() && !$Security->isSysAdmin();
+            } elseif ($action == Config("API_2FA_SEND_OTP")) {
+                $authorized = $Security->isLoggingIn2FA() && !$Security->isSysAdmin();
             }
         }
         if (!$authorised) {

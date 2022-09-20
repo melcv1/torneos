@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Form class
@@ -50,5 +50,17 @@ class HttpForm
             }
         }
         return $value;
+    }
+
+    // Get search value for form element
+    public function getSearchValues($name)
+    {
+        return [
+            "value" => $this->getValue("x_$name"),
+            "operator" => $this->getValue("z_$name"),
+            "condition" => $this->getValue("v_$name"),
+            "value2" => $this->getValue("y_$name"),
+            "operator2" => $this->getValue("w_$name"),
+        ];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -31,6 +31,9 @@ class ChangePassword extends Usuario
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "changepassword";
 
     // Page headings
     public $Heading = "";
@@ -84,8 +87,7 @@ class ChangePassword extends Usuario
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -108,26 +110,22 @@ class ChangePassword extends Usuario
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'usuario';
+        $this->TableName = 'usuario';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (usuario)
         if (!isset($GLOBALS["usuario"]) || get_class($GLOBALS["usuario"]) == PROJECT_NAMESPACE . "usuario") {
@@ -141,14 +139,14 @@ class ChangePassword extends Usuario
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -195,7 +193,7 @@ class ChangePassword extends Usuario
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -207,8 +205,6 @@ class ChangePassword extends Usuario
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -219,9 +215,11 @@ class ChangePassword extends Usuario
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -238,8 +236,7 @@ class ChangePassword extends Usuario
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => $url];
-                WriteJson($row);
+                WriteJson(["url" => $url]);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -259,16 +256,15 @@ class ChangePassword extends Usuario
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $UserTable, $Breadcrumb, $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $UserTable, $Breadcrumb, $SkipHeaderFooter;
         $this->OffsetColumnClass = ""; // Override user table
 
         // Create Password fields object (used by validation only)
-        $this->OldPassword = new DbField("usuario", "usuario", "opwd", "opwd", "opwd", "", 202, 255, -1, false, "", false, false, false);
+        $this->OldPassword = new DbField(Container("usertable"), "opwd", "opwd", "opwd", "", 202, 255, -1, false, "", false, false, false);
         $this->OldPassword->EditAttrs->appendClass("form-control ew-form-control");
-        $this->NewPassword = new DbField("usuario", "usuario", "npwd", "npwd", "npwd", "", 202, 255, -1, false, "", false, false, false);
+        $this->NewPassword = new DbField(Container("usertable"), "npwd", "npwd", "npwd", "", 202, 255, -1, false, "", false, false, false);
         $this->NewPassword->EditAttrs->appendClass("form-control ew-form-control");
-        $this->ConfirmPassword = new DbField("usuario", "usuario", "cpwd", "cpwd", "cpwd", "", 202, 255, -1, false, "", false, false, false);
+        $this->ConfirmPassword = new DbField(Container("usertable"), "cpwd", "cpwd", "cpwd", "", 202, 255, -1, false, "", false, false, false);
         $this->ConfirmPassword->EditAttrs->appendClass("form-control ew-form-control");
         if (Config("ENCRYPTED_PASSWORD")) {
             $this->OldPassword->Raw = true;
@@ -277,11 +273,14 @@ class ChangePassword extends Usuario
         }
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Global Page Loading event (in userfn*.php)
@@ -394,9 +393,11 @@ class ChangePassword extends Usuario
         }
         if (!$this->NewPassword->Raw && Config("REMOVE_XSS") && CheckPassword($this->NewPassword->CurrentValue)) {
             $this->NewPassword->addErrorMessage($Language->phrase("InvalidPasswordChars"));
+            $valid = false;
         }
         if ($this->NewPassword->CurrentValue != $this->ConfirmPassword->CurrentValue) {
             $this->ConfirmPassword->addErrorMessage($Language->phrase("MismatchPassword"));
+            $valid = false;
         }
 
         // Call Form CustomValidate event

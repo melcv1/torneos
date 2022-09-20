@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,14 +26,26 @@ class ApiController
             $username = $request->getQueryParam(Config("API_LOGIN_USERNAME"));
             $password = $request->getQueryParam(Config("API_LOGIN_PASSWORD"));
             $code = $request->getQueryParam(Config("API_LOGIN_SECURITY_CODE"));
+            $expire = $request->getQueryParam(Config("API_LOGIN_EXPIRE"));
+            $permission = $request->getQueryParam(Config("API_LOGIN_PERMISSION")); 
         } else {
             $username = $request->getParsedBodyParam(Config("API_LOGIN_USERNAME"));
             $password = $request->getParsedBodyParam(Config("API_LOGIN_PASSWORD"));
             $code = $request->getParsedBodyParam(Config("API_LOGIN_SECURITY_CODE"));
+            $expire = $request->getParsedBodyParam(Config("API_LOGIN_EXPIRE"));
+            $permission = $request->getParsedBodyParam(Config("API_LOGIN_PERMISSION"));
         }
         $UserProfile = Container("profile");
         $Security = Container("security");
         $Language = Container("language");
+        // Valdiate expire
+        if ($expire && (!is_numeric($expire) || ParseInteger($expire) <= 0)) {
+            return $response->withJson([ "error" => $Language->phrase("IncorrectInteger") . ": " . Config("API_LOGIN_EXPIRE") ]); // Incorrect expire
+        }
+        // Valdiate permission
+        if ($permission && (!is_numeric($permission) || ParseInteger($permission) <= 0 || ParseInteger($permission) > ALLOW_ALL)) {
+            return $response->withJson([ "error" => $Language->phrase("IncorrectInteger") . ": " . Config("API_LOGIN_PERMISSION") ]); // Incorrect expire
+        }
         $validPwd = $Security->validateUser($username, $password, false, "", $code);
         if ($validPwd) {
             return $response;
@@ -43,16 +55,37 @@ class ApiController
     }
 
     // Process route info and return json
-    public function processRoute($pageName)
+    public function processRoute(Request $request, Response $response, string $pageName)
     {
         if ($pageName != "") {
             $pageClass = PROJECT_NAMESPACE . $pageName;
             if (class_exists($pageClass)) {
                 $page = new $pageClass();
-                return $page->run();
+                $page->run();
+                // Render page if not terminated
+                if (!$page->isTerminated()) {
+                    $view = $this->container->get("view");
+                    $page->RenderingView = true;
+                    $layout = property_exists($page, "MultiColumnLayout") && $page->MultiColumnLayout == "cards" ? "Cards" : "Table";
+                    $template = $page->TableVar . $layout . ".php"; // View
+                    $GLOBALS["Title"] ??= $page->Title; // Title
+                    try {
+                        $response = $view->render($response, $template, $GLOBALS);
+                    } finally {
+                        $page->RenderingView = false;
+                        $page->terminate(true); // Terminate page and clean up
+                    }
+                }
             }
         }
-        return false;
+        return $response;
+    }
+
+    // Process export
+    public function processExport(Request $request, Response $response)
+    {
+        $export = new ExportHandler();
+        return $export->export($request, $response);
     }
 
     // Process file request
@@ -129,6 +162,11 @@ class ApiController
         return $session->getSession();
     }
 
+    // Process metadata
+    public function processMetadata()
+    {
+    }
+
     // Process progress
     public function processProgress($token)
     {
@@ -148,9 +186,9 @@ class ApiController
     }
 
     // Process permissions
-    public function processPermissions($userLevel)
+    public function processPermissions($userLevel, $json)
     {
-        global $Security, $USER_LEVEL_TABLES;
+        global $Security, $USER_LEVELS, $USER_LEVEL_TABLES;
 
         // Set up security
         $Security = Container("security");
@@ -191,33 +229,37 @@ class ApiController
             WriteJson($res);
 
         // Update permissions
-        } elseif (IsPost() && $Security->isSysAdmin()) { // System admin only
-            // Check user level
-            if (!is_numeric($userLevel) || SameString($userLevel, "-1")) {
+        } elseif (IsPost() && $Security->isSysAdmin()) {
+            // Validate user level
+            if (!is_numeric($userLevel) || SameString($userLevel, "-1") || !ArrayFind(fn($level) => SameString($level[0], $userLevel), $USER_LEVELS)) {
+                $res = ["userlevel" => $userLevel, "permissions" => $json, "success" => false];
+                WriteJson($res);
                 return false;
             }
 
-            // Update permissions for user level
-            $privs = [];
-            $privsOut = [];
-            $cnt = count($ar);
-            for ($i = 0; $i < $cnt; $i++) {
-                $projectId = $ar[$i][4];
-                $tableVar = $ar[$i][1];
-                $tableName = $ar[$i][0];
-                if (Post($tableVar) !== null) {
-                    $priv = Post($tableVar);
-                    if (is_numeric($priv)) {
-                        $privs[$projectId . $tableName] = $priv;
-                        $privsOut[$tableName] = $priv;
-                    }
+            // Validate table names / permissions
+            $newPrivs = [];
+            $outPrivs = [];
+            foreach ($json as $tableName => $permission) {
+                $table = ArrayFind(fn($privs) => $privs[0] == $tableName || $privs[1] == $tableName, $ar);
+                if (!$table || !is_numeric($permission) || intval($permission) < 0 || intval($permission) > ALLOW_ALL) {
+                    $res = ["userlevel" => $userLevel, "permissions" => $json, "success" => false];
+                    WriteJson($res);
+                    return false;
                 }
+                $permission = intval($permission) & ALLOW_ALL;
+                $newPrivs[$table[4] . $table[1]] = $permission;
+                $outPrivs[$table[1]] = $permission;
             }
+
+            // Update permissions for user level
             if (method_exists($Security, "updatePermissions")) {
-                $Security->updatePermissions($userLevel, $privs);
-                $res = ["userlevel" => $userLevel, "permissions" => $privsOut, "success" => true];
+                $Security->updatePermissions($userLevel, $newPrivs);
+                $res = ["userlevel" => $userLevel, "permissions" => $outPrivs, "success" => true];
                 WriteJson($res);
             } else {
+                $res = ["userlevel" => $userLevel, "permissions" => $json, "success" => false];
+                WriteJson($res);
                 return false;
             }
         }
@@ -240,9 +282,10 @@ class ApiController
     // Process two factor authentication
     public function processTwoFactorAuthentication($action, $parm)
     {
-        $auth = new TwoFactorAuthentication();
+        $className = TwoFactorAuthenticationClass();
+        $auth = new $className();
         if ($action == Config("API_2FA_SHOW")) {
-            return $auth->showQrCodeUrl();
+            return $auth->show();
         } elseif ($action == Config("API_2FA_VERIFY")) {
             return $auth->verify($parm);
         } elseif ($action == Config("API_2FA_RESET")) {
@@ -251,6 +294,16 @@ class ApiController
             return $auth->getBackupCodes();
         } elseif ($action == Config("API_2FA_NEW_BACKUP_CODES")) {
             return $auth->getNewBackupCodes();
+        } elseif ($action == Config("API_2FA_SEND_OTP")) {
+            $usr = $_SESSION[SESSION_USER_PROFILE_USER_NAME] ?? CurrentUserName(); // Send OTP to logging in / current user
+            $res = $className::sendOneTimePassword($usr, $parm);
+            if ($res === true) { // Send successful
+                WriteJson(["success" => true]);
+                return true;
+            } else { //
+                WriteJson(["success" => false, "error" => [ "description" => $res ] ]);
+                return false;
+            }
         }
         return false;
     }
@@ -259,7 +312,7 @@ class ApiController
      * Perform API call
      *
      * Routes:
-     * 1. list/view/add/edit/delete/register
+     * 1. list/view/add/edit/delete/register/export
      *  - api/view/cars/1
      * 2. login
      *  - api/login
@@ -282,7 +335,9 @@ class ApiController
      * 11. push notification
      *  - api/push/(subscribe|send|delete)
      * 12. two factor authentication
-     *  - api/2fa/(show|verify|reset|codes|newcodes)
+     *  - api/2fa/(show|verify|reset|codes|newcodes|otp)
+     * 13. metadata
+     *  - api/metadata
      * @return Response
      */
     public function __invoke(Request $request, Response $response, array $args): Response
@@ -298,7 +353,13 @@ class ApiController
 
             // Set up page name
             $pageName = "";
-            $apiTableActions = [Config("API_LIST_ACTION"), Config("API_VIEW_ACTION"), Config("API_ADD_ACTION"), Config("API_EDIT_ACTION"), Config("API_DELETE_ACTION")];
+            $apiTableActions = [
+                Config("API_LIST_ACTION"),
+                Config("API_VIEW_ACTION"),
+                Config("API_ADD_ACTION"),
+                Config("API_EDIT_ACTION"),
+                Config("API_DELETE_ACTION")
+            ];
             if (in_array($action, $apiTableActions)) {
                 $pageName = Container($object)->getApiPageName($action);
             } elseif ($action == Config("API_REGISTER_ACTION")) { // Register
@@ -312,6 +373,8 @@ class ApiController
             if (is_callable($GLOBALS["API_ACTIONS"][$action] ?? null)) { // Deprecated
                 $func = $GLOBALS["API_ACTIONS"][$action];
                 $func($request, $response);
+            } elseif ($action == Config("API_EXPORT_ACTION")) { // Export
+                $this->processExport($request, $response);
             } elseif ($action == Config("API_UPLOAD_ACTION")) { // Upload file
                 $this->processFileUpload();
             } elseif ($action == Config("API_JQUERY_UPLOAD_ACTION")) { // jQuery file upload
@@ -328,13 +391,12 @@ class ApiController
                 }
             } elseif ($action == Config("API_SESSION_ACTION")) { // Session
                 $this->processSession();
-            } elseif ($action == Config("API_PROGRESS_ACTION")) { // Import progress
-                $this->processProgress($request->getParam(Config("API_FILE_TOKEN_NAME")));
             } elseif ($action == Config("API_EXPORT_CHART_ACTION")) { // Export chart
                 $this->processExportChart();
             } elseif ($action == Config("API_PERMISSIONS_ACTION")) { // Permissions
                 $userLevel = count($routeValues) >= 2 ? $routeValues[1] : null;
-                $this->processPermissions($userLevel);
+                $json = $request->getContentType() == "application/json" ? $request->getParsedBody() : [];
+                $this->processPermissions($userLevel, $json);
             } elseif ($action == Config("API_PUSH_NOTIFICATION_ACTION")) { // Push notification
                 $action = count($routeValues) >= 2 ? $routeValues[1] : null;
                 $this->processPushNotification($action);
@@ -342,8 +404,10 @@ class ApiController
                 $action = count($routeValues) >= 2 ? $routeValues[1] : null;
                 $parm = count($routeValues) >= 3 ? $routeValues[2] : null;
                 $this->processTwoFactorAuthentication($action, $parm);
+            } elseif ($action == Config("API_METADATA_ACTION")) { // Metadata
+                $this->processMetadata();
             } else {
-                $this->processRoute($pageName);
+                $this->processRoute($request, $response, $pageName);
             }
         }
         return $response;

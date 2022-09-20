@@ -49,14 +49,14 @@ $ThemeTableStriped: true;
 body {
     background-color: inherit; // Background color
     font-family: $PdfFont; // Font name
-    font-size: xx-small; // Font size - DO NOT CHANGE!
+    font-size: x-small; // Font size
 }
 
 // Table for PDF export
 .ew-table {
     border: 0;
     border-collapse: collapse;
-    font-size: xx-small; // Font size - DO NOT CHANGE!
+    font-size: x-small; // Font size
     width: 100%;
     margin-left: 0;
     margin-right: 0;
@@ -74,7 +74,7 @@ body {
 .ew-table .ew-table-header td, .ew-table .ew-table-header th {
     background-image: none; // Remove header bg image
     background-color: $ThemeTableHeaderBackgroundColor;
-    color: $ThemeTableHeaderColor;
+    color: color-contrast($ThemeTableHeaderBackgroundColor);
     vertical-align: top;
 }
 
@@ -158,7 +158,16 @@ body {
     border: 0;
 }
 
-// Export page break
-.ew-page-break {
+// Page breaks (Use old page-break-before/after for dompdf)
+.break-before-page {
     page-break-before: always;
+}
+.break-before-avoid {
+    page-break-before: avoid;
+}
+.break-after-page {
+    page-break-after: always;
+}
+.break-after-avoid {
+    page-break-after: avoid;
 }

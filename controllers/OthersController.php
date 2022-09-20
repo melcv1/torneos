@@ -1,24 +1,17 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Routing\RouteContext;
+use Slim\Exception\HttpUnauthorizedException;
 
 /**
  * Class others controller
  */
 class OthersController extends ControllerBase
 {
-    // error
-    public function error(Request $request, Response $response, array $args): Response
-    {
-        global $Error;
-        $Error = $this->container->get("flash")->getFirstMessage("error");
-        return $this->runPage($request, $response, $args, "Error");
-    }
-
     // personaldata
     public function personaldata(Request $request, Response $response, array $args): Response
     {
@@ -85,16 +78,7 @@ class OthersController extends ControllerBase
             $url = "login";
         }
         if ($url == "") {
-            $error = [
-                "statusCode" => "200",
-                "error" => [
-                    "class" => "text-warning",
-                    "type" => Container("language")->phrase("Error"),
-                    "description" => DeniedMessage()
-                ],
-            ];
-            Container("flash")->addMessage("error", $error);
-            return $response->withHeader("Location", GetUrl("error"))->withStatus(302); // Redirect to error page
+            throw new HttpUnauthorizedException($request, DeniedMessage());
         }
         return $response->withHeader("Location", $url)->withStatus(302);
     }

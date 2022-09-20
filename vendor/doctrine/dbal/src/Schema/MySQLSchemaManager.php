@@ -31,9 +31,7 @@ use const CASE_LOWER;
  */
 class MySQLSchemaManager extends AbstractSchemaManager
 {
-    /**
-     * @see https://mariadb.com/kb/en/library/string-literals/#escape-sequences
-     */
+    /** @see https://mariadb.com/kb/en/library/string-literals/#escape-sequences */
     private const MARIADB_ESCAPE_SEQUENCES = [
         '\\0' => "\0",
         "\\'" => "'",
@@ -198,7 +196,7 @@ class MySQLSchemaManager extends AbstractSchemaManager
                     preg_match(
                         '([A-Za-z]+\(([0-9]+),([0-9]+)\))',
                         $tableColumn['type'],
-                        $match
+                        $match,
                     ) === 1
                 ) {
                     $precision = $match[1];
@@ -368,7 +366,7 @@ class MySQLSchemaManager extends AbstractSchemaManager
             [
                 'onDelete' => $tableForeignKey['onDelete'],
                 'onUpdate' => $tableForeignKey['onUpdate'],
-            ]
+            ],
         );
     }
 
@@ -377,8 +375,8 @@ class MySQLSchemaManager extends AbstractSchemaManager
         return new MySQL\Comparator(
             $this->_platform,
             new CachingCollationMetadataProvider(
-                new ConnectionCollationMetadataProvider($this->_conn)
-            )
+                new ConnectionCollationMetadataProvider($this->_conn),
+            ),
         );
     }
 
@@ -400,27 +398,32 @@ SQL;
         $sql = 'SELECT';
 
         if ($tableName === null) {
-            $sql .= ' TABLE_NAME,';
+            $sql .= ' c.TABLE_NAME,';
         }
 
         $sql .= <<<'SQL'
-       COLUMN_NAME        AS field,
-       COLUMN_TYPE        AS type,
-       IS_NULLABLE        AS `null`,
-       COLUMN_KEY         AS `key`,
-       COLUMN_DEFAULT     AS `default`,
-       EXTRA,
-       COLUMN_COMMENT     AS comment,
-       CHARACTER_SET_NAME AS characterset,
-       COLLATION_NAME     AS collation
-FROM information_schema.COLUMNS
+       c.COLUMN_NAME        AS field,
+       c.COLUMN_TYPE        AS type,
+       c.IS_NULLABLE        AS `null`,
+       c.COLUMN_KEY         AS `key`,
+       c.COLUMN_DEFAULT     AS `default`,
+       c.EXTRA,
+       c.COLUMN_COMMENT     AS comment,
+       c.CHARACTER_SET_NAME AS characterset,
+       c.COLLATION_NAME     AS collation
+FROM information_schema.COLUMNS c
+    INNER JOIN information_schema.TABLES t
+        ON t.TABLE_NAME = c.TABLE_NAME
 SQL;
 
-        $conditions = ['TABLE_SCHEMA = ?'];
-        $params     = [$databaseName];
+        // The schema name is passed multiple times as a literal in the WHERE clause instead of using a JOIN condition
+        // in order to avoid performance issues on MySQL older than 8.0 and the corresponding MariaDB versions
+        // caused by https://bugs.mysql.com/bug.php?id=81347
+        $conditions = ['c.TABLE_SCHEMA = ?', 't.TABLE_SCHEMA = ?', "t.TABLE_TYPE = 'BASE TABLE'"];
+        $params     = [$databaseName, $databaseName];
 
         if ($tableName !== null) {
-            $conditions[] = 'TABLE_NAME = ?';
+            $conditions[] = 't.TABLE_NAME = ?';
             $params[]     = $tableName;
         }
 
@@ -548,9 +551,7 @@ SQL;
         return $tableOptions;
     }
 
-    /**
-     * @return string[]|true[]
-     */
+    /** @return string[]|true[] */
     private function parseCreateOptions(?string $string): array
     {
         $options = [];

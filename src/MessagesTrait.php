@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 trait MessagesTrait {
     // Messages
     private $message = "";
@@ -8,8 +8,11 @@ trait MessagesTrait {
     private $successMessage = "";
     private $warningMessage = "";
 
-    // Use JavaScript  message
-    public $UseJavaScriptMessage = true;
+    // Heading
+    private $messageHeading = "";
+
+    // Use JavaScript message
+    public $UseJavaScriptMessage;
 
     // Get message
     public function getMessage()
@@ -63,11 +66,32 @@ trait MessagesTrait {
         $_SESSION[SESSION_WARNING_MESSAGE] = $this->warningMessage;
     }
 
+    // Get message heading
+    public function getMessageHeading()
+    {
+        return $_SESSION[SESSION_MESSAGE_HEADING] ?? $this->messageHeading;
+    }
+
+    // Set message heading
+    public function setMessageHeading($v)
+    {
+        $this->messageHeading = $v;
+        $_SESSION[SESSION_MESSAGE_HEADING] = $this->messageHeading;
+    }
+
+    // Clear message heading
+    public function clearMessageHeading()
+    {
+        $this->messageHeading = "";
+        $_SESSION[SESSION_MESSAGE_HEADING] = "";
+    }
+
     // Clear message
     public function clearMessage()
     {
         $this->message = "";
         $_SESSION[SESSION_MESSAGE] = "";
+        $this->clearMessageHeading();
     }
 
     // Clear failure message
@@ -75,6 +99,7 @@ trait MessagesTrait {
     {
         $this->failureMessage = "";
         $_SESSION[SESSION_FAILURE_MESSAGE] = "";
+        $this->clearMessageHeading();
     }
 
     // Clear success message
@@ -82,6 +107,7 @@ trait MessagesTrait {
     {
         $this->successMessage = "";
         $_SESSION[SESSION_SUCCESS_MESSAGE] = "";
+        $this->clearMessageHeading();
     }
 
     // Clear warning message
@@ -89,6 +115,7 @@ trait MessagesTrait {
     {
         $this->warningMessage = "";
         $_SESSION[SESSION_WARNING_MESSAGE] = "";
+        $this->clearMessageHeading();
     }
 
     // Clear messages
@@ -104,18 +131,20 @@ trait MessagesTrait {
     public function showMessage()
     {
         global $Language;
-        $hidden = $this->UseJavaScriptMessage;
+        $hidden = $this->UseJavaScriptMessage ?? Config("USE_JAVASCRIPT_MESSAGE");
         $html = "";
+        // Message heading
+        $heading = function () {
+            $mh =  $this->getMessageHeading();
+            return $mh != '' ? '<h5 class="alert-heading">' . $mh . '</h5>' : '';
+        };
         // Message
         $message = $this->getMessage();
         if (method_exists($this, "messageShowing")) {
             $this->messageShowing($message, "");
         }
         if ($message != "") {
-            if (!$hidden) {
-                $message = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . $Language->phrase("CloseBtn") . '"></button>' . $message;
-            }
-            $html .= '<div class="alert alert-info alert-dismissible ew-info"><i class="icon fas fa-info"></i>' . $message . '</div>';
+            $html .= '<div class="alert alert-info alert-dismissible ew-info">' . $heading() . '<i class="icon fa-solid fa-info"></i>' . $message . '</div>';
         }
         // Warning message
         $warningMessage = $this->getWarningMessage();
@@ -123,10 +152,7 @@ trait MessagesTrait {
             $this->messageShowing($warningMessage, "warning");
         }
         if ($warningMessage != "") {
-            if (!$hidden) {
-                $warningMessage = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . $Language->phrase("CloseBtn") . '"></button>' . $warningMessage;
-            }
-            $html .= '<div class="alert alert-warning alert-dismissible ew-warning"><i class="icon fas fa-exclamation"></i>' . $warningMessage . '</div>';
+            $html .= '<div class="alert alert-warning alert-dismissible ew-warning">' . $heading() . '<i class="icon fa-solid fa-exclamation"></i>' . $warningMessage . '</div>';
         }
         // Success message
         $successMessage = $this->getSuccessMessage();
@@ -134,10 +160,7 @@ trait MessagesTrait {
             $this->messageShowing($successMessage, "success");
         }
         if ($successMessage != "") {
-            if (!$hidden) {
-                $successMessage = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . $Language->phrase("CloseBtn") . '"></button>' . $successMessage;
-            }
-            $html .= '<div class="alert alert-success alert-dismissible ew-success"><i class="icon fas fa-check"></i>' . $successMessage . '</div>';
+            $html .= '<div class="alert alert-success alert-dismissible ew-success">' . $heading() . '<i class="icon fa-solid fa-check"></i>' . $successMessage . '</div>';
         }
         // Failure message
         $errorMessage = $this->getFailureMessage();
@@ -145,12 +168,12 @@ trait MessagesTrait {
             $this->messageShowing($errorMessage, "failure");
         }
         if ($errorMessage != "") {
-            if (!$hidden) {
-                $errorMessage = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . $Language->phrase("CloseBtn") . '"></button>' . $errorMessage;
-            }
-            $html .= '<div class="alert alert-danger alert-dismissible ew-error"><i class="icon fas fa-ban"></i>' . $errorMessage . '</div>';
+            $html .= '<div class="alert alert-danger alert-dismissible ew-error">' . $heading() . '<i class="icon fa-solid fa-ban"></i>' . $errorMessage . '</div>';
         }
         $this->clearMessages();
+        if (!$hidden) {
+            $html = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . $Language->phrase("CloseBtn") . '"></button>' . $html;
+        }
         echo '<div class="ew-message-dialog' . ($hidden ? ' d-none' : '') . '">' . $html . '</div>';
     }
 
@@ -158,6 +181,11 @@ trait MessagesTrait {
     public function getMessages()
     {
         $ar = [];
+        // Message heading
+        $heading = $this->getMessageHeading();
+        if ($heading != "") {
+            $ar["heading"] = $heading;
+        }
         // Message
         $message = $this->getMessage();
         if ($message != "") {
@@ -171,6 +199,7 @@ trait MessagesTrait {
         // Success message
         $successMessage = $this->getSuccessMessage();
         if ($successMessage != "") {
+            $ar["success"] = true;
             $ar["successMessage"] = $successMessage;
         }
         // Failure message

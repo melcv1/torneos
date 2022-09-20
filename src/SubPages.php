@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Sub pages class
@@ -151,9 +151,9 @@ class SubPages implements \ArrayAccess
     public function activeClasses($k)
     {
         if ($this->isActive($k)) { // Active page
-            if ($this->isTabsOrPills()) { // "tabs" or "pills"
+            if ($this->isTabsOrPills()) { // Tabs/Pills
                 return " active";
-            } elseif ($this->isAccordion()) { // accordion
+            } elseif ($this->isAccordion()) { // Accordion
                 return " show";
             }
         }

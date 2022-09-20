@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EstadioDelete extends Estadio
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'estadio';
-
     // Page object name
     public $PageObjName = "EstadioDelete";
 
@@ -34,6 +31,9 @@ class EstadioDelete extends Estadio
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "estadiodelete";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class EstadioDelete extends Estadio
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class EstadioDelete extends Estadio
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'estadio';
+        $this->TableName = 'estadio';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (estadio)
         if (!isset($GLOBALS["estadio"]) || get_class($GLOBALS["estadio"]) == PROJECT_NAMESPACE . "estadio") {
@@ -164,14 +147,14 @@ class EstadioDelete extends Estadio
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class EstadioDelete extends Estadio
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class EstadioDelete extends Estadio
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("estadio");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class EstadioDelete extends Estadio
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -390,10 +354,13 @@ class EstadioDelete extends Estadio
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->id_estadio->setVisibility();
         $this->id_torneo->setVisibility();
@@ -402,7 +369,6 @@ class EstadioDelete extends Estadio
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->Visible = false;
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -415,6 +381,15 @@ class EstadioDelete extends Estadio
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -437,12 +412,12 @@ class EstadioDelete extends Estadio
         // Get action
         if (IsApi()) {
             $this->CurrentAction = "delete"; // Delete record directly
-        } elseif (Post("action") !== null) {
-            $this->CurrentAction = Post("action");
-        } elseif (Get("action") == "1") {
-            $this->CurrentAction = "delete"; // Delete record directly
+        } elseif (Param("action") !== null) {
+            $this->CurrentAction = Param("action") == "delete" ? "delete" : "show";
         } else {
-            $this->CurrentAction = "show"; // Display record
+            $this->CurrentAction = $this->InlineDelete ?
+                "delete" : // Delete record directly
+                "show"; // Display record
         }
         if ($this->isDelete()) {
             $this->SendEmail = true; // Send email on delete success
@@ -450,7 +425,7 @@ class EstadioDelete extends Estadio
                 if ($this->getSuccessMessage() == "") {
                     $this->setSuccessMessage($Language->phrase("DeleteSuccess")); // Set up success message
                 }
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate(true);
                     return;
                 } else {
@@ -458,11 +433,23 @@ class EstadioDelete extends Estadio
                     return;
                 }
             } else { // Delete failed
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate();
                     return;
                 }
-                $this->CurrentAction = "show"; // Display record
+                // Return JSON error message if UseAjaxActions
+                if ($this->UseAjaxActions) {
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return;                    
+                }
+                if ($this->InlineDelete) {
+                    $this->terminate($this->getReturnUrl()); // Return to caller
+                    return;
+                } else {
+                    $this->CurrentAction = "show"; // Display record
+                }
             }
         }
         if ($this->isShow()) { // Load records for display
@@ -536,7 +523,7 @@ class EstadioDelete extends Estadio
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -642,14 +629,13 @@ class EstadioDelete extends Estadio
         if ($this->RowType == ROWTYPE_VIEW) {
             // id_estadio
             $this->id_estadio->ViewValue = $this->id_estadio->CurrentValue;
-            $this->id_estadio->ViewCustomAttributes = "";
 
             // id_torneo
             $curVal = strval($this->id_torneo->CurrentValue);
             if ($curVal != "") {
                 $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
                 if ($this->id_torneo->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->id_torneo->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -666,11 +652,9 @@ class EstadioDelete extends Estadio
             } else {
                 $this->id_torneo->ViewValue = null;
             }
-            $this->id_torneo->ViewCustomAttributes = "";
 
             // nombre_estadio
             $this->nombre_estadio->ViewValue = $this->nombre_estadio->CurrentValue;
-            $this->nombre_estadio->ViewCustomAttributes = "";
 
             // foto_estadio
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
@@ -682,43 +666,35 @@ class EstadioDelete extends Estadio
             } else {
                 $this->foto_estadio->ViewValue = "";
             }
-            $this->foto_estadio->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // id_estadio
-            $this->id_estadio->LinkCustomAttributes = "";
             $this->id_estadio->HrefValue = "";
             $this->id_estadio->TooltipValue = "";
 
             // id_torneo
-            $this->id_torneo->LinkCustomAttributes = "";
             $this->id_torneo->HrefValue = "";
             $this->id_torneo->TooltipValue = "";
 
             // nombre_estadio
-            $this->nombre_estadio->LinkCustomAttributes = "";
             $this->nombre_estadio->HrefValue = "";
             $this->nombre_estadio->TooltipValue = "";
 
             // foto_estadio
-            $this->foto_estadio->LinkCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
                 $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
@@ -739,12 +715,10 @@ class EstadioDelete extends Estadio
             }
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
         }
@@ -789,6 +763,9 @@ class EstadioDelete extends Estadio
             $deleteRow = $this->rowDeleting($row);
             if ($deleteRow) { // Delete
                 $deleteRow = $this->delete($row);
+                if (!$deleteRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             }
             if ($deleteRow === false) {
                 if ($this->UseTransaction) {
@@ -827,7 +804,7 @@ class EstadioDelete extends Estadio
 
             // Set warning message if delete some records failed
             if (count($failKeys) > 0) {
-                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
+                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteRecordsFailed")));
             }
         } else {
             if ($this->UseTransaction) { // Rollback transaction
@@ -835,10 +812,14 @@ class EstadioDelete extends Estadio
             }
         }
 
-        // Write JSON for API request
-        if (IsApi() && $deleteRows) {
-            $row = $this->getRecordsFromRecordset($rsold);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+        // Write JSON response
+        if ((IsJsonResponse() || ConvertToBool(Param("infinitescroll"))) && $deleteRows) {
+            $rows = $this->getRecordsFromRecordset($rsold);
+            $table = $this->TableVar;
+            if (Route(2) !== null) { // Single delete
+                $rows = $rows[0]; // Return object
+            }
+            WriteJson(["success" => true, "action" => Config("API_DELETE_ACTION"), $table => $rows]);
         }
         return $deleteRows;
     }
@@ -887,7 +868,11 @@ class EstadioDelete extends Estadio
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -946,5 +931,13 @@ class EstadioDelete extends Estadio
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

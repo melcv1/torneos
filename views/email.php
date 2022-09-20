@@ -1,4 +1,4 @@
-<?php namespace PHPMaker2022\project11; ?>
+<?php namespace PHPMaker2023\project11; ?>
 <!-- email dialog -->
 <div id="ew-email-dialog" class="modal" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
@@ -7,11 +7,12 @@
                 <h5 class="modal-title"></h5>
             </div>
             <div class="modal-body">
-                <form id="ew-email-form" class="ew-form" action="<?= CurrentPageUrl(false) ?>" >
+                <form id="ew-email-form" class="ew-form" action="<?= CurrentPageUrl(false) ?>"  novalidate autocomplete="on">
                     <?php if (Config("CHECK_TOKEN")) { ?>
                     <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
                     <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
                     <?php } ?>
+                    <input type="hidden" name="tblvar" id="tblvar" value="<?= isset($GLOBALS["Table"]) ? $GLOBALS["Table"]->TableVar : "" ?>">
                     <input type="hidden" name="export" id="export" value="email">
                     <div class="row mb-3">
                         <label class="col-sm-2 col-form-label ew-label" for="sender"><?= $Language->phrase("EmailFormSender") ?></label>

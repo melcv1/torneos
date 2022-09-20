@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Helper class
@@ -25,7 +25,7 @@ class HttpSession implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function get($key, $default = null)
     {
-        return $_SESSION[$key] ?? $default; //***
+        return $_SESSION[$key] ?? $default;
     }
 
     /**
@@ -93,7 +93,7 @@ class HttpSession implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function exists($key)
     {
-        return array_key_exists($key, $_SESSION ?? []); //***
+        return array_key_exists($key, $_SESSION ?? []);
     }
 
     /**
@@ -103,7 +103,7 @@ class HttpSession implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return bool
      */
-    public function isset($key) //***
+    public function isset($key)
     {
         return isset($_SESSION[$key]);
     }
@@ -197,7 +197,7 @@ class HttpSession implements \ArrayAccess, \Countable, \IteratorAggregate
 
     public function count()
     {
-        return count($_SESSION ?? []); //***
+        return count($_SESSION ?? []);
     }
 
     /**
@@ -209,7 +209,7 @@ class HttpSession implements \ArrayAccess, \Countable, \IteratorAggregate
 
     public function getIterator()
     {
-        return new \ArrayIterator($_SESSION ?? []); //***
+        return new \ArrayIterator($_SESSION ?? []);
     }
 
     /**

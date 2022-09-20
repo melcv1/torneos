@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * User Profile Class
@@ -10,7 +10,6 @@ class UserProfile
     public $Username = "";
     public $Profile = [];
     public $Provider = "";
-    public $Auth = "";
     public $MaxRetryCount;
     public $RetryLockoutTime;
     protected $BackupUsername = "";
@@ -92,20 +91,26 @@ class UserProfile
             $this->Excluded = array_merge($this->Excluded, $input);
         }
         if (is_object($input)) {
-            $this->assign(get_object_vars($input), $save);
+            $vars = get_object_vars($input);
+            if (is_array($vars["data"])) {
+                $data = $vars["data"];
+                unset($vars["data"]);
+                $vars = array_merge($vars, $data);
+            }
+            $this->assign($vars, $save);
         } elseif (is_array($input)) {
             foreach ($input as $key => $value) { // Remove integer keys
                 if (is_int($key)) {
                     unset($input[$key]);
                 }
             }
-            $input = array_filter($input, function ($val) {
-                if (is_bool($val) || is_float($val) || is_int($val) || $val === null || is_string($val) && strlen($val) <= Config("DATA_STRING_MAX_LENGTH")) {
-                    return true;
+            $input = array_filter($input, fn($val) => is_bool($val) || is_float($val) || is_int($val) || $val === null || is_string($val) && strlen($val) <= Config("DATA_STRING_MAX_LENGTH"));
+            foreach ($input as $key => $value) {
+                if (preg_match('/http:\/\/schemas\.[.\/\w]+\/claims\/(\w+)/', $key, $m)) { // e.g. http://schemas.microsoft.com/identity/claims/xxx, http://schemas.xmlsoap.org/ws/2005/05/identity/claims/xxx
+                    $key = $m[1];
                 }
-                return false;
-            });
-            $this->Profile = array_merge($this->Profile, $input);
+                $this->set($key, $value);
+            }
         }
     }
 
@@ -262,7 +267,7 @@ class UserProfile
     // Load profile from string
     protected function loadProfile($profile)
     {
-        $ar = unserialize(strval($profile));
+        $ar = @unserialize(strval($profile));
         if (is_array($ar)) {
             $this->Profile = array_merge($this->Profile, $ar);
         }
@@ -372,8 +377,9 @@ class UserProfile
                 $secret = $this->get(Config("USER_PROFILE_SECRET"));
                 // Create new secret and save to profile
                 if (EmptyString($secret)) {
-                    $secret = TwoFactorAuthentication::generateSecret();
-                    $backupCodes = TwoFactorAuthentication::generateBackupCodes();
+                    $className = TwoFactorAuthenticationClass();
+                    $secret = $className::generateSecret();
+                    $backupCodes = $className::generateBackupCodes();
                     $this->set(Config("USER_PROFILE_SECRET"), $secret);
                     $this->set(Config("USER_PROFILE_SECRET_CREATE_DATE_TIME"), DbCurrentDateTime());
                     $this->setBackupCodes($backupCodes);
@@ -391,15 +397,36 @@ class UserProfile
         return "";
     }
 
+    // Set one time passwword (Email/SMS)
+    public function setOneTimePassword($usr, $account, $otp)
+    {
+        try {
+            if ($this->loadProfileFromDatabase($usr)) {
+                $this->set(Config("USER_PROFILE_ONE_TIME_PASSWORD"), $otp);
+                $this->set(Config("USER_PROFILE_OTP_ACCOUNT"), $account);
+                $this->set(Config("USER_PROFILE_OTP_CREATE_DATE_TIME"), DbCurrentDateTime());
+                $this->saveProfileToDatabase($usr);
+                return true;
+            }
+        } catch (\Throwable $e) {
+            if (Config("DEBUG")) {
+                throw $e;
+            }
+        } finally {
+            $this->restore($usr); // Restore current profile
+        }
+        return false;
+    }
+
     // Get backup codes
     public function getBackupCodes($usr = "")
     {
         try {
             if (EmptyValue($usr) || $this->loadProfileFromDatabase($usr)) {
                 $codes = $this->get(Config("USER_PROFILE_BACKUP_CODES"));
-                $decryptedCodes = is_array($codes) ? array_map(function ($code) {
-                    return strlen($code) == Config("TWO_FACTOR_AUTHENTICATION_BACKUP_CODE_LENGTH") ? $code : PhpDecrypt(strval($code)); // Encrypt backup codes if necessary
-                }, $codes) : [];
+                $decryptedCodes = is_array($codes)
+                    ? array_map(fn($code) => strlen($code) == Config("TWO_FACTOR_AUTHENTICATION_BACKUP_CODE_LENGTH") ? $code : PhpDecrypt(strval($code)), $codes) // Encrypt backup codes if necessary
+                    : [];
                 return $decryptedCodes;
             }
         } catch (\Throwable $e) {
@@ -415,9 +442,7 @@ class UserProfile
     protected function setBackupCodes(array $codes)
     {
         try {
-            $encryptedCodes = array_map(function ($code) {
-                return strlen($code) == Config("TWO_FACTOR_AUTHENTICATION_BACKUP_CODE_LENGTH") ? PhpEncrypt(strval($code)) : $code; // Encrypt backup codes if necessary
-            }, $codes);
+            $encryptedCodes = array_map(fn($code) => strlen($code) == Config("TWO_FACTOR_AUTHENTICATION_BACKUP_CODE_LENGTH") ? PhpEncrypt(strval($code)) : $code, $codes); // Encrypt backup codes if necessary
             $this->set(Config("USER_PROFILE_BACKUP_CODES"), $encryptedCodes);
         } catch (\Throwable $e) {
             if (Config("DEBUG")) {
@@ -431,7 +456,7 @@ class UserProfile
     {
         try {
             if ($this->loadProfileFromDatabase($usr)) {
-                $codes = TwoFactorAuthentication::generateBackupCodes();
+                $codes = TwoFactorAuthenticationClass()::generateBackupCodes();
                 $this->setBackupCodes($codes);
                 $this->saveProfileToDatabase($usr);
                 return $codes;
@@ -449,11 +474,17 @@ class UserProfile
     // Verify 2FA code
     public function verify2FACode($usr, $code)
     {
+        global $UserTable;
         try {
             if ($this->loadProfileFromDatabase($usr)) {
-                $secret = $this->get(Config("USER_PROFILE_SECRET"));
-                if ($secret !== "") { // Secret is not empty
-                    $valid = TwoFactorAuthentication::checkCode($secret, $code);
+                if (SameText(Config("TWO_FACTOR_AUTHENTICATION_TYPE"), "google")) { // Check against secret
+                    $storedCode = $this->get(Config("USER_PROFILE_SECRET"));
+                } else { // Check against encrypted one time password
+                    $secret = $this->get(Config("USER_PROFILE_SECRET"));
+                    $storedCode = Decrypt($this->get(Config("USER_PROFILE_ONE_TIME_PASSWORD")), $secret);
+                }
+                if ($storedCode !== "") { // Stored code is not empty
+                    $valid = TwoFactorAuthenticationClass()::checkCode($storedCode, $code);
                     if (!$valid && strlen($code) == Config("TWO_FACTOR_AUTHENTICATION_BACKUP_CODE_LENGTH")) { // Not valid, check if $code is backup code
                         $backupCodes = $this->getBackupCodes();
                         $valid = array_search($code, $backupCodes);
@@ -466,7 +497,23 @@ class UserProfile
                     if ($valid) { // Update verify date/time
                         $this->set(Config("USER_PROFILE_SECRET_VERIFY_DATE_TIME"), DbCurrentDateTime());
                         $this->set(Config("USER_PROFILE_SECRET_LAST_VERIFY_CODE"), $code);
+                        if (!SameText(Config("TWO_FACTOR_AUTHENTICATION_TYPE"), "google")) {
+                            // Set OTP verify date time
+                            $this->set(Config("USER_PROFILE_OTP_VERIFY_DATE_TIME"), DbCurrentDateTime());
+                        }
                         $this->saveProfileToDatabase($usr);
+                        // Update email address / mobile number if not verified
+                        $filter = GetUserFilter(Config("LOGIN_USERNAME_FIELD_NAME"), $usr);
+                        $account = $this->get(Config("USER_PROFILE_OTP_ACCOUNT"));
+                        if ($account) {
+                            if (SameText(Config("TWO_FACTOR_AUTHENTICATION_TYPE"), "email")) {
+                                $rs = [Config("USER_EMAIL_FIELD_NAME") => $account];
+                                $UserTable->update($rs, $filter);
+                            } elseif (SameText(Config("TWO_FACTOR_AUTHENTICATION_TYPE"), "sms")) {
+                                $rs = [Config("USER_PHONE_FIELD_NAME") => $account];
+                                $UserTable->update($rs, $filter);
+                            }
+                        }
                     }
                     return $valid;
                 }

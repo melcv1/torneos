@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PronosticadorAdd = &$Page;
@@ -8,40 +8,49 @@ $PronosticadorAdd = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
-var currentForm, currentPageID;
+var currentPageID = ew.PAGE_ID = "add";
+var currentForm;
 var fpronosticadoradd;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fpronosticadoradd = new ew.Form("fpronosticadoradd", "add");
-    currentPageID = ew.PAGE_ID = "add";
-    currentForm = fpronosticadoradd;
+    let form = new ew.FormBuilder()
+        .setId("fpronosticadoradd")
+        .setPageId("add")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fpronosticadoradd.addFields([
-        ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
-        ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
-        ["EQUIPO", [fields.EQUIPO.visible && fields.EQUIPO.required ? ew.Validators.required(fields.EQUIPO.caption) : null], fields.EQUIPO.isInvalid],
-        ["POSICION", [fields.POSICION.visible && fields.POSICION.required ? ew.Validators.required(fields.POSICION.caption) : null], fields.POSICION.isInvalid],
-        ["NUMERACION", [fields.NUMERACION.visible && fields.NUMERACION.required ? ew.Validators.required(fields.NUMERACION.caption) : null], fields.NUMERACION.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
+            ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
+            ["EQUIPO", [fields.EQUIPO.visible && fields.EQUIPO.required ? ew.Validators.required(fields.EQUIPO.caption) : null], fields.EQUIPO.isInvalid],
+            ["POSICION", [fields.POSICION.visible && fields.POSICION.required ? ew.Validators.required(fields.POSICION.caption) : null], fields.POSICION.isInvalid],
+            ["NUMERACION", [fields.NUMERACION.visible && fields.NUMERACION.required ? ew.Validators.required(fields.NUMERACION.caption) : null], fields.NUMERACION.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fpronosticadoradd.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fpronosticadoradd.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    fpronosticadoradd.lists.ID_PARTICIPANTE = <?= $Page->ID_PARTICIPANTE->toClientList($Page) ?>;
-    fpronosticadoradd.lists.GRUPO = <?= $Page->GRUPO->toClientList($Page) ?>;
-    fpronosticadoradd.lists.EQUIPO = <?= $Page->EQUIPO->toClientList($Page) ?>;
-    fpronosticadoradd.lists.POSICION = <?= $Page->POSICION->toClientList($Page) ?>;
-    loadjs.done("fpronosticadoradd");
+        // Dynamic selection lists
+        .setLists({
+            "ID_PARTICIPANTE": <?= $Page->ID_PARTICIPANTE->toClientList($Page) ?>,
+            "GRUPO": <?= $Page->GRUPO->toClientList($Page) ?>,
+            "EQUIPO": <?= $Page->EQUIPO->toClientList($Page) ?>,
+            "POSICION": <?= $Page->POSICION->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -53,7 +62,7 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fpronosticadoradd" id="fpronosticadoradd" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post">
+<form name="fpronosticadoradd" id="fpronosticadoradd" class="<?= $Page->FormClassName ?>" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -61,6 +70,9 @@ $Page->showMessage();
 <input type="hidden" name="t" value="pronosticador">
 <input type="hidden" name="action" id="action" value="insert">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
+<?php if (IsJsonResponse()) { ?>
+<input type="hidden" name="json" value="1">
+<?php } ?>
 <input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <div class="ew-add-div"><!-- page* -->
 <?php if ($Page->ID_PARTICIPANTE->Visible) { // ID_PARTICIPANTE ?>
@@ -87,8 +99,9 @@ $Page->showMessage();
 loadjs.ready("fpronosticadoradd", function() {
     var options = { name: "x_ID_PARTICIPANTE", selectId: "fpronosticadoradd_x_ID_PARTICIPANTE" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoradd.lists.ID_PARTICIPANTE.lookupOptions.length) {
+    if (fpronosticadoradd.lists.ID_PARTICIPANTE?.lookupOptions.length) {
         options.data = { id: "x_ID_PARTICIPANTE", form: "fpronosticadoradd" };
     } else {
         options.ajax = { id: "x_ID_PARTICIPANTE", form: "fpronosticadoradd", limit: ew.LOOKUP_PAGE_SIZE };
@@ -125,8 +138,9 @@ loadjs.ready("fpronosticadoradd", function() {
 loadjs.ready("fpronosticadoradd", function() {
     var options = { name: "x_GRUPO", selectId: "fpronosticadoradd_x_GRUPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoradd.lists.GRUPO.lookupOptions.length) {
+    if (fpronosticadoradd.lists.GRUPO?.lookupOptions.length) {
         options.data = { id: "x_GRUPO", form: "fpronosticadoradd" };
     } else {
         options.ajax = { id: "x_GRUPO", form: "fpronosticadoradd", limit: ew.LOOKUP_PAGE_SIZE };
@@ -164,8 +178,9 @@ loadjs.ready("fpronosticadoradd", function() {
 loadjs.ready("fpronosticadoradd", function() {
     var options = { name: "x_EQUIPO", selectId: "fpronosticadoradd_x_EQUIPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoradd.lists.EQUIPO.lookupOptions.length) {
+    if (fpronosticadoradd.lists.EQUIPO?.lookupOptions.length) {
         options.data = { id: "x_EQUIPO", form: "fpronosticadoradd" };
     } else {
         options.ajax = { id: "x_EQUIPO", form: "fpronosticadoradd", limit: ew.LOOKUP_PAGE_SIZE };
@@ -202,8 +217,9 @@ loadjs.ready("fpronosticadoradd", function() {
 loadjs.ready("fpronosticadoradd", function() {
     var options = { name: "x_POSICION", selectId: "fpronosticadoradd_x_POSICION" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadoradd.lists.POSICION.lookupOptions.length) {
+    if (fpronosticadoradd.lists.POSICION?.lookupOptions.length) {
         options.data = { id: "x_POSICION", form: "fpronosticadoradd" };
     } else {
         options.ajax = { id: "x_POSICION", form: "fpronosticadoradd", limit: ew.LOOKUP_PAGE_SIZE };
@@ -222,7 +238,7 @@ loadjs.ready("fpronosticadoradd", function() {
         <label id="elh_pronosticador_NUMERACION" for="x_NUMERACION" class="<?= $Page->LeftColumnClass ?>"><?= $Page->NUMERACION->caption() ?><?= $Page->NUMERACION->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->NUMERACION->cellAttributes() ?>>
 <span id="el_pronosticador_NUMERACION">
-<input type="<?= $Page->NUMERACION->getInputTextType() ?>" name="x_NUMERACION" id="x_NUMERACION" data-table="pronosticador" data-field="x_NUMERACION" value="<?= $Page->NUMERACION->EditValue ?>" size="30" maxlength="4" placeholder="<?= HtmlEncode($Page->NUMERACION->getPlaceHolder()) ?>"<?= $Page->NUMERACION->editAttributes() ?> aria-describedby="x_NUMERACION_help">
+<input type="<?= $Page->NUMERACION->getInputTextType() ?>" name="x_NUMERACION" id="x_NUMERACION" data-table="pronosticador" data-field="x_NUMERACION" value="<?= $Page->NUMERACION->EditValue ?>" size="30" maxlength="4" placeholder="<?= HtmlEncode($Page->NUMERACION->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->NUMERACION->formatPattern()) ?>"<?= $Page->NUMERACION->editAttributes() ?> aria-describedby="x_NUMERACION_help">
 <?= $Page->NUMERACION->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->NUMERACION->getErrorMessage() ?></div>
 </span>
@@ -230,14 +246,16 @@ loadjs.ready("fpronosticadoradd", function() {
     </div>
 <?php } ?>
 </div><!-- /page* -->
-<?php if (!$Page->IsModal) { ?>
-<div class="row"><!-- buttons .row -->
+<?= $Page->IsModal ? '<template class="ew-modal-buttons">' : '<div class="row ew-buttons">' ?><!-- buttons .row -->
     <div class="<?= $Page->OffsetColumnClass ?>"><!-- buttons offset -->
-<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit"><?= $Language->phrase("AddBtn") ?></button>
-<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
-    </div><!-- /buttons offset -->
-</div><!-- /buttons .row -->
+<button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit" form="fpronosticadoradd"><?= $Language->phrase("AddBtn") ?></button>
+<?php if (IsJsonResponse()) { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button>
+<?php } else { ?>
+<button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" form="fpronosticadoradd" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
 <?php } ?>
+    </div><!-- /buttons offset -->
+<?= $Page->IsModal ? "</template>" : "</div>" ?><!-- /buttons .row -->
 </form>
 <?php
 $Page->showPageFooter();

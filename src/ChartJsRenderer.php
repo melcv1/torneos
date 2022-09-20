@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Chart.js renderer
@@ -10,8 +10,8 @@ class ChartJsRenderer implements ChartRendererInterface
     public $Chart;
     public $Data;
     public $Options;
-    static $DefaultWidth = 600;
-    static $DefaultHeight = 500;
+    public static $DefaultWidth = 600;
+    public static $DefaultHeight = 500;
 
     // Constructor
     public function __construct($chart)
@@ -88,16 +88,16 @@ class ChartJsRenderer implements ChartRendererInterface
 
         // chartjs-plugin-datalabels options
         // https://chartjs-plugin-datalabels.netlify.app/guide/options.html
-        $this->Options["plugins.datalabels.clamp"] = true;
+        $this->Options["plugins.datalabels.clamp"] ??= true;
         $title = $this->Chart->loadParameter("caption");
 
-        // Initialise X / Y Axes
+        // Init X/Y Axes
         $yAxes = [];
         $x = [];
         $y = [];
         $scale = $this->Chart->getParameters("scale"); // Default bar chart scale
 
-        // Set up beginAtZero / min / max // chartjs 3
+        // Set up beginAtZero/min/max
         $vscale = [];
         if ($this->Chart->ScaleBeginWithZero) {
             $vscale["beginAtZero"] = true;
@@ -356,9 +356,12 @@ class ChartJsRenderer implements ChartRendererInterface
         $line["type"] = "line"; // Line annotation
         $line["borderColor"] = GetRgbaColor($line["borderColor"], GetOpacity(@$line["alpha"])); // Color
         $line["endValue"] = $line["endValue"] ?? $line["value"]; // End value
+        $label = $line["label"];
+        $display = $label ? true : false;
         $line["label"] = [
-            "content" => $line["label"] ?? $line["value"],
+            "content" => $label,
             "backgroundColor" => $line["borderColor"],
+            "display" => $display,
             "enabled" => true,
             "position" => IsRTL() ? "left" : "right"
         ];
@@ -405,9 +408,7 @@ class ChartJsRenderer implements ChartRendererInterface
         $dataset = $this->Chart->getParameters("dataset"); // Load default dataset options
         $dataset["data"] = $data; // Load data
         $dataset["backgroundColor"] = $color; // Background color
-        $changeAlpha = function ($c) {
-            return preg_replace('/[\d\.]+(?=\))/', "1.0", $c); // Change alpha to 1.0
-        };
+        $changeAlpha = fn($c) => preg_replace('/[\d\.]+(?=\))/', "1.0", $c); // Change alpha to 1.0
         if (is_array($color)) {
             $borderColor = array_map($changeAlpha, $color);
             $dataset["borderColor"] = $borderColor;

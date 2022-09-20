@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * List option class
@@ -53,13 +53,13 @@ class ListOption
         $tagclass = $this->Parent->TagClassName;
         $td = SameText($this->Parent->Tag, "td");
         if ($part == "header") {
-            $tagclass = $tagclass ?? "ew-list-option-header";
+            $tagclass ??= "ew-list-option-header";
             $value = $this->Header;
         } elseif ($part == "body") {
-            $tagclass = $tagclass ?? "ew-list-option-body";
+            $tagclass ??= "ew-list-option-body";
             $value = $this->Body;
         } elseif ($part == "footer") {
-            $tagclass = $tagclass ?? "ew-list-option-footer";
+            $tagclass ??= "ew-list-option-footer";
             $value = $this->Footer;
         } else {
             $value = $part;

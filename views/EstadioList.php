@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $EstadioList = &$Page;
@@ -9,52 +9,49 @@ $EstadioList = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { estadio: currentTable } });
-var currentForm, currentPageID;
-var festadiolist;
+var currentPageID = ew.PAGE_ID = "list";
+var currentForm;
+var <?= $Page->FormName ?>;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    festadiolist = new ew.Form("festadiolist", "list");
-    currentPageID = ew.PAGE_ID = "list";
-    currentForm = festadiolist;
-    festadiolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+    let form = new ew.FormBuilder()
+        .setId("<?= $Page->FormName ?>")
+        .setPageId("list")
+        .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
+        .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
 
-    // Add fields
-    var fields = currentTable.fields;
-    festadiolist.addFields([
-        ["id_estadio", [fields.id_estadio.visible && fields.id_estadio.required ? ew.Validators.required(fields.id_estadio.caption) : null], fields.id_estadio.isInvalid],
-        ["id_torneo", [fields.id_torneo.visible && fields.id_torneo.required ? ew.Validators.required(fields.id_torneo.caption) : null], fields.id_torneo.isInvalid],
-        ["nombre_estadio", [fields.nombre_estadio.visible && fields.nombre_estadio.required ? ew.Validators.required(fields.nombre_estadio.caption) : null], fields.nombre_estadio.isInvalid],
-        ["foto_estadio", [fields.foto_estadio.visible && fields.foto_estadio.required ? ew.Validators.fileRequired(fields.foto_estadio.caption) : null], fields.foto_estadio.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["id_estadio", [fields.id_estadio.visible && fields.id_estadio.required ? ew.Validators.required(fields.id_estadio.caption) : null], fields.id_estadio.isInvalid],
+            ["id_torneo", [fields.id_torneo.visible && fields.id_torneo.required ? ew.Validators.required(fields.id_torneo.caption) : null], fields.id_torneo.isInvalid],
+            ["nombre_estadio", [fields.nombre_estadio.visible && fields.nombre_estadio.required ? ew.Validators.required(fields.nombre_estadio.caption) : null], fields.nombre_estadio.isInvalid],
+            ["foto_estadio", [fields.foto_estadio.visible && fields.foto_estadio.required ? ew.Validators.fileRequired(fields.foto_estadio.caption) : null], fields.foto_estadio.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    festadiolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    festadiolist.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    festadiolist.lists.id_torneo = <?= $Page->id_torneo->toClientList($Page) ?>;
-    loadjs.done("festadiolist");
-});
-var festadiosrch, currentSearchForm, currentAdvancedSearchForm;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object for search
-    festadiosrch = new ew.Form("festadiosrch", "list");
-    currentSearchForm = festadiosrch;
-
-    // Dynamic selection lists
-
-    // Filters
-    festadiosrch.filterList = <?= $Page->getFilterList() ?>;
-    loadjs.done("festadiosrch");
+        // Dynamic selection lists
+        .setLists({
+            "id_torneo": <?= $Page->id_torneo->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -79,16 +76,42 @@ loadjs.ready("head", function () {
 <?php } ?>
 </div>
 <?php } ?>
-<?php
-$Page->renderOtherOptions();
-?>
 <?php if ($Security->canSearch()) { ?>
-<?php if (!$Page->isExport() && !$Page->CurrentAction && $Page->hasSearchFields()) { ?>
-<form name="festadiosrch" id="festadiosrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isExport() && !($Page->CurrentAction && $Page->CurrentAction != "search") && $Page->hasSearchFields()) { ?>
+<form name="festadiosrch" id="festadiosrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>" novalidate autocomplete="on">
 <div id="festadiosrch_search_panel" class="mb-2 mb-sm-0 <?= $Page->SearchPanelClass ?>"><!-- .ew-search-panel -->
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { estadio: currentTable } });
+var currentForm;
+var festadiosrch, currentSearchForm, currentAdvancedSearchForm;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery,
+        fields = currentTable.fields;
+
+    // Form object for search
+    let form = new ew.FormBuilder()
+        .setId("festadiosrch")
+        .setPageId("list")
+<?php if ($Page->UseAjaxActions) { ?>
+        .setSubmitWithFetch(true)
+<?php } ?>
+
+        // Dynamic selection lists
+        .setLists({
+        })
+
+        // Filters
+        .setFilterList(<?= $Page->getFilterList() ?>)
+        .build();
+    window[form.id] = form;
+    currentSearchForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="estadio">
-<div class="ew-extended-search container-fluid">
+<div class="ew-extended-search container-fluid ps-2">
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -118,17 +141,22 @@ $Page->renderOtherOptions();
 <?php
 $Page->showMessage();
 ?>
+<main class="list<?= ($Page->TotalRecords == 0) ? " ew-no-record" : "" ?>">
+<div id="ew-list">
 <?php if ($Page->TotalRecords > 0 || $Page->CurrentAction) { ?>
-<div class="card ew-card ew-grid<?php if ($Page->isAddOrEdit()) { ?> ew-grid-add-edit<?php } ?> estadio">
-<form name="festadiolist" id="festadiolist" class="ew-form ew-list-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<div class="card ew-card ew-grid<?= $Page->isAddOrEdit() ? " ew-grid-add-edit" : "" ?> <?= $Page->TableGridClass ?>">
+<form name="<?= $Page->FormName ?>" id="<?= $Page->FormName ?>" class="ew-form ew-list-form" action="<?= $Page->PageAction ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="estadio">
-<div id="gmp_estadio" class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit()) { ?>
-<table id="tbl_estadiolist" class="table table-bordered table-hover table-sm ew-table"><!-- .ew-table -->
+<?php if ($Page->IsModal) { ?>
+<input type="hidden" name="modal" value="1">
+<?php } ?>
+<div id="gmp_estadio" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<table id="tbl_estadiolist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
 <?php
@@ -165,94 +193,13 @@ $Page->ListOptions->render("header", "right");
 ?>
     </tr>
 </thead>
-<tbody>
+<tbody data-page="<?= $Page->getPageNumber() ?>">
 <?php
-if ($Page->ExportAll && $Page->isExport()) {
-    $Page->StopRecord = $Page->TotalRecords;
-} else {
-    // Set the last record to display
-    if ($Page->TotalRecords > $Page->StartRecord + $Page->DisplayRecords - 1) {
-        $Page->StopRecord = $Page->StartRecord + $Page->DisplayRecords - 1;
-    } else {
-        $Page->StopRecord = $Page->TotalRecords;
-    }
-}
-
-// Restore number of post back records
-if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
-    $CurrentForm->Index = -1;
-    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
-        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
-        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
-    }
-}
-$Page->RecordCount = $Page->StartRecord - 1;
-if ($Page->Recordset && !$Page->Recordset->EOF) {
-    // Nothing to do
-} elseif ($Page->isGridAdd() && !$Page->AllowAddDeleteRow && $Page->StopRecord == 0) {
-    $Page->StopRecord = $Page->GridAddRowCount;
-}
-
-// Initialize aggregate
-$Page->RowType = ROWTYPE_AGGREGATEINIT;
-$Page->resetAttributes();
-$Page->renderRow();
-$Page->EditRowCount = 0;
-if ($Page->isEdit()) {
-    $Page->RowIndex = 1;
-}
+$Page->setupGrid();
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
-        $Page->RowCount++;
-
-        // Set up key count
-        $Page->KeyCount = $Page->RowIndex;
-
-        // Init row class and style
-        $Page->resetAttributes();
-        $Page->CssClass = "";
-        if ($Page->isGridAdd()) {
-            $Page->loadRowValues(); // Load default values
-            $Page->OldKey = "";
-            $Page->setKey($Page->OldKey);
-        } else {
-            $Page->loadRowValues($Page->Recordset); // Load row values
-            if ($Page->isGridEdit()) {
-                $Page->OldKey = $Page->getKey(true); // Get from CurrentValue
-                $Page->setKey($Page->OldKey);
-            }
-        }
-        $Page->RowType = ROWTYPE_VIEW; // Render view
-        if ($Page->isEdit()) {
-            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
-                $Page->RowType = ROWTYPE_EDIT; // Render edit
-            }
-        }
-        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
-            $CurrentForm->Index = 1;
-            $Page->restoreFormValues(); // Restore form values
-        }
-        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
-            $Page->EditRowCount++;
-        }
-
-        // Set up row attributes
-        $Page->RowAttrs->merge([
-            "data-rowindex" => $Page->RowCount,
-            "id" => "r" . $Page->RowCount . "_estadio",
-            "data-rowtype" => $Page->RowType,
-            "class" => ($Page->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
-        ]);
-        if ($Page->isAdd() && $Page->RowType == ROWTYPE_ADD || $Page->isEdit() && $Page->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
-            $Page->RowAttrs->appendClass("table-active");
-        }
-
-        // Render row
-        $Page->renderRow();
-
-        // Render list options
-        $Page->renderListOptions();
+        $Page->setupRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
 <?php
@@ -265,8 +212,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_estadio_id_estadio" class="el_estadio_id_estadio">
 <span<?= $Page->id_estadio->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->id_estadio->getDisplayValue($Page->id_estadio->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="estadio" data-field="x_id_estadio" data-hidden="1" name="x<?= $Page->RowIndex ?>_id_estadio" id="x<?= $Page->RowIndex ?>_id_estadio" value="<?= HtmlEncode($Page->id_estadio->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_id_estadio" class="el_estadio_id_estadio">
@@ -286,7 +233,7 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
         id="x<?= $Page->RowIndex ?>_id_torneo"
         name="x<?= $Page->RowIndex ?>_id_torneo"
         class="form-select ew-select<?= $Page->id_torneo->isInvalidClass() ?>"
-        data-select2-id="festadiolist_x<?= $Page->RowIndex ?>_id_torneo"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_id_torneo"
         data-table="estadio"
         data-field="x_id_torneo"
         data-value-separator="<?= $Page->id_torneo->displayValueSeparatorAttribute() ?>"
@@ -297,14 +244,15 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
     <div class="invalid-feedback"><?= $Page->id_torneo->getErrorMessage() ?></div>
 <?= $Page->id_torneo->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_id_torneo") ?>
 <script>
-loadjs.ready("festadiolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_id_torneo", selectId: "festadiolist_x<?= $Page->RowIndex ?>_id_torneo" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_id_torneo", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_id_torneo" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (festadiolist.lists.id_torneo.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_id_torneo", form: "festadiolist" };
+    if (<?= $Page->FormName ?>.lists.id_torneo?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_id_torneo", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_id_torneo", form: "festadiolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_id_torneo", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.estadio.fields.id_torneo.selectOptions);
@@ -342,15 +290,28 @@ loadjs.ready("festadiolist", function() {
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_estadio_foto_estadio" class="el_estadio_foto_estadio">
 <div id="fd_x<?= $Page->RowIndex ?>_foto_estadio" class="fileinput-button ew-file-drop-zone">
-    <input type="file" class="form-control ew-file-input" title="<?= $Page->foto_estadio->title() ?>" data-table="estadio" data-field="x_foto_estadio" name="x<?= $Page->RowIndex ?>_foto_estadio" id="x<?= $Page->RowIndex ?>_foto_estadio" lang="<?= CurrentLanguageID() ?>"<?= $Page->foto_estadio->editAttributes() ?><?= ($Page->foto_estadio->ReadOnly || $Page->foto_estadio->Disabled) ? " disabled" : "" ?>>
+    <input
+        type="file"
+        id="x<?= $Page->RowIndex ?>_foto_estadio"
+        name="x<?= $Page->RowIndex ?>_foto_estadio"
+        class="form-control ew-file-input"
+        title="<?= $Page->foto_estadio->title() ?>"
+        lang="<?= CurrentLanguageID() ?>"
+        data-table="estadio"
+        data-field="x_foto_estadio"
+        data-size="1024"
+        data-accept-file-types="<?= $Page->foto_estadio->acceptFileTypes() ?>"
+        data-max-file-size="<?= $Page->foto_estadio->UploadMaxFileSize ?>"
+        data-max-number-of-files="null"
+        data-disable-image-crop="<?= $Page->foto_estadio->ImageCropper ? 0 : 1 ?>"
+        <?= ($Page->foto_estadio->ReadOnly || $Page->foto_estadio->Disabled) ? " disabled" : "" ?>
+        <?= $Page->foto_estadio->editAttributes() ?>
+    >
     <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
 </div>
 <div class="invalid-feedback"><?= $Page->foto_estadio->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x<?= $Page->RowIndex ?>_foto_estadio" id= "fn_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= $Page->foto_estadio->Upload->FileName ?>">
 <input type="hidden" name="fa_x<?= $Page->RowIndex ?>_foto_estadio" id= "fa_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= (Post("fa_x<?= $Page->RowIndex ?>_foto_estadio") == "0") ? "0" : "1" ?>">
-<input type="hidden" name="fs_x<?= $Page->RowIndex ?>_foto_estadio" id= "fs_x<?= $Page->RowIndex ?>_foto_estadio" value="1024">
-<input type="hidden" name="fx_x<?= $Page->RowIndex ?>_foto_estadio" id= "fx_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= $Page->foto_estadio->UploadAllowedFileExt ?>">
-<input type="hidden" name="fm_x<?= $Page->RowIndex ?>_foto_estadio" id= "fm_x<?= $Page->RowIndex ?>_foto_estadio" value="<?= $Page->foto_estadio->UploadMaxFileSize ?>">
 <table id="ft_x<?= $Page->RowIndex ?>_foto_estadio" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
 </span>
 <?php } ?>
@@ -399,8 +360,8 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
 <?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
-<script>
-loadjs.ready(["festadiolist","load"], () => festadiolist.updateLists(<?= $Page->RowIndex ?>));
+<script data-rowindex="<?= $Page->RowIndex ?>">
+loadjs.ready(["<?= $Page->FormName ?>","load"], () => <?= $Page->FormName ?>.updateLists(<?= $Page->RowIndex ?><?= $Page->RowIndex === '$rowindex$' ? ", true" : "" ?>));
 </script>
 <?php } ?>
 <?php
@@ -413,12 +374,11 @@ loadjs.ready(["festadiolist","load"], () => festadiolist.updateLists(<?= $Page->
 </tbody>
 </table><!-- /.ew-table -->
 <?php } ?>
-</div><!-- /.ew-grid-middle-panel -->
 <?php if ($Page->isEdit()) { ?>
 <input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
-<?php if (!$Page->CurrentAction) { ?>
+</div><!-- /.ew-grid-middle-panel -->
+<?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>
 </form><!-- /.ew-list-form -->
@@ -430,10 +390,8 @@ if ($Page->Recordset) {
 ?>
 <?php if (!$Page->isExport()) { ?>
 <div class="card-footer ew-grid-lower-panel">
-<?php if (!$Page->isGridAdd()) { ?>
-<form name="ew-pager-form" class="ew-form ew-pager-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isGridAdd() && !($Page->isGridEdit() && $Page->ModalGridEdit) && !$Page->isMultiEdit()) { ?>
 <?= $Page->Pager->render() ?>
-</form>
 <?php } ?>
 <div class="ew-list-other-options">
 <?php $Page->OtherOptions->render("body", "bottom") ?>
@@ -446,6 +404,8 @@ if ($Page->Recordset) {
 <?php $Page->OtherOptions->render("body") ?>
 </div>
 <?php } ?>
+</div>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

@@ -1,6 +1,8 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
+
+use Pinq\ITraversable, Pinq\Traversable;
 
 /**
  * Report field class
@@ -64,29 +66,31 @@ class ReportField extends DbField
     }
 
     // Get distinct values
-    public function getDistinctValues($records)
+    public function getDistinctValues($records, $sort = "ASC")
     {
         $name = $this->getGroupName();
-        $ar = from($records)
-            ->distinct(function ($record) use ($name) {
-                return $record[$name];
-            })
-            ->orderBy(function ($record) use ($name) {
-                return $record[$name];
-            })
-            ->toArrayDeep();
-        $this->DistinctValues = array_column($ar, $name);
+        if (SameText($sort, "DESC")) {
+            $this->DistinctValues = Traversable::from($records)
+                ->select(fn($record) => $record[$name])
+                ->orderByDescending(fn($name) => $name)
+                ->unique()
+                ->asArray();
+        } else {
+            $this->DistinctValues = Traversable::from($records)
+                ->select(fn($record) => $record[$name])
+                ->orderByAscending(fn($name) => $name)
+                ->unique()
+                ->asArray();
+        }
     }
 
     // Get distinct records
     public function getDistinctRecords($records, $val)
     {
         $name = $this->getGroupName();
-        $this->Records = from($records)
-            ->where(function ($record) use ($name, $val) {
-                return $record[$name] == $val;
-            })
-            ->toArrayDeep();
+        $this->Records = Traversable::from($records)
+            ->where(fn($record) => $record[$name] == $val)
+            ->asArray();
     }
 
     // Get Sum
@@ -95,9 +99,7 @@ class ReportField extends DbField
         $name = $this->getGroupName();
         $sum = 0;
         if (count($records) > 0) {
-            $sum = from($records)->sum(function ($record) use ($name) {
-                return $record[$name];
-            });
+            $sum = Traversable::from($records)->sum(fn($record) => $record[$name]);
         }
         $this->SumValue = $sum;
     }
@@ -108,9 +110,7 @@ class ReportField extends DbField
         $name = $this->getGroupName();
         $avg = 0;
         if (count($records) > 0) {
-            $avg = from($records)->average(function ($record) use ($name) {
-                return $record[$name];
-            });
+            $avg = Traversable::from($records)->average(fn($record) => $record[$name]);
         }
         $this->AvgValue = $avg;
     }
@@ -121,9 +121,7 @@ class ReportField extends DbField
         $name = $this->getGroupName();
         $min = null;
         if (count($records) > 0) {
-            $min = from($records)->min(function ($record) use ($name) {
-                return $record[$name];
-            });
+            $min = Traversable::from($records)->minimum(fn($record) => $record[$name]);
         }
         $this->MinValue = $min;
     }
@@ -134,13 +132,9 @@ class ReportField extends DbField
         $name = $this->getGroupName();
         $max = null;
         if (count($records) > 0) {
-            $notNull = from($records)->where(function ($record) use ($name) {
-                return !is_null($record[$name]);
-            })->toArrayDeep();
-            if (count($notNull) > 0) {
-                $max = from($notNull)->max(function ($record) use ($name) {
-                    return $record[$name];
-                });
+            $notNull = Traversable::from($records)->where(fn($record) => !is_null($record[$name]));
+            if (!$notNull->isEmpty()) {
+                $max = $notNull->maximum(fn($record) => $record[$name]);
             }
         }
         $this->MaxValue = $max;
@@ -152,9 +146,7 @@ class ReportField extends DbField
         $name = $this->getGroupName();
         $cnt = 0;
         if (count($records) > 0) {
-            $cnt = from($records)->count(function ($record) use ($name) {
-                return $record[$name];
-            });
+            $cnt = Traversable::from($records)->where(fn($record) => $record[$name])->count();
         }
         $this->CntValue = $cnt;
         $this->Count = $cnt;
@@ -175,10 +167,12 @@ class ReportField extends DbField
     {
         if (is_array($ar) && is_array($this->AdvancedFilters)) {
             foreach ($ar as &$arwrk) {
-                if (StartsString("@@", @$arwrk[0]) && SameString(@$arwrk[0], @$arwrk[1])) {
-                    $key = substr($arwrk[0], 2);
+                $lf = $arwrk["lf"] ?? "";
+                $df = $arwrk["df"] ?? "";
+                if (StartsString("@@", $lf) && SameString($lf, $df)) {
+                    $key = substr($lf, 2);
                     if (array_key_exists($key, $this->AdvancedFilters)) {
-                        $arwrk[1] = $this->AdvancedFilters[$key]->Name;
+                        $arwrk["df"] = $this->AdvancedFilters[$key]->Name;
                     }
                 }
             }

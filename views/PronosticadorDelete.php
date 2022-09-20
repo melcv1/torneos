@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PronosticadorDelete = &$Page;
@@ -8,15 +8,21 @@ $PronosticadorDelete = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
-var currentForm, currentPageID;
+var currentPageID = ew.PAGE_ID = "delete";
+var currentForm;
 var fpronosticadordelete;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fpronosticadordelete = new ew.Form("fpronosticadordelete", "delete");
-    currentPageID = ew.PAGE_ID = "delete";
-    currentForm = fpronosticadordelete;
-    loadjs.done("fpronosticadordelete");
+    let form = new ew.FormBuilder()
+        .setId("fpronosticadordelete")
+        .setPageId("delete")
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -28,7 +34,7 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fpronosticadordelete" id="fpronosticadordelete" class="ew-form ew-delete-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<form name="fpronosticadordelete" id="fpronosticadordelete" class="ew-form ew-delete-form" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -39,9 +45,9 @@ $Page->showMessage();
 <?php $keyvalue = is_array($key) ? implode(Config("COMPOSITE_KEY_SEPARATOR"), $key) : $key; ?>
 <input type="hidden" name="key_m[]" value="<?= HtmlEncode($keyvalue) ?>">
 <?php } ?>
-<div class="card ew-card ew-grid">
-<div class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<table class="table table-bordered table-hover table-sm ew-table">
+<div class="card ew-card ew-grid <?= $Page->TableGridClass ?>">
+<div class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<table class="<?= $Page->TableClass ?>">
     <thead>
     <tr class="ew-table-header">
 <?php if ($Page->ID_ENCUESTA->Visible) { // ID_ENCUESTA ?>
@@ -163,7 +169,7 @@ $Page->Recordset->close();
 </table>
 </div>
 </div>
-<div>
+<div class="ew-buttons ew-desktop-buttons">
 <button class="btn btn-primary ew-btn" name="btn-action" id="btn-action" type="submit"><?= $Language->phrase("DeleteBtn") ?></button>
 <button class="btn btn-default ew-btn" name="btn-cancel" id="btn-cancel" type="button" data-href="<?= HtmlEncode(GetUrl($Page->getReturnUrl())) ?>"><?= $Language->phrase("CancelBtn") ?></button>
 </div>

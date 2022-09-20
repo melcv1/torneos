@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EquipoDelete extends Equipo
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'equipo';
-
     // Page object name
     public $PageObjName = "EquipoDelete";
 
@@ -34,6 +31,9 @@ class EquipoDelete extends Equipo
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "equipodelete";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class EquipoDelete extends Equipo
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class EquipoDelete extends Equipo
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'equipo';
+        $this->TableName = 'equipo';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (equipo)
         if (!isset($GLOBALS["equipo"]) || get_class($GLOBALS["equipo"]) == PROJECT_NAMESPACE . "equipo") {
@@ -164,14 +147,14 @@ class EquipoDelete extends Equipo
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class EquipoDelete extends Equipo
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class EquipoDelete extends Equipo
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("equipo");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class EquipoDelete extends Equipo
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -390,10 +354,13 @@ class EquipoDelete extends Equipo
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->ID_EQUIPO->setVisibility();
         $this->NOM_EQUIPO_CORTO->setVisibility();
@@ -406,7 +373,6 @@ class EquipoDelete extends Equipo
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -419,6 +385,15 @@ class EquipoDelete extends Equipo
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -442,12 +417,12 @@ class EquipoDelete extends Equipo
         // Get action
         if (IsApi()) {
             $this->CurrentAction = "delete"; // Delete record directly
-        } elseif (Post("action") !== null) {
-            $this->CurrentAction = Post("action");
-        } elseif (Get("action") == "1") {
-            $this->CurrentAction = "delete"; // Delete record directly
+        } elseif (Param("action") !== null) {
+            $this->CurrentAction = Param("action") == "delete" ? "delete" : "show";
         } else {
-            $this->CurrentAction = "show"; // Display record
+            $this->CurrentAction = $this->InlineDelete ?
+                "delete" : // Delete record directly
+                "show"; // Display record
         }
         if ($this->isDelete()) {
             $this->SendEmail = true; // Send email on delete success
@@ -455,7 +430,7 @@ class EquipoDelete extends Equipo
                 if ($this->getSuccessMessage() == "") {
                     $this->setSuccessMessage($Language->phrase("DeleteSuccess")); // Set up success message
                 }
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate(true);
                     return;
                 } else {
@@ -463,11 +438,23 @@ class EquipoDelete extends Equipo
                     return;
                 }
             } else { // Delete failed
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate();
                     return;
                 }
-                $this->CurrentAction = "show"; // Display record
+                // Return JSON error message if UseAjaxActions
+                if ($this->UseAjaxActions) {
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return;                    
+                }
+                if ($this->InlineDelete) {
+                    $this->terminate($this->getReturnUrl()); // Return to caller
+                    return;
+                } else {
+                    $this->CurrentAction = "show"; // Display record
+                }
             }
         }
         if ($this->isShow()) { // Load records for display
@@ -541,7 +528,7 @@ class EquipoDelete extends Equipo
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -666,19 +653,15 @@ class EquipoDelete extends Equipo
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_EQUIPO
             $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
-            $this->ID_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_CORTO
             $this->NOM_EQUIPO_CORTO->ViewValue = $this->NOM_EQUIPO_CORTO->CurrentValue;
-            $this->NOM_EQUIPO_CORTO->ViewCustomAttributes = "";
 
             // NOM_EQUIPO_LARGO
             $this->NOM_EQUIPO_LARGO->ViewValue = $this->NOM_EQUIPO_LARGO->CurrentValue;
-            $this->NOM_EQUIPO_LARGO->ViewCustomAttributes = "";
 
             // PAIS_EQUIPO
             $this->PAIS_EQUIPO->ViewValue = $this->PAIS_EQUIPO->CurrentValue;
-            $this->PAIS_EQUIPO->ViewCustomAttributes = "";
 
             // REGION_EQUIPO
             if (strval($this->REGION_EQUIPO->CurrentValue) != "") {
@@ -686,11 +669,9 @@ class EquipoDelete extends Equipo
             } else {
                 $this->REGION_EQUIPO->ViewValue = null;
             }
-            $this->REGION_EQUIPO->ViewCustomAttributes = "";
 
             // DETALLE_EQUIPO
             $this->DETALLE_EQUIPO->ViewValue = $this->DETALLE_EQUIPO->CurrentValue;
-            $this->DETALLE_EQUIPO->ViewCustomAttributes = "";
 
             // ESCUDO_EQUIPO
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
@@ -702,7 +683,6 @@ class EquipoDelete extends Equipo
             } else {
                 $this->ESCUDO_EQUIPO->ViewValue = "";
             }
-            $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
             // NOM_ESTADIO
             if ($this->NOM_ESTADIO->VirtualValue != "") {
@@ -712,7 +692,7 @@ class EquipoDelete extends Equipo
                 if ($curVal != "") {
                     $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
                     if ($this->NOM_ESTADIO->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`id_estadio`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -730,58 +710,47 @@ class EquipoDelete extends Equipo
                     $this->NOM_ESTADIO->ViewValue = null;
                 }
             }
-            $this->NOM_ESTADIO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_EQUIPO
-            $this->ID_EQUIPO->LinkCustomAttributes = "";
             $this->ID_EQUIPO->HrefValue = "";
             $this->ID_EQUIPO->TooltipValue = "";
 
             // NOM_EQUIPO_CORTO
-            $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
             $this->NOM_EQUIPO_CORTO->HrefValue = "";
             $this->NOM_EQUIPO_CORTO->TooltipValue = "";
 
             // NOM_EQUIPO_LARGO
-            $this->NOM_EQUIPO_LARGO->LinkCustomAttributes = "";
             $this->NOM_EQUIPO_LARGO->HrefValue = "";
             $this->NOM_EQUIPO_LARGO->TooltipValue = "";
 
             // PAIS_EQUIPO
-            $this->PAIS_EQUIPO->LinkCustomAttributes = "";
             $this->PAIS_EQUIPO->HrefValue = "";
             $this->PAIS_EQUIPO->TooltipValue = "";
 
             // REGION_EQUIPO
-            $this->REGION_EQUIPO->LinkCustomAttributes = "";
             $this->REGION_EQUIPO->HrefValue = "";
             $this->REGION_EQUIPO->TooltipValue = "";
 
             // DETALLE_EQUIPO
-            $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
             $this->DETALLE_EQUIPO->HrefValue = "";
             $this->DETALLE_EQUIPO->TooltipValue = "";
 
             // ESCUDO_EQUIPO
-            $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
             if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
                 $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
                 $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
@@ -802,22 +771,18 @@ class EquipoDelete extends Equipo
             }
 
             // NOM_ESTADIO
-            $this->NOM_ESTADIO->LinkCustomAttributes = "";
             $this->NOM_ESTADIO->HrefValue = "";
             $this->NOM_ESTADIO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         }
@@ -862,6 +827,9 @@ class EquipoDelete extends Equipo
             $deleteRow = $this->rowDeleting($row);
             if ($deleteRow) { // Delete
                 $deleteRow = $this->delete($row);
+                if (!$deleteRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             }
             if ($deleteRow === false) {
                 if ($this->UseTransaction) {
@@ -900,7 +868,7 @@ class EquipoDelete extends Equipo
 
             // Set warning message if delete some records failed
             if (count($failKeys) > 0) {
-                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
+                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteRecordsFailed")));
             }
         } else {
             if ($this->UseTransaction) { // Rollback transaction
@@ -908,10 +876,14 @@ class EquipoDelete extends Equipo
             }
         }
 
-        // Write JSON for API request
-        if (IsApi() && $deleteRows) {
-            $row = $this->getRecordsFromRecordset($rsold);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+        // Write JSON response
+        if ((IsJsonResponse() || ConvertToBool(Param("infinitescroll"))) && $deleteRows) {
+            $rows = $this->getRecordsFromRecordset($rsold);
+            $table = $this->TableVar;
+            if (Route(2) !== null) { // Single delete
+                $rows = $rows[0]; // Return object
+            }
+            WriteJson(["success" => true, "action" => Config("API_DELETE_ACTION"), $table => $rows]);
         }
         return $deleteRows;
     }
@@ -962,7 +934,11 @@ class EquipoDelete extends Equipo
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1021,5 +997,13 @@ class EquipoDelete extends Equipo
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

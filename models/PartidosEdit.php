@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class PartidosEdit extends Partidos
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'partidos';
-
     // Page object name
     public $PageObjName = "PartidosEdit";
 
@@ -34,6 +31,9 @@ class PartidosEdit extends Partidos
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "partidosedit";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class PartidosEdit extends Partidos
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class PartidosEdit extends Partidos
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'partidos';
+        $this->TableName = 'partidos';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-desktop-table ew-edit-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (partidos)
         if (!isset($GLOBALS["partidos"]) || get_class($GLOBALS["partidos"]) == PROJECT_NAMESPACE . "partidos") {
@@ -164,14 +147,14 @@ class PartidosEdit extends Partidos
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class PartidosEdit extends Partidos
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class PartidosEdit extends Partidos
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("partidos");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class PartidosEdit extends Partidos
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -280,18 +244,17 @@ class PartidosEdit extends Partidos
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => GetUrl($url), "modal" => "1"];
+                $result = ["url" => GetUrl($url), "modal" => "1"];
                 $pageName = GetPageName($url);
-                if ($pageName != $this->getListUrl()) { // Not List page
-                    $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "partidosview") {
-                        $row["view"] = "1";
-                    }
-                } else { // List page should not be shown as modal => error
-                    $row["error"] = $this->getFailureMessage();
+                if ($pageName != $this->getListUrl()) { // Not List page => View page
+                    $result["caption"] = $this->getModalCaption($pageName);
+                    $result["view"] = $pageName == "partidosview";
+                } else { // List page
+                    // $result["list"] = $this->PageID == "search"; // Refresh List page if current page is Search page
+                    $result["error"] = $this->getFailureMessage(); // List page should not be shown as modal => error
                     $this->clearFailureMessage();
                 }
-                WriteJson($row);
+                WriteJson($result);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -400,6 +363,11 @@ class PartidosEdit extends Partidos
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -458,7 +426,7 @@ class PartidosEdit extends Partidos
     }
 
     // Properties
-    public $FormClassName = "ew-form ew-edit-form";
+    public $FormClassName = "ew-form ew-edit-form overlay-wrapper";
     public $IsModal = false;
     public $IsMobileOrModal = false;
     public $DbMasterFilter;
@@ -478,15 +446,17 @@ class PartidosEdit extends Partidos
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $SkipHeaderFooter;
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -512,7 +482,6 @@ class PartidosEdit extends Partidos
         $this->usuario_dato->setVisibility();
         $this->automatico->setVisibility();
         $this->actualizado->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -525,6 +494,15 @@ class PartidosEdit extends Partidos
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -541,7 +519,6 @@ class PartidosEdit extends Partidos
             $SkipHeaderFooter = true;
         }
         $this->IsMobileOrModal = IsMobile() || $this->IsModal;
-        $this->FormClassName = "ew-form ew-edit-form";
         $loaded = false;
         $postBack = false;
 
@@ -637,11 +614,15 @@ class PartidosEdit extends Partidos
                     $returnUrl = $this->addMasterUrl($returnUrl); // List page, return to List page with correct master key if necessary
                 }
                 $this->SendEmail = true; // Send email on update success
-                if ($this->editRow()) { // Update record based on key
+                if ($this->editRow()) {
+                    // Do not return Json for UseAjaxActions
+                    if ($this->IsModal && $this->UseAjaxActions) {
+                        $this->IsModal = false;
+                    }
                     if ($this->getSuccessMessage() == "") {
                         $this->setSuccessMessage($Language->phrase("UpdateSuccess")); // Update success
                     }
-                    if (IsApi()) {
+                    if (IsJsonResponse()) {
                         $this->terminate(true);
                         return;
                     } else {
@@ -651,6 +632,11 @@ class PartidosEdit extends Partidos
                 } elseif (IsApi()) { // API request, return
                     $this->terminate();
                     return;
+                } elseif ($this->UseAjaxActions) { // Return JSON error message
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return; 
                 } elseif ($this->getFailureMessage() == $Language->phrase("NoRecord")) {
                     $this->terminate($returnUrl); // Return to caller
                     return;
@@ -1058,16 +1044,19 @@ class PartidosEdit extends Partidos
     protected function loadOldRecord()
     {
         // Load old record
-        $this->OldRecordset = null;
-        $validKey = $this->OldKey != "";
-        if ($validKey) {
+        if ($this->OldKey != "") {
+            $this->setKey($this->OldKey);
             $this->CurrentFilter = $this->getRecordFilter();
             $sql = $this->getCurrentSql();
             $conn = $this->getConnection();
-            $this->OldRecordset = LoadRecordset($sql, $conn);
+            $rs = LoadRecordset($sql, $conn);
+            if ($rs && ($row = $rs->fields)) {
+                $this->loadRowValues($row); // Load row values
+                return $row;
+            }
         }
-        $this->loadRowValues($this->OldRecordset); // Load row values
-        return $validKey;
+        $this->loadRowValues(); // Load default row values
+        return null;
     }
 
     // Render row values based on field settings
@@ -1152,7 +1141,7 @@ class PartidosEdit extends Partidos
             if ($curVal != "") {
                 $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
                 if ($this->ID_TORNEO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ID_TORNEO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -1169,7 +1158,6 @@ class PartidosEdit extends Partidos
             } else {
                 $this->ID_TORNEO->ViewValue = null;
             }
-            $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // equipo_local
             if ($this->equipo_local->VirtualValue != "") {
@@ -1179,7 +1167,7 @@ class PartidosEdit extends Partidos
                 if ($curVal != "") {
                     $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
                     if ($this->equipo_local->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->equipo_local->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -1197,7 +1185,6 @@ class PartidosEdit extends Partidos
                     $this->equipo_local->ViewValue = null;
                 }
             }
-            $this->equipo_local->ViewCustomAttributes = "";
 
             // equipo_visitante
             if ($this->equipo_visitante->VirtualValue != "") {
@@ -1207,7 +1194,7 @@ class PartidosEdit extends Partidos
                 if ($curVal != "") {
                     $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
                     if ($this->equipo_visitante->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->equipo_visitante->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -1225,28 +1212,24 @@ class PartidosEdit extends Partidos
                     $this->equipo_visitante->ViewValue = null;
                 }
             }
-            $this->equipo_visitante->ViewCustomAttributes = "";
 
             // ID_PARTIDO
             $this->ID_PARTIDO->ViewValue = $this->ID_PARTIDO->CurrentValue;
-            $this->ID_PARTIDO->ViewCustomAttributes = "";
 
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->ViewValue = $this->FECHA_PARTIDO->CurrentValue;
             $this->FECHA_PARTIDO->ViewValue = FormatDateTime($this->FECHA_PARTIDO->ViewValue, $this->FECHA_PARTIDO->formatPattern());
-            $this->FECHA_PARTIDO->ViewCustomAttributes = "";
 
             // HORA_PARTIDO
             $this->HORA_PARTIDO->ViewValue = $this->HORA_PARTIDO->CurrentValue;
             $this->HORA_PARTIDO->ViewValue = FormatDateTime($this->HORA_PARTIDO->ViewValue, $this->HORA_PARTIDO->formatPattern());
-            $this->HORA_PARTIDO->ViewCustomAttributes = "";
 
             // ESTADIO
             $curVal = strval($this->ESTADIO->CurrentValue);
             if ($curVal != "") {
                 $this->ESTADIO->ViewValue = $this->ESTADIO->lookupCacheOption($curVal);
                 if ($this->ESTADIO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`id_estadio`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -1263,18 +1246,16 @@ class PartidosEdit extends Partidos
             } else {
                 $this->ESTADIO->ViewValue = null;
             }
-            $this->ESTADIO->ViewCustomAttributes = "";
 
             // CIUDAD_PARTIDO
             $this->CIUDAD_PARTIDO->ViewValue = $this->CIUDAD_PARTIDO->CurrentValue;
-            $this->CIUDAD_PARTIDO->ViewCustomAttributes = "";
 
             // PAIS_PARTIDO
             $curVal = strval($this->PAIS_PARTIDO->CurrentValue);
             if ($curVal != "") {
                 $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->lookupCacheOption($curVal);
                 if ($this->PAIS_PARTIDO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`PAIS_EQUIPO`" . SearchString("=", $curVal, DATATYPE_MEMO, "");
+                    $filterWrk = SearchFilter("`PAIS_EQUIPO`", "=", $curVal, DATATYPE_MEMO, "");
                     $sqlWrk = $this->PAIS_PARTIDO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -1291,35 +1272,28 @@ class PartidosEdit extends Partidos
             } else {
                 $this->PAIS_PARTIDO->ViewValue = null;
             }
-            $this->PAIS_PARTIDO->ViewCustomAttributes = "";
 
             // GOLES_LOCAL
             $this->GOLES_LOCAL->ViewValue = $this->GOLES_LOCAL->CurrentValue;
             $this->GOLES_LOCAL->ViewValue = FormatNumber($this->GOLES_LOCAL->ViewValue, $this->GOLES_LOCAL->formatPattern());
-            $this->GOLES_LOCAL->ViewCustomAttributes = "";
 
             // GOLES_VISITANTE
             $this->GOLES_VISITANTE->ViewValue = $this->GOLES_VISITANTE->CurrentValue;
             $this->GOLES_VISITANTE->ViewValue = FormatNumber($this->GOLES_VISITANTE->ViewValue, $this->GOLES_VISITANTE->formatPattern());
-            $this->GOLES_VISITANTE->ViewCustomAttributes = "";
 
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->ViewValue = $this->GOLES_EXTRA_EQUIPO1->CurrentValue;
             $this->GOLES_EXTRA_EQUIPO1->ViewValue = FormatNumber($this->GOLES_EXTRA_EQUIPO1->ViewValue, $this->GOLES_EXTRA_EQUIPO1->formatPattern());
-            $this->GOLES_EXTRA_EQUIPO1->ViewCustomAttributes = "";
 
             // GOLES_EXTRA_EQUIPO2
             $this->GOLES_EXTRA_EQUIPO2->ViewValue = $this->GOLES_EXTRA_EQUIPO2->CurrentValue;
             $this->GOLES_EXTRA_EQUIPO2->ViewValue = FormatNumber($this->GOLES_EXTRA_EQUIPO2->ViewValue, $this->GOLES_EXTRA_EQUIPO2->formatPattern());
-            $this->GOLES_EXTRA_EQUIPO2->ViewCustomAttributes = "";
 
             // NOTA_PARTIDO
             $this->NOTA_PARTIDO->ViewValue = $this->NOTA_PARTIDO->CurrentValue;
-            $this->NOTA_PARTIDO->ViewCustomAttributes = "";
 
             // RESUMEN_PARTIDO
             $this->RESUMEN_PARTIDO->ViewValue = $this->RESUMEN_PARTIDO->CurrentValue;
-            $this->RESUMEN_PARTIDO->ViewCustomAttributes = "";
 
             // ESTADO_PARTIDO
             if (strval($this->ESTADO_PARTIDO->CurrentValue) != "") {
@@ -1327,21 +1301,17 @@ class PartidosEdit extends Partidos
             } else {
                 $this->ESTADO_PARTIDO->ViewValue = null;
             }
-            $this->ESTADO_PARTIDO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // automatico
             if (ConvertToBool($this->automatico->CurrentValue)) {
@@ -1349,103 +1319,79 @@ class PartidosEdit extends Partidos
             } else {
                 $this->automatico->ViewValue = $this->automatico->tagCaption(2) != "" ? $this->automatico->tagCaption(2) : "No";
             }
-            $this->automatico->ViewCustomAttributes = "";
 
             // actualizado
             $this->actualizado->ViewValue = $this->actualizado->CurrentValue;
-            $this->actualizado->ViewCustomAttributes = "";
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
 
             // equipo_local
-            $this->equipo_local->LinkCustomAttributes = "";
             $this->equipo_local->HrefValue = "";
 
             // equipo_visitante
-            $this->equipo_visitante->LinkCustomAttributes = "";
             $this->equipo_visitante->HrefValue = "";
 
             // ID_PARTIDO
-            $this->ID_PARTIDO->LinkCustomAttributes = "";
             $this->ID_PARTIDO->HrefValue = "";
 
             // FECHA_PARTIDO
-            $this->FECHA_PARTIDO->LinkCustomAttributes = "";
             $this->FECHA_PARTIDO->HrefValue = "";
 
             // HORA_PARTIDO
-            $this->HORA_PARTIDO->LinkCustomAttributes = "";
             $this->HORA_PARTIDO->HrefValue = "";
 
             // ESTADIO
-            $this->ESTADIO->LinkCustomAttributes = "";
             $this->ESTADIO->HrefValue = "";
 
             // CIUDAD_PARTIDO
-            $this->CIUDAD_PARTIDO->LinkCustomAttributes = "";
             $this->CIUDAD_PARTIDO->HrefValue = "";
 
             // PAIS_PARTIDO
-            $this->PAIS_PARTIDO->LinkCustomAttributes = "";
             $this->PAIS_PARTIDO->HrefValue = "";
 
             // GOLES_LOCAL
-            $this->GOLES_LOCAL->LinkCustomAttributes = "";
             $this->GOLES_LOCAL->HrefValue = "";
 
             // GOLES_VISITANTE
-            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
             $this->GOLES_VISITANTE->HrefValue = "";
 
             // GOLES_EXTRA_EQUIPO1
-            $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO1->HrefValue = "";
 
             // GOLES_EXTRA_EQUIPO2
-            $this->GOLES_EXTRA_EQUIPO2->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO2->HrefValue = "";
 
             // NOTA_PARTIDO
-            $this->NOTA_PARTIDO->LinkCustomAttributes = "";
             $this->NOTA_PARTIDO->HrefValue = "";
 
             // RESUMEN_PARTIDO
-            $this->RESUMEN_PARTIDO->LinkCustomAttributes = "";
             $this->RESUMEN_PARTIDO->HrefValue = "";
 
             // ESTADO_PARTIDO
-            $this->ESTADO_PARTIDO->LinkCustomAttributes = "";
             $this->ESTADO_PARTIDO->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
 
             // automatico
-            $this->automatico->LinkCustomAttributes = "";
             $this->automatico->HrefValue = "";
 
             // actualizado
-            $this->actualizado->LinkCustomAttributes = "";
             $this->actualizado->HrefValue = "";
             $this->actualizado->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_TORNEO
             $this->ID_TORNEO->setupEditAttributes();
-            $this->ID_TORNEO->EditCustomAttributes = "";
             $curVal = trim(strval($this->ID_TORNEO->CurrentValue));
             if ($curVal != "") {
                 $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
@@ -1458,7 +1404,7 @@ class PartidosEdit extends Partidos
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $this->ID_TORNEO->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $this->ID_TORNEO->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->ID_TORNEO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1473,7 +1419,6 @@ class PartidosEdit extends Partidos
 
             // equipo_local
             $this->equipo_local->setupEditAttributes();
-            $this->equipo_local->EditCustomAttributes = "";
             $curVal = trim(strval($this->equipo_local->CurrentValue));
             if ($curVal != "") {
                 $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
@@ -1486,7 +1431,7 @@ class PartidosEdit extends Partidos
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->equipo_local->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $this->equipo_local->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->equipo_local->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1504,7 +1449,6 @@ class PartidosEdit extends Partidos
 
             // equipo_visitante
             $this->equipo_visitante->setupEditAttributes();
-            $this->equipo_visitante->EditCustomAttributes = "";
             $curVal = trim(strval($this->equipo_visitante->CurrentValue));
             if ($curVal != "") {
                 $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
@@ -1517,7 +1461,7 @@ class PartidosEdit extends Partidos
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->equipo_visitante->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $this->equipo_visitante->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->equipo_visitante->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1535,25 +1479,20 @@ class PartidosEdit extends Partidos
 
             // ID_PARTIDO
             $this->ID_PARTIDO->setupEditAttributes();
-            $this->ID_PARTIDO->EditCustomAttributes = "";
             $this->ID_PARTIDO->EditValue = $this->ID_PARTIDO->CurrentValue;
-            $this->ID_PARTIDO->ViewCustomAttributes = "";
 
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->setupEditAttributes();
-            $this->FECHA_PARTIDO->EditCustomAttributes = "";
             $this->FECHA_PARTIDO->EditValue = HtmlEncode(FormatDateTime($this->FECHA_PARTIDO->CurrentValue, $this->FECHA_PARTIDO->formatPattern()));
             $this->FECHA_PARTIDO->PlaceHolder = RemoveHtml($this->FECHA_PARTIDO->caption());
 
             // HORA_PARTIDO
             $this->HORA_PARTIDO->setupEditAttributes();
-            $this->HORA_PARTIDO->EditCustomAttributes = "";
             $this->HORA_PARTIDO->EditValue = HtmlEncode(FormatDateTime($this->HORA_PARTIDO->CurrentValue, $this->HORA_PARTIDO->formatPattern()));
             $this->HORA_PARTIDO->PlaceHolder = RemoveHtml($this->HORA_PARTIDO->caption());
 
             // ESTADIO
             $this->ESTADIO->setupEditAttributes();
-            $this->ESTADIO->EditCustomAttributes = "";
             $curVal = trim(strval($this->ESTADIO->CurrentValue));
             if ($curVal != "") {
                 $this->ESTADIO->ViewValue = $this->ESTADIO->lookupCacheOption($curVal);
@@ -1566,7 +1505,7 @@ class PartidosEdit extends Partidos
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`id_estadio`" . SearchString("=", $this->ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`id_estadio`", "=", $this->ESTADIO->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->ESTADIO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1581,13 +1520,11 @@ class PartidosEdit extends Partidos
 
             // CIUDAD_PARTIDO
             $this->CIUDAD_PARTIDO->setupEditAttributes();
-            $this->CIUDAD_PARTIDO->EditCustomAttributes = "";
             $this->CIUDAD_PARTIDO->EditValue = HtmlEncode($this->CIUDAD_PARTIDO->CurrentValue);
             $this->CIUDAD_PARTIDO->PlaceHolder = RemoveHtml($this->CIUDAD_PARTIDO->caption());
 
             // PAIS_PARTIDO
             $this->PAIS_PARTIDO->setupEditAttributes();
-            $this->PAIS_PARTIDO->EditCustomAttributes = "";
             $curVal = trim(strval($this->PAIS_PARTIDO->CurrentValue));
             if ($curVal != "") {
                 $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->lookupCacheOption($curVal);
@@ -1600,7 +1537,7 @@ class PartidosEdit extends Partidos
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`PAIS_EQUIPO`" . SearchString("=", $this->PAIS_PARTIDO->CurrentValue, DATATYPE_MEMO, "");
+                    $filterWrk = SearchFilter("`PAIS_EQUIPO`", "=", $this->PAIS_PARTIDO->CurrentValue, DATATYPE_MEMO, "");
                 }
                 $sqlWrk = $this->PAIS_PARTIDO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1615,7 +1552,6 @@ class PartidosEdit extends Partidos
 
             // GOLES_LOCAL
             $this->GOLES_LOCAL->setupEditAttributes();
-            $this->GOLES_LOCAL->EditCustomAttributes = "";
             $this->GOLES_LOCAL->EditValue = HtmlEncode($this->GOLES_LOCAL->CurrentValue);
             $this->GOLES_LOCAL->PlaceHolder = RemoveHtml($this->GOLES_LOCAL->caption());
             if (strval($this->GOLES_LOCAL->EditValue) != "" && is_numeric($this->GOLES_LOCAL->EditValue)) {
@@ -1624,7 +1560,6 @@ class PartidosEdit extends Partidos
 
             // GOLES_VISITANTE
             $this->GOLES_VISITANTE->setupEditAttributes();
-            $this->GOLES_VISITANTE->EditCustomAttributes = "";
             $this->GOLES_VISITANTE->EditValue = HtmlEncode($this->GOLES_VISITANTE->CurrentValue);
             $this->GOLES_VISITANTE->PlaceHolder = RemoveHtml($this->GOLES_VISITANTE->caption());
             if (strval($this->GOLES_VISITANTE->EditValue) != "" && is_numeric($this->GOLES_VISITANTE->EditValue)) {
@@ -1633,7 +1568,6 @@ class PartidosEdit extends Partidos
 
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->setupEditAttributes();
-            $this->GOLES_EXTRA_EQUIPO1->EditCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO1->EditValue = HtmlEncode($this->GOLES_EXTRA_EQUIPO1->CurrentValue);
             $this->GOLES_EXTRA_EQUIPO1->PlaceHolder = RemoveHtml($this->GOLES_EXTRA_EQUIPO1->caption());
             if (strval($this->GOLES_EXTRA_EQUIPO1->EditValue) != "" && is_numeric($this->GOLES_EXTRA_EQUIPO1->EditValue)) {
@@ -1642,7 +1576,6 @@ class PartidosEdit extends Partidos
 
             // GOLES_EXTRA_EQUIPO2
             $this->GOLES_EXTRA_EQUIPO2->setupEditAttributes();
-            $this->GOLES_EXTRA_EQUIPO2->EditCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO2->EditValue = HtmlEncode($this->GOLES_EXTRA_EQUIPO2->CurrentValue);
             $this->GOLES_EXTRA_EQUIPO2->PlaceHolder = RemoveHtml($this->GOLES_EXTRA_EQUIPO2->caption());
             if (strval($this->GOLES_EXTRA_EQUIPO2->EditValue) != "" && is_numeric($this->GOLES_EXTRA_EQUIPO2->EditValue)) {
@@ -1651,134 +1584,104 @@ class PartidosEdit extends Partidos
 
             // NOTA_PARTIDO
             $this->NOTA_PARTIDO->setupEditAttributes();
-            $this->NOTA_PARTIDO->EditCustomAttributes = "";
             $this->NOTA_PARTIDO->EditValue = HtmlEncode($this->NOTA_PARTIDO->CurrentValue);
             $this->NOTA_PARTIDO->PlaceHolder = RemoveHtml($this->NOTA_PARTIDO->caption());
 
             // RESUMEN_PARTIDO
             $this->RESUMEN_PARTIDO->setupEditAttributes();
-            $this->RESUMEN_PARTIDO->EditCustomAttributes = "";
             $this->RESUMEN_PARTIDO->EditValue = HtmlEncode($this->RESUMEN_PARTIDO->CurrentValue);
             $this->RESUMEN_PARTIDO->PlaceHolder = RemoveHtml($this->RESUMEN_PARTIDO->caption());
 
             // ESTADO_PARTIDO
             $this->ESTADO_PARTIDO->setupEditAttributes();
-            $this->ESTADO_PARTIDO->EditCustomAttributes = "";
             $this->ESTADO_PARTIDO->EditValue = $this->ESTADO_PARTIDO->options(true);
             $this->ESTADO_PARTIDO->PlaceHolder = RemoveHtml($this->ESTADO_PARTIDO->caption());
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
 
             // automatico
-            $this->automatico->EditCustomAttributes = "";
             $this->automatico->EditValue = $this->automatico->options(false);
             $this->automatico->PlaceHolder = RemoveHtml($this->automatico->caption());
 
             // actualizado
             $this->actualizado->setupEditAttributes();
-            $this->actualizado->EditCustomAttributes = "";
 
             // Edit refer script
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
 
             // equipo_local
-            $this->equipo_local->LinkCustomAttributes = "";
             $this->equipo_local->HrefValue = "";
 
             // equipo_visitante
-            $this->equipo_visitante->LinkCustomAttributes = "";
             $this->equipo_visitante->HrefValue = "";
 
             // ID_PARTIDO
-            $this->ID_PARTIDO->LinkCustomAttributes = "";
             $this->ID_PARTIDO->HrefValue = "";
 
             // FECHA_PARTIDO
-            $this->FECHA_PARTIDO->LinkCustomAttributes = "";
             $this->FECHA_PARTIDO->HrefValue = "";
 
             // HORA_PARTIDO
-            $this->HORA_PARTIDO->LinkCustomAttributes = "";
             $this->HORA_PARTIDO->HrefValue = "";
 
             // ESTADIO
-            $this->ESTADIO->LinkCustomAttributes = "";
             $this->ESTADIO->HrefValue = "";
 
             // CIUDAD_PARTIDO
-            $this->CIUDAD_PARTIDO->LinkCustomAttributes = "";
             $this->CIUDAD_PARTIDO->HrefValue = "";
 
             // PAIS_PARTIDO
-            $this->PAIS_PARTIDO->LinkCustomAttributes = "";
             $this->PAIS_PARTIDO->HrefValue = "";
 
             // GOLES_LOCAL
-            $this->GOLES_LOCAL->LinkCustomAttributes = "";
             $this->GOLES_LOCAL->HrefValue = "";
 
             // GOLES_VISITANTE
-            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
             $this->GOLES_VISITANTE->HrefValue = "";
 
             // GOLES_EXTRA_EQUIPO1
-            $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO1->HrefValue = "";
 
             // GOLES_EXTRA_EQUIPO2
-            $this->GOLES_EXTRA_EQUIPO2->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO2->HrefValue = "";
 
             // NOTA_PARTIDO
-            $this->NOTA_PARTIDO->LinkCustomAttributes = "";
             $this->NOTA_PARTIDO->HrefValue = "";
 
             // RESUMEN_PARTIDO
-            $this->RESUMEN_PARTIDO->LinkCustomAttributes = "";
             $this->RESUMEN_PARTIDO->HrefValue = "";
 
             // ESTADO_PARTIDO
-            $this->ESTADO_PARTIDO->LinkCustomAttributes = "";
             $this->ESTADO_PARTIDO->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
 
             // automatico
-            $this->automatico->LinkCustomAttributes = "";
             $this->automatico->HrefValue = "";
 
             // actualizado
-            $this->actualizado->LinkCustomAttributes = "";
             $this->actualizado->HrefValue = "";
             $this->actualizado->TooltipValue = "";
         }
@@ -1795,7 +1698,7 @@ class PartidosEdit extends Partidos
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -2022,6 +1925,9 @@ class PartidosEdit extends Partidos
             if (count($rsnew) > 0) {
                 $this->CurrentFilter = $filter; // Set up current filter
                 $editRow = $this->update($rsnew, "", $rsold);
+                if (!$editRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             } else {
                 $editRow = true; // No field to update
             }
@@ -2044,14 +1950,11 @@ class PartidosEdit extends Partidos
             $this->rowUpdated($rsold, $rsnew);
         }
 
-        // Clean upload path if any
-        if ($editRow) {
-        }
-
-        // Write JSON for API request
-        if (IsApi() && $editRow) {
+        // Write JSON response
+        if (IsJsonResponse() && $editRow) {
             $row = $this->getRecordsFromRecordset([$rsnew], true);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+            $table = $this->TableVar;
+            WriteJson(["success" => true, "action" => Config("API_EDIT_ACTION"), $table => $row]);
         }
         return $editRow;
     }
@@ -2112,7 +2015,11 @@ class PartidosEdit extends Partidos
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -2125,26 +2032,32 @@ class PartidosEdit extends Partidos
         if ($this->DisplayRecords == 0) {
             return;
         }
-        if ($this->isPageRequest()) { // Validate request
-            $startRec = Get(Config("TABLE_START_REC"));
-            if ($startRec !== null && is_numeric($startRec)) { // Check for "start" parameter
-                $this->StartRecord = $startRec;
-                $this->setStartRecordNumber($this->StartRecord);
-            }
+        $pageNo = Get(Config("TABLE_PAGE_NUMBER"));
+        $startRec = Get(Config("TABLE_START_REC"));
+        $infiniteScroll = false;
+        $recordNo = $pageNo ?? $startRec; // Record number = page number or start record
+        if ($recordNo !== null && is_numeric($recordNo)) {
+            $this->StartRecord = $recordNo;
+        } else {
+            $this->StartRecord = $this->getStartRecordNumber();
         }
-        $this->StartRecord = $this->getStartRecordNumber();
 
         // Check if correct start record counter
-        if (!is_numeric($this->StartRecord) || $this->StartRecord == "") { // Avoid invalid start record counter
+        if (!is_numeric($this->StartRecord) || intval($this->StartRecord) <= 0) { // Avoid invalid start record counter
             $this->StartRecord = 1; // Reset start record counter
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif ($this->StartRecord > $this->TotalRecords) { // Avoid starting record > total records
             $this->StartRecord = (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to last page first record
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif (($this->StartRecord - 1) % $this->DisplayRecords != 0) {
             $this->StartRecord = (int)(($this->StartRecord - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to page boundary
+        }
+        if (!$infiniteScroll) {
             $this->setStartRecordNumber($this->StartRecord);
         }
+    }
+
+    // Get page count
+    public function PageCount() {
+        return ceil($this->TotalRecords / $this->DisplayRecords);
     }
 
     // Page Load event
@@ -2199,6 +2112,14 @@ class PartidosEdit extends Partidos
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 
     // Form Custom Validate event

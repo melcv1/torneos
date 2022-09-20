@@ -267,7 +267,7 @@ class OracleSchemaManager extends AbstractSchemaManager
             $this->getQuotedIdentifierName($tableForeignKey['foreignTable']),
             array_values($tableForeignKey['foreign']),
             $this->getQuotedIdentifierName($tableForeignKey['name']),
-            ['onDelete' => $tableForeignKey['onDelete']]
+            ['onDelete' => $tableForeignKey['onDelete']],
         );
     }
 
@@ -281,7 +281,7 @@ class OracleSchemaManager extends AbstractSchemaManager
         return new Sequence(
             $this->getQuotedIdentifierName($sequence['sequence_name']),
             (int) $sequence['increment_by'],
-            (int) $sequence['min_value']
+            (int) $sequence['min_value'],
         );
     }
 
@@ -391,6 +391,9 @@ SQL;
                  C.NULLABLE,
                  D.COMMENTS
             FROM ALL_TAB_COLUMNS C
+        INNER JOIN ALL_TABLES T
+            ON T.OWNER = C.OWNER
+            AND T.TABLE_NAME = C.TABLE_NAME
        LEFT JOIN ALL_COL_COMMENTS D
            ON D.OWNER = C.OWNER
                   AND D.TABLE_NAME = C.TABLE_NAME

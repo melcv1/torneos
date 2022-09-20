@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 
@@ -15,15 +15,14 @@ class DbTableBase
     public $TableType;
     public $Dbid = "DB"; // Table database id
     public $Visible = true;
+    public $Charts = [];
     public $Fields = [];
     public $Rows = []; // Data for Custom Template
     public $OldKey = ""; // Old key (for edit/copy)
-    public $OldKeyName = "k_oldkey"; // Old key name (for edit/copy)
+    public $OldKeyName = ""; // Old key name (for edit/copy)
     public $Recordset = null; // Recordset
-    public $UseTokenInUrl;
     public $UseCustomTemplate = false; // Use custom template
     public $Export; // Export
-    public $CustomExport; // Custom export
     public $ExportAll;
     public $ExportPageBreakCount; // Page break per every n record (PDF only)
     public $ExportPageOrientation; // Page orientation (PDF only)
@@ -35,13 +34,13 @@ class DbTableBase
     public $ExportWordPageSize; // Page size (Word only)
     public $ExportWordColumnWidth; // Page orientation (Word only)
     public $SendEmail; // Send email
-    public $ImportCsvEncoding = ""; // Import to CSV encoding
-    public $ImportCsvDelimiter; // Import to CSV delimiter
-    public $ImportCsvQuoteCharacter; // Import to CSV quote character
-    public $ImportMaxExecutionTime; // Import max execution time
+    public $PageBreakHtml;
+    public $ExportPageBreaks = true; // Page breaks when export
     public $ImportInsertOnly; // Import by insert only
-    public $ImportUseTransaction; // Import use transaction
+    public $ImportUseTransaction = false; // Import use transaction
+    public $ImportMaxFailures = 0; // Import maximum number of failures
     public $BasicSearch; // Basic search
+    public $QueryRules; // Rules from jQuery Query builder
     public $CurrentFilter; // Current filter
     public $CurrentOrder; // Current order
     public $CurrentOrderType; // Current order type
@@ -67,25 +66,83 @@ class DbTableBase
     protected $TableCaption = "";
     protected $PageCaption = [];
     public $RouteCompositeKeySeparator = "/"; // Composite key separator for routing
-    public $UseTransaction = true;
+    public $UseTransaction = false;
     public $RowAction = ""; // Row action
     protected $Cache; // Doctrine cache
     protected $CacheProfile; // Doctrine cache profile
 
+    // Charts related
+    public $SourceTableIsCustomView = false;
+    public $TableReportType;
+    public $ShowDrillDownFilter;
+    public $UseDrillDownPanel; // Use drill down panel
+    public $DrillDown = false;
+    public $DrillDownInPanel = false;
+
+    // Table
+    public $TableClass = "";
+    public $TableGridClass = ""; // CSS class for .card (with a leading space)
+    public $TableContainerClass = ""; // CSS class for .card-body (e.g. height of the main table)
+    public $TableContainerStyle = ""; // CSS style for .card-body (e.g. height of the main table)
+    public $UseResponsiveTable = false;
+    public $ResponsiveTableClass = "";
+    public $ContainerClass = "p-0";
+    public $ContextClass = ""; // CSS class name as context
+    public $ShowCurrentFilter;
+
+    // Default field properties
+    public $Raw;
+    public $UploadPath;
+    public $OldUploadPath;
+    public $HrefPath;
+    public $UploadAllowedFileExt;
+    public $UploadMaxFileSize;
+    public $UploadMaxFileCount;
+    public $ImageCropper;
+    public $UseColorbox;
+    public $AutoFillOriginalValue;
+    public $UseLookupCache;
+    public $LookupCacheCount;
+    public $ExportOriginalValue;
+    public $ExportFieldCaption;
+    public $ExportFieldImage;
+    public $DefaultNumberFormat;
+
     // Constructor
     public function __construct()
     {
-        $this->UseTokenInUrl = Config("USE_TOKEN_IN_URL");
+        $this->OldKeyName = Config("FORM_OLD_KEY_NAME");
         $this->SearchOption = Config("SEARCH_OPTION");
-        $this->ImportCsvDelimiter = Config("IMPORT_CSV_DELIMITER");
-        $this->ImportCsvQuoteCharacter = Config("IMPORT_CSV_QUOTE_CHARACTER");
-        $this->ImportMaxExecutionTime = Config("IMPORT_MAX_EXECUTION_TIME");
         $this->ImportInsertOnly = Config("IMPORT_INSERT_ONLY");
-        $this->ImportUseTransaction = Config("IMPORT_USE_TRANSACTION");
+        $this->ImportMaxFailures = Config("IMPORT_MAX_FAILURES");
         $this->AutoHidePager = Config("AUTO_HIDE_PAGER");
         $this->AutoHidePageSizeSelector = Config("AUTO_HIDE_PAGE_SIZE_SELECTOR");
-        $this->UseTransaction = Config("USE_TRANSACTION");
+        $this->UseResponsiveTable = !IsExport() && Config("USE_RESPONSIVE_TABLE");
+        $this->ResponsiveTableClass = Config("RESPONSIVE_TABLE_CLASS");
+        $this->TableContainerClass = $this->UseResponsiveTable ? $this->ResponsiveTableClass : "";
         $this->RowAttrs = new Attributes();
+        $this->ShowCurrentFilter = Config("SHOW_CURRENT_FILTER");
+
+        // Default field properties
+        $this->Raw = !Config("REMOVE_XSS");
+        $this->UploadPath = Config("UPLOAD_DEST_PATH");
+        $this->OldUploadPath = Config("UPLOAD_DEST_PATH");
+        $this->HrefPath = Config("UPLOAD_HREF_PATH");
+        $this->UploadAllowedFileExt = Config("UPLOAD_ALLOWED_FILE_EXT");
+        $this->UploadMaxFileSize = Config("MAX_FILE_SIZE");
+        $this->UploadMaxFileCount = Config("MAX_FILE_COUNT");
+        $this->ImageCropper = Config("IMAGE_CROPPER");
+        $this->UseColorbox = Config("USE_COLORBOX");
+        $this->AutoFillOriginalValue = Config("AUTO_FILL_ORIGINAL_VALUE");
+        $this->UseLookupCache = Config("USE_LOOKUP_CACHE");
+        $this->LookupCacheCount = Config("LOOKUP_CACHE_COUNT");
+        $this->ExportOriginalValue = Config("EXPORT_ORIGINAL_VALUE");
+        $this->ExportFieldCaption = Config("EXPORT_FIELD_CAPTION");
+        $this->ExportFieldImage = Config("EXPORT_FIELD_IMAGE");
+        $this->DefaultNumberFormat = Config("DEFAULT_NUMBER_FORMAT");
+
+        // Page break
+        $this->PageBreakHtml = Config("PAGE_BREAK_HTML");
     }
 
     // Get Connection
@@ -95,11 +152,65 @@ class DbTableBase
         return $conn;
     }
 
+    // Check if transaction supported
+    public function supportsTransaction(): bool
+    {
+        $support = true;
+        $dbtype = GetConnectionType($this->Dbid);
+        if ($dbtype == "MYSQL" && $this->TableName != "") {
+            $support = $_SESSION[SESSION_MYSQL_ENGINES][$this->Dbid][$this->TableName] ?? null;
+            if ($support === null) {
+                $sql = "SHOW TABLE STATUS WHERE Engine = 'MyISAM' AND Name = '" . AdjustSql($this->TableName, $this->Dbid) . "'";
+                try {
+                    $support = $this->getConnection()->executeQuery($sql)->rowCount() == 0;
+                } catch (\Exception $e) {
+                    $support = false;
+                }
+                $_SESSION[SESSION_MYSQL_ENGINES][$this->Dbid][$this->TableName] = $support;
+            }
+        }
+        return $support;
+    }
+
     // Get query builder
     public function getQueryBuilder()
     {
         $conn = $this->getConnection();
         return $conn->createQueryBuilder();
+    }
+
+    // Find field by param
+    public function fieldByParam($param)
+    {
+        $ar = array_filter($this->Fields, fn($fld) => $fld->Param == $param);
+        return array_shift($ar);
+    }
+
+    // Check if fixed header table
+    public function isFixedHeaderTable(): bool
+    {
+        return ContainsClass($this->TableClass, Config("FIXED_HEADER_TABLE_CLASS"));
+    }
+
+    /**
+     * Set fixed header table
+     *
+     * @param bool $enabled Whether enable fixed header table
+     * @param string $height Height of table container (CSS class name)
+     * @return void
+     */
+    public function setFixedHeaderTable(bool $enabled, string $height = null)
+    {
+        if ($enabled && !$this->isExport()) {
+            AppendClass($this->TableClass, Config("FIXED_HEADER_TABLE_CLASS"));
+            $height ??= Config("FIXED_HEADER_TABLE_HEIGHT");
+            if ($height) {
+                AppendClass($this->TableContainerClass, $height);
+            }
+        } else {
+            RemoveClass($this->TableClass, Config("FIXED_HEADER_TABLE_CLASS"));
+            AppendClass($this->TableContainerClass, "h-auto"); // Override height class
+        }
     }
 
     /**
@@ -278,19 +389,6 @@ class DbTableBase
         }
     }
 
-    // Add URL parameter
-    public function getUrlParm($parm = "")
-    {
-        $urlParm = ($this->UseTokenInUrl) ? "t=" . $this->TableVar : "";
-        if ($parm != "") {
-            if ($urlParm != "") {
-                $urlParm .= "&";
-            }
-            $urlParm .= $parm;
-        }
-        return $urlParm;
-    }
-
     // Row styles
     public function rowStyles()
     {
@@ -327,7 +425,7 @@ class DbTableBase
     }
 
     // Has Invalid fields
-    public function hasInvalidFields()
+    public function hasInvalidFields(): bool
     {
         foreach ($this->Fields as $fldname => $fld) {
             if ($fld->IsInvalid) {
@@ -350,7 +448,7 @@ class DbTableBase
     }
 
     // Export
-    public function isExport($format = "")
+    public function isExport($format = ""): bool
     {
         if ($format) {
             return SameText($this->Export, $format);

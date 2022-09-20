@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -19,6 +19,7 @@ class Pronosticador extends DbTable
     protected $SqlGroupBy = "";
     protected $SqlHaving = "";
     protected $SqlOrderBy = "";
+    public $DbErrorMessage = "";
     public $UseSessionForListSql = true;
 
     // Column CSS classes
@@ -36,7 +37,16 @@ class Pronosticador extends DbTable
     public $AuditTrailOnSearch = false;
 
     // Export
-    public $ExportDoc;
+    public $UseAjaxActions = false;
+    public $ModalSearch = false;
+    public $ModalView = false;
+    public $ModalAdd = false;
+    public $ModalEdit = false;
+    public $ModalUpdate = false;
+    public $InlineDelete = false;
+    public $ModalGridAdd = false;
+    public $ModalGridEdit = false;
+    public $ModalMultiEdit = false;
 
     // Fields
     public $ID_ENCUESTA;
@@ -55,27 +65,34 @@ class Pronosticador extends DbTable
     // Constructor
     public function __construct()
     {
-        global $Language, $CurrentLanguage, $CurrentLocale;
         parent::__construct();
+        global $Language, $CurrentLanguage, $CurrentLocale;
 
         // Language object
         $Language = Container("language");
-        $this->TableVar = 'pronosticador';
+        $this->TableVar = "pronosticador";
         $this->TableName = 'pronosticador';
-        $this->TableType = 'TABLE';
+        $this->TableType = "TABLE";
+        $this->ImportUseTransaction = $this->supportsTransaction() && Config("IMPORT_USE_TRANSACTION");
+        $this->UseTransaction = $this->supportsTransaction() && Config("USE_TRANSACTION");
 
         // Update Table
         $this->UpdateTable = "`pronosticador`";
         $this->Dbid = 'DB';
         $this->ExportAll = true;
         $this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
+
+        // PDF
         $this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
         $this->ExportPageSize = "a4"; // Page size (PDF only)
-        $this->ExportExcelPageOrientation = ""; // Page orientation (PhpSpreadsheet only)
-        $this->ExportExcelPageSize = ""; // Page size (PhpSpreadsheet only)
-        $this->ExportWordVersion = 12; // Word version (PHPWord only)
-        $this->ExportWordPageOrientation = "portrait"; // Page orientation (PHPWord only)
-        $this->ExportWordPageSize = "A4"; // Page orientation (PHPWord only)
+
+        // PhpSpreadsheet
+        $this->ExportExcelPageOrientation = null; // Page orientation (PhpSpreadsheet only)
+        $this->ExportExcelPageSize = null; // Page size (PhpSpreadsheet only)
+
+        // PHPWord
+        $this->ExportWordPageOrientation = ""; // Page orientation (PHPWord only)
+        $this->ExportWordPageSize = ""; // Page orientation (PHPWord only)
         $this->ExportWordColumnWidth = null; // Cell width (PHPWord only)
         $this->DetailAdd = false; // Allow detail add
         $this->DetailEdit = false; // Allow detail edit
@@ -83,258 +100,264 @@ class Pronosticador extends DbTable
         $this->ShowMultipleDetails = false; // Show multiple details
         $this->GridAddRowCount = 5;
         $this->AllowAddDeleteRow = true; // Allow add/delete row
+        $this->UseAjaxActions = $this->UseAjaxActions || Config("USE_AJAX_ACTIONS");
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
-        $this->BasicSearch = new BasicSearch($this->TableVar);
+        $this->BasicSearch = new BasicSearch($this);
 
-        // ID_ENCUESTA
+        // ID_ENCUESTA $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ID_ENCUESTA = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_ID_ENCUESTA',
-            'ID_ENCUESTA',
-            '`ID_ENCUESTA`',
-            '`ID_ENCUESTA`',
-            3,
-            11,
-            -1,
-            false,
-            '`ID_ENCUESTA`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'NO'
+            $this, // Table
+            'x_ID_ENCUESTA', // Variable name
+            'ID_ENCUESTA', // Name
+            '`ID_ENCUESTA`', // Expression
+            '`ID_ENCUESTA`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`ID_ENCUESTA`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'NO' // Edit Tag
         );
         $this->ID_ENCUESTA->InputTextType = "text";
         $this->ID_ENCUESTA->IsAutoIncrement = true; // Autoincrement field
         $this->ID_ENCUESTA->IsPrimaryKey = true; // Primary key field
         $this->ID_ENCUESTA->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->ID_ENCUESTA->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['ID_ENCUESTA'] = &$this->ID_ENCUESTA;
 
-        // ID_PARTICIPANTE
+        // ID_PARTICIPANTE $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ID_PARTICIPANTE = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_ID_PARTICIPANTE',
-            'ID_PARTICIPANTE',
-            '`ID_PARTICIPANTE`',
-            '`ID_PARTICIPANTE`',
-            3,
-            11,
-            -1,
-            false,
-            '`ID_PARTICIPANTE`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'SELECT'
+            $this, // Table
+            'x_ID_PARTICIPANTE', // Variable name
+            'ID_PARTICIPANTE', // Name
+            '`ID_PARTICIPANTE`', // Expression
+            '`ID_PARTICIPANTE`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`ID_PARTICIPANTE`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'SELECT' // Edit Tag
         );
         $this->ID_PARTICIPANTE->InputTextType = "text";
         $this->ID_PARTICIPANTE->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->ID_PARTICIPANTE->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->ID_PARTICIPANTE->Lookup = new Lookup('ID_PARTICIPANTE', 'participante', false, 'ID_PARTICIPANTE', ["NOMBRE","APELLIDO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOMBRE`, ''),'" . ValueSeparator(1, $this->ID_PARTICIPANTE) . "',COALESCE(`APELLIDO`,''))");
+                $this->ID_PARTICIPANTE->Lookup = new Lookup('ID_PARTICIPANTE', 'participante', false, 'ID_PARTICIPANTE', ["NOMBRE","APELLIDO","",""], '', '', [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOMBRE`, ''),'" . ValueSeparator(1, $this->ID_PARTICIPANTE) . "',COALESCE(`APELLIDO`,''))");
                 break;
             default:
-                $this->ID_PARTICIPANTE->Lookup = new Lookup('ID_PARTICIPANTE', 'participante', false, 'ID_PARTICIPANTE', ["NOMBRE","APELLIDO","",""], [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOMBRE`, ''),'" . ValueSeparator(1, $this->ID_PARTICIPANTE) . "',COALESCE(`APELLIDO`,''))");
+                $this->ID_PARTICIPANTE->Lookup = new Lookup('ID_PARTICIPANTE', 'participante', false, 'ID_PARTICIPANTE', ["NOMBRE","APELLIDO","",""], '', '', [], [], [], [], [], [], '', '', "CONCAT(COALESCE(`NOMBRE`, ''),'" . ValueSeparator(1, $this->ID_PARTICIPANTE) . "',COALESCE(`APELLIDO`,''))");
                 break;
         }
         $this->ID_PARTICIPANTE->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->ID_PARTICIPANTE->SearchOperators = ["=", "<>", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['ID_PARTICIPANTE'] = &$this->ID_PARTICIPANTE;
 
-        // GRUPO
+        // GRUPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->GRUPO = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_GRUPO',
-            'GRUPO',
-            '`GRUPO`',
-            '`GRUPO`',
-            200,
-            1,
-            -1,
-            false,
-            '`GRUPO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'SELECT'
+            $this, // Table
+            'x_GRUPO', // Variable name
+            'GRUPO', // Name
+            '`GRUPO`', // Expression
+            '`GRUPO`', // Basic search expression
+            200, // Type
+            1, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`GRUPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'SELECT' // Edit Tag
         );
         $this->GRUPO->InputTextType = "text";
         $this->GRUPO->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->GRUPO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->GRUPO->Lookup = new Lookup('GRUPO', 'pronosticador', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                $this->GRUPO->Lookup = new Lookup('GRUPO', 'pronosticador', false, '', ["","","",""], '', '', [], [], [], [], [], [], '', '', "");
                 break;
             default:
-                $this->GRUPO->Lookup = new Lookup('GRUPO', 'pronosticador', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                $this->GRUPO->Lookup = new Lookup('GRUPO', 'pronosticador', false, '', ["","","",""], '', '', [], [], [], [], [], [], '', '', "");
                 break;
         }
         $this->GRUPO->OptionCount = 8;
+        $this->GRUPO->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['GRUPO'] = &$this->GRUPO;
 
-        // EQUIPO
+        // EQUIPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->EQUIPO = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_EQUIPO',
-            'EQUIPO',
-            '`EQUIPO`',
-            '`EQUIPO`',
-            201,
-            256,
-            -1,
-            false,
-            '`EQUIPO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'SELECT'
+            $this, // Table
+            'x_EQUIPO', // Variable name
+            'EQUIPO', // Name
+            '`EQUIPO`', // Expression
+            '`EQUIPO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`EQUIPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'SELECT' // Edit Tag
         );
         $this->EQUIPO->InputTextType = "text";
         $this->EQUIPO->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->EQUIPO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->EQUIPO->Lookup = new Lookup('EQUIPO', 'equipo', false, 'NOM_EQUIPO_CORTO', ["NOM_EQUIPO_LARGO","","",""], [], [], [], [], [], [], '', '', "`NOM_EQUIPO_LARGO`");
+                $this->EQUIPO->Lookup = new Lookup('EQUIPO', 'equipo', false, 'NOM_EQUIPO_CORTO', ["NOM_EQUIPO_LARGO","","",""], '', '', [], [], [], [], [], [], '', '', "`NOM_EQUIPO_LARGO`");
                 break;
             default:
-                $this->EQUIPO->Lookup = new Lookup('EQUIPO', 'equipo', false, 'NOM_EQUIPO_CORTO', ["NOM_EQUIPO_LARGO","","",""], [], [], [], [], [], [], '', '', "`NOM_EQUIPO_LARGO`");
+                $this->EQUIPO->Lookup = new Lookup('EQUIPO', 'equipo', false, 'NOM_EQUIPO_CORTO', ["NOM_EQUIPO_LARGO","","",""], '', '', [], [], [], [], [], [], '', '', "`NOM_EQUIPO_LARGO`");
                 break;
         }
+        $this->EQUIPO->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['EQUIPO'] = &$this->EQUIPO;
 
-        // POSICION
+        // POSICION $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->POSICION = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_POSICION',
-            'POSICION',
-            '`POSICION`',
-            '`POSICION`',
-            201,
-            256,
-            -1,
-            false,
-            '`POSICION`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'SELECT'
+            $this, // Table
+            'x_POSICION', // Variable name
+            'POSICION', // Name
+            '`POSICION`', // Expression
+            '`POSICION`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`POSICION`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'SELECT' // Edit Tag
         );
         $this->POSICION->InputTextType = "text";
         $this->POSICION->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->POSICION->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->POSICION->Lookup = new Lookup('POSICION', 'pronosticador', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                $this->POSICION->Lookup = new Lookup('POSICION', 'pronosticador', false, '', ["","","",""], '', '', [], [], [], [], [], [], '', '', "");
                 break;
             default:
-                $this->POSICION->Lookup = new Lookup('POSICION', 'pronosticador', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                $this->POSICION->Lookup = new Lookup('POSICION', 'pronosticador', false, '', ["","","",""], '', '', [], [], [], [], [], [], '', '', "");
                 break;
         }
         $this->POSICION->OptionCount = 5;
+        $this->POSICION->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['POSICION'] = &$this->POSICION;
 
-        // NUMERACION
+        // NUMERACION $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NUMERACION = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_NUMERACION',
-            'NUMERACION',
-            '`NUMERACION`',
-            '`NUMERACION`',
-            200,
-            4,
-            -1,
-            false,
-            '`NUMERACION`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_NUMERACION', // Variable name
+            'NUMERACION', // Name
+            '`NUMERACION`', // Expression
+            '`NUMERACION`', // Basic search expression
+            200, // Type
+            4, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`NUMERACION`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->NUMERACION->InputTextType = "text";
+        $this->NUMERACION->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['NUMERACION'] = &$this->NUMERACION;
 
-        // crea_dato
+        // crea_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->crea_dato = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_crea_dato',
-            'crea_dato',
-            '`crea_dato`',
-            CastDateFieldForLike("`crea_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`crea_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_crea_dato', // Variable name
+            'crea_dato', // Name
+            '`crea_dato`', // Expression
+            CastDateFieldForLike("`crea_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`crea_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->crea_dato->InputTextType = "text";
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->crea_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['crea_dato'] = &$this->crea_dato;
 
-        // modifica_dato
+        // modifica_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->modifica_dato = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_modifica_dato',
-            'modifica_dato',
-            '`modifica_dato`',
-            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`modifica_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_modifica_dato', // Variable name
+            'modifica_dato', // Name
+            '`modifica_dato`', // Expression
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`modifica_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->modifica_dato->InputTextType = "text";
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->modifica_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
-        // usuario_dato
+        // usuario_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->usuario_dato = new DbField(
-            'pronosticador',
-            'pronosticador',
-            'x_usuario_dato',
-            'usuario_dato',
-            '`usuario_dato`',
-            '`usuario_dato`',
-            201,
-            256,
-            -1,
-            false,
-            '`usuario_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_usuario_dato', // Variable name
+            'usuario_dato', // Name
+            '`usuario_dato`', // Expression
+            '`usuario_dato`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`usuario_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
+        $this->usuario_dato->addMethod("getAutoUpdateValue", fn() => CurrentUserName());
+        $this->usuario_dato->addMethod("getDefault", fn() => "admin");
         $this->usuario_dato->InputTextType = "text";
+        $this->usuario_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
         $this->CacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $this->TableVar);
+
+        // Call Table Load event
+        $this->tableLoad();
     }
 
     // Field Visibility
@@ -385,6 +408,12 @@ class Pronosticador extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Render X Axis for chart
+    public function renderChartXAxis($chartVar, $chartRow)
+    {
+        return $chartRow;
     }
 
     // Table level SQL
@@ -558,6 +587,12 @@ class Pronosticador extends DbTable
     // Get SQL
     public function getSql($where, $orderBy = "")
     {
+        return $this->getSqlAsQueryBuilder($where, $orderBy)->getSQL();
+    }
+
+    // Get QueryBuilder
+    public function getSqlAsQueryBuilder($where, $orderBy = "")
+    {
         return $this->buildSelectSql(
             $this->getSqlSelect(),
             $this->getSqlFrom(),
@@ -567,7 +602,7 @@ class Pronosticador extends DbTable
             $this->getSqlOrderBy(),
             $where,
             $orderBy
-        )->getSQL();
+        );
     }
 
     // Table SQL
@@ -673,7 +708,13 @@ class Pronosticador extends DbTable
     public function insert(&$rs)
     {
         $conn = $this->getConnection();
-        $success = $this->insertSql($rs)->execute();
+        try {
+            $success = $this->insertSql($rs)->execute();
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
         if ($success) {
             // Get insert id if necessary
             $this->ID_ENCUESTA->setDbValue($conn->lastInsertId());
@@ -719,8 +760,21 @@ class Pronosticador extends DbTable
     public function update(&$rs, $where = "", $rsold = null, $curfilter = true)
     {
         // If no field is updated, execute may return 0. Treat as success
-        $success = $this->updateSql($rs, $where, $curfilter)->execute();
-        $success = ($success > 0) ? $success : true;
+        try {
+            $success = $this->updateSql($rs, $where, $curfilter)->execute();
+            $success = ($success > 0) ? $success : true;
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
+
+        // Return auto increment field
+        if ($success) {
+            if (!isset($rs['ID_ENCUESTA']) && !EmptyValue($this->ID_ENCUESTA->CurrentValue)) {
+                $rs['ID_ENCUESTA'] = $this->ID_ENCUESTA->CurrentValue;
+            }
+        }
         if ($success && $this->AuditTrailOnEdit && $rsold) {
             $rsaudit = $rs;
             $fldname = 'ID_ENCUESTA';
@@ -762,7 +816,13 @@ class Pronosticador extends DbTable
     {
         $success = true;
         if ($success) {
-            $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+            try {
+                $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+                $this->DbErrorMessage = "";
+            } catch (\Exception $e) {
+                $success = false;
+                $this->DbErrorMessage = $e->getMessage();
+            }
         }
         if ($success && $this->AuditTrailOnDelete) {
             $this->writeAuditTrailOnDelete($rs);
@@ -827,13 +887,13 @@ class Pronosticador extends DbTable
     }
 
     // Get record filter
-    public function getRecordFilter($row = null)
+    public function getRecordFilter($row = null, $current = false)
     {
         $keyFilter = $this->sqlKeyFilter();
         if (is_array($row)) {
             $val = array_key_exists('ID_ENCUESTA', $row) ? $row['ID_ENCUESTA'] : null;
         } else {
-            $val = $this->ID_ENCUESTA->OldValue !== null ? $this->ID_ENCUESTA->OldValue : $this->ID_ENCUESTA->CurrentValue;
+            $val = !EmptyValue($this->ID_ENCUESTA->OldValue) && !$current ? $this->ID_ENCUESTA->OldValue : $this->ID_ENCUESTA->CurrentValue;
         }
         if (!is_numeric($val)) {
             return "0=1"; // Invalid key
@@ -875,9 +935,8 @@ class Pronosticador extends DbTable
             return $Language->phrase("Edit");
         } elseif ($pageName == "pronosticadoradd") {
             return $Language->phrase("Add");
-        } else {
-            return "";
         }
+        return "";
     }
 
     // API page name
@@ -899,6 +958,18 @@ class Pronosticador extends DbTable
         }
     }
 
+    // Current URL
+    public function getCurrentUrl($parm = "")
+    {
+        $url = CurrentPageUrl(false);
+        if ($parm != "") {
+            $url = $this->keyUrl($url, $parm);
+        } else {
+            $url = $this->keyUrl($url, Config("TABLE_SHOW_DETAIL") . "=");
+        }
+        return $this->addMasterUrl($url);
+    }
+
     // List URL
     public function getListUrl()
     {
@@ -909,9 +980,9 @@ class Pronosticador extends DbTable
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("pronosticadorview", $this->getUrlParm($parm));
+            $url = $this->keyUrl("pronosticadorview", $parm);
         } else {
-            $url = $this->keyUrl("pronosticadorview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("pronosticadorview", Config("TABLE_SHOW_DETAIL") . "=");
         }
         return $this->addMasterUrl($url);
     }
@@ -920,7 +991,7 @@ class Pronosticador extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "pronosticadoradd?" . $this->getUrlParm($parm);
+            $url = "pronosticadoradd?" . $parm;
         } else {
             $url = "pronosticadoradd";
         }
@@ -930,35 +1001,39 @@ class Pronosticador extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("pronosticadoredit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("pronosticadoredit", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline edit URL
     public function getInlineEditUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=edit"));
+        $url = $this->keyUrl("pronosticadorlist", "action=edit");
         return $this->addMasterUrl($url);
     }
 
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("pronosticadoradd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("pronosticadoradd", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline copy URL
     public function getInlineCopyUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=copy"));
+        $url = $this->keyUrl("pronosticadorlist", "action=copy");
         return $this->addMasterUrl($url);
     }
 
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("pronosticadordelete", $this->getUrlParm());
+        if ($this->UseAjaxActions && ConvertToBool(Param("infinitescroll")) && CurrentPageID() == "list") {
+            return $this->keyUrl(GetApiUrl(Config("API_DELETE_ACTION") . "/" . $this->TableVar));
+        } else {
+            return $this->keyUrl("pronosticadordelete");
+        }
     }
 
     // Add master url
@@ -995,12 +1070,15 @@ class Pronosticador extends DbTable
     // Render sort
     public function renderFieldHeader($fld)
     {
-        global $Security, $Language;
+        global $Security, $Language, $Page;
         $sortUrl = "";
         $attrs = "";
         if ($fld->Sortable) {
             $sortUrl = $this->sortUrl($fld);
-            $attrs = ' role="button" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            $attrs = ' role="button" data-ew-action="sort" data-ajax="' . ($this->UseAjaxActions ? "true" : "false") . '" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            if ($this->ContextClass) { // Add context
+                $attrs .= ' data-context="' . HtmlEncode($this->ContextClass) . '"';
+            }
         }
         $html = '<div class="ew-table-header-caption"' . $attrs . '>' . $fld->caption() . '</div>';
         if ($sortUrl) {
@@ -1021,14 +1099,18 @@ class Pronosticador extends DbTable
     // Sort URL
     public function sortUrl($fld)
     {
+        global $DashboardReport;
         if (
             $this->CurrentAction || $this->isExport() ||
             in_array($fld->Type, [128, 204, 205])
         ) { // Unsortable data type
                 return "";
         } elseif ($fld->Sortable) {
-            $urlParm = $this->getUrlParm("order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort());
-            return $this->addMasterUrl(CurrentPageName() . "?" . $urlParm);
+            $urlParm = "order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort();
+            if ($DashboardReport) {
+                $urlParm .= "&amp;dashboard=true";
+            }
+            return $this->addMasterUrl($this->CurrentPageName . "?" . $urlParm);
         } else {
             return "";
         }
@@ -1064,6 +1146,19 @@ class Pronosticador extends DbTable
             }
         }
         return $ar;
+    }
+
+    // Get filter from records
+    public function getFilterFromRecords($rows)
+    {
+        $keyFilter = "";
+        foreach ($rows as $row) {
+            if ($keyFilter != "") {
+                $keyFilter .= " OR ";
+            }
+            $keyFilter .= "(" . $this->getRecordFilter($row) . ")";
+        }
+        return $keyFilter;
     }
 
     // Get filter from record keys
@@ -1114,6 +1209,24 @@ class Pronosticador extends DbTable
         $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
+    // Render list content
+    public function renderListContent($filter)
+    {
+        global $Response;
+        $listPage = "PronosticadorList";
+        $listClass = PROJECT_NAMESPACE . $listPage;
+        $page = new $listClass();
+        $page->loadRecordsetFromFilter($filter);
+        $view = Container("view");
+        $template = $listPage . ".php"; // View
+        $GLOBALS["Title"] ??= $page->Title; // Title
+        try {
+            $Response = $view->render($Response, $template, $GLOBALS);
+        } finally {
+            $page->terminate(); // Terminate page and clean up
+        }
+    }
+
     // Render list row values
     public function renderListRow()
     {
@@ -1144,14 +1257,13 @@ class Pronosticador extends DbTable
 
         // ID_ENCUESTA
         $this->ID_ENCUESTA->ViewValue = $this->ID_ENCUESTA->CurrentValue;
-        $this->ID_ENCUESTA->ViewCustomAttributes = "";
 
         // ID_PARTICIPANTE
         $curVal = strval($this->ID_PARTICIPANTE->CurrentValue);
         if ($curVal != "") {
             $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->lookupCacheOption($curVal);
             if ($this->ID_PARTICIPANTE->ViewValue === null) { // Lookup from database
-                $filterWrk = "`ID_PARTICIPANTE`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                $filterWrk = SearchFilter("`ID_PARTICIPANTE`", "=", $curVal, DATATYPE_NUMBER, "");
                 $sqlWrk = $this->ID_PARTICIPANTE->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                 $conn = Conn();
                 $config = $conn->getConfiguration();
@@ -1168,7 +1280,6 @@ class Pronosticador extends DbTable
         } else {
             $this->ID_PARTICIPANTE->ViewValue = null;
         }
-        $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
         // GRUPO
         if (strval($this->GRUPO->CurrentValue) != "") {
@@ -1176,14 +1287,13 @@ class Pronosticador extends DbTable
         } else {
             $this->GRUPO->ViewValue = null;
         }
-        $this->GRUPO->ViewCustomAttributes = "";
 
         // EQUIPO
         $curVal = strval($this->EQUIPO->CurrentValue);
         if ($curVal != "") {
             $this->EQUIPO->ViewValue = $this->EQUIPO->lookupCacheOption($curVal);
             if ($this->EQUIPO->ViewValue === null) { // Lookup from database
-                $filterWrk = "`NOM_EQUIPO_CORTO`" . SearchString("=", $curVal, DATATYPE_MEMO, "");
+                $filterWrk = SearchFilter("`NOM_EQUIPO_CORTO`", "=", $curVal, DATATYPE_MEMO, "");
                 $sqlWrk = $this->EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                 $conn = Conn();
                 $config = $conn->getConfiguration();
@@ -1200,7 +1310,6 @@ class Pronosticador extends DbTable
         } else {
             $this->EQUIPO->ViewValue = null;
         }
-        $this->EQUIPO->ViewCustomAttributes = "";
 
         // POSICION
         if (strval($this->POSICION->CurrentValue) != "") {
@@ -1208,68 +1317,54 @@ class Pronosticador extends DbTable
         } else {
             $this->POSICION->ViewValue = null;
         }
-        $this->POSICION->ViewCustomAttributes = "";
 
         // NUMERACION
         $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
-        $this->NUMERACION->ViewCustomAttributes = "";
 
         // crea_dato
         $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
         $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-        $this->usuario_dato->ViewCustomAttributes = "";
 
         // ID_ENCUESTA
-        $this->ID_ENCUESTA->LinkCustomAttributes = "";
         $this->ID_ENCUESTA->HrefValue = "";
         $this->ID_ENCUESTA->TooltipValue = "";
 
         // ID_PARTICIPANTE
-        $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
         $this->ID_PARTICIPANTE->HrefValue = "";
         $this->ID_PARTICIPANTE->TooltipValue = "";
 
         // GRUPO
-        $this->GRUPO->LinkCustomAttributes = "";
         $this->GRUPO->HrefValue = "";
         $this->GRUPO->TooltipValue = "";
 
         // EQUIPO
-        $this->EQUIPO->LinkCustomAttributes = "";
         $this->EQUIPO->HrefValue = "";
         $this->EQUIPO->TooltipValue = "";
 
         // POSICION
-        $this->POSICION->LinkCustomAttributes = "";
         $this->POSICION->HrefValue = "";
         $this->POSICION->TooltipValue = "";
 
         // NUMERACION
-        $this->NUMERACION->LinkCustomAttributes = "";
         $this->NUMERACION->HrefValue = "";
         $this->NUMERACION->TooltipValue = "";
 
         // crea_dato
-        $this->crea_dato->LinkCustomAttributes = "";
         $this->crea_dato->HrefValue = "";
         $this->crea_dato->TooltipValue = "";
 
         // modifica_dato
-        $this->modifica_dato->LinkCustomAttributes = "";
         $this->modifica_dato->HrefValue = "";
         $this->modifica_dato->TooltipValue = "";
 
         // usuario_dato
-        $this->usuario_dato->LinkCustomAttributes = "";
         $this->usuario_dato->HrefValue = "";
         $this->usuario_dato->TooltipValue = "";
 
@@ -1290,35 +1385,28 @@ class Pronosticador extends DbTable
 
         // ID_ENCUESTA
         $this->ID_ENCUESTA->setupEditAttributes();
-        $this->ID_ENCUESTA->EditCustomAttributes = "";
         $this->ID_ENCUESTA->EditValue = $this->ID_ENCUESTA->CurrentValue;
-        $this->ID_ENCUESTA->ViewCustomAttributes = "";
 
         // ID_PARTICIPANTE
         $this->ID_PARTICIPANTE->setupEditAttributes();
-        $this->ID_PARTICIPANTE->EditCustomAttributes = "";
         $this->ID_PARTICIPANTE->PlaceHolder = RemoveHtml($this->ID_PARTICIPANTE->caption());
 
         // GRUPO
         $this->GRUPO->setupEditAttributes();
-        $this->GRUPO->EditCustomAttributes = "";
         $this->GRUPO->EditValue = $this->GRUPO->options(true);
         $this->GRUPO->PlaceHolder = RemoveHtml($this->GRUPO->caption());
 
         // EQUIPO
         $this->EQUIPO->setupEditAttributes();
-        $this->EQUIPO->EditCustomAttributes = "";
         $this->EQUIPO->PlaceHolder = RemoveHtml($this->EQUIPO->caption());
 
         // POSICION
         $this->POSICION->setupEditAttributes();
-        $this->POSICION->EditCustomAttributes = "";
         $this->POSICION->EditValue = $this->POSICION->options(true);
         $this->POSICION->PlaceHolder = RemoveHtml($this->POSICION->caption());
 
         // NUMERACION
         $this->NUMERACION->setupEditAttributes();
-        $this->NUMERACION->EditCustomAttributes = "";
         if (!$this->NUMERACION->Raw) {
             $this->NUMERACION->CurrentValue = HtmlDecode($this->NUMERACION->CurrentValue);
         }
@@ -1327,17 +1415,13 @@ class Pronosticador extends DbTable
 
         // crea_dato
         $this->crea_dato->setupEditAttributes();
-        $this->crea_dato->EditCustomAttributes = "";
         $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->setupEditAttributes();
-        $this->modifica_dato->EditCustomAttributes = "";
         $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
 
@@ -1437,8 +1521,7 @@ class Pronosticador extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
-                $this->ExportDoc = &$doc;
-                $this->rowExport($row);
+                $this->rowExport($doc, $row);
             }
             $recordset->moveNext();
         }
@@ -1456,22 +1539,19 @@ class Pronosticador extends DbTable
         return false;
     }
 
-    // Write Audit Trail start/end for grid update
+    // Write audit trail start/end for grid update
     public function writeAuditTrailDummy($typ)
     {
-        $table = 'pronosticador';
-        $usr = CurrentUserName();
-        WriteAuditLog($usr, $typ, $table, "", "", "", "");
+        WriteAuditLog(CurrentUser(), $typ, 'pronosticador', "", "", "", "");
     }
 
-    // Write Audit Trail (add page)
+    // Write audit trail (add page)
     public function writeAuditTrailOnAdd(&$rs)
     {
         global $Language;
         if (!$this->AuditTrailOnAdd) {
             return;
         }
-        $table = 'pronosticador';
 
         // Get key value
         $key = "";
@@ -1480,36 +1560,31 @@ class Pronosticador extends DbTable
         }
         $key .= $rs['ID_ENCUESTA'];
 
-        // Write Audit Trail
-        $usr = CurrentUserName();
+        // Write audit trail
+        $usr = CurrentUser();
         foreach (array_keys($rs) as $fldname) {
             if (array_key_exists($fldname, $this->Fields) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
-                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") {
-                    $newvalue = $Language->phrase("PasswordMask"); // Password Field
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) {
-                    if (Config("AUDIT_TRAIL_TO_DATABASE")) {
-                        $newvalue = $rs[$fldname];
-                    } else {
-                        $newvalue = "[MEMO]"; // Memo Field
-                    }
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) {
-                    $newvalue = "[XML]"; // XML Field
+                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") { // Password Field
+                    $newvalue = $Language->phrase("PasswordMask");
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo Field
+                    $newvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rs[$fldname] : "[MEMO]";
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML Field
+                    $newvalue = "[XML]";
                 } else {
                     $newvalue = $rs[$fldname];
                 }
-                WriteAuditLog($usr, "A", $table, $fldname, $key, "", $newvalue);
+                WriteAuditLog($usr, "A", 'pronosticador', $fldname, $key, "", $newvalue);
             }
         }
     }
 
-    // Write Audit Trail (edit page)
+    // Write audit trail (edit page)
     public function writeAuditTrailOnEdit(&$rsold, &$rsnew)
     {
         global $Language;
         if (!$this->AuditTrailOnEdit) {
             return;
         }
-        $table = 'pronosticador';
 
         // Get key value
         $key = "";
@@ -1518,8 +1593,8 @@ class Pronosticador extends DbTable
         }
         $key .= $rsold['ID_ENCUESTA'];
 
-        // Write Audit Trail
-        $usr = CurrentUserName();
+        // Write audit trail
+        $usr = CurrentUser();
         foreach (array_keys($rsnew) as $fldname) {
             if (array_key_exists($fldname, $this->Fields) && array_key_exists($fldname, $rsold) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
                 if ($this->Fields[$fldname]->DataType == DATATYPE_DATE) { // DateTime field
@@ -1532,13 +1607,8 @@ class Pronosticador extends DbTable
                         $oldvalue = $Language->phrase("PasswordMask");
                         $newvalue = $Language->phrase("PasswordMask");
                     } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo field
-                        if (Config("AUDIT_TRAIL_TO_DATABASE")) {
-                            $oldvalue = $rsold[$fldname];
-                            $newvalue = $rsnew[$fldname];
-                        } else {
-                            $oldvalue = "[MEMO]";
-                            $newvalue = "[MEMO]";
-                        }
+                        $oldvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rsold[$fldname] : "[MEMO]";
+                        $newvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rsnew[$fldname] : "[MEMO]";
                     } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML field
                         $oldvalue = "[XML]";
                         $newvalue = "[XML]";
@@ -1546,20 +1616,19 @@ class Pronosticador extends DbTable
                         $oldvalue = $rsold[$fldname];
                         $newvalue = $rsnew[$fldname];
                     }
-                    WriteAuditLog($usr, "U", $table, $fldname, $key, $oldvalue, $newvalue);
+                    WriteAuditLog($usr, "U", 'pronosticador', $fldname, $key, $oldvalue, $newvalue);
                 }
             }
         }
     }
 
-    // Write Audit Trail (delete page)
+    // Write audit trail (delete page)
     public function writeAuditTrailOnDelete(&$rs)
     {
         global $Language;
         if (!$this->AuditTrailOnDelete) {
             return;
         }
-        $table = 'pronosticador';
 
         // Get key value
         $key = "";
@@ -1568,29 +1637,31 @@ class Pronosticador extends DbTable
         }
         $key .= $rs['ID_ENCUESTA'];
 
-        // Write Audit Trail
-        $curUser = CurrentUserName();
+        // Write audit trail
+        $usr = CurrentUser();
         foreach (array_keys($rs) as $fldname) {
             if (array_key_exists($fldname, $this->Fields) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
-                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") {
-                    $oldvalue = $Language->phrase("PasswordMask"); // Password Field
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) {
-                    if (Config("AUDIT_TRAIL_TO_DATABASE")) {
-                        $oldvalue = $rs[$fldname];
-                    } else {
-                        $oldvalue = "[MEMO]"; // Memo field
-                    }
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) {
-                    $oldvalue = "[XML]"; // XML field
+                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") { // Password Field
+                    $oldvalue = $Language->phrase("PasswordMask");
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo field
+                    $oldvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rs[$fldname] : "[MEMO]";
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML field
+                    $oldvalue = "[XML]";
                 } else {
                     $oldvalue = $rs[$fldname];
                 }
-                WriteAuditLog($curUser, "D", $table, $fldname, $key, $oldvalue, "");
+                WriteAuditLog($usr, "D", 'pronosticador', $fldname, $key, $oldvalue, "");
             }
         }
     }
 
     // Table level events
+
+    // Table Load event
+    public function tableLoad()
+    {
+        // Enter your code here
+    }
 
     // Recordset Selecting event
     public function recordsetSelecting(&$filter)

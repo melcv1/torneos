@@ -1,11 +1,11 @@
 <?php
 
 /**
- * PHPMaker 2022 functions
+ * PHPMaker 2023 functions
  * Copyright (c) e.World Technology Limited. All rights reserved.
 */
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,6 +19,8 @@ use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use DiDom\Document;
+use DiDom\Element;
 
 /**
  * Get/Set Configuration
@@ -29,7 +31,7 @@ function Config()
 {
     global $CONFIG, $CONFIG_DATA;
     $numargs = func_num_args();
-    $CONFIG_DATA = $CONFIG_DATA ?? new \Dflydev\DotAccessData\Data($CONFIG);
+    $CONFIG_DATA ??= new \Dflydev\DotAccessData\Data($CONFIG);
     $data = &$CONFIG_DATA;
     if ($numargs == 1) { // Get
         $name = func_get_arg(0);
@@ -152,8 +154,8 @@ function Container()
 function RouteContext()
 {
     global $Request;
-    $routeParser = $Request->getAttribute(RouteContext::ROUTE_PARSER);
-    $routingResults = $Request->getAttribute(RouteContext::ROUTING_RESULTS);
+    $routeParser = $Request ? $Request->getAttribute(RouteContext::ROUTE_PARSER) : null;
+    $routingResults = $Request ? $Request->getAttribute(RouteContext::ROUTING_RESULTS) : null;
     return ($routeParser !== null && $routingResults !== null) ? RouteContext::fromRequest($Request) : null;
 }
 
@@ -254,7 +256,7 @@ function BasePath($withTrailingDelimiter = false)
 function Redirect($url)
 {
     global $Response, $RouteValues, $ResponseFactory;
-    $Response = $Response ?? $ResponseFactory->createResponse();
+    $Response ??= $ResponseFactory->createResponse();
     $Response = $Response->withHeader("Location", $url)->withStatus(302);
     return $Response;
 }
@@ -270,6 +272,18 @@ function IsApi()
 }
 
 /**
+ * Is JSON response
+ *
+ * @return bool
+ */
+function IsJsonResponse()
+{
+    return IsApi() ||
+        ConvertToBool(Param("json")) ||
+        $GLOBALS["Request"] && preg_match('/\bapplication\/json\b/', $GLOBALS["Request"]->getHeaderLine("Accept"));
+}
+
+/**
  * Create JWT token
  *
  * @param string $userName User name
@@ -277,19 +291,24 @@ function IsApi()
  * @param string $parentUserID Parent User ID
  * @param string $userLevelID User Level ID
  * @param int $minExpiry Minimum expiry time (seconds)
+ * @param int $permission Allowed User Permission
  * @return string JWT token
  */
-function CreateJwt($userName, $userID, $parentUserID, $userLevelID, $minExpiry = 0)
+function CreateJwt($userName, $userID, $parentUserID, $userLevelID, $minExpiry = 0, $permission = 0)
 {
     //$tokenId = base64_encode(mcrypt_create_iv(32));
     $tokenId = base64_encode(openssl_random_pseudo_bytes(32));
     $issuedAt = time();
     $notBefore = $issuedAt + Config("JWT.NOT_BEFORE_TIME"); // Adding not before time (seconds)
-    $expire = $notBefore + Config("JWT.EXPIRE_TIME"); // Adding expire time (seconds)
+    $defExpiry = $notBefore + Config("JWT.EXPIRE_TIME"); // Adding expire time (seconds), default expiry time
     $serverName = ServerVar("SERVER_NAME");
+
+    // Override expiry time
     if ($minExpiry > 0) {
         $notBefore = 0;
         $expire = $minExpiry;
+    } else {
+        $expire = $defExpiry;
     }
 
     // Create the token as an array
@@ -303,7 +322,8 @@ function CreateJwt($userName, $userID, $parentUserID, $userLevelID, $minExpiry =
             "username" => $userName, // User name
             "userid" => $userID, // User ID
             "parentuserid" => $parentUserID, // Parent user ID
-            "userlevelid" => $userLevelID // User Level ID
+            "userlevelid" => $userLevelID, // User Level ID
+            "permission" => $permission // Allowed permission
         ]
     ];
     $jwt = \Firebase\JWT\JWT::encode(
@@ -324,19 +344,17 @@ function CreateJwt($userName, $userID, $parentUserID, $userLevelID, $minExpiry =
 function DecodeJwt($token)
 {
     try {
-        $ar = (array)\Firebase\JWT\JWT::decode($token, Config("JWT.SECRET_KEY"), [Config("JWT.ALGORITHM")]);
+        $ar = (array)\Firebase\JWT\JWT::decode($token, new \Firebase\JWT\Key(Config("JWT.SECRET_KEY"), Config("JWT.ALGORITHM")));
         return (array)$ar["security"];
     } catch (\Firebase\JWT\BeforeValidException $e) {
         if (Config("DEBUG")) {
             return ["failureMessage" => "BeforeValidException: " . $e->getMessage()];
         }
     } catch (\Firebase\JWT\ExpiredException $e) {
-        if (Config("DEBUG")) {
-            return ["failureMessage" => "ExpiredException: " . $e->getMessage()];
-        }
+        return ["failureMessage" => Language()->phrase("JwtTokenExpired")];
     } catch (\Throwable $e) {
         if (Config("DEBUG")) {
-            return ["failureMessage" => "Exception: " . $e->getMessage()];
+            return ["failureMessage" => $e->getMessage()];
         }
     }
     return [];
@@ -413,7 +431,7 @@ function IsPost()
 */
 function HasParamWithPrefix($prefix)
 {
-    return HasPostParamWithPrefix($prefix) || HasGetParamWithPrefix($prefix);
+    return HasPostParamWithPrefix($prefix) || HasGetParamWithPrefix($prefix) || HasHeaderWithPrefix($prefix);
 }
 
 /**
@@ -425,7 +443,7 @@ function HasParamWithPrefix($prefix)
 function HasGetParamWithPrefix($prefix)
 {
     global $Request;
-    return ArrayKeyWithPrefix($Request->getQueryParams(), $prefix);
+    return ArrayKeyExists(fn($k) => StartsString($prefix, $k), $Request->getQueryParams() ?? []);
 }
 
 /**
@@ -437,26 +455,19 @@ function HasGetParamWithPrefix($prefix)
 function HasPostParamWithPrefix($prefix)
 {
     global $Request;
-    return ArrayKeyWithPrefix($Request->getParsedBody(), $prefix);
+    return ArrayKeyExists(fn($k) => StartsString($prefix, $k), $Request->getParsedBody() ?? []);
 }
 
 /**
- * Array key with prefix
+ * Has header with prefix
  *
- * @param array $ar Array
  * @param string $prefix Prefix of paramter
  * @return bool
 */
-function ArrayKeyWithPrefix($ar, $prefix)
+function HasHeaderWithPrefix($prefix)
 {
-    if (is_array($ar)) {
-        foreach ($ar as $k => $v) {
-            if (StartsString($prefix, $k)) {
-                return true;
-            }
-        }
-    }
-    return false;
+    global $Request;
+    return ArrayKeyExists(fn($k) => StartsString(HeaderCase($prefix), HeaderCase($k)), $Request->getHeaders() ?? []);
 }
 
 /**
@@ -524,21 +535,32 @@ function Key($i = 0)
 }
 
 /**
+ * Is SAML response
+ *
+ * @return bool
+ */
+function IsSamlResponse()
+{
+    return Param("SAMLResponse") !== null;
+}
+
+/**
  * Get route data
  *
  * @param int|"key" $i The nth (0-based) route value or "key" (API only)
+ * @param bool $keyValues Record key separated by key separator (for API "/file/object/field/key" action)
  * @return string|string[]|null
  */
-function Route($i = null)
+function Route($i = null, $keyValues = false)
 {
     $routeValues = $GLOBALS["RouteValues"] ?? [];
-    if (IsApi() && $i === Config("API_KEY_NAME")) { // Get record key separated by key separator (for API "/file/object/field/key" action)
-        $routeValues = array_slice($routeValues, 3);
+    if (IsApi() && $keyValues) { // Get record key separated by key separator (for API "/file/object/field/key" action)
+        $routeValues = array_slice($routeValues, $i);
         return implode(Config("COMPOSITE_KEY_SEPARATOR"), $routeValues);
     } elseif (is_string($i)) { // Get route value by name
         return $routeValues[$i] ?? null;
     } elseif (is_int($i)) { // Get route value by index
-        if (IsApi() && in_array($routeValues[0], ["view", "edit", "delete"]) && ContainsString($routeValues[2], Config("COMPOSITE_KEY_SEPARATOR"))) { // Composite key
+        if (IsApi() && in_array($routeValues[0] ?? "", ["view", "edit", "delete"]) && ContainsString($routeValues[2] ?? "", Config("COMPOSITE_KEY_SEPARATOR"))) { // Composite key
             $keys = explode(Config("COMPOSITE_KEY_SEPARATOR"), $routeValues[2]);
             return $keys[$i - 2] ?? null;
         } else {
@@ -593,7 +615,7 @@ function WriteJson($data, $encodingOptions = 0)
 {
     global $Response;
     $ar = IsApi() ? ["version" => PRODUCT_VERSION] : []; // If API, output as object
-    if (is_array($data) && !array_key_exists(0, $data) && count($data) > 0) { // Associative array
+    if (is_array($data) && !array_is_list($data) && count($data) > 0) { // Associative array
         $data = array_merge($data, $ar);
     }
     $json = json_encode(ConvertToUtf8($data), $encodingOptions);
@@ -609,6 +631,27 @@ function WriteJson($data, $encodingOptions = 0)
         }
         header("Content-Type: application/json; charset=utf-8");
         echo $json;
+    }
+}
+
+/**
+ * Output XML
+ *
+ * @param mixed $data XML to be outputted
+ * @return void
+ */
+function WriteXml($data)
+{
+    global $Response;
+    if (is_object($Response)) {
+        $Response->getBody()->write($data);
+        $Response = $Response->withHeader("Content-Type", "application/xml");
+    } else {
+        if (!Config("DEBUG") && ob_get_length()) {
+            ob_end_clean();
+        }
+        header("Content-Type: application/xml");
+        echo $data;
     }
 }
 
@@ -740,6 +783,26 @@ function WriteCookie($name, $value, $expiry = -1, $essential = true, $httpOnly =
 }
 
 /**
+ * Send event
+ *
+ * @param string $type Type of event
+ * @param string $data Data of event
+ * @return void
+ */
+function SendEvent($data, $type = "message")
+{
+    echo "event: " . $type . "\n",
+        "data: " . (is_array($data) ? json_encode($data) : $data),
+        "\n\n";
+
+    // Flush the output buffer and send echoed messages to the browser
+    while (ob_get_level() > 0) {
+        ob_end_flush();
+    }
+    flush();
+}
+
+/**
  * Get page object
  *
  * @param string $name Page name or table name
@@ -784,16 +847,6 @@ function CurrentProjectID()
 }
 
 /**
- * Get current export file name
- *
- * @return string
- */
-function CurrentExportFile()
-{
-    return $GLOBALS["ExportFileName"];
-}
-
-/**
  * Get current page object
  *
  * @return object
@@ -835,13 +888,8 @@ function CurrentTableName()
 function GetTableName($tblVar)
 {
     global $USER_LEVEL_TABLES;
-    $cnt = count($USER_LEVEL_TABLES);
-    for ($i = 0; $i < $cnt; $i++) {
-        if ($USER_LEVEL_TABLES[$i][1] == $tblVar) {
-            return $USER_LEVEL_TABLES[$i][0]; // Return table name
-        }
-    }
-    return $tblVar; // Not found
+    $table = ArrayFind(fn($tbl) => $tbl[1] == $tblVar, $USER_LEVEL_TABLES);
+    return $table ? $table[0] : $tblVar; // Return table name if found
 }
 
 /**
@@ -870,11 +918,11 @@ function &CurrentDetailTable()
 }
 
 /**
- * Get foreign key url
+ * Get foreign key URL
  *
  * @param string $name Key name
  * @param string $val Key value
- * @param string $dateFormat Date format
+ * @param mixed $dateFormat Date format
  * @return string
  */
 function GetForeignKeyUrl($name, $val, $dateFormat = null)
@@ -892,22 +940,40 @@ function GetForeignKeyUrl($name, $val, $dateFormat = null)
 }
 
 /**
- * Get foreign key SQL
+ * Get filter for a primary/foreign key field
  *
- * @param string $name Field name
- * @param string $val Key value
- * @param string $fldTypeName Field type name
+ * @param DbField $fld Field object
+ * @param string $val Value
+ * @param string $dataType DATATYPE_* of value
  * @param string $dbid Dbid
- * @return string
+ * @return string Filter (<Field> <Opr> <Value>)
  */
-function GetForeignKeySql($name, $val, $fldTypeName, $dbid)
+function GetKeyFilter($fld, $val, $dataType, $dbid)
 {
+    $expression = $fld->Expression;
     if ($val == Config("NULL_VALUE")) {
-        return $name . " IS NULL";
+        return $expression . " IS NULL";
     } elseif ($val == Config("EMPTY_VALUE")) {
         $val = "";
     }
-    return $name . "=" . QuotedValue($val, $fldTypeName, $dbid);
+    $dbtype = GetConnectionType($dbid);
+    if ($fld->DataType == DATATYPE_NUMBER && ($dataType == DATATYPE_STRING || $dataType == DATATYPE_MEMO)) { // Find field value (number) in input value (string)
+        if ($dbtype == "MYSQL") { // MySQL, use FIND_IN_SET(expr, val)
+            $fldOpr = "FIND_IN_SET";
+        } else { // Other database type, use expr IN (val)
+            $fldOpr = "IN";
+            $val = str_replace(Config("MULTIPLE_OPTION_SEPARATOR"), Config("IN_OPERATOR_VALUE_SEPARATOR"), $val);
+        }
+        return SearchFilter($expression, $fldOpr, $val, $dataType, $dbid);
+    } elseif (($fld->DataType == DATATYPE_STRING || $fld->DataType == DATATYPE_MEMO) && $dataType == DATATYPE_NUMBER) { // Find input value (number) in field value (string)
+        if ($dbtype == "MYSQL") { // MySQL, use FIND_IN_SET(val, expr)
+            return "FIND_IN_SET('" . AdjustSql($val, $dbid) . "', " . $expression . ")";
+        } else { // Other database type, use (expr = 'val' OR expr LIKE 'val,%' OR expr LIKE '%,val,%' OR expr LIKE '%,val')
+            return GetMultiSearchSqlFilter($expression, "=", $val, $dbid, Config("MULTIPLE_OPTION_SEPARATOR"));
+        }
+    } else { // Assume same data type
+        return SearchFilter($expression, "=", $val, $dataType, $dbid);
+    }
 }
 
 /**
@@ -926,19 +992,36 @@ function GetForeignKeyValue($val)
     return $val;
 }
 
-// Validate CSRF Token
-function ValidateCsrf()
+/**
+ * Validate CSRF Token
+ * Also see https://github.com/slimphp/Slim-Csrf/blob/1.x/src/Guard.php
+ *
+ * @param object $request Request
+ * @return bool
+ */
+function ValidateCsrf($request)
 {
     global $TokenNameKey, $TokenName, $TokenValueKey, $TokenValue;
     $csrf = Container("csrf");
     $TokenNameKey = $csrf->getTokenNameKey();
     $TokenValueKey = $csrf->getTokenValueKey();
-    $TokenName = Param($TokenNameKey);
-    $TokenValue = Param($TokenValueKey);
-    return !empty($TokenName) && !empty($TokenValue) ? $csrf->validateToken($TokenName, $TokenValue) : false;
+    $TokenName = Param($TokenNameKey) ?? $request->getHeader($TokenNameKey)[0] ?? $request->getHeader(HeaderCase($TokenNameKey))[0] ?? null;
+    $TokenValue = Param($TokenValueKey) ?? $request->getHeader($TokenValueKey)[0] ?? $request->getHeader(HeaderCase($TokenValueKey))[0] ?? null;
+    if (in_array($request->getMethod(), ["POST", "PUT", "DELETE", "PATCH"])) {
+        return !empty($TokenName) && !empty($TokenValue) ? $csrf->validateToken($TokenName, $TokenValue) : false;
+    } else { // GET/OPTIONS/HEAD/etc, do not accept token in the body of request
+        if (Post($TokenNameKey) !== null) {
+            return false;
+        }
+    }
+    return true;
 }
 
-// Generate CSRF Token
+/**
+ * Generate CSRF Token
+ *
+ * @return string
+ */
 function GenerateCsrf()
 {
     global $csrf, $TokenNameKey, $TokenName, $TokenValueKey, $TokenValue;
@@ -951,42 +1034,16 @@ function GenerateCsrf()
     return $token;
 }
 
-/**
- * Export document classes
- */
-
-// Get export document object
-function &GetExportDocument(&$tbl, $style)
+// Get file IMG tag (for export to email/PDF/HTML only)
+function GetFileImgTag($fn, $class = "")
 {
-    $inst = null;
-    $type = strtolower($tbl->Export);
-    $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $type);
-    if (class_exists($class)) {
-        $inst = new $class($tbl, $style);
+    if (!is_array($fn)) {
+        $fn = $fn ? [$fn] : [];
     }
-    return $inst;
-}
-
-// Get file IMG tag (for export to email or PDF only)
-function GetFileImgTag($fld, $fn)
-{
-    $html = "";
-    if ($fn != "") {
-        if ($fld->UploadMultiple) {
-            $wrkfiles = explode(",", $fn);
-            foreach ($wrkfiles as $wrkfile) {
-                if ($wrkfile != "") {
-                    if ($html != "") {
-                        $html .= "<br>";
-                    }
-                    $html .= "<img class=\"ew-image\" src=\"" . $wrkfile . "\" alt=\"\">";
-                }
-            }
-        } else {
-            $html = "<img class=\"ew-image\" src=\"" . $fn . "\" alt=\"\">";
-        }
-    }
-    return $html;
+    $files = array_filter($fn);
+    $files = array_map(fn($file) => ContainsString($file, ":\\") ? str_replace("\\", "/", $file) : $file, $files); // Replace '\' by '/' to avoid encoding issue
+    $tags = array_map(fn($file) => '<img class="ew-image' . ($class ? ' ' . $class : '') . '" src="' . $file . '" alt="">', $files);
+    return implode("<br>", $tags);
 }
 
 // Get file A tag
@@ -1035,23 +1092,6 @@ function GetFileTempImage($fld, $val)
             return TempImage($tmpimage);
         }
         return "";
-    } elseif ($fld->UploadMultiple) {
-        $files = explode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $val);
-        $cnt = count($files);
-        $images = "";
-        for ($i = 0; $i < $cnt; $i++) {
-            if ($files[$i] != "") {
-                $tmpimage = file_get_contents($fld->physicalUploadPath() . $files[$i]);
-                if ($fld->ImageResize) {
-                    ResizeBinary($tmpimage, $fld->ImageWidth, $fld->ImageHeight);
-                }
-                if ($images != "") {
-                    $images .= Config("MULTIPLE_UPLOAD_SEPARATOR");
-                }
-                $images .= TempImage($tmpimage);
-            }
-        }
-        return $images;
     } else {
         $tmpimage = file_get_contents($fld->physicalUploadPath() . $val);
         if ($fld->ImageResize) {
@@ -1069,7 +1109,7 @@ function GetFileImage($fld, $val, $width = 0, $height = 0, $crop = false)
     if ($fld->DataType == DATATYPE_BLOB) {
         $image = $val;
     } elseif ($fld->UploadMultiple) {
-        $file = $fld->physicalUploadPath() . (explode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $val)[0] ?? "");
+        $file = $fld->physicalUploadPath() . (explode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $val ?? "")[0]);
     } else {
         $file = $fld->physicalUploadPath() . $val;
     }
@@ -1077,9 +1117,7 @@ function GetFileImage($fld, $val, $width = 0, $height = 0, $crop = false)
         $image = file_get_contents($file);
     }
     if (!EmptyValue($image) && $width > 0) {
-        $func = function ($phpthumb) use ($width, $height) {
-            $phpthumb->adaptiveResize($width, $height);
-        };
+        $func = fn($phpthumb) => $phpthumb->adaptiveResize($width, $height);
         $plugins = $crop ? [$func] : [];
         ResizeBinary($image, $width, $height, $plugins);
         return $image;
@@ -1130,7 +1168,7 @@ function GetFileUploadUrl($fld, $val, $options = [])
                 $fn .= "?resize=1&width=" . $fld->ImageWidth . "&height=" . $fld->ImageHeight . ($crop ? "&crop=1" : "");
             }
         } else {
-            $encrypt = $encrypt ?? Config("ENCRYPT_FILE_PATH");
+            $encrypt ??= Config("ENCRYPT_FILE_PATH");
             $path = ($encrypt || $resize) ? $fld->physicalUploadPath() : $fld->hrefPath();
             $key = Config("RANDOM_KEY") . $sessionId;
             if ($encrypt) {
@@ -1194,40 +1232,47 @@ function GetFileViewTag(&$fld, $val, $tooltip = false)
         $isLazy = $tooltip ? false : IsLazy();
         $tags = [];
         $wrkcnt = 0;
+        $showBase64Image = $Page && $Page->isExport("html");
+        $skipImage = $Page && ($Page->isExport("excel") && !Config("USE_PHPEXCEL") || $Page->isExport("word") && !Config("USE_PHPWORD"));
+        $showTempImage = $Page && ($Page->TableType == "REPORT" &&
+            ($Page->isExport("excel") && Config("USE_PHPEXCEL") ||
+            $Page->isExport("word") && Config("USE_PHPWORD")) ||
+            $Page->TableType != "REPORT" && ($Page->Export == "pdf" || $Page->Export == "email"));
         foreach ($wrkfiles as $wrkfile) {
             $tag = "";
-            if (
-                $Page && ($Page->TableType == "REPORT" &&
-                ($Page->isExport("excel") && Config("USE_PHPEXCEL") ||
-                $Page->isExport("word") && Config("USE_PHPWORD")) ||
-                $Page->TableType != "REPORT" && ($Page->CustomExport == "pdf" || $Page->CustomExport == "email"))
-            ) {
+            if ($showTempImage) {
                 $fn = GetFileTempImage($fld, $wrkfile);
+            } elseif ($skipImage) {
+                $fn = "";
             } else {
                 $fn = GetFileUploadUrl($fld, $wrkfile, ["resize" => $fld->ImageResize]);
             }
             if ($fld->ViewTag == "IMAGE" && ($fld->IsBlobImage || IsImageFile($wrkfile))) { // Image
                 $fld->ViewAttrs->appendClass($fld->ImageCssClass);
-                if ($isLazy) {
-                    $fld->ViewAttrs->appendClass("ew-lazy");
-                }
-                if ($href == "" && !$fld->UseColorbox) {
-                    if ($fn != "") {
-                        if ($isLazy) {
-                            $tag = '<img loading="lazy" alt="" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src="' . $fn . '"' . $fld->viewAttributes() . '>';
-                        } else {
-                            $tag = '<img alt="" src="' . $fn . '"' . $fld->viewAttributes() . '>';
-                        }
-                    }
+                if ($showBase64Image) {
+                    $tag = GetFileImgTag(ImageFileToBase64Url(GetFileTempImage($fld, $wrkfile)));
                 } else {
-                    if ($fld->UploadMultiple && ContainsString($href, '%u')) {
-                        $fld->HrefValue = str_replace('%u', GetFileUploadUrl($fld, $wrkfile), $href);
+                    if ($isLazy) {
+                        $fld->ViewAttrs->appendClass("ew-lazy");
                     }
-                    if ($fn != "") {
-                        if ($isLazy) {
-                            $tag = '<a' . $fld->linkAttributes() . '><img loading="lazy" alt="" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src="' . $fn . '"' . $fld->viewAttributes() . '></a>';
-                        } else {
-                            $tag = '<a' . $fld->linkAttributes() . '><img alt="" src="' . $fn . '"' . $fld->viewAttributes() . '></a>';
+                    if ($href == "" && !$fld->UseColorbox) {
+                        if ($fn != "") {
+                            if ($isLazy) {
+                                $tag = '<img loading="lazy" alt="" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src="' . $fn . '"' . $fld->viewAttributes() . '>';
+                            } else {
+                                $tag = '<img alt="" src="' . $fn . '"' . $fld->viewAttributes() . '>';
+                            }
+                        }
+                    } else {
+                        if ($fld->UploadMultiple && ContainsString($href, '%u')) {
+                            $fld->HrefValue = str_replace('%u', GetFileUploadUrl($fld, $wrkfile), $href);
+                        }
+                        if ($fn != "") {
+                            if ($isLazy) {
+                                $tag = '<a' . $fld->linkAttributes() . '><img loading="lazy" alt="" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src="' . $fn . '"' . $fld->viewAttributes() . '></a>';
+                            } else {
+                                $tag = '<a' . $fld->linkAttributes() . '><img alt="" src="' . $fn . '"' . $fld->viewAttributes() . '></a>';
+                            }
                         }
                     }
                 }
@@ -1397,8 +1442,8 @@ function IsImageFile($fn)
 // Check if lazy loading images
 function IsLazy()
 {
-    global $ExportType, $CustomExportType;
-    return Config("LAZY_LOAD") && ($ExportType == "" || $ExportType == "print" && ($CustomExportType == "" || $CustomExportType == "print"));
+    global $ExportType;
+    return Config("LAZY_LOAD") && ($ExportType == "" || $ExportType == "print");
 }
 
 // Write HTTP header
@@ -1527,14 +1572,8 @@ function MimeContentType($fn)
 function Conn($dbid = 0)
 {
     $dbid = $dbid ?: "DB";
-    if (isset($GLOBALS["CONNECTIONS"][$dbid])) {
-        return $GLOBALS["CONNECTIONS"][$dbid];
-    }
     $db = Db($dbid);
-    if ($db) {
-        return ConnectDb($db);
-    }
-    return null;
+    return $GLOBALS["CONNECTIONS"][$dbid] ?? ($db ? ConnectDb($db) : null);
 }
 
 // Get connection object (alias of Conn())
@@ -1578,7 +1617,7 @@ function ConnectDb($info)
         if (Config("MYSQL_CHARSET") != "" && !array_key_exists("charset", $info)) {
             $info["charset"] = Config("MYSQL_CHARSET");
         }
-        if ($info["driver"] == "mysqli" && ArrayKeyWithPrefix($info, "ssl_")) { // SSL
+        if ($info["driver"] == "mysqli" && ArrayKeyExists(fn($k) => StartsString("ssl_", $k), $info)) { // SSL
             $info["driverOptions"] = array_replace_recursive($info["driverOptions"] ?? [], ["flags" => MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT]);
         }
     } elseif ($dbtype == "POSTGRESQL") {
@@ -1587,8 +1626,8 @@ function ConnectDb($info)
             $info["charset"] = Config("POSTGRESQL_CHARSET");
         }
     } elseif ($dbtype == "MSSQL") {
-        $info["driver"] = $info["driver"] ?? "sqlsrv";
-        $info["driverOptions"] = $info["driverOptions"] ?? []; // See https://docs.microsoft.com/en-us/sql/connect/php/connection-options?view=sql-server-ver16
+        $info["driver"] ??= "sqlsrv";
+        $info["driverOptions"] ??= []; // See https://docs.microsoft.com/en-us/sql/connect/php/connection-options?view=sql-server-ver16
         // Use TransactionIsolation = SQLSRV_TXN_READ_UNCOMMITTED to avoid record locking
         // https://docs.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql?view=sql-server-ver15
         $info["driverOptions"]["TransactionIsolation"] = 1; // SQLSRV_TXN_READ_UNCOMMITTED
@@ -1713,50 +1752,48 @@ function CastDateFieldForLike($fld, $namedformat, $dbid = 0)
     return $fld;
 }
 
-// Append like operator
+// Append LIKE operator
 function Like($pat, $dbid = 0)
 {
-    return LikeOrNotLikeOperator("LIKE", $pat, $dbid);
+    return LikeOrNotLike("LIKE", $pat, $dbid);
 }
 
-// Append not like operator
+// Append NOT LIKE operator
 function NotLike($pat, $dbid = 0)
 {
-    return LikeOrNotLikeOperator("NOT LIKE", $pat, $dbid);
+    return LikeOrNotLike("NOT LIKE", $pat, $dbid);
 }
 
-// Append Like / Not Like operator
-function LikeOrNotLikeOperator($opr, $pat, $dbid = 0)
+// Append LIKE or NOT LIKE operator
+function LikeOrNotLike($opr, $pat, $dbid = 0)
 {
     $dbtype = GetConnectionType($dbid);
-    $opr = " " . $opr . " "; // " LIKE " / " NOT LIKE "
-    if ($dbtype == "POSTGRESQL") {
-        if (Config("USE_ILIKE_FOR_POSTGRESQL")) {
-            $opr = str_replace(" LIKE ", " ILIKE ", $opr);
-        }
-        return $opr . $pat;
-    } elseif ($dbtype == "MYSQL") {
-        if (Config("LIKE_COLLATION_FOR_MYSQL") != "") {
-            return $opr . $pat . " COLLATE " . Config("LIKE_COLLATION_FOR_MYSQL");
-        } else {
-            return $opr . $pat;
-        }
-    } elseif ($dbtype == "MSSQL") {
-        if (Config("LIKE_COLLATION_FOR_MSSQL") != "") {
-            return " COLLATE " . Config("LIKE_COLLATION_FOR_MSSQL") . $opr . $pat;
-        } else {
-            return $opr . $pat;
-        }
-    } else {
-        return $opr . $pat;
+    $opr = " " . $opr . " "; // " LIKE " or " NOT LIKE "
+    if ($dbtype == "POSTGRESQL" && Config("USE_ILIKE_FOR_POSTGRESQL")) {
+        return str_replace(" LIKE ", " ILIKE ", $opr) . $pat;
+    } elseif ($dbtype == "MYSQL" && Config("LIKE_COLLATION_FOR_MYSQL") != "") {
+        return $opr . $pat . " COLLATE " . Config("LIKE_COLLATION_FOR_MYSQL");
+    } elseif ($dbtype == "MSSQL" && Config("LIKE_COLLATION_FOR_MSSQL") != "") {
+        return " COLLATE " . Config("LIKE_COLLATION_FOR_MSSQL") . $opr . $pat;
     }
+    return $opr . $pat;
 }
 
-// Return multi-value search SQL
-function GetMultiSearchSql(&$fld, $fldOpr, $fldVal, $dbid)
+/**
+ * Get multi-value search SQL
+ *
+ * @param DbField $fld Field object
+ * @param string $fldOpr Search operator
+ * @param string $fldVal Converted search value
+ * @param string $dbid Database ID
+ * @return string WHERE clause
+ */
+function GetMultiSearchSql($fld, $fldOpr, $fldVal, $dbid)
 {
-    if ($fldOpr == "IS NULL" || $fldOpr == "IS NOT NULL") {
-        return $fld->Expression . " " . $fldOpr;
+    $fldDataType = $fld->DataType;
+    $fldOpr = ConvertSearchOperator($fldOpr, $fld, $fldVal);
+    if (in_array($fldOpr, ["IS NULL", "IS NOT NULL", "IS EMPTY", "IS NOT EMPTY"])) {
+        return SearchFilter($fld->Expression, $fldOpr, $fldVal, $fldType, $dbid);
     } else {
         $sep = Config("MULTIPLE_OPTION_SEPARATOR");
         $arVal = explode($sep, $fldVal);
@@ -1764,14 +1801,7 @@ function GetMultiSearchSql(&$fld, $fldOpr, $fldVal, $dbid)
             $ar = [];
             foreach ($arVal as $val) {
                 $val = trim($val);
-                if ($val == Config("NULL_VALUE")) {
-                    $sql = $fld->Expression . " IS NULL";
-                } elseif ($val == Config("NOT_NULL_VALUE")) {
-                    $sql = $fld->Expression . " IS NOT NULL";
-                } else {
-                    $sql = $fld->Expression . " = " . QuotedValue($val, $fld->DataType, $dbid);
-                }
-                $ar[] = $sql;
+                $ar[] = SearchFilter($fld->Expression, $fldOpr, $val, $fldDataType, $dbid);
             }
             return implode(" OR ", $ar);
         } else {
@@ -1779,39 +1809,17 @@ function GetMultiSearchSql(&$fld, $fldOpr, $fldVal, $dbid)
             $dbtype = GetConnectionType($dbid);
             $searchOption = Config("SEARCH_MULTI_VALUE_OPTION");
             if ($searchOption == 1 || !IsMultiSearchOperator($fldOpr)) { // No multiple value search
-                $wrk = $fld->Expression . SearchString($fldOpr, $fldVal, DATATYPE_STRING, $dbid);
-            } else {
+                $wrk = SearchFilter($fld->Expression, $fldOpr, $fldVal, DATATYPE_STRING, $dbid);
+            } else { // Handle multiple search operator
                 foreach ($arVal as $val) {
                     $val = trim($val);
-                    if ($val == Config("NULL_VALUE")) {
-                        $sql = $fld->Expression . " IS NULL";
-                    } elseif ($val == Config("NOT_NULL_VALUE")) {
-                        $sql = $fld->Expression . " IS NOT NULL";
-                    } else {
-                        if ($dbtype == "MYSQL" && in_array($fldOpr, ["=", "<>"])) {
-                            $sql = "FIND_IN_SET('" . AdjustSql($val, $dbid) . "', " . $fld->Expression . ")";
-                            if ($fldOpr == "<>") {
-                                $sql = "NOT " . $sql;
-                            }
-                        } else {
-                            $sql = $fld->Expression . " = '" . AdjustSql($val, $dbid) . "' OR "; // Special case, single value
-                            switch ($fldOpr) {
-                                case "LIKE":
-                                case "NOT LIKE":
-                                    $val = "%" . $val . "%";
-                                    break;
-                                case "STARTS WITH":
-                                    $val .= "%";
-                                    break;
-                                case "ENDS WITH":
-                                    $val = "%" . $val;
-                                    break;
-                            }
-                            $sql .= GetMultiSearchSqlPart($fld, $val, $dbid, $sep);
-                            if (in_array($fldOpr, ["<>", "NOT LIKE"])) {
-                                $sql = "NOT (" . $sql . ")";
-                            }
-                        }
+                    if (!IsMultiSearchOperator($fldOpr)) {
+                        $sql = SearchFilter($fld->Expression, $fldOpr, $val, $fldDataType, $dbid);
+                    } elseif ($dbtype == "MYSQL" && in_array($fldOpr, ["=", "<>"])) { // Use FIND_IN_SET() for MySQL
+                        $fldOpr = $fldOpr == "=" ? "FIND_IN_SET" : "NOT FIND_IN_SET";
+                        $sql = SearchFilter($fld->Expression, $fldOpr, $val, $fldDataType, $dbid);
+                    } else { // Build multi search SQL
+                        $sql = GetMultiSearchSqlFilter($fld->Expression, $fldOpr, $val, $dbid, $sep);
                     }
                     AddFilter($wrk, $sql, $searchOption == 3 ? "OR" : "AND");
                 }
@@ -1824,19 +1832,47 @@ function GetMultiSearchSql(&$fld, $fldOpr, $fldVal, $dbid)
 // Multi value search operator
 function IsMultiSearchOperator($opr)
 {
-    return in_array($opr, ["=", "<>", "LIKE", "NOT LIKE", "STARTS WITH", "ENDS WITH"]);
+    return in_array($opr, ["=", "<>", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH"]);
 }
 
-// Get multi search SQL part
-function GetMultiSearchSqlPart(&$fld, $fldVal, $dbid, $sep)
+/**
+ * Get multi search SQL filter
+ *
+ * @param string $fldExpression Field expression
+ * @param string $fldOpr Search operator
+ * @param string $fldVal Converted search value
+ * @param string $dbid Database ID
+ * @param string $sep Separator, e.g. Config("MULTIPLE_OPTION_SEPARATOR")
+ * @return string WHERE clause (fld = val OR fld LIKE val,% OR fld LIKE %,val,% OR fld LIKE %,val)
+ */
+function GetMultiSearchSqlFilter($fldExpression, $fldOpr, $fldVal, $dbid, $sep)
 {
-    return $fld->Expression . Like("'" . AdjustSql($fldVal, $dbid) . $sep . "%'", $dbid) . " OR " .
-        $fld->Expression . Like("'%" . $sep . AdjustSql($fldVal, $dbid) . $sep . "%'", $dbid) . " OR " .
-        $fld->Expression . Like("'%" . $sep . AdjustSql($fldVal, $dbid) . "'", $dbid);
+    $sql = $fldExpression . " = '" . AdjustSql($fldVal, $dbid) . "' OR ";
+    switch ($fldOpr) {
+        case "STARTS WITH":
+        case "NOT STARTS WITH":
+            $fldVal .= "%";
+            break;
+        case "LIKE":
+        case "NOT LIKE":
+            $fldVal = "%" . $fldVal . "%";
+            break;
+        case "ENDS WITH":
+        case "NOT ENDS WITH":
+            $fldVal = "%" . $fldVal;
+            break;
+    }
+    $sql .= $fldExpression . Like("'" . AdjustSqlForLike($fldVal . $sep, $dbid) . "%'", $dbid) . " OR " .
+        $fldExpression . Like("'%" . AdjustSqlForLike($sep . $fldVal . $sep, $dbid) . "%'", $dbid) . " OR " .
+        $fldExpression . Like("'%" . AdjustSqlForLike($sep . $fldVal, $dbid) . "'", $dbid);
+    if (StartsString("NOT ", $fldOpr)) {
+        $sql = "NOT (" . $sql . ")";
+    }
+    return $sql;
 }
 
-// Check if float format
-function IsFloatFormat($fldType)
+// Check if float type
+function IsFloatType($fldType)
 {
     return in_array($fldType, [4, 5, 6, 131, 139]);
 }
@@ -1847,69 +1883,45 @@ function IsNumeric($value)
     return is_numeric($value) || ParseNumber($value) !== false;
 }
 
-// Get search SQL
-function GetSearchSql(&$fld, $fldVal, $fldOpr, $fldCond, $fldVal2, $fldOpr2, $dbid)
+/**
+ * Get search SQL
+ *
+ * @param DbField $fld Field object
+ * @param string $fldVal Converted search value
+ * @param string $fldOpr Converted search operator
+ * @param string $fldCond Search condition
+ * @param string $fldVal2 Converted search value 2
+ * @param string $fldOpr2 Converted search operator 2
+ * @param string $dbid Database ID
+ * @return string WHERE clause
+ */
+function GetSearchSql($fld, $fldVal, $fldOpr, $fldCond, $fldVal2, $fldOpr2, $dbid)
 {
+    // Build search SQL
     $sql = "";
-    $virtual = ($fld->IsVirtual && $fld->VirtualSearch);
-    $fldExpression = ($virtual) ? $fld->VirtualExpression : $fld->Expression;
-    $fldDataType = $fld->DataType;
-    if (IsFloatFormat($fld->Type)) {
-        $fldVal = ConvertToFloatString($fldVal);
-        $fldVal2 = ConvertToFloatString($fldVal2);
-    }
-    if ($virtual) {
-        $fldDataType = DATATYPE_STRING;
-    }
-    if ($fldDataType == DATATYPE_NUMBER) { // Fix wrong operator
-        if ($fldOpr == "LIKE" || $fldOpr == "STARTS WITH" || $fldOpr == "ENDS WITH") {
-            $fldOpr = "=";
-        } elseif ($fldOpr == "NOT LIKE") {
-            $fldOpr = "<>";
-        }
-        if ($fldOpr2 == "LIKE" || $fldOpr2 == "STARTS WITH" || $fldOpr2 == "ENDS WITH") {
-            $fldOpr2 = "=";
-        } elseif ($fldOpr2 == "NOT LIKE") {
-            $fldOpr2 = "<>";
-        }
-    }
-    if ($fldOpr == "BETWEEN") {
-        $isValidValue = ($fldDataType != DATATYPE_NUMBER) ||
-            ($fldDataType == DATATYPE_NUMBER && is_numeric($fldVal) && is_numeric($fldVal2));
+    $virtual = $fld->VirtualSearch;
+    $fldExpression = $virtual ? $fld->VirtualExpression : $fld->Expression;
+    $fldDataType = $virtual ? DATATYPE_STRING : $fld->DataType;
+    if (in_array($fldOpr, ["BETWEEN", "NOT BETWEEN"])) {
+        $isValidValue = $fldDataType != DATATYPE_NUMBER || is_numeric($fldVal) && is_numeric($fldVal2);
         if ($fldVal != "" && $fldVal2 != "" && $isValidValue) {
-            $sql = $fldExpression . " BETWEEN " . QuotedValue($fldVal, $fldDataType, $dbid) .
+            $sql = $fldExpression . " " . $fldOpr . " " . QuotedValue($fldVal, $fldDataType, $dbid) .
                 " AND " . QuotedValue($fldVal2, $fldDataType, $dbid);
         }
     } else {
         // Handle first value
-        if ($fldVal == Config("NULL_VALUE") || $fldOpr == "IS NULL") {
-            $sql = $fld->Expression . " IS NULL";
-        } elseif ($fldVal == Config("NOT_NULL_VALUE") || $fldOpr == "IS NOT NULL") {
-            $sql = $fld->Expression . " IS NOT NULL";
-        } else {
-            $isValidValue = ($fldDataType != DATATYPE_NUMBER) ||
-                ($fldDataType == DATATYPE_NUMBER && is_numeric($fldVal));
-            if ($fldVal != "" && $isValidValue && IsValidOperator($fldOpr, $fldDataType)) {
-                $sql = $fldExpression . SearchString($fldOpr, $fldVal, $fldDataType, $dbid);
-                if ($fld->isBoolean() && $fldVal == $fld->FalseValue && $fldOpr == "=") {
-                    $sql = "(" . $sql . " OR " . $fldExpression . " IS NULL)";
-                }
+        if ($fldVal != "" && IsValidOperator($fldOpr)) {
+            $sql = SearchFilter($fldExpression, $fldOpr, $fldVal, $fldDataType, $dbid);
+            if ($fld->isBoolean() && $fldVal == $fld->FalseValue && $fldOpr == "=") {
+                $sql = "(" . $sql . " OR " . $fldExpression . " IS NULL)";
             }
         }
         // Handle second value
         $sql2 = "";
-        if ($fldVal2 == Config("NULL_VALUE") || $fldOpr2 == "IS NULL") {
-            $sql2 = $fld->Expression . " IS NULL";
-        } elseif ($fldVal2 == Config("NOT_NULL_VALUE") || $fldOpr2 == "IS NOT NULL") {
-            $sql2 = $fld->Expression . " IS NOT NULL";
-        } else {
-            $isValidValue = ($fldDataType != DATATYPE_NUMBER) ||
-                ($fldDataType == DATATYPE_NUMBER && is_numeric($fldVal2));
-            if ($fldVal2 != "" && $isValidValue && IsValidOperator($fldOpr2, $fldDataType)) {
-                $sql2 = $fldExpression . SearchString($fldOpr2, $fldVal2, $fldDataType, $dbid);
-                if ($fld->isBoolean() && $fldVal2 == $fld->FalseValue && $fldOpr2 == "=") {
-                    $sql2 = "(" . $sql2 . " OR " . $fldExpression . " IS NULL)";
-                }
+        if ($fldVal2 != "" && !EmptyValue($fldOpr2) && IsValidOperator($fldOpr2)) {
+            $sql2 = SearchFilter($fldExpression, $fldOpr2, $fldVal2, $fldDataType, $dbid);
+            if ($fld->isBoolean() && $fldVal2 == $fld->FalseValue && $fldOpr2 == "=") {
+                $sql2 = "(" . $sql2 . " OR " . $fldExpression . " IS NULL)";
             }
         }
         // Combine SQL
@@ -1918,35 +1930,156 @@ function GetSearchSql(&$fld, $fldVal, $fldOpr, $fldCond, $fldVal2, $fldOpr2, $db
     return $sql;
 }
 
-// Return search string
-function SearchString($fldOpr, $fldVal, $fldType, $dbid)
+/**
+ * Get search filter
+ *
+ * @param string $fldExpression Field expression
+ * @param string $fldOpr Search operator
+ * @param string $fldVal Converted search value
+ * @param string $fldType Field type
+ * @param string $dbid Database ID
+ * @return string WHERE clause
+ */
+function SearchFilter($fldExpression, $fldOpr, $fldVal, $fldType, $dbid)
 {
-    if (strval($fldVal) == Config("NULL_VALUE") || $fldOpr == "IS NULL") {
-        return " IS NULL";
-    } elseif (strval($fldVal) == Config("NOT_NULL_VALUE") || $fldOpr == "IS NOT NULL") {
-        return " IS NOT NULL";
-    } elseif ($fldOpr == "LIKE") {
-        return Like(QuotedValue("%$fldVal%", $fldType, $dbid), $dbid);
-    } elseif ($fldOpr == "NOT LIKE") {
-        return NotLike(QuotedValue("%$fldVal%", $fldType, $dbid), $dbid);
-    } elseif ($fldOpr == "STARTS WITH") {
-        return Like(QuotedValue("$fldVal%", $fldType, $dbid), $dbid);
-    } elseif ($fldOpr == "ENDS WITH") {
-        return Like(QuotedValue("%$fldVal", $fldType, $dbid), $dbid);
-    } else {
-        if ($fldType == DATATYPE_NUMBER && !is_numeric($fldVal)) { // Invalid field value
-            return " = -1 AND 1 = 0"; // Always false
-        } else {
-            return " " . $fldOpr . " " . QuotedValue($fldVal, $fldType, $dbid);
-        }
+    $filter = $fldExpression;
+    if (!$filter) {
+        return "";
     }
+    if (EmptyValue($fldOpr)) {
+        $fldOpr = "=";
+    }
+    if (in_array($fldOpr, ["=", "<>", "<", "<=", ">", ">="])) {
+        $filter .= " " . $fldOpr . " " . QuotedValue($fldVal, $fldType, $dbid);
+    } elseif ($fldOpr == "IS NULL" || $fldOpr == "IS NOT NULL") {
+        $filter .= " " . $fldOpr;
+    } elseif ($fldOpr == "IS EMPTY") {
+        $filter .= " = ''";
+    } elseif ($fldOpr == "IS NOT EMPTY") {
+        $filter .= " <> ''";
+    } elseif ($fldOpr == "FIND_IN_SET" || $fldOpr == "NOT FIND_IN_SET") { // MYSQL only
+        $filter = $fldOpr . "(" . $fldExpression . ", '" . AdjustSql($fldVal, $dbid) . "')";
+    } elseif ($fldOpr == "IN" || $fldOpr == "NOT IN") {
+        $filter .= " " . $fldOpr . " (" . implode(", ", array_map(fn($v) => QuotedValue($v, $fldType, $dbid), explode(Config("IN_OPERATOR_VALUE_SEPARATOR"), $fldVal))) . ")";
+    } elseif ($fldOpr == "STARTS WITH") {
+        $filter .= Like("'" . AdjustSqlForLike($fldVal, $dbid) . "%'");
+    } elseif ($fldOpr == "NOT STARTS WITH") {
+        $filter .= NotLike("'" . AdjustSqlForLike($fldVal, $dbid) . "%'");
+    } elseif ($fldOpr == "LIKE") {
+        $filter .= Like("'%" . AdjustSqlForLike($fldVal, $dbid) . "%'");
+    } elseif ($fldOpr == "NOT LIKE") {
+        $filter .= NotLike("'%" . AdjustSqlForLike($fldVal, $dbid) . "%'");
+    } elseif ($fldOpr == "ENDS WITH") {
+        $filter .= Like("'%" . AdjustSqlForLike($fldVal, $dbid) . "'");
+    } elseif ($fldOpr == "NOT ENDS WITH") {
+        $filter .= NotLike("'%" . AdjustSqlForLike($fldVal, $dbid) . "'");
+    } else { // Default is equal
+        $filter .= " = " . QuotedValue($fldVal, $fldType, $dbid);
+    }
+    return $filter;
 }
 
-// Check if valid operator
-function IsValidOperator($opr, $fldType)
+/**
+ * Convert search operator
+ *
+ * @param string $fldOpr Search operator
+ * @param DbField $fld Field object
+ * @param array|string $fldVal Converted field value(s) (single, delimited or array)
+ * @return string|false Converted search operator (false if invalid operator)
+ */
+function ConvertSearchOperator($fldOpr, $fld, $fldVal)
 {
-    return in_array($opr, ["=", "<>", "<", "<=", ">", ">="]) ||
-        in_array($fldType, [DATATYPE_STRING, DATATYPE_MEMO, DATATYPE_XML]) && in_array($opr, ["LIKE", "NOT LIKE", "STARTS WITH", "ENDS WITH"]);
+    if ($fld->UseFilter) {
+        $fldOpr = "="; // Use "equal"
+    }
+    $fldOpr = array_search($fldOpr, Config("CLIENT_SEARCH_OPERATORS")) ?: $fldOpr;
+    if (!IsValidOperator($fldOpr)) {
+        return false;
+    }
+    if ($fldVal == Config("NULL_VALUE")) { // Null value
+        return "IS NULL";
+    } elseif ($fldVal == Config("NOT_NULL_VALUE")) { // Not Null value
+        return "IS NOT NULL";
+    } elseif (EmptyValue($fldOpr)) { // Not specified, ignore
+        return $fldOpr;
+    } elseif ($fld->DataType == DATATYPE_NUMBER && !$fld->VirtualSearch) { // Numeric value(s)
+        if (!IsNumericSearchValue($fldVal, $fldOpr, $fld) || in_array($fldOpr, ["IS EMPTY", "IS NOT EMPTY"])) {
+            return false; // Invalid
+        } elseif (in_array($fldOpr, ["STARTS WITH", "LIKE", "ENDS WITH"])) {
+            return "=";
+        } elseif (in_array($fldOpr, ["NOT STARTS WITH", "NOT LIKE", "NOT ENDS WITH"])) {
+            return "<>";
+        }
+    } elseif (
+        in_array($fldOpr, ["LIKE", "NOT LIKE", "STARTS WITH", "NOT STARTS WITH", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY"]) &&
+        !in_array($fld->DataType, [DATATYPE_STRING, DATATYPE_MEMO, DATATYPE_XML]) &&
+        !$fld->VirtualSearch
+    ) { // String type
+        return false; // Invalid
+    }
+    return $fldOpr;
+}
+
+/**
+ * Check if search value is numeric
+ *
+ * @param string $fldVal Converted search value
+ * @param string $fldOpr Search oeperator
+ * @param DbField $fld Field object
+ * @return bool
+ */
+function IsNumericSearchValue($fldVal, $fldOpr, $fld)
+{
+    if (($fld->isMultiSelect() || $fld->UseFilter) && is_string($fldVal) && ContainsString($fldVal, Config("MULTIPLE_OPTION_SEPARATOR"))) {
+        return implode(Config("MULTIPLE_OPTION_SEPARATOR"), array_map("is_numeric", explode(Config("MULTIPLE_OPTION_SEPARATOR"), $fldVal)));
+    } elseif (($fldOpr == "IN" || $fldOpr == "NOT IN") && ContainsString($fldVal, Config("IN_OPERATOR_VALUE_SEPARATOR"))) {
+        return implode(Config("IN_OPERATOR_VALUE_SEPARATOR"), array_map("is_numeric", explode(Config("IN_OPERATOR_VALUE_SEPARATOR"), $fldVal)));
+    } elseif (is_array($fldVal)) {
+        return array_map("is_numeric", $fldVal);
+    }
+    return is_numeric($fldVal);
+}
+
+/**
+ * Check if valid search operator
+ *
+ * @param string $fldOpr Search operator
+ * @return bool
+ */
+function IsValidOperator($fldOpr)
+{
+    return EmptyValue($fldOpr) || in_array($fldOpr, array_keys(Config("CLIENT_SEARCH_OPERATORS")));
+}
+
+/**
+ * Convert search value(s)
+ *
+ * @param array|string $fldVal Search value(s) (single, delimited or array)
+ * @param DbField $fld Field object
+ * @return array|string Converted search values
+ */
+function ConvertSearchValue($fldVal, $fldOpr, $fld)
+{
+    $convert = function ($val) use ($fld) {
+        if ($val == Config("NULL_VALUE") || $val == Config("NOT_NULL_VALUE")) {
+            return $val;
+        } elseif (IsFloatType($fld->Type)) {
+            return ConvertToFloatString($val);
+        } elseif ($fld->isBoolean()) {
+            return !EmptyValue($val) ? (ConvertToBool($val) ? $fld->TrueValue : $fld->FalseValue) : $val;
+        } elseif ($fld->DataType == DATATYPE_DATE || $fld->DataType == DATATYPE_TIME) {
+            return !EmptyValue($val) ? UnFormatDateTime($val, $fld->formatPattern()) : $val;
+        }
+        return $val;
+    };
+    if (($fld->isMultiSelect() || $fld->UseFilter) && is_string($fldVal) && ContainsString($fldVal, Config("MULTIPLE_OPTION_SEPARATOR"))) {
+        return implode(Config("MULTIPLE_OPTION_SEPARATOR"), array_map($convert, explode(Config("MULTIPLE_OPTION_SEPARATOR"), $fldVal)));
+    } elseif (($fldOpr == "IN" || $fldOpr == "NOT IN") && ContainsString($fldVal, Config("IN_OPERATOR_VALUE_SEPARATOR"))) {
+        return implode(Config("IN_OPERATOR_VALUE_SEPARATOR"), array_map($convert, explode(Config("IN_OPERATOR_VALUE_SEPARATOR"), $fldVal)));
+    } elseif (is_array($fldVal)) {
+        return array_map($convert, $fldVal);
+    }
+    return $convert($fldVal);
 }
 
 // Quote table/field name based on dbid
@@ -2134,16 +2267,33 @@ function AddBracketsForFilter($filter, $cond = "AND")
     return $filter;
 }
 
-// Adjust SQL based on dbid
+// Adjust value (as string) for SQL based on dbid
 function AdjustSql($val, $dbid = 0)
 {
     $dbtype = GetConnectionType($dbid);
-    if ($dbtype == "MYSQL") {
-        $val = addslashes(trim($val ?? ""));
-    } else {
-        $val = str_replace("'", "''", trim($val ?? "")); // Adjust for single quote
-    }
-    return $val;
+    $replacementMap = [
+        "\0" => "\\0",
+        "\n" => "\\n",
+        "\r" => "\\r",
+        "\t" => "\\t",
+        chr(26) => "\\Z", // Substitute
+        chr(8) => "\\b", // Backspace
+        '"' => '\"',
+        "'" => "\'",
+        '\\' => '\\\\'
+    ];
+    return strtr(trim($val ?? ""), $replacementMap);
+}
+
+// Adjust value for SQL LIKE operator based on dbid
+function AdjustSqlForLike($val, $dbid = 0)
+{
+    $dbtype = GetConnectionType($dbid);
+    $replacementMap = [
+        '_' => "\_",
+        "%" => "\%"
+    ];
+    return strtr(AdjustSql($val, $dbid), $replacementMap);
 }
 
 /**
@@ -2202,9 +2352,11 @@ function WriteAuditTrail($pfx, $dt, $script, $usr, $action, $table, $field, $key
     if ($writeAuditTrail) {
         if (Config("AUDIT_TRAIL_TO_DATABASE")) {
             $tbl = Container(Config("AUDIT_TRAIL_TABLE_VAR"));
-            if ($tbl->rowInserting(null, $rsnew)) {
+            if ($tbl && (!method_exists($tbl, "rowInserting") || $tbl->rowInserting(null, $rsnew))) {
                 if ($tbl->insert($rsnew)) {
-                    $tbl->rowInserted(null, $rsnew);
+                    if (method_exists($tbl, "rowInserted")) {
+                        $tbl->rowInserted(null, $rsnew);
+                    }
                 }
             }
         } else {
@@ -2229,6 +2381,73 @@ function WriteAuditTrail($pfx, $dt, $script, $usr, $action, $table, $field, $key
 function WriteAuditLog($usr, $action, $table, $field, $keyvalue, $oldvalue, $newvalue)
 {
     WriteAuditTrail("log", DbCurrentDateTime(), ScriptName(), $usr, $action, $table, $field, $keyvalue, $oldvalue, $newvalue);
+}
+
+/**
+ * Write export log
+ *
+ * @param string $fileId File ID
+ * @param string $dt DateTime
+ * @param string $usr User ID or user name
+ * @param string $exportType Export type
+ * @param string $table Table
+ * @param string $keyValue Key value
+ * @param string $fileName File name
+ * @param string $req Request
+ * @return void
+ */
+function WriteExportLog($fileId, $dt, $usr, $exportType, $table, $keyValue, $fileName, $req)
+{
+    if (EmptyValue(Config("EXPORT_LOG_TABLE_VAR"))) {
+        return;
+    }
+    $rsnew = [
+        Config("EXPORT_LOG_FIELD_NAME_FILE_ID") => $fileId,
+        Config("EXPORT_LOG_FIELD_NAME_DATETIME") => $dt,
+        Config("EXPORT_LOG_FIELD_NAME_USER") => $usr,
+        Config("EXPORT_LOG_FIELD_NAME_EXPORT_TYPE") => $exportType,
+        Config("EXPORT_LOG_FIELD_NAME_TABLE") => $table,
+        Config("EXPORT_LOG_FIELD_NAME_KEY_VALUE") => $keyValue,
+        Config("EXPORT_LOG_FIELD_NAME_FILENAME") => $fileName,
+        Config("EXPORT_LOG_FIELD_NAME_REQUEST") => $req
+    ];
+    if (Config("DEBUG")) {
+        Log("Export: " . json_encode($rsnew));
+    }
+    $tbl = Container(Config("EXPORT_LOG_TABLE_VAR"));
+    if ($tbl && (!method_exists($tbl, "rowInserting") || $tbl->rowInserting(null, $rsnew))) {
+        if ($tbl->insert($rsnew)) {
+            if (method_exists($tbl, "rowInserted")) {
+                $tbl->rowInserted(null, $rsnew);
+            }
+        }
+    }
+}
+
+/**
+ * Export path
+ *
+ * @param bool $phyPath Physical path
+ * @return string
+ */
+function ExportPath($phyPath = false)
+{
+    return $phyPath
+        ? IncludeTrailingDelimiter(UploadPath(true) . Config("EXPORT_PATH"), true)
+        : IncludeTrailingDelimiter(FullUrl(UploadPath(false) . Config("EXPORT_PATH")), false); // Full URL
+}
+
+/**
+ * New guid
+ *
+ * @return string
+ */
+function NewGuid()
+{
+    $data = openssl_random_pseudo_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // Set version to 0100
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // Set bits 6-7 to 10
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
 /**
@@ -2427,7 +2646,9 @@ function FormatInteger($value)
 function ParseNumber($value, $pattern = "")
 {
     global $CurrentLocale, $NUMBER_FORMAT, $PERCENT_SYMBOL, $DECIMAL_SEPARATOR, $GROUPING_SEPARATOR;
-    if (ContainsString($value, $PERCENT_SYMBOL)) {
+    if (EmptyValue($value)) {
+        return false;
+    } elseif (ContainsString($value, $PERCENT_SYMBOL)) {
         return ParsePercent($value, $pattern);
     }
     $fmt = new \NumberFormatter($CurrentLocale, \NumberFormatter::PATTERN_DECIMAL, $pattern ?: $NUMBER_FORMAT);
@@ -2481,7 +2702,9 @@ function ConvertToFloatString($v, $pattern = "")
  */
 function FormatPercent($value, $pattern = "")
 {
-    if (IsFormatted($value)) {
+    if (EmptyValue($value)) {
+        return $value;
+    } elseif (IsFormatted($value)) {
         $value = ParseNumber($value);
     }
     global $CurrentLocale, $PERCENT_FORMAT, $PERCENT_SYMBOL, $DECIMAL_SEPARATOR, $GROUPING_SEPARATOR;
@@ -2520,6 +2743,27 @@ function FormatSequenceNumber($seq)
 }
 
 /**
+ * Format phone number (https://github.com/giggsey/libphonenumber-for-php/blob/master/docs/PhoneNumberUtil.md)
+ *
+ * @param string $phoneNumber Phone Number (e.g. US mobile: "(415)555-2671")
+ * @param string $region Region code (e.g. "US" / "GB" / "FR")
+ * @param string $format PhoneNumberFormat (\libphonenumber\PhoneNumberFormat::E164/INTERNATIONAL/NATIONAL/RFC3966)
+ * @return string
+ */
+function FormatPhoneNumber($phoneNumber, $region = null, $format = \libphonenumber\PhoneNumberFormat::E164)
+{
+    global $CurrentLanguage;
+    $region ??= Config("SMS_REGION_CODE");
+    if ($region === null) { // Get region from locale
+        $ar = explode("-", str_replace("_", "-", $CurrentLanguage));
+        $region = count($ar) >= 2 ? $ar[1] : "US";
+    }
+    $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+    $phoneNumberObject = $phoneNumberUtil->parse($phoneNumber, $region);
+    return $phoneNumberUtil->format($phoneNumberObject, $format);
+}
+
+/**
  * Display field value separator
  *
  * @param int $idx Display field index (1|2|3)
@@ -2533,9 +2777,26 @@ function ValueSeparator($idx, $fld)
 }
 
 /**
+ * Get temp upload path root
+ *
+ * @param bool $physical Whether path is physical
+ *  If true, return physical path of the temp upload folder root.
+ *  If false, return href path of the temp upload folder root.
+ * @return string
+ */
+function UploadTempPathRoot($physical = true)
+{
+    if ($physical) {
+        return (Config("UPLOAD_TEMP_PATH") && Config("UPLOAD_TEMP_HREF_PATH")) ? IncludeTrailingDelimiter(Config("UPLOAD_TEMP_PATH"), true) : UploadPath(true);
+    } else { // Href path
+        return (Config("UPLOAD_TEMP_PATH") && Config("UPLOAD_TEMP_HREF_PATH")) ? IncludeTrailingDelimiter(Config("UPLOAD_TEMP_HREF_PATH"), false) : UploadPath(false);
+    }
+}
+
+/**
  * Get temp upload path
  *
- * @param mixed $fld DbField
+ * @param mixed $option Option
  *  If false, return href path of the temp upload folder.
  *  If NULL, return physical path of the temp upload folder.
  *  If string, return physical path of the temp upload folder with the parameter as part of the subpath.
@@ -2544,25 +2805,48 @@ function ValueSeparator($idx, $fld)
  * @param bool $tableLevel Table level or field level
  * @return string
  */
-function UploadTempPath($fld = null, $idx = -1, $tableLevel = false)
+function UploadTempPath($option = null, $idx = -1, $tableLevel = false)
 {
-    if ($fld !== false) { // Physical path
-        $path = (Config("UPLOAD_TEMP_PATH") && Config("UPLOAD_TEMP_HREF_PATH")) ? IncludeTrailingDelimiter(Config("UPLOAD_TEMP_PATH"), true) : UploadPath(true);
-        if (is_object($fld)) { // Normal upload
-            $fldvar = ($idx < 0) ? $fld->FieldVar : substr($fld->FieldVar, 0, 1) . $idx . substr($fld->FieldVar, 1);
-            $tblvar = $fld->TableVar;
-            $path = IncludeTrailingDelimiter($path . Config("UPLOAD_TEMP_FOLDER_PREFIX") . session_id(), true);
-            $path = IncludeTrailingDelimiter($path . $tblvar, true);
-            if (!$tableLevel) {
-                $path = IncludeTrailingDelimiter($path . $fldvar, true);
+    global $ExportId;
+    if ($option !== false) { // Physical path
+        $path = UploadTempPathRoot();
+        if (is_string($option)) { // API upload ($option as token)
+            $path = IncludeTrailingDelimiter($path . Config("UPLOAD_TEMP_FOLDER_PREFIX") . $option, true);
+        } else {
+            // Create session id temp folder
+            $sessionId = session_id() ?? $ExportId;
+            $path = IncludeTrailingDelimiter($path . Config("UPLOAD_TEMP_FOLDER_PREFIX") . $sessionId, true);
+            if (!file_exists($path)) {
+                if (!CreateFolder($path)) {
+                    throw new \Exception("Cannot create folder: " . $path); //** side effect
+                }
+                if (Config("DEBUG")) {
+                    Log("Temp folder '" . $path . "' created."); // Log temp folder create for debug
+                }
             }
-        } elseif (is_string($fld)) { // API upload ($fld as token)
-            $path = IncludeTrailingDelimiter($path . Config("UPLOAD_TEMP_FOLDER_PREFIX") . $fld, true);
+            if (is_object($fld = $option)) { // Normal upload
+                $fldvar = ($idx < 0) ? $fld->FieldVar : substr($fld->FieldVar, 0, 1) . $idx . substr($fld->FieldVar, 1);
+                $tblvar = $fld->TableVar;
+                $path = IncludeTrailingDelimiter($path . $tblvar, true);
+                if (!$tableLevel) {
+                    $path = IncludeTrailingDelimiter($path . $fldvar, true);
+                }
+                // Create field temp folder
+                if (!file_exists($path)) {
+                    if (!CreateFolder($path)) {
+                        throw new \Exception("Cannot create folder: " . $path); //** side effect
+                    }
+                    if (Config("DEBUG")) {
+                        Log("Temp folder '" . $path . "' created for '" . $fld->TableName . "' Field '" . $fld->Name . "'"); // Log temp folder create for debug
+                    }
+                }
+            }
         }
-        return $path;
     } else { // Href path
-        return (Config("UPLOAD_TEMP_PATH") && Config("UPLOAD_TEMP_HREF_PATH")) ? IncludeTrailingDelimiter(Config("UPLOAD_TEMP_HREF_PATH"), false) : UploadPath(false);
+        $path = UploadTempPathRoot(false);
+        $path = IncludeTrailingDelimiter($path . Config("UPLOAD_TEMP_FOLDER_PREFIX") . session_id(), false);
     }
+    return $path;
 }
 
 // Render upload field to temp path
@@ -2575,12 +2859,6 @@ function RenderUploadField(&$fld, $idx = -1)
     global $Language;
     $folder = UploadTempPath($fld, $idx);
     CleanUploadTempPaths(); // Clean all old temp folders
-    CleanPath($folder); // Clean the upload folder
-    if (!file_exists($folder)) {
-        if (!CreateFolder($folder)) {
-            throw new \Exception("Cannot create folder: " . $folder); //** side effect
-        }
-    }
     $physical = !IsRemote($folder);
     $thumbnailfolder = PathCombine($folder, Config("UPLOAD_THUMBNAIL_FOLDER"), $physical);
     if (!file_exists($thumbnailfolder)) {
@@ -2616,9 +2894,7 @@ function RenderUploadField(&$fld, $idx = -1)
             } else {
                 $files = [$fld->Upload->FileName];
             }
-            $cnt = count($files);
-            for ($i = 0; $i < $cnt; $i++) {
-                $filename = $files[$i];
+            foreach ($files as $filename) {
                 if ($filename != "") {
                     $pathinfo = pathinfo($filename);
                     $filename = $pathinfo["basename"];
@@ -2713,12 +2989,6 @@ function CleanUploadTempPaths($sessionid = "")
                         }
                     }
                 }
-            } elseif (@is_file($temp) && EndsString(".tmp.png", $entry)) { // Temp images
-                $lastmdtime = filemtime($temp);
-                if ((time() - $lastmdtime) / 60 > Config("UPLOAD_TEMP_FOLDER_TIME_LIMIT")) {
-                    @gc_collect_cycles();
-                    @unlink($temp);
-                }
             }
         }
         closedir($dh);
@@ -2739,7 +3009,7 @@ function CleanUploadTempPath($fld, $idx = -1)
 }
 
 // Clean folder
-function CleanPath($folder, $delete = false)
+function CleanPath($folder, $delete = false, $cb = null)
 {
     $folder = IncludeTrailingDelimiter($folder, true);
     try {
@@ -2751,15 +3021,37 @@ function CleanPath($folder, $delete = false)
                     }
                     if (@is_file($folder . $entry)) { // File
                         @gc_collect_cycles(); // Forces garbase collection (for S3)
-                        @unlink($folder . $entry);
+                        try {
+                            if (is_callable($cb)) {
+                                $cb($folder . $entry);
+                            } else {
+                                unlink($folder . $entry);
+                            }
+                            if (Config("DEBUG")) {
+                                Log("Temp file '" . $entry . "' deleted.");
+                            }
+                        } catch (\Throwable $e) {
+                            if (Config("DEBUG")) {
+                                Log("Temp file '" . $folder . $entry . "' delete failed. Exception: " . $e->getMessage());
+                            }
+                        }
                     } elseif (@is_dir($folder . $entry)) { // Folder
-                        CleanPath($folder . $entry, $delete);
+                        CleanPath($folder . $entry, $delete, $cb);
                     }
                 }
                 @closedir($dir_handle);
             }
             if ($delete) {
-                @rmdir($folder);
+                try {
+                    @rmdir($folder);
+                    if (Config("DEBUG")) {
+                        Log("Temp folder '" . $folder . "' deleted.");
+                    }
+                } catch (\Throwable $e) {
+                    if (Config("DEBUG")) {
+                        Log("Temp folder '" . $folder . "' delete failed. Exception: " . $e->getMessage());
+                    }
+                }
             }
         }
     } catch (\Throwable $e) {
@@ -2937,8 +3229,8 @@ function SendEmail($fromEmail, $toEmail, $ccEmail, $bccEmail, $subject, $mailCon
     }
     if (is_array($attachments)) {
         foreach ($attachments as $attachment) {
-            $filename = @$attachment["filename"];
-            $content = @$attachment["content"];
+            $filename = $attachment["filename"] ?? "";
+            $content = $attachment["content"] ?? "";
             if ($content != "" && $filename != "") {
                 $mail->addStringAttachment($content, $filename);
             } elseif ($filename != "") {
@@ -2949,7 +3241,7 @@ function SendEmail($fromEmail, $toEmail, $ccEmail, $bccEmail, $subject, $mailCon
     if (is_array($images)) {
         foreach ($images as $tmpImage) {
             $file = UploadTempPath() . $tmpImage;
-            $cid = TempImageLink($tmpImage, "cid");
+            $cid = pathinfo($tmpImage, PATHINFO_FILENAME); // Remove extension (filename as cid)
             $mail->addEmbeddedImage($file, $cid, $tmpImage);
         }
     }
@@ -2973,15 +3265,6 @@ function SendEmail($fromEmail, $toEmail, $ccEmail, $bccEmail, $subject, $mailCon
         Log($res);
     }
     return $res; // True on success, error info on error
-}
-
-// Clean email content
-function CleanEmailContent($content)
-{
-    $content = preg_replace('/\s+class="card ew-grid \w+"/', "", $content);
-    $content = preg_replace('/\s+class="(table-responsive(-sm|-md|-lg|-xl)? )?card-body ew-grid-middle-panel"/', "", $content);
-    $content = str_replace("table ew-table", "ew-export-table", $content);
-    return $content;
 }
 
 // Field data type
@@ -3030,6 +3313,37 @@ function FieldDataType($fldtype)
             return DATATYPE_XML;
         default:
             return DATATYPE_OTHER;
+    }
+}
+
+// Field query builder data type
+function FieldQueryBuilderDataType($fldtype)
+{
+    switch ($fldtype) {
+        case 20:
+        case 3:
+        case 2:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+        case 21: // Integer
+            return "intger";
+        case 4:
+        case 5:
+        case 131:
+        case 6:
+        case 139: // Double
+            return "double";
+        case 7:
+        case 133:
+        case 135: // Date
+        case 146: // DateTiemOffset
+        case 134: // Time
+        case 145: // Time
+            return "datetime";
+        default:
+            return "string";
     }
 }
 
@@ -3152,7 +3466,12 @@ function UniqueFilename($folders, $orifn, $indexed = false)
 // Get refer URL
 function ReferUrl()
 {
-    return ServerVar("HTTP_REFERER");
+    $url = ServerVar("HTTP_REFERER");
+    $pattern = '/^' . preg_quote(DomainUrl(), '/') . '(?=\/)/';
+    if (preg_match($pattern, $url)) {
+        $url = preg_replace($pattern, "", $url);
+    }
+    return $url;
 }
 
 // Get refer page name
@@ -3247,36 +3566,6 @@ function CopyFile($folder, $fn, $file)
 }
 
 /**
- * Set cache
- *
- * @param string $key Key or token
- * @param array|object $val Values
- * @return int|false Number of bytes written to the file, or false on failure
- */
-function SetCache($key, $val)
-{
-    $val = var_export($val, true);
-    $val = str_replace("stdClass::__set_state", "(object)", $val);
-    $path = IncludeTrailingDelimiter(UploadPath(true) . Config("UPLOAD_TEMP_FOLDER_PREFIX") . $key, true);
-    $file = $key . ".txt";
-    return SaveFile($path, $file, '<?php $val = ' . $val . ';');
-}
-
-/**
- * Get cache
- *
- * @param string $key Key or token
- * @return array|object Values
- */
-function GetCache($key)
-{
-    $path = IncludeTrailingDelimiter(UploadPath(true) . Config("UPLOAD_TEMP_FOLDER_PREFIX") . $key, true);
-    $file = $key . ".txt";
-    @include $path . $file;
-    return $val ?? false;
-}
-
-/**
  * Generate random number
  *
  * @param int $length Number of digits
@@ -3322,64 +3611,63 @@ function TempFileName($folder, $prefix)
     return @tempnam($folder, $prefix);
 }
 
-// Create temp image file from binary data
-function TempImage(&$filedata)
+/**
+ * Create temp image file from binary data and return cid or base64 URL
+ *
+ * @param string $filedata File data
+ * @param string $cid Output as cid URL, otherwise as base64 URL
+ * @return string cid or base64 URL
+ */
+function TempImage($filedata, bool $cid = false)
 {
     global $TempImages;
-    $export = Param("export") ?? Post("exporttype");
     $folder = UploadTempPath();
-    $f = TempFileName($folder, "tmp");
-    $handle = fopen($f, 'w');
+    $file = TempFileName($folder, "tmp");
+    $handle = fopen($file, "w");
     fwrite($handle, $filedata);
     fclose($handle);
-    $ct = MimeContentType($f);
-    switch ($ct) {
-        case "image/gif":
-            rename($f, $f .= ".gif");
-            break;
-        case "image/jpeg":
-            rename($f, $f .= ".jpg");
-            break;
-        case "image/png":
-            rename($f, $f .= ".png");
-            break;
-        case "image/bmp":
-            rename($f, $f .= ".bmp");
-            break;
-        default:
-            return "";
-    }
-    $tmpimage = basename($f);
-    $TempImages[] = $tmpimage;
-    return TempImageLink($tmpimage, $export);
-}
-
-// Get temp image path
-function TempImageLink($file, $lnktype = "")
-{
-    if ($file == "") {
+    $ct = MimeContentType($file);
+    if (!in_array($ct, ["image/gif", "image/jpeg", "image/png", "image/bmp"])) {
         return "";
     }
-    if ($lnktype == "email" || $lnktype == "cid") {
-        $ar = explode(".", $file);
-        $lnk = implode(".", array_slice($ar, 0, count($ar) - 1));
-        if ($lnktype == "email") {
-            $lnk = "cid:" . $lnk;
-        }
-        return $lnk;
+    $ext = "." . array_search($ct, Config("MIME_TYPES"));
+    rename($file, $file .= $ext);
+    $tmpimage = basename($file);
+    $TempImages[] = $tmpimage;
+    if ($cid) {
+        return "cid:" . pathinfo($tmpimage, PATHINFO_FILENAME); // Temp image as cid URL
+    } else {
+        return ImageFileToBase64Url($file); // Temp image as base64 URL
     }
-    // If Config("UPLOAD_TEMP_PATH"), returns physical path, else returns relative path.
-    return UploadTempPath(Config("UPLOAD_TEMP_PATH") && Config("UPLOAD_TEMP_HREF_PATH")) . $file;
 }
 
-// Delete temp images
-function DeleteTempImages()
+// Get image tag from base64 data URL (data:mime type;base64,image data)
+function ImageFileToBase64Url($imageFile)
 {
-    global $TempImages;
-    foreach ($TempImages as $tmpimage) {
-        @gc_collect_cycles();
-        @unlink(UploadTempPath() . $tmpimage);
+    if (!file_exists($imageFile)) { // File not found, ignore
+        return $imageFile;
     }
+    return "data:" . MimeContentType($imageFile) . ";base64," . base64_encode(file_get_contents($imageFile));
+}
+
+// Extract data from base64 data URL (data:mime type;base64,image data)
+function DataFromBase64Url($dataUrl)
+{
+    return StartsString("data:", $dataUrl) && ContainsString($dataUrl, ";base64,")
+        ? base64_decode(substr($dataUrl, strpos($dataUrl, ";base64,") + 8))
+        : null;
+}
+
+// Get temp image from base64 data URL (data:mime type;base64,image data)
+function TempImageFromBase64Url($dataUrl)
+{
+    $data = DataFromBase64Url($dataUrl);
+    if ($data) {
+        $fn = Random() . ContentExtension($data);
+        SaveFile(UploadTempPath(), $fn, $data);
+        $dataUrl = UploadTempPath() . $fn;
+    }
+    return $dataUrl;
 }
 
 // Add query string to URL
@@ -3402,7 +3690,7 @@ function UrlAddHash($url, $hash)
  */
 
 // Resize binary to thumbnail
-function ResizeBinary(&$filedata, &$width, &$height, $quality = 100, $plugins = [])
+function ResizeBinary(&$filedata, &$width, &$height, $quality = 100, $plugins = [], $resizeOptions = [])
 {
     if ($width <= 0 && $height <= 0) {
         return false;
@@ -3442,12 +3730,13 @@ function ResizeBinary(&$filedata, &$width, &$height, $quality = 100, $plugins = 
         }
     }
     $cls = Config("THUMBNAIL_CLASS");
-    $thumb = new $cls($filedata, Config("RESIZE_OPTIONS") + ["isDataStream" => true, "format" => $format], $plugins);
+    $options = array_merge(Config("RESIZE_OPTIONS") + ["isDataStream" => true, "format" => $format], $resizeOptions);
+    $thumb = new $cls($filedata, $options, $plugins);
     return $thumb->resizeEx($filedata, $width, $height);
 }
 
 // Resize file to thumbnail file
-function ResizeFile($fn, $tn, &$width, &$height, $plugins = [])
+function ResizeFile($fn, $tn, &$width, &$height, $plugins = [], $resizeOptions = [])
 {
     $info = @getimagesize($fn);
     if (!$info || !in_array($info[2], [1, 2, 3]) || $width <= 0 && $height <= 0) {
@@ -3457,7 +3746,8 @@ function ResizeFile($fn, $tn, &$width, &$height, $plugins = [])
         return;
     }
     $cls = Config("THUMBNAIL_CLASS");
-    $thumb = new $cls($fn, Config("RESIZE_OPTIONS"), $plugins);
+    $resizeOptions = array_merge(Config("RESIZE_OPTIONS"), $resizeOptions);
+    $thumb = new $cls($fn, $resizeOptions, $plugins);
     $fdata = null;
     if (!$thumb->resizeEx($fdata, $width, $height, $tn)) {
         if ($fn != $tn) {
@@ -3656,7 +3946,7 @@ function ComparePassword($pwd, $input)
 function Security()
 {
     global $Security;
-    $Security = $Security ?? Container("security") ?? new AdvancedSecurity();
+    $Security ??= Container("security") ?? new AdvancedSecurity();
     return $Security;
 }
 
@@ -3674,17 +3964,30 @@ function Session()
     } elseif ($numargs == 2) { // Set
         list($name, $value) = func_get_args();
         $_SESSION[$name] = $value;
+        return;
     }
     global $Session;
-    $Session = $Session ?? Container("session");
+    $Session ??= Container("session");
     return $Session;
 }
 
-// Get profile value
+// Get SSO state store for SAML
+function SsoStateStore()
+{
+    return Container("ssostatestore");
+}
+
+// Get session processor for SAML
+function SessionProcessor()
+{
+    return Container("sessionprocessor");
+}
+
+// Get/Set profile value
 function Profile()
 {
     global $UserProfile;
-    $UserProfile = $UserProfile ?? Container("profile");
+    $UserProfile ??= Container("profile");
     $numargs = func_num_args();
     if ($numargs == 1) { // Get
         $name = func_get_arg(0);
@@ -3740,6 +4043,24 @@ function CurrentUserName()
 function CurrentUserID()
 {
     return Security()->currentUserID();
+}
+
+// Get current user ID or user name as per Config("LOG_USER_ID")
+function CurrentUser()
+{
+    global $Language;
+    if (Config("LOG_USER_ID")) {
+        $usr = CurrentUserID();
+        if (!isset($usr) || EmptyValue($usr)) { // Assume Administrator or Anonymous user
+            $usr = IsSysAdmin() ? -1 : -2;
+        }
+    } else {
+        $usr = CurrentUserName();
+        if (EmptyValue($usr)) { // Assume Administrator or Anonymous user
+            $usr = IsSysAdmin() ? $Language->phrase("UserAdministrator") : $Language->phrase("UserAnonymous");
+        }
+    }
+    return $usr;
 }
 
 // Get current parent user ID
@@ -3842,12 +4163,30 @@ function GetUserFilter($fieldName, $val)
 // Get current page ID
 function CurrentPageID()
 {
-    if (property_exists($GLOBALS["Page"] ?? new \stdClass(), "PageID")) {
+    if (isset($GLOBALS["Page"]->PageID)) {
         return $GLOBALS["Page"]->PageID;
     } elseif (defined(PROJECT_NAMESPACE . "PAGE_ID")) {
         return PAGE_ID;
     }
     return "";
+}
+
+// Get/Set current page title
+function CurrentPageTitle($value = null)
+{
+    global $Page, $Title, $Language;
+    if ($value !== null) { // Set
+        if (isset($Page) && property_exists($Page, "Title")) {
+            $Page->Title = $value;
+        } else {
+            $Title = $value;
+        }
+    } else { // Get
+        if (isset($Page->Title)) {
+            return $Page->Title;
+        }
+        return $Title ?? $Language->projectPhrase("BodyTitle");
+    }
 }
 
 // Allow list
@@ -3920,11 +4259,8 @@ function IsAuthenticated()
 function IsExport($format = "")
 {
     global $ExportType;
-    if ($format) {
-        return SameText($ExportType, $format);
-    } else {
-        return ($ExportType != "");
-    }
+    $exportType = $ExportType ?: Param("export");
+    return $format ? SameText($exportType, $format) : ($exportType != "");
 }
 
 // Encrypt
@@ -3955,13 +4291,11 @@ function PhpDecrypt($str, $key = "")
 function RemoveXss($val)
 {
     global $PurifierConfig, $Purifier;
-    if ($Purifier === null) {
-        $Purifier = new \HTMLPurifier($PurifierConfig);
-    }
-    if (is_array($val)) {
-        return array_map(function ($v) use ($Purifier) {
-            return $Purifier->purify($v);
-        }, $val);
+    $Purifier ??= new \HTMLPurifier($PurifierConfig);
+    if (EmptyValue($val)) {
+        return $val;
+    } elseif (is_array($val)) {
+        return array_map(fn($v) => $Purifier->purify($v), $val);
     } else {
         return $Purifier->purify($val);
     }
@@ -4062,19 +4396,24 @@ function GetSqlLog()
                 if (count($value) > 0) {
                     $values[] = $key . ": " . print_r($value, true);
                 }
-            } elseif (strlen($value) > 0) {
+            } elseif ($value && strlen($value) > 0) {
                 $values[] = $key . ": " . $value;
             }
         }
         $msg .= "<p>" . implode(", ", $values) . "</p>";
     }
+    $sqlLogger->queries = [];
     return $msg;
 }
 
 // Read global debug message
 function GetDebugMessage()
 {
-    if (!Config("DEBUG")) {
+    global $Page;
+    if (!Config("DEBUG")) { // Skip if debug not enabled
+        return "";
+    }
+    if ($Page && property_exists($Page, "Export") && $Page->Export == "pdf") { // Skip if export to PDF
         return "";
     }
     global $DebugMessage, $ExportType, $Language;
@@ -4088,9 +4427,7 @@ function SetDebugMessage($v, $level = 0)
 {
     global $DebugMessage, $DebugTimer;
     $ar = preg_split('/<(hr|br)>/', trim($v));
-    $ar = array_filter($ar, function ($s) {
-        return trim($s);
-    });
+    $ar = array_filter($ar, fn($s) => trim($s));
     $v = implode("; ", $ar);
     $DebugMessage .= "<p><samp>" . (isset($DebugTimer) ? $DebugTimer->getFormattedElapsedTime() . ": " : "") . $v . "</samp></p>";
 }
@@ -4367,6 +4704,31 @@ function EmptyValue($value)
     return $value === null || is_string($value) && strlen($value) == 0;
 }
 
+// Partially hide a value
+// - name@domain.com => n**e@domain.com
+// - myname => m***me
+function PartialHideValue($value)
+{
+    // Handle empty value
+    if (EmptyValue($value)) {
+        return $value;
+    }
+
+    // Handle email (split an email by "@")
+    $name = $value;
+    $domain = "";
+    if (ContainsString($value, "@")) {
+        list($name, $domain) = explode("@", $value);
+    }
+
+    // Get half the length of the first part
+    $len = floor(strlen($name) / 2);
+    $len2 = floor($len / 2);
+
+    // Partially hide value by "*"
+    return substr($name, 0, $len2) . str_repeat('*', $len) . substr($name, $len + $len2) . ($domain ? "@" . $domain : "");
+}
+
 // Check masked password
 function IsMaskedPassword($value)
 {
@@ -4422,7 +4784,7 @@ function ConvertToUtf8($val)
         foreach ($val as $key => $value) {
             $res[ConvertToUtf8($key)] = ConvertToUtf8($value);
         }
-        return ($isObject) ? (object)$res : $res;
+        return $isObject ? (object)$res : $res;
     }
     return $val;
 }
@@ -4449,7 +4811,7 @@ function ConvertFromUtf8($val)
         foreach ($val as $key => $value) {
             $res[ConvertFromUtf8($key)] = ConvertFromUtf8($value);
         }
-        return ($isObject) ? (object)$res : $res;
+        return $isObject ? (object)$res : $res;
     }
     return $val;
 }
@@ -4518,16 +4880,15 @@ function ArrayToJson(array $ar, $offset = 0)
     if ($offset > 0) {
         $ar = array_slice($ar, $offset);
     }
-    $isObject = ArraySome("is_string", array_keys($ar));
     $res = [];
-    if ($isObject) {
+    if (!array_is_list($ar)) { // Object
         foreach ($ar as $key => $val) {
             if (!is_int($key)) { // If object, skip element with integer key
                 $res[] = VarToJson($key, "string") . ":" . JsonEncode($val);
             }
         }
         return IsDebug() ? "{\n" . implode(",\n", $res) . "\n}" : "{" . implode(",", $res) . "}";
-    } else {
+    } else { // Array
         foreach ($ar as $val) {
             $res[] = JsonEncode($val);
         }
@@ -4580,13 +4941,47 @@ function JsonDecode($val, $assoc = false, $depth = 512, $options = 0)
  * Check if a predicate is true for at least one element
  *
  * @param callable $callback Predicate
- * @param array $arr Array being tested
+ * @param array $ar Array being tested
  * @return bool
  */
 function ArraySome(callable $callback, array $ar)
 {
     foreach ($ar as $element) {
         if ($callback($element)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Find the first element in array satisfying the predicate
+ *
+ * @param callable $callback Predicate
+ * @param array $ar Array
+ * @return mixed
+ */
+function ArrayFind(callable $callback, array $ar)
+{
+    foreach ($ar as $element) {
+        if ($callback($element)) {
+            return $element;
+        }
+    }
+    return null;
+}
+
+/**
+ * Find if any key in array satisfying the predicate
+ *
+ * @param callable $callback Predicate
+ * @param array $ar Array
+ * @return bool
+ */
+function ArrayKeyExists(callable $callback, array $ar)
+{
+    foreach ($ar as $key => $value) {
+        if ($callback($key)) {
             return true;
         }
     }
@@ -4765,121 +5160,6 @@ function OptionsHtml(array $values)
     return $html;
 }
 
-// XML tag name
-function XmlTagName($name)
-{
-    if (!preg_match('/\A(?!XML)[a-z][\w0-9-]*/i', $name)) {
-        $name = "_" . $name;
-    }
-    return $name;
-}
-
-// Convert XML to array
-function Xml2Array($contents)
-{
-    if (!$contents) {
-        return [];
-    }
-
-    // Get the XML Parser of PHP
-    $parser = xml_parser_create();
-    xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, "UTF-8"); // Always return in utf-8
-    xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-    xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
-    xml_parse_into_struct($parser, trim($contents), $xml_values);
-    xml_parser_free($parser);
-    if (!is_array($xml_values)) {
-        return [];
-    }
-    $xml_array = [];
-    $parents = [];
-    $opened_tags = [];
-    $arr = [];
-    $current = &$xml_array;
-    $repeated_tag_index = []; // Multiple tags with same name will be turned into an array
-    foreach ($xml_values as $data) {
-        unset($attributes, $value); // Remove existing values
-
-        // Extract these variables into the foreach scope
-        // - tag(string), type(string), level(int), attributes(array)
-        extract($data);
-        $result = [];
-        if (isset($value)) {
-            $result["value"] = $value; // Put the value in a assoc array
-        }
-
-        // Set the attributes
-        if (isset($attributes)) {
-            foreach ($attributes as $attr => $val) {
-                $result["attr"][$attr] = $val; // Set all the attributes in a array called 'attr'
-            }
-        }
-
-        // See tag status and do the needed
-        if ($type == "open") { // The starting of the tag '<tag>'
-            $parent[$level - 1] = &$current;
-            if (!is_array($current) || !in_array($tag, array_keys($current))) { // Insert New tag
-                if ($tag != 'ew-language' && @$result["attr"]["id"] != '') {
-                    $last_item_index = $result["attr"]["id"];
-                    $current[$tag][$last_item_index] = $result;
-                    $repeated_tag_index[$tag . '_' . $level] = 1;
-                    $current = &$current[$tag][$last_item_index];
-                } else {
-                    $current[$tag] = $result;
-                    $repeated_tag_index[$tag . '_' . $level] = 0;
-                    $current = &$current[$tag];
-                }
-            } else { // Another element with the same tag name
-                if ($repeated_tag_index[$tag . '_' . $level] > 0) { // If there is a 0th element it is already an array
-                    if (@$result["attr"]["id"] != '') {
-                        $last_item_index = $result["attr"]["id"];
-                    } else {
-                        $last_item_index = $repeated_tag_index[$tag . '_' . $level];
-                    }
-                    $current[$tag][$last_item_index] = $result;
-                    $repeated_tag_index[$tag . '_' . $level]++;
-                } else { // Make the value an array if multiple tags with the same name appear together
-                    $temp = $current[$tag];
-                    $current[$tag] = [];
-                    if (@$temp["attr"]["id"] != '') {
-                        $current[$tag][$temp["attr"]["id"]] = $temp;
-                    } else {
-                        $current[$tag][] = $temp;
-                    }
-                    if (@$result["attr"]["id"] != '') {
-                        $last_item_index = $result["attr"]["id"];
-                    } else {
-                        $last_item_index = 1;
-                    }
-                    $current[$tag][$last_item_index] = $result;
-                    $repeated_tag_index[$tag . '_' . $level] = 2;
-                }
-                $current = &$current[$tag][$last_item_index];
-            }
-        } elseif ($type == "complete") { // Tags that ends in one line '<tag />'
-            if (!isset($current[$tag])) { // New key
-                $current[$tag] = []; // Always use array for "complete" type
-                if (@$result["attr"]["id"] != '') {
-                    $current[$tag][$result["attr"]["id"]] = $result;
-                } else {
-                    $current[$tag][] = $result;
-                }
-                $repeated_tag_index[$tag . '_' . $level] = 1;
-            } else { // Existing key
-                if (@$result["attr"]["id"] != '') {
-                    $current[$tag][$result["attr"]["id"]] = $result;
-                } else {
-                    $current[$tag][$repeated_tag_index[$tag . '_' . $level]] = $result;
-                }
-                $repeated_tag_index[$tag . '_' . $level]++;
-            }
-        } elseif ($type == 'close') { // End of tag '</tag>'
-            $current = &$parent[$level - 1];
-        }
-    }
-    return $xml_array;
-}
-
 // Encode value for double-quoted Javascript string
 function JsEncode($val)
 {
@@ -4932,6 +5212,9 @@ function ArrayToJsonAttribute($ar)
 function CurrentPageUrl($withArgs = true)
 {
     $route = GetRoute();
+    if (!$route) {
+        return "";
+    }
     $args = $route->getArguments();
     if (!$withArgs) {
         foreach ($args as $key => &$val) {
@@ -4977,6 +5260,18 @@ function GetPageName($url)
     return $pageName;
 }
 
+/**
+ * Get dashboard report page URL (without arguments)
+ * Note: Since there are more than one pages in dashboard report, the value of $Page changes in the View of dashboard report.
+ *
+ * @return string URL
+ */
+function CurrentDashboardPageUrl()
+{
+    global $DashboardReport, $Page;
+    return $DashboardReport && $Page ? GetUrl($Page->CurrentPageName) : CurrentPageUrl(false);
+}
+
 // Get current user levels as array of user level IDs
 function CurrentUserLevels()
 {
@@ -4995,7 +5290,7 @@ function AllowListMenu($tableName)
         return true;
     } else {
         $priv = 0;
-        $rows = Session(SESSION_AR_USER_LEVEL_PRIV);
+        $rows = Session(SESSION_USER_LEVEL_PRIVS);
         if (is_array($rows)) {
             foreach ($rows as $row) {
                 if (SameString($row[0], $tableName) && in_array($row[1], $userlevels)) {
@@ -5015,7 +5310,7 @@ function ScriptName()
     $route = GetRoute();
     return $route
         ? UrlFor($route->getName(), $route->getArguments())
-        : explode("?", $_SERVER["REQUEST_URI"] ?? "")[0];
+        : explode("?", ServerVar("REQUEST_URI"))[0];
 }
 
 // Get server variable by name
@@ -5027,8 +5322,8 @@ function ServerVar($name)
 // Get CSS file
 function CssFile($f, $rtl = null, $min = null)
 {
-    $rtl = $rtl ?? IsRTL();
-    $min = $min ?? Config("USE_COMPRESSED_STYLESHEET");
+    $rtl ??= IsRTL();
+    $min ??= Config("USE_COMPRESSED_STYLESHEET");
     return $rtl
         ? ($min ? preg_replace('/(.css)$/i', ".rtl.min.css", $f) : preg_replace('/(.css)$/i', ".rtl.css", $f))
         : ($min ? preg_replace('/(.css)$/i', ".min.css", $f) : $f);
@@ -5114,13 +5409,6 @@ function IsMobile()
         $IsMobile = $MobileDetect->isMobile();
     }
     return $IsMobile;
-}
-
-// Get responsive table class
-function ResponsiveTableClass()
-{
-    $className = Config("RESPONSIVE_TABLE_CLASS");
-    return (Config("USE_RESPONSIVE_TABLE") && $className) ? $className . " " : "";
 }
 
 /**
@@ -5580,6 +5868,31 @@ function ExecuteHtml($sql, $options = null, $c = null)
 }
 
 /**
+ * Get class name(s) as array
+ *
+ * @param string $attr Class name(s)
+ * @return string[] Class name(s)
+ */
+function ClassList($attr)
+{
+    return ($attr != "")
+        ? array_unique(array_filter(explode(" ", $attr))) // Remove empty and duplicate values
+        : [];
+}
+
+/**
+ * Contains CSS class name
+ *
+ * @param string $attr Class name(s)
+ * @param string $className Class name to search
+ * @return bool
+ */
+function ContainsClass($attr, $className)
+{
+    return array_search($className, ClassList($attr)) !== false;
+}
+
+/**
  * Prepend CSS class name(s)
  *
  * @param string &$attr Class name(s)
@@ -5591,10 +5904,7 @@ function PrependClass(&$attr, $className)
     if ($className) {
         $attr = $className . " " . $attr;
     }
-    if ($attr != "") {
-        $ar = array_filter(explode(" ", $attr)); // Remove empty values
-        $attr = implode(" ", array_unique($ar));
-    }
+    $attr = implode(" ", ClassList($attr));
     return $attr;
 }
 
@@ -5610,10 +5920,7 @@ function AppendClass(&$attr, $className)
     if ($className) {
         $attr .= " " . $className;
     }
-    if ($attr != "") {
-        $ar = array_filter(explode(" ", $attr)); // Remove empty values
-        $attr = implode(" ", array_unique($ar));
-    }
+    $attr = implode(" ", ClassList($attr));
     return $attr;
 }
 
@@ -5621,19 +5928,38 @@ function AppendClass(&$attr, $className)
  * Remove CSS class name(s)
  *
  * @param string &$attr Class name(s)
- * @param string $className Class name(s) to remove
+ * @param string|callable $classNames Class name(s) to remove
  * @return string Class name(s)
  */
-function RemoveClass(&$attr, $className)
+function RemoveClass(&$attr, $classNames)
 {
-    $ar = explode(" ", $attr ?? "");
-    if ($className) {
-        $classes = explode(" ", $className);
-        $ar = array_diff($ar, $classes);
+    $ar = ClassList($attr);
+    if (is_string($classNames)) { // String
+        $ar = array_diff($ar, ClassList($classNames));
+    } elseif (is_callable($classNames)) { // Callable to filter the class names
+        $ar = array_filter($ar, $classNames);
     }
-    $ar = array_filter($ar); // Remove empty values
-    $attr = implode(" ", array_unique($ar));
+    $attr = implode(" ", $ar);
     return $attr;
+}
+
+/**
+ * Check CSS class name and convert to lowercase with dashes between words
+ *
+ * @param string $name Class name
+ * @return string Valid class name
+ */
+function CheckClassName($name)
+{
+    $prefix = Config("CLASS_PREFIX");
+    if (preg_match('/^(\d+)(-*)([\-\w]+)/', $name, $m)) { // Cannot start with a digit
+        return $prefix . $m[1] . $m[2] . ParamCase($m[3]);
+    } elseif (preg_match('/^(-{2,}|-\d+)(-*)([\-\w]+)/', $name, $m)) { // Cannot start with two hyphens or a hyphen followed by a digit
+        return $prefix . $m[1] . $m[2] . ParamCase($m[3]);
+    } elseif (preg_match('/^(_+)?(-*)([\-\w]+)/', $name, $m)) { // Keep leading underscores
+        return $m[1] . $m[2] . ParamCase($m[3]);
+    }
+    return ParamCase($name);
 }
 
 /**
@@ -5657,6 +5983,7 @@ function LocaleConvert()
             "desc" => \Locale::getDisplayName($langid),
         ];
     }
+    $getSeparator = fn($str) => preg_match('/[^\w]+/', $str, $m) ? $m[0] : null;
     $CurrentLocale = $locale["id"];
     $fmt = new \NumberFormatter($CurrentLocale, \NumberFormatter::DECIMAL);
     $currfmt = new \NumberFormatter($CurrentLocale, \NumberFormatter::CURRENCY);
@@ -5673,8 +6000,8 @@ function LocaleConvert()
     $locale["time"] = $locale["time"] ?? (new \IntlDateFormatter($CurrentLocale, \IntlDateFormatter::NONE, \IntlDateFormatter::SHORT))->getPattern();
     $locale["decimal_separator"] = $locale["decimal_separator"] ?? $fmt->getSymbol(\NumberFormatter::DECIMAL_SEPARATOR_SYMBOL);
     $locale["grouping_separator"] = $locale["grouping_separator"] ?? $fmt->getSymbol(\NumberFormatter::GROUPING_SEPARATOR_SYMBOL);
-    $locale["date_separator"] = $locale["date_separator"] ?? preg_grep('/\W/', str_split($locale["date"]))[0] ?? $DATE_SEPARATOR;
-    $locale["time_separator"] = $locale["time_separator"] ?? preg_grep('/\W/', str_split($locale["time"]))[0] ?? $TIME_SEPARATOR;
+    $locale["date_separator"] = $locale["date_separator"] ?? $getSeparator($locale["date"]) ?? $DATE_SEPARATOR;
+    $locale["time_separator"] = $locale["time_separator"] ?? $getSeparator($locale["time"]) ?? $TIME_SEPARATOR;
     $locale["time_zone"] = !empty($locale["time_zone"]) ? $locale["time_zone"] : $TIME_ZONE;
     return $locale;
 }
@@ -5806,21 +6133,21 @@ function SessionTimeoutTime()
 }
 
 // Contains a substring (case-sensitive)
-function ContainsString($haystack, $needle, $offset = 0)
+function ContainsString($haystack, $needle)
 {
-    return strpos($haystack ?? "", $needle, $offset) !== false;
+    return str_contains($haystack ?? "", $needle);
 }
 
 // Contains a substring (case-insensitive)
-function ContainsText($haystack, $needle, $offset = 0)
+function ContainsText($haystack, $needle)
 {
-    return stripos($haystack ?? "", $needle, $offset) !== false;
+    return stripos($haystack ?? "", $needle) !== false;
 }
 
 // Starts with a substring (case-sensitive)
 function StartsString($needle, $haystack)
 {
-    return strpos($haystack ?? "", $needle) === 0;
+    return str_starts_with($haystack ?? "", $needle);
 }
 
 // Starts with a substring (case-insensitive)
@@ -5832,7 +6159,7 @@ function StartsText($needle, $haystack)
 // Ends with a substring (case-sensitive)
 function EndsString($needle, $haystack)
 {
-    return strrpos($haystack ?? "", $needle) === strlen($haystack ?? "") - strlen($needle);
+    return str_ends_with($haystack ?? "", $needle);
 }
 
 // Ends with a substring (case-insensitive)
@@ -5853,10 +6180,22 @@ function SameText($str1, $str2)
     return strcasecmp(trim($str1 ?? ""), trim($str2 ?? "")) === 0;
 }
 
-// Convert to constant case (e.g. KEY_NAME)
+// Convert to constant case (e.g. FOO_BAR)
 function ConstantCase($str)
 {
-    return strtoupper(preg_replace('/([a-z]+)[ _]?([A-Z0-9])/', "$1_$2", $str));
+    return (new \Jawira\CaseConverter\Convert($str))->toMacro();
+}
+
+// Convert to param case (e.g. foo-bar)
+function ParamCase($str)
+{
+    return (new \Jawira\CaseConverter\Convert($str))->toKebab();
+}
+
+// Convert to header case (e.g. Foo-Bar)
+function HeaderCase($str)
+{
+    return (new \Jawira\CaseConverter\Convert($str))->toTrain();
 }
 
 // Set client variable
@@ -5908,16 +6247,17 @@ function GlobalClientVars()
     $names = Config("GLOBAL_CLIENT_VARS");
     $values = [];
     foreach ($names as $name) {
-        if (isset($GLOBALS[$name])) {
+        if (isset($GLOBALS[$name])) { // Global variable
             $values[ConstantCase($name)] = $GLOBALS[$name]; // Convert key to constant case
+        } elseif (defined(PROJECT_NAMESPACE . $name)) { // Global constant
+            $values[ConstantCase($name)] = constant(PROJECT_NAMESPACE . $name);
+        } elseif (is_callable(PROJECT_NAMESPACE . $name, false, $func)) { // Global function
+            $values[ConstantCase($name)] = $func();
         }
     }
     return array_merge([
         "CURRENCY_FORMAT" => str_replace('¤', '$', $CURRENCY_FORMAT),
-        "CURRENT_USER_NAME" => CurrentUserName(),
         "IS_LOGGEDIN" => IsLoggedIn(),
-        "IS_SYS_ADMIN" => IsSysAdmin(),
-        "IS_RTL" => IsRTL(),
         "IS_AUTOLOGIN" => IsAutoLogin(),
         "LANGUAGE_ID" => str_replace("_", "-", CurrentLanguageID()),
         "PATH_BASE" => BasePath(true), // Path base // PHP
@@ -5930,8 +6270,8 @@ function GlobalClientVars()
         "IMAGE_FOLDER" => "images/", // Image folder
         "SESSION_TIMEOUT" => Config("SESSION_TIMEOUT") > 0 ? SessionTimeoutTime() : 0, // Session timeout time (seconds)
         "TIMEOUT_URL" => GetUrl("logout"), // Timeout URL // PHP
-        "USE_JAVASCRIPT_MESSAGE" => true,
-        "USE_OVERLAY_SCROLLBARS" => false
+        "SERVER_SEARCH_FILTER" => Config("SEARCH_FILTER_OPTION") == "Server",
+        "CLIENT_SEARCH_FILTER" => Config("SEARCH_FILTER_OPTION") == "Client",
     ], $values);
 }
 
@@ -5946,6 +6286,19 @@ function LoginStatus($name = "", $value = null)
         $LoginStatus[$name] = $value;
     }
     return $LoginStatus;
+}
+
+// Return Two Factor Authentication class
+function TwoFactorAuthenticationClass()
+{
+    switch (Config("TWO_FACTOR_AUTHENTICATION_TYPE")) {
+        case "email":
+            return PROJECT_NAMESPACE . "EmailTwoFactorAuthentication";
+        case "sms":
+            return PROJECT_NAMESPACE . "SmsTwoFactorAuthentication";
+        default:
+            return PROJECT_NAMESPACE . "PragmaRxTwoFactorAuthentication";
+    }
 }
 
 // Set up login status
@@ -6252,9 +6605,9 @@ function GetDropDownEditValue($fld, $v)
     $val = trim(strval($v));
     $ar = [];
     if ($val != "") {
-        $arwrk = $fld->SelectMultiple ? explode(",", $val) : [$val];
+        $arwrk = $fld->isMultiSelect() ? explode(",", $val) : [$val];
         foreach ($arwrk as $wrk) {
-            $format = $fld->DateFilter != "" ? $fld->DateFilter : "date";
+            $format = $fld->DateFilter ?: "date";
             $ar[] = ["lf" => $wrk, "df" => GetDropDownDisplayValue($wrk, $format, $fld->formatPattern())];
         }
     }
@@ -6291,20 +6644,6 @@ function MonthName($m)
 {
     $t = mktime(1, 0, 0, $m);
     return FormatDateTime($t, Config("MONTH_PATTERN"));
-}
-
-// Join array
-function JoinArray($ar, $sep, $ft, $pos = 0, $dbid = 0)
-{
-    if (!is_array($ar)) {
-        return "";
-    }
-    $arwrk = array_slice($ar, $pos); // Return array from position pos
-    $cntar = count($arwrk);
-    for ($i = 0; $i < $cntar; $i++) {
-        $arwrk[$i] = QuotedValue($arwrk[$i], $ft, $dbid);
-    }
-    return implode($sep, $arwrk);
 }
 
 // Get current year
@@ -6384,9 +6723,7 @@ function GetSortFields($flds)
             $tok = strtok(",");
         }
     }
-    $ar = array_filter($ar, function ($fld) {
-        return is_array($fld) || is_string($fld) && trim($fld) !== "";
-    });
+    $ar = array_filter($ar, fn($fld) => is_array($fld) || is_string($fld) && trim($fld) !== "");
     return array_map(function ($fld) {
         if (is_array($fld)) {
             return $fld;
@@ -7344,48 +7681,6 @@ function XmlEncode($val)
     return htmlspecialchars(strval($val));
 }
 
-// Adjust email content
-function AdjustEmailContent($content)
-{
-    $content = preg_replace('/\s+class="(table-responsive(-sm|-md|-lg|-xl)? )?ew-grid(-middle-panel)?"/', "", $content);
-    $content = str_replace("table ew-table", "ew-export-table", $content);
-    $tableStyles = "border-collapse: collapse;";
-    $cellStyles = "border: 1px solid #dddddd; padding: 5px;";
-    $doc = new \DOMDocument("1.0", "utf-8");
-    @$doc->loadHTML('<?xml encoding="utf-8">' . ConvertToUtf8($content)); // Convert to utf-8
-    $tables = $doc->getElementsByTagName("table");
-    foreach ($tables as $table) {
-        if (ContainsText($table->getAttribute("class"), "ew-export-table")) {
-            if ($table->hasAttribute("style")) {
-                $table->setAttribute("style", $table->getAttribute("style") . $tableStyles);
-            } else {
-                $table->setAttribute("style", $tableStyles);
-            }
-            $rows = $table->getElementsByTagName("tr");
-            $rowcnt = $rows->length;
-            for ($i = 0; $i < $rowcnt; $i++) {
-                $row = $rows->item($i);
-                $cells = $row->childNodes;
-                $cellcnt = $cells->length;
-                for ($j = 0; $j < $cellcnt; $j++) {
-                    $cell = $cells->item($j);
-                    if ($cell->nodeType != XML_ELEMENT_NODE || $cell->tagName != "td") {
-                        continue;
-                    }
-                    if ($cell->hasAttribute("style")) {
-                        $cell->setAttribute("style", $cell->getAttribute("style") . $cellStyles);
-                    } else {
-                        $cell->setAttribute("style", $cellStyles);
-                    }
-                }
-            }
-        }
-    }
-    $content = $doc->saveHTML();
-    $content = ConvertFromUtf8($content);
-    return $content;
-}
-
 // Load drop down list
 function LoadDropDownList(&$list, $val)
 {
@@ -7410,7 +7705,7 @@ function GetQuickSearchKeywords($search, $searchType)
     if ($searchType != "=") {
         $ar = [];
         // Match quoted keywords (i.e.: "...")
-        if (preg_match_all('/"([^"]*)"/i', $search, $matches, PREG_SET_ORDER)) {
+        if (preg_match_all('/"([^"]*)"/i', $search ?: "", $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
                 $p = strpos($search, $match[0]);
                 $str = substr($search, 0, $p);
@@ -7432,12 +7727,12 @@ function GetQuickSearchKeywords($search, $searchType)
 }
 
 // Get quick search filter
-function GetQuickSearchFilter($flds, $arKeywords, $searchType, $searchAnyFields, $dbid = "DB")
+function GetQuickSearchFilter($flds, $keywords, $searchType, $searchAnyFields, $dbid = "DB")
 {
     // Search keyword in any fields
     if ((SameText($searchType, "OR") || SameText($searchType, "AND")) && $searchAnyFields) {
         $filter = "";
-        foreach ($arKeywords as $keyword) {
+        foreach ($keywords as $keyword) {
             if ($keyword != "") {
                 $ar = [$keyword];
                 $thisFilter = array_reduce($flds, function ($res, $fld) use ($ar, $searchType, $dbid) {
@@ -7448,8 +7743,8 @@ function GetQuickSearchFilter($flds, $arKeywords, $searchType, $searchAnyFields,
             }
         }
     } else {
-        $filter = array_reduce($flds, function ($res, $fld) use ($arKeywords, $searchType, $dbid) {
-            AddFilter($res, GetQuickSearchFilterForField($fld, $arKeywords, $searchType, $dbid), "OR");
+        $filter = array_reduce($flds, function ($res, $fld) use ($keywords, $searchType, $dbid) {
+            AddFilter($res, GetQuickSearchFilterForField($fld, $keywords, $searchType, $dbid), "OR");
             return $res;
         }, "");
     }
@@ -7457,15 +7752,13 @@ function GetQuickSearchFilter($flds, $arKeywords, $searchType, $searchAnyFields,
 }
 
 // Get quick search filter for field
-function GetQuickSearchFilterForField($fld, $arKeywords, $searchType, $dbid)
+function GetQuickSearchFilterForField($fld, $keywords, $searchType, $dbid)
 {
     $defCond = SameText($searchType, "OR") ? "OR" : "AND";
     $arSql = []; // Array for SQL parts
     $arCond = []; // Array for search conditions
-    $cnt = count($arKeywords);
     $j = 0; // Number of SQL parts
-    for ($i = 0; $i < $cnt; $i++) {
-        $keyword = $arKeywords[$i];
+    foreach ($keywords as $keyword) {
         $keyword = trim($keyword);
         if (Config("BASIC_SEARCH_IGNORE_PATTERN") != "") {
             $keyword = preg_replace(Config("BASIC_SEARCH_IGNORE_PATTERN"), "\\", $keyword);
@@ -7485,9 +7778,9 @@ function GetQuickSearchFilterForField($fld, $arKeywords, $searchType, $dbid)
                 } elseif ($keyword == Config("NOT_NULL_VALUE")) {
                     $wrk = $fld->Expression . " IS NOT NULL";
                 } elseif ($fld->IsVirtual && $fld->Visible) {
-                    $wrk = $fld->VirtualExpression . Like(QuotedValue("%" . $keyword . "%", DATATYPE_STRING, $dbid), $dbid);
+                    $wrk = $fld->VirtualExpression . Like("'%" . AdjustSqlForLike($keyword, $dbid) . "%'");
                 } elseif ($fld->DataType != DATATYPE_NUMBER || is_numeric($keyword)) {
-                    $wrk = $fld->BasicSearchExpression . Like(QuotedValue("%" . $keyword . "%", DATATYPE_STRING, $dbid), $dbid);
+                    $wrk = $fld->BasicSearchExpression . Like("'%" . AdjustSqlForLike($keyword, $dbid) . "%'");
                 }
                 if ($wrk != "") {
                     $arSql[$j] = $wrk;
@@ -7531,100 +7824,36 @@ function GetExtendedFilter(&$fld, $default = false, $dbid = 0)
     $fldExpression = $fld->Expression;
     $fldDataType = $fld->DataType;
     $fldDateTimeFormat = $fld->DateTimeFormat;
-    $fldVal1 = $default ? $fld->AdvancedSearch->SearchValueDefault : $fld->AdvancedSearch->SearchValue;
-    if (IsFloatFormat($fld->Type)) {
-        $fldVal1 = ConvertToFloatString($fldVal1);
-    }
-    $fldOpr1 = $default ? $fld->AdvancedSearch->SearchOperatorDefault : $fld->AdvancedSearch->SearchOperator;
+    $fldVal = $default ? $fld->AdvancedSearch->SearchValueDefault : $fld->AdvancedSearch->SearchValue;
+    $fldOpr = $default ? $fld->AdvancedSearch->SearchOperatorDefault : $fld->AdvancedSearch->SearchOperator;
     $fldCond = $default ? $fld->AdvancedSearch->SearchConditionDefault : $fld->AdvancedSearch->SearchCondition;
     $fldVal2 = $default ? $fld->AdvancedSearch->SearchValue2Default : $fld->AdvancedSearch->SearchValue2;
-    if (IsFloatFormat($fld->Type)) {
-        $fldVal2 = ConvertToFloatString($fldVal2);
-    }
     $fldOpr2 = $default ? $fld->AdvancedSearch->SearchOperator2Default : $fld->AdvancedSearch->SearchOperator2;
+    $fldVal = ConvertSearchValue($fldVal, $fldOpr, $fld);
+    $fldVal2 = ConvertSearchValue($fldVal2, $fldOpr2, $fld);
+    $fldOpr = ConvertSearchOperator($fldOpr, $fld, $fldVal);
+    $fldOpr2 = ConvertSearchOperator($fldOpr2, $fld, $fldVal2);
     $wrk = "";
-    $fldOpr1 = strtoupper(trim($fldOpr1 ?? ""));
-    if ($fldOpr1 == "") {
-        $fldOpr1 = "=";
-    }
-    $fldOpr2 = strtoupper(trim($fldOpr2 ?? ""));
-    if ($fldOpr2 == "") {
-        $fldOpr2 = "=";
-    }
-    $wrkFldVal1 = $fldVal1;
-    $wrkFldVal2 = $fldVal2;
-    if ($fld->isBoolean()) {
-        if ($wrkFldVal1 != "") {
-            $wrkFldVal1 = ($wrkFldVal1 == "1") ? "1" : "0";
-        }
-        if ($wrkFldVal2 != "") {
-            $wrkFldVal2 = ($wrkFldVal2 == "1") ? "1" : "0";
-        }
-    } elseif ($fldDataType == DATATYPE_DATE || $fldDataType == DATATYPE_TIME) {
-        if ($wrkFldVal1 != "") {
-            $wrkFldVal1 = UnFormatDateTime($wrkFldVal1, $fld->formatPattern());
-        }
-        if ($wrkFldVal2 != "") {
-            $wrkFldVal2 = UnFormatDateTime($wrkFldVal2, $fld->formatPattern());
-        }
-    }
-    if ($fldOpr1 == "BETWEEN") {
-        $isValidValue = ($fldDataType != DATATYPE_NUMBER ||
-            ($fldDataType == DATATYPE_NUMBER && is_numeric($wrkFldVal1) && is_numeric($wrkFldVal2)));
-        if ($wrkFldVal1 != "" && $wrkFldVal2 != "" && $isValidValue) {
-            $wrk = $fldExpression . " BETWEEN " . QuotedValue($wrkFldVal1, $fldDataType, $dbid) .
-                " AND " . QuotedValue($wrkFldVal2, $fldDataType, $dbid);
+    if (in_array($fldOpr, ["BETWEEN", "NOT BETWEEN"])) {
+        $isValidValue = $fldDataType != DATATYPE_NUMBER || $fld->VirtualSearch || IsNumericSearchValue($fldVal1, $fldOpr, $fld) && IsNumericSearchValue($fldVal2, $fldOpr2, $fld);
+        if ($fldVal != "" && $fldVal2 != "" && $isValidValue) {
+            $wrk = $fldExpression . " " . $fldOpr . " " . QuotedValue($fldVal, $fldDataType, $dbid) .
+                " AND " . QuotedValue($fldVal2, $fldDataType, $dbid);
         }
     } else {
         // Handle first value
-        if (SameString($fldVal1, Config("NULL_VALUE")) || $fldOpr1 == "IS NULL") {
-            $wrk = $fldExpression . " IS NULL";
-        } elseif (SameString($fldVal1, Config("NOT_NULL_VALUE")) || $fldOpr1 == "IS NOT NULL") {
-            $wrk = $fldExpression . " IS NOT NULL";
-        } else {
-            $isValidValue = ($fldDataType != DATATYPE_NUMBER ||
-                ($fldDataType == DATATYPE_NUMBER && is_numeric($wrkFldVal1)));
-            if ($wrkFldVal1 != "" && $isValidValue && IsValidOperator($fldOpr1, $fldDataType)) {
-                $wrk = $fldExpression . GetFilterSql($fldOpr1, $wrkFldVal1, $fldDataType, $dbid);
-            }
+        if ($fldVal != "" && IsValidOperator($fldOpr)) {
+            $wrk = SearchFilter($fldExpression, $fldOpr, $fldVal, $fldDataType, $dbid);
         }
         // Handle second value
         $wrk2 = "";
-        if (SameString($fldVal2, Config("NULL_VALUE")) || $fldOpr2 == "IS NULL") {
-            $wrk2 = $fldExpression . " IS NULL";
-        } elseif (SameString($fldVal2, Config("NOT_NULL_VALUE")) || $fldOpr2 == "IS NOT NULL") {
-            $wrk2 = $fldExpression . " IS NOT NULL";
-        } else {
-            $isValidValue = ($fldDataType != DATATYPE_NUMBER ||
-                ($fldDataType == DATATYPE_NUMBER && is_numeric($wrkFldVal2)));
-            if ($wrkFldVal2 != "" && $isValidValue && IsValidOperator($fldOpr2, $fldDataType)) {
-                $wrk2 = $fldExpression . GetFilterSql($fldOpr2, $wrkFldVal2, $fldDataType, $dbid);
-            }
+        if ( $fldVal2 != "" && !EmptyValue($fldOpr2) && IsValidOperator($fldOpr2)) {
+            $wrk2 = SearchFilter($fldExpression, $fldOpr2, $fldVal2, $fldDataType, $dbid);
         }
         // Combine SQL
         AddFilter($wrk, $wrk2, $fldCond == "OR" ? "OR" : "AND");
     }
     return $wrk;
-}
-
-// Return search string
-function GetFilterSql($fldOpr, $fldVal, $fldType, $dbid = 0)
-{
-    if (SameString($fldVal, Config("NULL_VALUE")) || $fldOpr == "IS NULL") {
-        return " IS NULL";
-    } elseif (SameString($fldVal, Config("NOT_NULL_VALUE")) || $fldOpr == "IS NOT NULL") {
-        return " IS NOT NULL";
-    } elseif ($fldOpr == "LIKE") {
-        return Like(QuotedValue("%$fldVal%", $fldType, $dbid), $dbid);
-    } elseif ($fldOpr == "NOT LIKE") {
-        return NotLike(QuotedValue("%$fldVal%", $fldType, $dbid), $dbid);
-    } elseif ($fldOpr == "STARTS WITH") {
-        return Like(QuotedValue("$fldVal%", $fldType, $dbid), $dbid);
-    } elseif ($fldOpr == "ENDS WITH") {
-        return Like(QuotedValue("%$fldVal", $fldType, $dbid), $dbid);
-    } else {
-        return " $fldOpr " . QuotedValue($fldVal, $fldType, $dbid);
-    }
 }
 
 // Return date search string
@@ -7762,46 +7991,4 @@ function GroupSql($fldExpr, $grpType, $grpInt = 0, $dbid = 0)
             break;
     }
     return "";
-}
-
-// Get temp chart image
-function TempChartImage($id, $custom = false)
-{
-    global $TempImages;
-    $exportid = Param("exportid", "");
-    if ($exportid != "") {
-        $file = $exportid . "_" . $id . ".png";
-        $folder = UploadPath(true);
-        $f = $folder . $file;
-        if (file_exists($f)) {
-            $tmpimage = basename($f);
-            $TempImages[] = $tmpimage;
-            $export = $custom ? "print" : Param("export", "");
-            return TempImageLink($tmpimage, $export);
-        }
-        return "";
-    }
-}
-
-// Check HTML for export
-function CheckHtml($html)
-{
-    $p1 = 'class="ew-table"';
-    $p2 = ' data-page-break="before"';
-    $pageBreak = Config("PAGE_BREAK_HTML");
-    $p = '/' . preg_quote($p1, '/') . '|' . preg_quote($p2, '/') . '|' . preg_quote($pageBreak, '/') . '/';
-    if (preg_match_all($p, $html, $matches, PREG_OFFSET_CAPTURE)) {
-        foreach ($matches[0] as $match) {
-            if ($match[0] == $p1) { // If table, break
-                break;
-            } elseif ($match[0] == $pageBreak) { // If page breaks (no table before), remove and continue
-                $html = preg_replace('/' . preg_quote($match[0], "/") . '/', "", $html, 1);
-                continue;
-            } elseif ($match[0] == $p2) { // If page breaks (no table before), remove and break
-                $html = preg_replace('/' . preg_quote($match[0], '/') . '/', "", $html, 1);
-                break;
-            }
-        }
-    }
-    return $html;
 }

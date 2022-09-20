@@ -1,89 +1,130 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
+
+use LdapRecord\Container;
+use LdapRecord\Connection;
+use LdapRecord\Auth\BindException;
+use LdapRecord\Query\Builder;
 
 /**
- * LDAP class
+ * LDAP connection class
  */
 class LdapConn
 {
-    public $Conn; // LDAP server connection
-    public $Dn = ""; // Default Distinguished Name, e.g. uid={username},ou=users,dc=demo,dc=com, "{username}" will be replaced by inputted user name
-    public $Host = "";
-    public $Port = 389;
-    public $Options = [LDAP_OPT_PROTOCOL_VERSION => 3, LDAP_OPT_REFERRALS => 0];
-    public $User = "";
-    protected $Bind = false;
-    protected $Auth = false;
+    public Connection $Conn;
+    public array $Config;
+    private bool $Auth = false;
 
-    // Constructor
-    public function __construct($hostname = "", $port = 0, $options = null)
+    /**
+     * Constructor
+     *
+     * @param array $config Configuration (see https://ldaprecord.com/docs/core/v2/configuration)
+     * @return void
+     */
+    public function __construct(array $config)
     {
-        if (function_exists("ldap_connect")) {
-            if ($hostname) {
-                $this->Host = $hostname;
-            }
-            if ($port > 0) {
-                $this->Port = $port;
-            }
-            if (is_array($options)) {
-                $this->Options = $options + $this->Options;
-            }
-            $this->Conn = ldap_connect($this->Host, $this->Port);
-            if (is_array($this->Options)) {
-                foreach ($this->Options as $key => $value) {
-                    if (!ldap_set_option($this->Conn, $key, $value)) {
-                        throw new \Exception("Unable to set LDAP option: " . $key);
-                    }
-                }
-            }
-        } else {
-            throw new \Exception("LDAP support in PHP is not enabled. To install, see http://php.net/manual/en/ldap.installation.php.");
-        }
+        $this->Config = $config;
+        $config["username"] = null;
+        $config["password"] = null;
+        $this->Conn = new Connection($config); // Connect Anonymously first
+        Container::addConnection($this->Conn); // Add the connection into LdapRecord\Container
     }
 
-    // Bind an user
+    /**
+     * Bind an user
+     *
+     * @param string $user
+     * @param string $password
+     * @return bool
+     */
     public function bind(&$user, &$password)
     {
         $this->User = $user;
-        $ldaprdn = ($this->Dn) ? str_replace("{username}", $user, $this->Dn) : $user;
-        $this->Bind = @ldap_bind($this->Conn, $ldaprdn, $password);
-        if ($this->Bind) {
+        $username = isset($this->Config["username"]) ? str_replace("{username}", $user, $this->Config["username"]) : $user;
+        try {
+            $this->Auth = false; // Reset first
+            $this->Conn->auth()->bind($username, $password);
             $this->Auth = $this->ldapValidated($user, $password);
-            return $this->Auth;
+        } catch (BindException $e) {
+            $error = $e->getDetailedError();
+            Log($error->getErrorCode() . ": " . $error->getErrorMessage());
+            if (IsDebug()) {
+                Log($error->getDiagnosticMessage());
+            }
         }
-        return false;
+        return $this->Auth;
     }
 
-    // Is authenticated
+    /**
+     * Is authenticated
+     *
+     * @return bool
+     */
     public function isAuthenticated()
     {
         return $this->Auth;
     }
 
-    // Get last error
-    public function getLastError()
+    /**
+     * Get connection
+     *
+     * @return LdapRecord\Connection
+     */
+    public function getConnection()
     {
-        return ldap_errno($this->Conn) . ": " . ldap_error($this->Conn);
+        return $this->Conn;
     }
 
-    // Search
-    public function search($searchDn, $filter, $attributes = [])
+    /**
+     * Is connected
+     *
+     * @return bool
+     */
+    public function isConnected()
     {
-        if ($this->Bind) {
-            $search = ldap_search($this->Conn, $searchDn, $filter, $attributes);
-            if (!$search) {
-                return false;
-            }
-            return ldap_get_entries($this->Conn, $search);
+        return $this->Conn ? $this->Conn->isConnected() : false;
+    }
+
+    /**
+     * Get query builder
+     *
+     * @return LdapRecord\Query\Builder
+     */
+    public function query()
+    {
+        return $this->isConnected() ? $this->Conn->query() : null;
+    }
+
+    /**
+     * Search
+     *
+     * @param string $baseDn Base DN
+     * @param string $filter Filter
+     * @param array $attributes Attributes
+     * @return array
+     */
+    public function search($baseDn, $filter, $attributes = [])
+    {
+        if ($this->isConnected()) {
+            $query = $baseDn
+                ? (new Builder($this->Conn))->setCache($this->Conn->cache)->setBaseDn($baseDn)
+                : $this->Conn->query();
+            return $query->rawFilter($filter)->get($attributes);
         }
         return false;
     }
 
-    // Close/Unbind
+    /**
+     * Close/Disconnect
+     *
+     * @return void
+     */
     public function close()
     {
-        ldap_close($this->Conn);
+        if ($this->isConnected()) {
+            $this->Conn->disconnect();
+        }
     }
 
     // LDAP Validated event

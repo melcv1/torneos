@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -108,6 +108,19 @@ function PersonalData_Deleted($row)
     //Log("PersonalData Deleted");
 }
 
+// One Time Password Sending event
+function Otp_Sending($usr, $client)
+{
+    // Example:
+    // var_dump($usr, $client); // View user and client (Email or Sms object)
+    // if (SameText(Config("TWO_FACTOR_AUTHENTICATION_TYPE"), "email")) { // Possible values, email or sms
+    //     $client->Content = ...; // Change content
+    //     $client->Recipient = ...; // Change recipient
+    //     // return false; // Return false to cancel
+    // }
+    return true;
+}
+
 // Route Action event
 function Route_Action($app)
 {
@@ -160,7 +173,7 @@ $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? getConnection();
         }    
         return $response;
     });
-    
+
     $app->get('/v1/partidos/{ID_TORNEO}', function ($request, $response, $args) {
         $ID_TORNEO = $args["ID_TORNEO"] ?? null; // Get the input value
         if ($ID_TORNEO !== null) {

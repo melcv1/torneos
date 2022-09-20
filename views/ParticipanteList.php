@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $ParticipanteList = &$Page;
@@ -9,54 +9,51 @@ $ParticipanteList = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { participante: currentTable } });
-var currentForm, currentPageID;
-var fparticipantelist;
+var currentPageID = ew.PAGE_ID = "list";
+var currentForm;
+var <?= $Page->FormName ?>;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fparticipantelist = new ew.Form("fparticipantelist", "list");
-    currentPageID = ew.PAGE_ID = "list";
-    currentForm = fparticipantelist;
-    fparticipantelist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+    let form = new ew.FormBuilder()
+        .setId("<?= $Page->FormName ?>")
+        .setPageId("list")
+        .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
+        .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fparticipantelist.addFields([
-        ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
-        ["NOMBRE", [fields.NOMBRE.visible && fields.NOMBRE.required ? ew.Validators.required(fields.NOMBRE.caption) : null], fields.NOMBRE.isInvalid],
-        ["APELLIDO", [fields.APELLIDO.visible && fields.APELLIDO.required ? ew.Validators.required(fields.APELLIDO.caption) : null], fields.APELLIDO.isInvalid],
-        ["FECHA_NACIMIENTO", [fields.FECHA_NACIMIENTO.visible && fields.FECHA_NACIMIENTO.required ? ew.Validators.required(fields.FECHA_NACIMIENTO.caption) : null], fields.FECHA_NACIMIENTO.isInvalid],
-        ["CEDULA", [fields.CEDULA.visible && fields.CEDULA.required ? ew.Validators.required(fields.CEDULA.caption) : null], fields.CEDULA.isInvalid],
-        ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
-        ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
+            ["NOMBRE", [fields.NOMBRE.visible && fields.NOMBRE.required ? ew.Validators.required(fields.NOMBRE.caption) : null], fields.NOMBRE.isInvalid],
+            ["APELLIDO", [fields.APELLIDO.visible && fields.APELLIDO.required ? ew.Validators.required(fields.APELLIDO.caption) : null], fields.APELLIDO.isInvalid],
+            ["FECHA_NACIMIENTO", [fields.FECHA_NACIMIENTO.visible && fields.FECHA_NACIMIENTO.required ? ew.Validators.required(fields.FECHA_NACIMIENTO.caption) : null], fields.FECHA_NACIMIENTO.isInvalid],
+            ["CEDULA", [fields.CEDULA.visible && fields.CEDULA.required ? ew.Validators.required(fields.CEDULA.caption) : null], fields.CEDULA.isInvalid],
+            ["_EMAIL", [fields._EMAIL.visible && fields._EMAIL.required ? ew.Validators.required(fields._EMAIL.caption) : null], fields._EMAIL.isInvalid],
+            ["TELEFONO", [fields.TELEFONO.visible && fields.TELEFONO.required ? ew.Validators.required(fields.TELEFONO.caption) : null], fields.TELEFONO.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fparticipantelist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fparticipantelist.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    loadjs.done("fparticipantelist");
-});
-var fparticipantesrch, currentSearchForm, currentAdvancedSearchForm;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object for search
-    fparticipantesrch = new ew.Form("fparticipantesrch", "list");
-    currentSearchForm = fparticipantesrch;
-
-    // Dynamic selection lists
-
-    // Filters
-    fparticipantesrch.filterList = <?= $Page->getFilterList() ?>;
-    loadjs.done("fparticipantesrch");
+        // Dynamic selection lists
+        .setLists({
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -81,16 +78,42 @@ loadjs.ready("head", function () {
 <?php } ?>
 </div>
 <?php } ?>
-<?php
-$Page->renderOtherOptions();
-?>
 <?php if ($Security->canSearch()) { ?>
-<?php if (!$Page->isExport() && !$Page->CurrentAction && $Page->hasSearchFields()) { ?>
-<form name="fparticipantesrch" id="fparticipantesrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isExport() && !($Page->CurrentAction && $Page->CurrentAction != "search") && $Page->hasSearchFields()) { ?>
+<form name="fparticipantesrch" id="fparticipantesrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>" novalidate autocomplete="on">
 <div id="fparticipantesrch_search_panel" class="mb-2 mb-sm-0 <?= $Page->SearchPanelClass ?>"><!-- .ew-search-panel -->
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { participante: currentTable } });
+var currentForm;
+var fparticipantesrch, currentSearchForm, currentAdvancedSearchForm;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery,
+        fields = currentTable.fields;
+
+    // Form object for search
+    let form = new ew.FormBuilder()
+        .setId("fparticipantesrch")
+        .setPageId("list")
+<?php if ($Page->UseAjaxActions) { ?>
+        .setSubmitWithFetch(true)
+<?php } ?>
+
+        // Dynamic selection lists
+        .setLists({
+        })
+
+        // Filters
+        .setFilterList(<?= $Page->getFilterList() ?>)
+        .build();
+    window[form.id] = form;
+    currentSearchForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="participante">
-<div class="ew-extended-search container-fluid">
+<div class="ew-extended-search container-fluid ps-2">
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -120,17 +143,22 @@ $Page->renderOtherOptions();
 <?php
 $Page->showMessage();
 ?>
+<main class="list<?= ($Page->TotalRecords == 0) ? " ew-no-record" : "" ?>">
+<div id="ew-list">
 <?php if ($Page->TotalRecords > 0 || $Page->CurrentAction) { ?>
-<div class="card ew-card ew-grid<?php if ($Page->isAddOrEdit()) { ?> ew-grid-add-edit<?php } ?> participante">
-<form name="fparticipantelist" id="fparticipantelist" class="ew-form ew-list-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<div class="card ew-card ew-grid<?= $Page->isAddOrEdit() ? " ew-grid-add-edit" : "" ?> <?= $Page->TableGridClass ?>">
+<form name="<?= $Page->FormName ?>" id="<?= $Page->FormName ?>" class="ew-form ew-list-form" action="<?= $Page->PageAction ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="participante">
-<div id="gmp_participante" class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit()) { ?>
-<table id="tbl_participantelist" class="table table-bordered table-hover table-sm ew-table"><!-- .ew-table -->
+<?php if ($Page->IsModal) { ?>
+<input type="hidden" name="modal" value="1">
+<?php } ?>
+<div id="gmp_participante" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<table id="tbl_participantelist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
 <?php
@@ -176,94 +204,13 @@ $Page->ListOptions->render("header", "right");
 ?>
     </tr>
 </thead>
-<tbody>
+<tbody data-page="<?= $Page->getPageNumber() ?>">
 <?php
-if ($Page->ExportAll && $Page->isExport()) {
-    $Page->StopRecord = $Page->TotalRecords;
-} else {
-    // Set the last record to display
-    if ($Page->TotalRecords > $Page->StartRecord + $Page->DisplayRecords - 1) {
-        $Page->StopRecord = $Page->StartRecord + $Page->DisplayRecords - 1;
-    } else {
-        $Page->StopRecord = $Page->TotalRecords;
-    }
-}
-
-// Restore number of post back records
-if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
-    $CurrentForm->Index = -1;
-    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
-        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
-        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
-    }
-}
-$Page->RecordCount = $Page->StartRecord - 1;
-if ($Page->Recordset && !$Page->Recordset->EOF) {
-    // Nothing to do
-} elseif ($Page->isGridAdd() && !$Page->AllowAddDeleteRow && $Page->StopRecord == 0) {
-    $Page->StopRecord = $Page->GridAddRowCount;
-}
-
-// Initialize aggregate
-$Page->RowType = ROWTYPE_AGGREGATEINIT;
-$Page->resetAttributes();
-$Page->renderRow();
-$Page->EditRowCount = 0;
-if ($Page->isEdit()) {
-    $Page->RowIndex = 1;
-}
+$Page->setupGrid();
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
-        $Page->RowCount++;
-
-        // Set up key count
-        $Page->KeyCount = $Page->RowIndex;
-
-        // Init row class and style
-        $Page->resetAttributes();
-        $Page->CssClass = "";
-        if ($Page->isGridAdd()) {
-            $Page->loadRowValues(); // Load default values
-            $Page->OldKey = "";
-            $Page->setKey($Page->OldKey);
-        } else {
-            $Page->loadRowValues($Page->Recordset); // Load row values
-            if ($Page->isGridEdit()) {
-                $Page->OldKey = $Page->getKey(true); // Get from CurrentValue
-                $Page->setKey($Page->OldKey);
-            }
-        }
-        $Page->RowType = ROWTYPE_VIEW; // Render view
-        if ($Page->isEdit()) {
-            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
-                $Page->RowType = ROWTYPE_EDIT; // Render edit
-            }
-        }
-        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
-            $CurrentForm->Index = 1;
-            $Page->restoreFormValues(); // Restore form values
-        }
-        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
-            $Page->EditRowCount++;
-        }
-
-        // Set up row attributes
-        $Page->RowAttrs->merge([
-            "data-rowindex" => $Page->RowCount,
-            "id" => "r" . $Page->RowCount . "_participante",
-            "data-rowtype" => $Page->RowType,
-            "class" => ($Page->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
-        ]);
-        if ($Page->isAdd() && $Page->RowType == ROWTYPE_ADD || $Page->isEdit() && $Page->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
-            $Page->RowAttrs->appendClass("table-active");
-        }
-
-        // Render row
-        $Page->renderRow();
-
-        // Render list options
-        $Page->renderListOptions();
+        $Page->setupRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
 <?php
@@ -276,8 +223,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_participante_ID_PARTICIPANTE" class="el_participante_ID_PARTICIPANTE">
 <span<?= $Page->ID_PARTICIPANTE->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_PARTICIPANTE->getDisplayValue($Page->ID_PARTICIPANTE->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="participante" data-field="x_ID_PARTICIPANTE" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" id="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" value="<?= HtmlEncode($Page->ID_PARTICIPANTE->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_ID_PARTICIPANTE" class="el_participante_ID_PARTICIPANTE">
@@ -341,7 +288,7 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
         <td data-name="CEDULA"<?= $Page->CEDULA->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_participante_CEDULA" class="el_participante_CEDULA">
-<input type="<?= $Page->CEDULA->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_CEDULA" id="x<?= $Page->RowIndex ?>_CEDULA" data-table="participante" data-field="x_CEDULA" value="<?= $Page->CEDULA->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->CEDULA->getPlaceHolder()) ?>"<?= $Page->CEDULA->editAttributes() ?>>
+<input type="<?= $Page->CEDULA->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_CEDULA" id="x<?= $Page->RowIndex ?>_CEDULA" data-table="participante" data-field="x_CEDULA" value="<?= $Page->CEDULA->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->CEDULA->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->CEDULA->formatPattern()) ?>"<?= $Page->CEDULA->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->CEDULA->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -373,7 +320,7 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
         <td data-name="TELEFONO"<?= $Page->TELEFONO->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_participante_TELEFONO" class="el_participante_TELEFONO">
-<input type="<?= $Page->TELEFONO->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_TELEFONO" id="x<?= $Page->RowIndex ?>_TELEFONO" data-table="participante" data-field="x_TELEFONO" value="<?= $Page->TELEFONO->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->TELEFONO->getPlaceHolder()) ?>"<?= $Page->TELEFONO->editAttributes() ?>>
+<input type="<?= $Page->TELEFONO->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_TELEFONO" id="x<?= $Page->RowIndex ?>_TELEFONO" data-table="participante" data-field="x_TELEFONO" value="<?= $Page->TELEFONO->EditValue ?>" size="30" maxlength="10" placeholder="<?= HtmlEncode($Page->TELEFONO->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->TELEFONO->formatPattern()) ?>"<?= $Page->TELEFONO->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->TELEFONO->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -391,8 +338,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_participante_crea_dato" class="el_participante_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="participante" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_crea_dato" class="el_participante_crea_dato">
@@ -408,8 +355,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_participante_modifica_dato" class="el_participante_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="participante" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_participante_modifica_dato" class="el_participante_modifica_dato">
@@ -425,8 +372,8 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
 <?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
-<script>
-loadjs.ready(["fparticipantelist","load"], () => fparticipantelist.updateLists(<?= $Page->RowIndex ?>));
+<script data-rowindex="<?= $Page->RowIndex ?>">
+loadjs.ready(["<?= $Page->FormName ?>","load"], () => <?= $Page->FormName ?>.updateLists(<?= $Page->RowIndex ?><?= $Page->RowIndex === '$rowindex$' ? ", true" : "" ?>));
 </script>
 <?php } ?>
 <?php
@@ -439,12 +386,11 @@ loadjs.ready(["fparticipantelist","load"], () => fparticipantelist.updateLists(<
 </tbody>
 </table><!-- /.ew-table -->
 <?php } ?>
-</div><!-- /.ew-grid-middle-panel -->
 <?php if ($Page->isEdit()) { ?>
 <input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
-<?php if (!$Page->CurrentAction) { ?>
+</div><!-- /.ew-grid-middle-panel -->
+<?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>
 </form><!-- /.ew-list-form -->
@@ -456,10 +402,8 @@ if ($Page->Recordset) {
 ?>
 <?php if (!$Page->isExport()) { ?>
 <div class="card-footer ew-grid-lower-panel">
-<?php if (!$Page->isGridAdd()) { ?>
-<form name="ew-pager-form" class="ew-form ew-pager-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isGridAdd() && !($Page->isGridEdit() && $Page->ModalGridEdit) && !$Page->isMultiEdit()) { ?>
 <?= $Page->Pager->render() ?>
-</form>
 <?php } ?>
 <div class="ew-list-other-options">
 <?php $Page->OtherOptions->render("body", "bottom") ?>
@@ -472,6 +416,8 @@ if ($Page->Recordset) {
 <?php $Page->OtherOptions->render("body") ?>
 </div>
 <?php } ?>
+</div>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

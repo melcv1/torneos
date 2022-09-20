@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -23,7 +23,7 @@ class EquipoController extends ControllerBase
     // addopt
     public function addopt(Request $request, Response $response, array $args): Response
     {
-        return $this->runPage($request, $response, $args, "EquipoAddopt", false);
+        return $this->runPage($request, $response, $args, "EquipoAddopt", null, false);
     }
 
     // view

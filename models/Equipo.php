@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -19,6 +19,7 @@ class Equipo extends DbTable
     protected $SqlGroupBy = "";
     protected $SqlHaving = "";
     protected $SqlOrderBy = "";
+    public $DbErrorMessage = "";
     public $UseSessionForListSql = true;
 
     // Column CSS classes
@@ -28,7 +29,16 @@ class Equipo extends DbTable
     public $TableLeftColumnClass = "w-col-2";
 
     // Export
-    public $ExportDoc;
+    public $UseAjaxActions = false;
+    public $ModalSearch = false;
+    public $ModalView = false;
+    public $ModalAdd = false;
+    public $ModalEdit = false;
+    public $ModalUpdate = false;
+    public $InlineDelete = false;
+    public $ModalGridAdd = false;
+    public $ModalGridEdit = false;
+    public $ModalMultiEdit = false;
 
     // Fields
     public $ID_EQUIPO;
@@ -49,27 +59,34 @@ class Equipo extends DbTable
     // Constructor
     public function __construct()
     {
-        global $Language, $CurrentLanguage, $CurrentLocale;
         parent::__construct();
+        global $Language, $CurrentLanguage, $CurrentLocale;
 
         // Language object
         $Language = Container("language");
-        $this->TableVar = 'equipo';
+        $this->TableVar = "equipo";
         $this->TableName = 'equipo';
-        $this->TableType = 'TABLE';
+        $this->TableType = "TABLE";
+        $this->ImportUseTransaction = $this->supportsTransaction() && Config("IMPORT_USE_TRANSACTION");
+        $this->UseTransaction = $this->supportsTransaction() && Config("USE_TRANSACTION");
 
         // Update Table
         $this->UpdateTable = "`equipo`";
         $this->Dbid = 'DB';
         $this->ExportAll = true;
         $this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
+
+        // PDF
         $this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
         $this->ExportPageSize = "a4"; // Page size (PDF only)
-        $this->ExportExcelPageOrientation = ""; // Page orientation (PhpSpreadsheet only)
-        $this->ExportExcelPageSize = ""; // Page size (PhpSpreadsheet only)
-        $this->ExportWordVersion = 12; // Word version (PHPWord only)
-        $this->ExportWordPageOrientation = "portrait"; // Page orientation (PHPWord only)
-        $this->ExportWordPageSize = "A4"; // Page orientation (PHPWord only)
+
+        // PhpSpreadsheet
+        $this->ExportExcelPageOrientation = null; // Page orientation (PhpSpreadsheet only)
+        $this->ExportExcelPageSize = null; // Page size (PhpSpreadsheet only)
+
+        // PHPWord
+        $this->ExportWordPageOrientation = ""; // Page orientation (PHPWord only)
+        $this->ExportWordPageSize = ""; // Page orientation (PHPWord only)
         $this->ExportWordColumnWidth = null; // Cell width (PHPWord only)
         $this->DetailAdd = false; // Allow detail add
         $this->DetailEdit = false; // Allow detail edit
@@ -77,281 +94,287 @@ class Equipo extends DbTable
         $this->ShowMultipleDetails = false; // Show multiple details
         $this->GridAddRowCount = 5;
         $this->AllowAddDeleteRow = true; // Allow add/delete row
+        $this->UseAjaxActions = $this->UseAjaxActions || Config("USE_AJAX_ACTIONS");
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
-        $this->BasicSearch = new BasicSearch($this->TableVar);
+        $this->BasicSearch = new BasicSearch($this);
 
-        // ID_EQUIPO
+        // ID_EQUIPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ID_EQUIPO = new DbField(
-            'equipo',
-            'equipo',
-            'x_ID_EQUIPO',
-            'ID_EQUIPO',
-            '`ID_EQUIPO`',
-            '`ID_EQUIPO`',
-            3,
-            11,
-            -1,
-            false,
-            '`ID_EQUIPO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'NO'
+            $this, // Table
+            'x_ID_EQUIPO', // Variable name
+            'ID_EQUIPO', // Name
+            '`ID_EQUIPO`', // Expression
+            '`ID_EQUIPO`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`ID_EQUIPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'NO' // Edit Tag
         );
         $this->ID_EQUIPO->InputTextType = "text";
         $this->ID_EQUIPO->IsAutoIncrement = true; // Autoincrement field
         $this->ID_EQUIPO->IsPrimaryKey = true; // Primary key field
         $this->ID_EQUIPO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->ID_EQUIPO->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['ID_EQUIPO'] = &$this->ID_EQUIPO;
 
-        // NOM_EQUIPO_CORTO
+        // NOM_EQUIPO_CORTO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NOM_EQUIPO_CORTO = new DbField(
-            'equipo',
-            'equipo',
-            'x_NOM_EQUIPO_CORTO',
-            'NOM_EQUIPO_CORTO',
-            '`NOM_EQUIPO_CORTO`',
-            '`NOM_EQUIPO_CORTO`',
-            201,
-            256,
-            -1,
-            false,
-            '`NOM_EQUIPO_CORTO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_NOM_EQUIPO_CORTO', // Variable name
+            'NOM_EQUIPO_CORTO', // Name
+            '`NOM_EQUIPO_CORTO`', // Expression
+            '`NOM_EQUIPO_CORTO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`NOM_EQUIPO_CORTO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->NOM_EQUIPO_CORTO->InputTextType = "text";
+        $this->NOM_EQUIPO_CORTO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['NOM_EQUIPO_CORTO'] = &$this->NOM_EQUIPO_CORTO;
 
-        // NOM_EQUIPO_LARGO
+        // NOM_EQUIPO_LARGO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NOM_EQUIPO_LARGO = new DbField(
-            'equipo',
-            'equipo',
-            'x_NOM_EQUIPO_LARGO',
-            'NOM_EQUIPO_LARGO',
-            '`NOM_EQUIPO_LARGO`',
-            '`NOM_EQUIPO_LARGO`',
-            201,
-            256,
-            -1,
-            false,
-            '`NOM_EQUIPO_LARGO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_NOM_EQUIPO_LARGO', // Variable name
+            'NOM_EQUIPO_LARGO', // Name
+            '`NOM_EQUIPO_LARGO`', // Expression
+            '`NOM_EQUIPO_LARGO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`NOM_EQUIPO_LARGO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->NOM_EQUIPO_LARGO->InputTextType = "text";
+        $this->NOM_EQUIPO_LARGO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['NOM_EQUIPO_LARGO'] = &$this->NOM_EQUIPO_LARGO;
 
-        // PAIS_EQUIPO
+        // PAIS_EQUIPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->PAIS_EQUIPO = new DbField(
-            'equipo',
-            'equipo',
-            'x_PAIS_EQUIPO',
-            'PAIS_EQUIPO',
-            '`PAIS_EQUIPO`',
-            '`PAIS_EQUIPO`',
-            201,
-            256,
-            -1,
-            false,
-            '`PAIS_EQUIPO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_PAIS_EQUIPO', // Variable name
+            'PAIS_EQUIPO', // Name
+            '`PAIS_EQUIPO`', // Expression
+            '`PAIS_EQUIPO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`PAIS_EQUIPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->PAIS_EQUIPO->InputTextType = "text";
+        $this->PAIS_EQUIPO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['PAIS_EQUIPO'] = &$this->PAIS_EQUIPO;
 
-        // REGION_EQUIPO
+        // REGION_EQUIPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->REGION_EQUIPO = new DbField(
-            'equipo',
-            'equipo',
-            'x_REGION_EQUIPO',
-            'REGION_EQUIPO',
-            '`REGION_EQUIPO`',
-            '`REGION_EQUIPO`',
-            201,
-            256,
-            -1,
-            false,
-            '`REGION_EQUIPO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'SELECT'
+            $this, // Table
+            'x_REGION_EQUIPO', // Variable name
+            'REGION_EQUIPO', // Name
+            '`REGION_EQUIPO`', // Expression
+            '`REGION_EQUIPO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`REGION_EQUIPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'SELECT' // Edit Tag
         );
         $this->REGION_EQUIPO->InputTextType = "text";
         $this->REGION_EQUIPO->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->REGION_EQUIPO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->REGION_EQUIPO->Lookup = new Lookup('REGION_EQUIPO', 'equipo', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                $this->REGION_EQUIPO->Lookup = new Lookup('REGION_EQUIPO', 'equipo', false, '', ["","","",""], '', '', [], [], [], [], [], [], '', '', "");
                 break;
             default:
-                $this->REGION_EQUIPO->Lookup = new Lookup('REGION_EQUIPO', 'equipo', false, '', ["","","",""], [], [], [], [], [], [], '', '', "");
+                $this->REGION_EQUIPO->Lookup = new Lookup('REGION_EQUIPO', 'equipo', false, '', ["","","",""], '', '', [], [], [], [], [], [], '', '', "");
                 break;
         }
         $this->REGION_EQUIPO->OptionCount = 6;
+        $this->REGION_EQUIPO->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['REGION_EQUIPO'] = &$this->REGION_EQUIPO;
 
-        // DETALLE_EQUIPO
+        // DETALLE_EQUIPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->DETALLE_EQUIPO = new DbField(
-            'equipo',
-            'equipo',
-            'x_DETALLE_EQUIPO',
-            'DETALLE_EQUIPO',
-            '`DETALLE_EQUIPO`',
-            '`DETALLE_EQUIPO`',
-            201,
-            65535,
-            -1,
-            false,
-            '`DETALLE_EQUIPO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_DETALLE_EQUIPO', // Variable name
+            'DETALLE_EQUIPO', // Name
+            '`DETALLE_EQUIPO`', // Expression
+            '`DETALLE_EQUIPO`', // Basic search expression
+            201, // Type
+            65535, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`DETALLE_EQUIPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->DETALLE_EQUIPO->InputTextType = "text";
+        $this->DETALLE_EQUIPO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['DETALLE_EQUIPO'] = &$this->DETALLE_EQUIPO;
 
-        // ESCUDO_EQUIPO
+        // ESCUDO_EQUIPO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ESCUDO_EQUIPO = new DbField(
-            'equipo',
-            'equipo',
-            'x_ESCUDO_EQUIPO',
-            'ESCUDO_EQUIPO',
-            '`ESCUDO_EQUIPO`',
-            '`ESCUDO_EQUIPO`',
-            201,
-            1024,
-            -1,
-            true,
-            '`ESCUDO_EQUIPO`',
-            false,
-            false,
-            false,
-            'IMAGE',
-            'FILE'
+            $this, // Table
+            'x_ESCUDO_EQUIPO', // Variable name
+            'ESCUDO_EQUIPO', // Name
+            '`ESCUDO_EQUIPO`', // Expression
+            '`ESCUDO_EQUIPO`', // Basic search expression
+            201, // Type
+            1024, // Size
+            -1, // Date/Time format
+            true, // Is upload field
+            '`ESCUDO_EQUIPO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'IMAGE', // View Tag
+            'FILE' // Edit Tag
         );
         $this->ESCUDO_EQUIPO->InputTextType = "text";
+        $this->ESCUDO_EQUIPO->SearchOperators = ["=", "<>", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['ESCUDO_EQUIPO'] = &$this->ESCUDO_EQUIPO;
 
-        // NOM_ESTADIO
+        // NOM_ESTADIO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NOM_ESTADIO = new DbField(
-            'equipo',
-            'equipo',
-            'x_NOM_ESTADIO',
-            'NOM_ESTADIO',
-            '`NOM_ESTADIO`',
-            '`NOM_ESTADIO`',
-            3,
-            11,
-            -1,
-            false,
-            '`EV__NOM_ESTADIO`',
-            true,
-            true,
-            false,
-            'FORMATTED TEXT',
-            'SELECT'
+            $this, // Table
+            'x_NOM_ESTADIO', // Variable name
+            'NOM_ESTADIO', // Name
+            '`NOM_ESTADIO`', // Expression
+            '`NOM_ESTADIO`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`EV__NOM_ESTADIO`', // Virtual expression
+            true, // Is virtual
+            true, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'SELECT' // Edit Tag
         );
         $this->NOM_ESTADIO->InputTextType = "text";
         $this->NOM_ESTADIO->UsePleaseSelect = true; // Use PleaseSelect by default
         $this->NOM_ESTADIO->PleaseSelectText = $Language->phrase("PleaseSelect"); // "PleaseSelect" text
         switch ($CurrentLanguage) {
             case "en-US":
-                $this->NOM_ESTADIO->Lookup = new Lookup('NOM_ESTADIO', 'estadio', false, 'id_estadio', ["nombre_estadio","","",""], [], [], [], [], [], [], '', '', "`nombre_estadio`");
+                $this->NOM_ESTADIO->Lookup = new Lookup('NOM_ESTADIO', 'estadio', false, 'id_estadio', ["nombre_estadio","","",""], '', '', [], [], [], [], [], [], '', '', "`nombre_estadio`");
                 break;
             default:
-                $this->NOM_ESTADIO->Lookup = new Lookup('NOM_ESTADIO', 'estadio', false, 'id_estadio', ["nombre_estadio","","",""], [], [], [], [], [], [], '', '', "`nombre_estadio`");
+                $this->NOM_ESTADIO->Lookup = new Lookup('NOM_ESTADIO', 'estadio', false, 'id_estadio', ["nombre_estadio","","",""], '', '', [], [], [], [], [], [], '', '', "`nombre_estadio`");
                 break;
         }
         $this->NOM_ESTADIO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->NOM_ESTADIO->SearchOperators = ["=", "<>", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['NOM_ESTADIO'] = &$this->NOM_ESTADIO;
 
-        // crea_dato
+        // crea_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->crea_dato = new DbField(
-            'equipo',
-            'equipo',
-            'x_crea_dato',
-            'crea_dato',
-            '`crea_dato`',
-            CastDateFieldForLike("`crea_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`crea_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'HIDDEN'
+            $this, // Table
+            'x_crea_dato', // Variable name
+            'crea_dato', // Name
+            '`crea_dato`', // Expression
+            CastDateFieldForLike("`crea_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`crea_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'HIDDEN' // Edit Tag
         );
         $this->crea_dato->InputTextType = "text";
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->crea_dato->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['crea_dato'] = &$this->crea_dato;
 
-        // modifica_dato
+        // modifica_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->modifica_dato = new DbField(
-            'equipo',
-            'equipo',
-            'x_modifica_dato',
-            'modifica_dato',
-            '`modifica_dato`',
-            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`modifica_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'HIDDEN'
+            $this, // Table
+            'x_modifica_dato', // Variable name
+            'modifica_dato', // Name
+            '`modifica_dato`', // Expression
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`modifica_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'HIDDEN' // Edit Tag
         );
         $this->modifica_dato->InputTextType = "text";
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->modifica_dato->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
-        // usuario_dato
+        // usuario_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->usuario_dato = new DbField(
-            'equipo',
-            'equipo',
-            'x_usuario_dato',
-            'usuario_dato',
-            '`usuario_dato`',
-            '`usuario_dato`',
-            201,
-            256,
-            -1,
-            false,
-            '`usuario_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'HIDDEN'
+            $this, // Table
+            'x_usuario_dato', // Variable name
+            'usuario_dato', // Name
+            '`usuario_dato`', // Expression
+            '`usuario_dato`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`usuario_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'HIDDEN' // Edit Tag
         );
+        $this->usuario_dato->addMethod("getAutoUpdateValue", fn() => CurrentUserName());
+        $this->usuario_dato->addMethod("getDefault", fn() => "admin");
         $this->usuario_dato->InputTextType = "text";
+        $this->usuario_dato->SearchOperators = ["=", "<>", "IS NULL", "IS NOT NULL"];
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
         $this->CacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $this->TableVar);
+
+        // Call Table Load event
+        $this->tableLoad();
     }
 
     // Field Visibility
@@ -416,6 +439,12 @@ class Equipo extends DbTable
     public function setSessionOrderByList($v)
     {
         $_SESSION[PROJECT_NAME . "_" . $this->TableVar . "_" . Config("TABLE_ORDER_BY_LIST")] = $v;
+    }
+
+    // Render X Axis for chart
+    public function renderChartXAxis($chartVar, $chartRow)
+    {
+        return $chartRow;
     }
 
     // Table level SQL
@@ -608,6 +637,12 @@ class Equipo extends DbTable
     // Get SQL
     public function getSql($where, $orderBy = "")
     {
+        return $this->getSqlAsQueryBuilder($where, $orderBy)->getSQL();
+    }
+
+    // Get QueryBuilder
+    public function getSqlAsQueryBuilder($where, $orderBy = "")
+    {
         return $this->buildSelectSql(
             $this->getSqlSelect(),
             $this->getSqlFrom(),
@@ -617,7 +652,7 @@ class Equipo extends DbTable
             $this->getSqlOrderBy(),
             $where,
             $orderBy
-        )->getSQL();
+        );
     }
 
     // Table SQL
@@ -753,7 +788,13 @@ class Equipo extends DbTable
     public function insert(&$rs)
     {
         $conn = $this->getConnection();
-        $success = $this->insertSql($rs)->execute();
+        try {
+            $success = $this->insertSql($rs)->execute();
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
         if ($success) {
             // Get insert id if necessary
             $this->ID_EQUIPO->setDbValue($conn->lastInsertId());
@@ -796,8 +837,21 @@ class Equipo extends DbTable
     public function update(&$rs, $where = "", $rsold = null, $curfilter = true)
     {
         // If no field is updated, execute may return 0. Treat as success
-        $success = $this->updateSql($rs, $where, $curfilter)->execute();
-        $success = ($success > 0) ? $success : true;
+        try {
+            $success = $this->updateSql($rs, $where, $curfilter)->execute();
+            $success = ($success > 0) ? $success : true;
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
+
+        // Return auto increment field
+        if ($success) {
+            if (!isset($rs['ID_EQUIPO']) && !EmptyValue($this->ID_EQUIPO->CurrentValue)) {
+                $rs['ID_EQUIPO'] = $this->ID_EQUIPO->CurrentValue;
+            }
+        }
         return $success;
     }
 
@@ -831,7 +885,13 @@ class Equipo extends DbTable
     {
         $success = true;
         if ($success) {
-            $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+            try {
+                $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+                $this->DbErrorMessage = "";
+            } catch (\Exception $e) {
+                $success = false;
+                $this->DbErrorMessage = $e->getMessage();
+            }
         }
         return $success;
     }
@@ -901,13 +961,13 @@ class Equipo extends DbTable
     }
 
     // Get record filter
-    public function getRecordFilter($row = null)
+    public function getRecordFilter($row = null, $current = false)
     {
         $keyFilter = $this->sqlKeyFilter();
         if (is_array($row)) {
             $val = array_key_exists('ID_EQUIPO', $row) ? $row['ID_EQUIPO'] : null;
         } else {
-            $val = $this->ID_EQUIPO->OldValue !== null ? $this->ID_EQUIPO->OldValue : $this->ID_EQUIPO->CurrentValue;
+            $val = !EmptyValue($this->ID_EQUIPO->OldValue) && !$current ? $this->ID_EQUIPO->OldValue : $this->ID_EQUIPO->CurrentValue;
         }
         if (!is_numeric($val)) {
             return "0=1"; // Invalid key
@@ -949,9 +1009,8 @@ class Equipo extends DbTable
             return $Language->phrase("Edit");
         } elseif ($pageName == "equipoadd") {
             return $Language->phrase("Add");
-        } else {
-            return "";
         }
+        return "";
     }
 
     // API page name
@@ -973,6 +1032,18 @@ class Equipo extends DbTable
         }
     }
 
+    // Current URL
+    public function getCurrentUrl($parm = "")
+    {
+        $url = CurrentPageUrl(false);
+        if ($parm != "") {
+            $url = $this->keyUrl($url, $parm);
+        } else {
+            $url = $this->keyUrl($url, Config("TABLE_SHOW_DETAIL") . "=");
+        }
+        return $this->addMasterUrl($url);
+    }
+
     // List URL
     public function getListUrl()
     {
@@ -983,9 +1054,9 @@ class Equipo extends DbTable
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("equipoview", $this->getUrlParm($parm));
+            $url = $this->keyUrl("equipoview", $parm);
         } else {
-            $url = $this->keyUrl("equipoview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("equipoview", Config("TABLE_SHOW_DETAIL") . "=");
         }
         return $this->addMasterUrl($url);
     }
@@ -994,7 +1065,7 @@ class Equipo extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "equipoadd?" . $this->getUrlParm($parm);
+            $url = "equipoadd?" . $parm;
         } else {
             $url = "equipoadd";
         }
@@ -1004,35 +1075,39 @@ class Equipo extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("equipoedit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("equipoedit", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline edit URL
     public function getInlineEditUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=edit"));
+        $url = $this->keyUrl("equipolist", "action=edit");
         return $this->addMasterUrl($url);
     }
 
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("equipoadd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("equipoadd", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline copy URL
     public function getInlineCopyUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=copy"));
+        $url = $this->keyUrl("equipolist", "action=copy");
         return $this->addMasterUrl($url);
     }
 
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("equipodelete", $this->getUrlParm());
+        if ($this->UseAjaxActions && ConvertToBool(Param("infinitescroll")) && CurrentPageID() == "list") {
+            return $this->keyUrl(GetApiUrl(Config("API_DELETE_ACTION") . "/" . $this->TableVar));
+        } else {
+            return $this->keyUrl("equipodelete");
+        }
     }
 
     // Add master url
@@ -1069,12 +1144,15 @@ class Equipo extends DbTable
     // Render sort
     public function renderFieldHeader($fld)
     {
-        global $Security, $Language;
+        global $Security, $Language, $Page;
         $sortUrl = "";
         $attrs = "";
         if ($fld->Sortable) {
             $sortUrl = $this->sortUrl($fld);
-            $attrs = ' role="button" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            $attrs = ' role="button" data-ew-action="sort" data-ajax="' . ($this->UseAjaxActions ? "true" : "false") . '" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            if ($this->ContextClass) { // Add context
+                $attrs .= ' data-context="' . HtmlEncode($this->ContextClass) . '"';
+            }
         }
         $html = '<div class="ew-table-header-caption"' . $attrs . '>' . $fld->caption() . '</div>';
         if ($sortUrl) {
@@ -1095,14 +1173,18 @@ class Equipo extends DbTable
     // Sort URL
     public function sortUrl($fld)
     {
+        global $DashboardReport;
         if (
             $this->CurrentAction || $this->isExport() ||
             in_array($fld->Type, [128, 204, 205])
         ) { // Unsortable data type
                 return "";
         } elseif ($fld->Sortable) {
-            $urlParm = $this->getUrlParm("order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort());
-            return $this->addMasterUrl(CurrentPageName() . "?" . $urlParm);
+            $urlParm = "order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort();
+            if ($DashboardReport) {
+                $urlParm .= "&amp;dashboard=true";
+            }
+            return $this->addMasterUrl($this->CurrentPageName . "?" . $urlParm);
         } else {
             return "";
         }
@@ -1138,6 +1220,19 @@ class Equipo extends DbTable
             }
         }
         return $ar;
+    }
+
+    // Get filter from records
+    public function getFilterFromRecords($rows)
+    {
+        $keyFilter = "";
+        foreach ($rows as $row) {
+            if ($keyFilter != "") {
+                $keyFilter .= " OR ";
+            }
+            $keyFilter .= "(" . $this->getRecordFilter($row) . ")";
+        }
+        return $keyFilter;
     }
 
     // Get filter from record keys
@@ -1190,6 +1285,24 @@ class Equipo extends DbTable
         $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
+    // Render list content
+    public function renderListContent($filter)
+    {
+        global $Response;
+        $listPage = "EquipoList";
+        $listClass = PROJECT_NAMESPACE . $listPage;
+        $page = new $listClass();
+        $page->loadRecordsetFromFilter($filter);
+        $view = Container("view");
+        $template = $listPage . ".php"; // View
+        $GLOBALS["Title"] ??= $page->Title; // Title
+        try {
+            $Response = $view->render($Response, $template, $GLOBALS);
+        } finally {
+            $page->terminate(); // Terminate page and clean up
+        }
+    }
+
     // Render list row values
     public function renderListRow()
     {
@@ -1224,19 +1337,15 @@ class Equipo extends DbTable
 
         // ID_EQUIPO
         $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->CurrentValue;
-        $this->ID_EQUIPO->ViewCustomAttributes = "";
 
         // NOM_EQUIPO_CORTO
         $this->NOM_EQUIPO_CORTO->ViewValue = $this->NOM_EQUIPO_CORTO->CurrentValue;
-        $this->NOM_EQUIPO_CORTO->ViewCustomAttributes = "";
 
         // NOM_EQUIPO_LARGO
         $this->NOM_EQUIPO_LARGO->ViewValue = $this->NOM_EQUIPO_LARGO->CurrentValue;
-        $this->NOM_EQUIPO_LARGO->ViewCustomAttributes = "";
 
         // PAIS_EQUIPO
         $this->PAIS_EQUIPO->ViewValue = $this->PAIS_EQUIPO->CurrentValue;
-        $this->PAIS_EQUIPO->ViewCustomAttributes = "";
 
         // REGION_EQUIPO
         if (strval($this->REGION_EQUIPO->CurrentValue) != "") {
@@ -1244,11 +1353,9 @@ class Equipo extends DbTable
         } else {
             $this->REGION_EQUIPO->ViewValue = null;
         }
-        $this->REGION_EQUIPO->ViewCustomAttributes = "";
 
         // DETALLE_EQUIPO
         $this->DETALLE_EQUIPO->ViewValue = $this->DETALLE_EQUIPO->CurrentValue;
-        $this->DETALLE_EQUIPO->ViewCustomAttributes = "";
 
         // ESCUDO_EQUIPO
         if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
@@ -1260,7 +1367,6 @@ class Equipo extends DbTable
         } else {
             $this->ESCUDO_EQUIPO->ViewValue = "";
         }
-        $this->ESCUDO_EQUIPO->ViewCustomAttributes = "";
 
         // NOM_ESTADIO
         if ($this->NOM_ESTADIO->VirtualValue != "") {
@@ -1270,7 +1376,7 @@ class Equipo extends DbTable
             if ($curVal != "") {
                 $this->NOM_ESTADIO->ViewValue = $this->NOM_ESTADIO->lookupCacheOption($curVal);
                 if ($this->NOM_ESTADIO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`id_estadio`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->NOM_ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -1288,58 +1394,47 @@ class Equipo extends DbTable
                 $this->NOM_ESTADIO->ViewValue = null;
             }
         }
-        $this->NOM_ESTADIO->ViewCustomAttributes = "";
 
         // crea_dato
         $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
         $this->crea_dato->CssClass = "fst-italic";
         $this->crea_dato->CellCssStyle .= "text-align: right;";
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
         $this->modifica_dato->CssClass = "fst-italic";
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
         $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-        $this->usuario_dato->ViewCustomAttributes = "";
 
         // ID_EQUIPO
-        $this->ID_EQUIPO->LinkCustomAttributes = "";
         $this->ID_EQUIPO->HrefValue = "";
         $this->ID_EQUIPO->TooltipValue = "";
 
         // NOM_EQUIPO_CORTO
-        $this->NOM_EQUIPO_CORTO->LinkCustomAttributes = "";
         $this->NOM_EQUIPO_CORTO->HrefValue = "";
         $this->NOM_EQUIPO_CORTO->TooltipValue = "";
 
         // NOM_EQUIPO_LARGO
-        $this->NOM_EQUIPO_LARGO->LinkCustomAttributes = "";
         $this->NOM_EQUIPO_LARGO->HrefValue = "";
         $this->NOM_EQUIPO_LARGO->TooltipValue = "";
 
         // PAIS_EQUIPO
-        $this->PAIS_EQUIPO->LinkCustomAttributes = "";
         $this->PAIS_EQUIPO->HrefValue = "";
         $this->PAIS_EQUIPO->TooltipValue = "";
 
         // REGION_EQUIPO
-        $this->REGION_EQUIPO->LinkCustomAttributes = "";
         $this->REGION_EQUIPO->HrefValue = "";
         $this->REGION_EQUIPO->TooltipValue = "";
 
         // DETALLE_EQUIPO
-        $this->DETALLE_EQUIPO->LinkCustomAttributes = "";
         $this->DETALLE_EQUIPO->HrefValue = "";
         $this->DETALLE_EQUIPO->TooltipValue = "";
 
         // ESCUDO_EQUIPO
-        $this->ESCUDO_EQUIPO->LinkCustomAttributes = "";
         if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
             $this->ESCUDO_EQUIPO->HrefValue = GetFileUploadUrl($this->ESCUDO_EQUIPO, $this->ESCUDO_EQUIPO->htmlDecode($this->ESCUDO_EQUIPO->Upload->DbValue)); // Add prefix/suffix
             $this->ESCUDO_EQUIPO->LinkAttrs["target"] = ""; // Add target
@@ -1360,22 +1455,18 @@ class Equipo extends DbTable
         }
 
         // NOM_ESTADIO
-        $this->NOM_ESTADIO->LinkCustomAttributes = "";
         $this->NOM_ESTADIO->HrefValue = "";
         $this->NOM_ESTADIO->TooltipValue = "";
 
         // crea_dato
-        $this->crea_dato->LinkCustomAttributes = "";
         $this->crea_dato->HrefValue = "";
         $this->crea_dato->TooltipValue = "";
 
         // modifica_dato
-        $this->modifica_dato->LinkCustomAttributes = "";
         $this->modifica_dato->HrefValue = "";
         $this->modifica_dato->TooltipValue = "";
 
         // usuario_dato
-        $this->usuario_dato->LinkCustomAttributes = "";
         $this->usuario_dato->HrefValue = "";
         $this->usuario_dato->TooltipValue = "";
 
@@ -1396,43 +1487,35 @@ class Equipo extends DbTable
 
         // ID_EQUIPO
         $this->ID_EQUIPO->setupEditAttributes();
-        $this->ID_EQUIPO->EditCustomAttributes = "";
         $this->ID_EQUIPO->EditValue = $this->ID_EQUIPO->CurrentValue;
-        $this->ID_EQUIPO->ViewCustomAttributes = "";
 
         // NOM_EQUIPO_CORTO
         $this->NOM_EQUIPO_CORTO->setupEditAttributes();
-        $this->NOM_EQUIPO_CORTO->EditCustomAttributes = "";
         $this->NOM_EQUIPO_CORTO->EditValue = $this->NOM_EQUIPO_CORTO->CurrentValue;
         $this->NOM_EQUIPO_CORTO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_CORTO->caption());
 
         // NOM_EQUIPO_LARGO
         $this->NOM_EQUIPO_LARGO->setupEditAttributes();
-        $this->NOM_EQUIPO_LARGO->EditCustomAttributes = "";
         $this->NOM_EQUIPO_LARGO->EditValue = $this->NOM_EQUIPO_LARGO->CurrentValue;
         $this->NOM_EQUIPO_LARGO->PlaceHolder = RemoveHtml($this->NOM_EQUIPO_LARGO->caption());
 
         // PAIS_EQUIPO
         $this->PAIS_EQUIPO->setupEditAttributes();
-        $this->PAIS_EQUIPO->EditCustomAttributes = "";
         $this->PAIS_EQUIPO->EditValue = $this->PAIS_EQUIPO->CurrentValue;
         $this->PAIS_EQUIPO->PlaceHolder = RemoveHtml($this->PAIS_EQUIPO->caption());
 
         // REGION_EQUIPO
         $this->REGION_EQUIPO->setupEditAttributes();
-        $this->REGION_EQUIPO->EditCustomAttributes = "";
         $this->REGION_EQUIPO->EditValue = $this->REGION_EQUIPO->options(true);
         $this->REGION_EQUIPO->PlaceHolder = RemoveHtml($this->REGION_EQUIPO->caption());
 
         // DETALLE_EQUIPO
         $this->DETALLE_EQUIPO->setupEditAttributes();
-        $this->DETALLE_EQUIPO->EditCustomAttributes = "";
         $this->DETALLE_EQUIPO->EditValue = $this->DETALLE_EQUIPO->CurrentValue;
         $this->DETALLE_EQUIPO->PlaceHolder = RemoveHtml($this->DETALLE_EQUIPO->caption());
 
         // ESCUDO_EQUIPO
         $this->ESCUDO_EQUIPO->setupEditAttributes();
-        $this->ESCUDO_EQUIPO->EditCustomAttributes = "";
         if (!EmptyValue($this->ESCUDO_EQUIPO->Upload->DbValue)) {
             $this->ESCUDO_EQUIPO->ImageWidth = 50;
             $this->ESCUDO_EQUIPO->ImageHeight = 0;
@@ -1448,17 +1531,14 @@ class Equipo extends DbTable
 
         // NOM_ESTADIO
         $this->NOM_ESTADIO->setupEditAttributes();
-        $this->NOM_ESTADIO->EditCustomAttributes = "";
         $this->NOM_ESTADIO->PlaceHolder = RemoveHtml($this->NOM_ESTADIO->caption());
 
         // crea_dato
         $this->crea_dato->setupEditAttributes();
-        $this->crea_dato->EditCustomAttributes = "";
         $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
         // modifica_dato
         $this->modifica_dato->setupEditAttributes();
-        $this->modifica_dato->EditCustomAttributes = "";
         $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
         // usuario_dato
@@ -1573,8 +1653,7 @@ class Equipo extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
-                $this->ExportDoc = &$doc;
-                $this->rowExport($row);
+                $this->rowExport($doc, $row);
             }
             $recordset->moveNext();
         }
@@ -1642,8 +1721,7 @@ class Equipo extends DbTable
                     $downloadPdf = !Config("EMBED_PDF") && Config("DOWNLOAD_PDF_FILE");
                     if ($fileNameFld != "" && !EmptyValue($row[$fileNameFld])) {
                         $fileName = $row[$fileNameFld];
-                        $pathinfo = pathinfo($fileName);
-                        $ext = strtolower(@$pathinfo["extension"]);
+                                        $ext = strtolower($pathinfo["extension"] ?? "");
                         $isPdf = SameText($ext, "pdf");
                         if ($downloadPdf || !$isPdf) { // Skip header if not download PDF
                             AddHeader("Content-Disposition", "attachment; filename=\"" . $fileName . "\"");
@@ -1685,6 +1763,9 @@ class Equipo extends DbTable
                     }
                     $data = [];
                     $ar = [];
+                    if ($fld->hasMethod("getUploadPath")) { // Check field level upload path
+                        $fld->UploadPath = $fld->getUploadPath();
+                    }
                     foreach ($files as $file) {
                         if (!EmptyValue($file)) {
                             if (Config("ENCRYPT_FILE_PATH")) {
@@ -1705,6 +1786,12 @@ class Equipo extends DbTable
     }
 
     // Table level events
+
+    // Table Load event
+    public function tableLoad()
+    {
+        // Enter your code here
+    }
 
     // Recordset Selecting event
     public function recordsetSelecting(&$filter)

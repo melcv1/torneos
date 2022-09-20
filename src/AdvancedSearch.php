@@ -1,14 +1,13 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Advanced Search class
  */
 class AdvancedSearch
 {
-    public $TableVar;
-    public $FieldParam;
+    public $Field;
     public $SearchValue; // Search value
     public $ViewValue = ""; // View value
     public $SearchOperator; // Search operator
@@ -21,30 +20,31 @@ class AdvancedSearch
     public $SearchConditionDefault = ""; // Search condition default
     public $SearchValue2Default = ""; // Search value 2 default
     public $SearchOperator2Default = ""; // Search operator 2 default
+    public $Raw = false;
     protected $Prefix = "";
     protected $Suffix = "";
     protected $HasValue = false;
 
     // Constructor
-    public function __construct($tblvar, $fldparm)
+    public function __construct($fld)
     {
-        $this->TableVar = $tblvar;
-        $this->FieldParam = $fldparm;
-        $this->Prefix = PROJECT_NAME . "_" . $tblvar . "_" . Config("TABLE_ADVANCED_SEARCH") . "_";
-        $this->Suffix = "_" . $this->FieldParam;
+        $this->Field = $fld;
+        $this->Prefix = PROJECT_NAME . "_" . $fld->TableVar . "_" . Config("TABLE_ADVANCED_SEARCH") . "_";
+        $this->Suffix = "_" . $this->Field->Param;
+        $this->Raw = !Config("REMOVE_XSS");
     }
 
     // Set SearchValue
     public function setSearchValue($v)
     {
-        $this->SearchValue = Config("REMOVE_XSS") ? RemoveXss($v) : $v;
+        $this->SearchValue = $this->Raw ? $v : RemoveXss($v);
         $this->HasValue = true;
     }
 
     // Set SearchOperator
     public function setSearchOperator($v)
     {
-        if ($this->isValidOperator($v)) {
+        if (IsValidOperator($v)) {
             $this->SearchOperator = $v;
             $this->HasValue = true;
         }
@@ -67,7 +67,7 @@ class AdvancedSearch
     // Set SearchOperator2
     public function setSearchOperator2($v)
     {
-        if ($this->isValidOperator($v)) {
+        if (IsValidOperator($v)) {
             $this->SearchOperator2 = $v;
             $this->HasValue = true;
         }
@@ -92,12 +92,17 @@ class AdvancedSearch
     // Get values from array
     public function get(array $ar = null)
     {
-        $ar = $ar ?? (IsPost() ? $_POST : $_GET);
-        $parm = $this->FieldParam;
+        $ar ??= IsPost() ? $_POST : $_GET;
+        $parm = $this->Field->Param;
         if (array_key_exists("x_" . $parm, $ar)) {
             $this->setSearchValue($ar["x_" . $parm]);
         } elseif (array_key_exists($parm, $ar)) { // Support SearchValue without "x_"
-            $this->setSearchValue($ar[$parm]);
+            $v = $ar[$parm];
+            if (!in_array($this->Field->DataType, [DATATYPE_STRING, DATATYPE_MEMO]) && !$this->Field->IsVirtual && !is_array($v)) {
+                $this->parseSearchValue($v); // Support search format field=<opr><value><cond><value2> (e.g. Field=greater_or_equal1)
+            } else {
+                $this->setSearchValue($v);
+            }
         }
         if (array_key_exists("z_" . $parm, $ar)) {
             $this->setSearchOperator($ar["z_" . $parm]);
@@ -112,6 +117,69 @@ class AdvancedSearch
             $this->setSearchOperator2($ar["w_" . $parm]);
         }
         return $this->HasValue;
+    }
+
+    /**
+     * Parse search value
+     *
+     * @param string $value Search value
+     * - supported format
+     * - <opr><val> (e.g. >=3)
+     * - <between_opr><val>|<val2> (e.g. between1|4 => BETWEEN 1 AND 4)
+     * - <opr><val>|<opr2><val2> (e.g. greater1|less4 => > 1 AND < 4)
+     * - <opr><val>||<opr2><val2> (e.g. less1||greater4 => < 1 OR > 4)
+     */
+    public function parseSearchValue($value)
+    {
+        if (EmptyValue($value)) {
+            return;
+        }
+        $arOprs = $this->Field->SearchOperators;
+        rsort($arOprs);
+        $arClientOprs = array_map(fn($opr) => Config("CLIENT_SEARCH_OPERATORS")[$opr], $this->Field->SearchOperators);
+        rsort($arClientOprs);
+        $pattern = '/^(' . implode('|', $arOprs) . ')/';
+        $clientPattern = '/^(' . implode('|', $arClientOprs) . ')/';
+        $parse = function ($pattern, $clientPattern, $val) {
+            if (preg_match($pattern, $val, $m)) { // Match operators
+                $opr = $m[1];
+                $parsedValue = substr($val, strlen($m[1]));
+            } elseif (preg_match($clientPattern, $val, $m)) { // Match client operators
+                $opr = array_search($m[1], Config("CLIENT_SEARCH_OPERATORS"));
+                $parsedValue = substr($val, strlen($m[1]));
+            } else {
+                $opr = "";
+                $parsedValue = $val;
+            }
+            return ["opr" => $opr, "val" => $parsedValue];
+        };
+        ["opr" => $opr, "val" => $val] = $parse($pattern, $clientPattern, $value);
+        if ($opr && $val) {
+            $this->setSearchOperator($opr);
+            if (in_array($opr, ["BETWEEN", "NOT BETWEEN"]) && ContainsString($val, Config("BETWEEN_OPERATOR_VALUE_SEPARATOR"))) { // Handle BETWEEN operator
+                $arValues = explode(Config("BETWEEN_OPERATOR_VALUE_SEPARATOR"), $val);
+                $this->setSearchValue($arValues[0]);
+                $this->setSearchValue2($arValues[1]);
+            } elseif (ContainsString($val, Config("OR_OPERATOR_VALUE_SEPARATOR"))) { // Handle OR
+                $arValues = explode(Config("OR_OPERATOR_VALUE_SEPARATOR"), $val);
+                $this->setSearchValue($arValues[0]);
+                $this->setSearchCondition("OR");
+                ["opr" => $opr, "val" => $val] = $parse($pattern, $clientPattern, $arValues[1]);
+                $this->setSearchOperator2($opr ?: "=");
+                $this->setSearchValue2($val);
+            } elseif (ContainsString($val, Config("BETWEEN_OPERATOR_VALUE_SEPARATOR"))) { // Handle AND
+                $arValues = explode(Config("BETWEEN_OPERATOR_VALUE_SEPARATOR"), $val);
+                $this->setSearchValue($arValues[0]);
+                $this->setSearchCondition("AND");
+                ["opr" => $opr, "val" => $val] = $parse($pattern, $clientPattern, $arValues[1]);
+                $this->setSearchOperator2($opr ?: "=");
+                $this->setSearchValue2($val);
+            } else {
+                $this->setSearchValue($val);
+            }
+        } else {
+            $this->setSearchValue($val);
+        }
     }
 
     // Save to session
@@ -184,8 +252,8 @@ class AdvancedSearch
         if (
             $this->SearchValue != "" ||
             $this->SearchValue2 != "" ||
-            in_array($this->SearchOperator, ["IS NULL", "IS NOT NULL"]) ||
-            in_array($this->SearchOperator2, ["IS NULL", "IS NOT NULL"])
+            in_array($this->SearchOperator, ["IS NULL", "IS NOT NULL", "IS EMPTY", "IS NOT EMPTY"]) ||
+            in_array($this->SearchOperator2, ["IS NULL", "IS NOT NULL", "IS EMPTY", "IS NOT EMPTY"])
         ) {
             return '"x' . $this->Suffix . '":"' . JsEncode($this->SearchValue) . '",' .
                 '"z' . $this->Suffix . '":"' . JsEncode($this->SearchOperator) . '",' .
@@ -200,16 +268,5 @@ class AdvancedSearch
     protected function getSessionName($infix)
     {
         return $this->Prefix . $infix . $this->Suffix;
-    }
-
-    /**
-     * Check if search operator is valid
-     *
-     * @param string $opr Search operator, e.g. '<', '>'
-     * @return bool
-     */
-    protected function isValidOperator($opr)
-    {
-        return in_array($opr, ['=', '<>', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE', 'STARTS WITH', 'ENDS WITH', 'IS NULL', 'IS NOT NULL', 'BETWEEN']);
     }
 }

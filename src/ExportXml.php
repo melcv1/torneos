@@ -1,20 +1,23 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Export to XML
  */
-class ExportXml extends ExportBase
+class ExportXml extends AbstractExport
 {
+    public static $NullString = "null";
     public $XmlDoc;
     public $HasParent;
+    public $FileExtension = "xml";
+    public $Disposition = "inline";
 
     // Constructor
-    public function __construct(&$tbl = null, $style = "")
+    public function __construct($table = null)
     {
-        parent::__construct($tbl, $style);
-        $this->XmlDoc = new XmlDocument(Config("XML_ENCODING"));
+        parent::__construct($table);
+        $this->XmlDoc = new XmlDocument(); // Always utf-8
     }
 
     // Style
@@ -23,17 +26,17 @@ class ExportXml extends ExportBase
     }
 
     // Field caption
-    public function exportCaption(&$fld)
+    public function exportCaption($fld)
     {
     }
 
     // Field value
-    public function exportValue(&$fld)
+    public function exportValue($fld)
     {
     }
 
     // Field aggregate
-    public function exportAggregate(&$fld, $type)
+    public function exportAggregate($fld, $type)
     {
     }
 
@@ -52,12 +55,12 @@ class ExportXml extends ExportBase
     }
 
     // Export a value (caption, field value, or aggregate)
-    protected function exportValueEx(&$fld, $val, $useStyle = true)
+    protected function exportValueEx($fld, $val)
     {
     }
 
     // Begin a row
-    public function beginExportRow($rowCnt = 0, $useStyle = true)
+    public function beginExportRow($rowCnt = 0)
     {
         if ($rowCnt <= 0) {
             return;
@@ -85,7 +88,7 @@ class ExportXml extends ExportBase
     }
 
     // Export a field
-    public function exportField(&$fld)
+    public function exportField($fld)
     {
         if ($fld->Exportable && $fld->DataType != DATATYPE_BLOB) {
             if ($fld->UploadMultiple) {
@@ -94,7 +97,7 @@ class ExportXml extends ExportBase
                 $exportValue = $fld->exportValue();
             }
             if ($exportValue === null) {
-                $exportValue = "<Null>";
+                $exportValue = self::$NullString;
             }
             $this->XmlDoc->addField($fld->Param, $exportValue);
         }
@@ -111,15 +114,15 @@ class ExportXml extends ExportBase
     }
 
     // Export
-    public function export()
+    public function export($fileName = "", $output = true, $save = false)
     {
-        global $Response;
-        //global $ExportFileName;
-        if (!Config("DEBUG") && ob_get_length()) {
-            ob_end_clean();
+        $this->Text = $this->XmlDoc->xml();
+        if ($save) { // Save to folder
+            SaveFile(ExportPath(true), $this->getSaveFileName(), $this->Text);
         }
-        $Response = $Response->withHeader("Content-Type", "text/xml");
-        //$Response = $Response->withHeader("Content-Disposition", "attachment; filename=" . $ExportFileName . ".xml");
-        Write($this->XmlDoc->xml());
+        if ($output) { // Output
+            $this->writeHeaders($fileName);
+            $this->write();
+        }
     }
 }

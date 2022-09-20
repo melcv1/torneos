@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Chart exporter class
@@ -25,24 +25,20 @@ class ChartExporter
                 }
             }
             if ($img === false) {
-                return $this->serverError(str_replace(["%t", "%e"], [$chart->streamType, $chart->chartEngine], $Language->phrase("ChartExportErrMsg1")));
+                return $this->serverError(str_replace(["%t", "%e"], [$chart->streamType, $chart->chartEngine], $Language->phrase("ChartExportError1")));
             }
 
             // Save the file
-            $params = $chart->parameters;
-            $filename = "";
-            if (preg_match('/exportfilename=(\w+\.png)\|/', $params, $matches)) { // Must be .png for security
-                $filename = $matches[1];
-            }
+            $filename = $chart->fileName;
             if ($filename == "") {
-                return $this->serverError($Language->phrase("ChartExportErrMsg2"));
+                return $this->serverError($Language->phrase("ChartExportError2"));
             }
             $path = UploadTempPath();
             if (!file_exists($path)) {
-                return $this->serverError($Language->phrase("ChartExportErrMsg3"));
+                return $this->serverError($Language->phrase("ChartExportError3"));
             }
             if (!is_writable($path)) {
-                return $this->serverError($Language->phrase("ChartExportErrMsg4"));
+                return $this->serverError($Language->phrase("ChartExportError4"));
             }
             $filepath = IncludeTrailingDelimiter($path, true) . $filename;
             file_put_contents($filepath, $img);

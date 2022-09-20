@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class PronosticadorDelete extends Pronosticador
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'pronosticador';
-
     // Page object name
     public $PageObjName = "PronosticadorDelete";
 
@@ -34,6 +31,9 @@ class PronosticadorDelete extends Pronosticador
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "pronosticadordelete";
 
     // Audit Trail
     public $AuditTrailOnAdd = true;
@@ -98,11 +98,7 @@ class PronosticadorDelete extends Pronosticador
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -125,35 +121,22 @@ class PronosticadorDelete extends Pronosticador
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'pronosticador';
+        $this->TableName = 'pronosticador';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (pronosticador)
         if (!isset($GLOBALS["pronosticador"]) || get_class($GLOBALS["pronosticador"]) == PROJECT_NAMESPACE . "pronosticador") {
@@ -172,14 +155,14 @@ class PronosticadorDelete extends Pronosticador
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -226,7 +209,7 @@ class PronosticadorDelete extends Pronosticador
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -238,27 +221,6 @@ class PronosticadorDelete extends Pronosticador
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("pronosticador");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -269,9 +231,11 @@ class PronosticadorDelete extends Pronosticador
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -398,10 +362,13 @@ class PronosticadorDelete extends Pronosticador
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->ID_ENCUESTA->setVisibility();
         $this->ID_PARTICIPANTE->setVisibility();
@@ -412,7 +379,6 @@ class PronosticadorDelete extends Pronosticador
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->Visible = false;
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -425,6 +391,15 @@ class PronosticadorDelete extends Pronosticador
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -450,12 +425,12 @@ class PronosticadorDelete extends Pronosticador
         // Get action
         if (IsApi()) {
             $this->CurrentAction = "delete"; // Delete record directly
-        } elseif (Post("action") !== null) {
-            $this->CurrentAction = Post("action");
-        } elseif (Get("action") == "1") {
-            $this->CurrentAction = "delete"; // Delete record directly
+        } elseif (Param("action") !== null) {
+            $this->CurrentAction = Param("action") == "delete" ? "delete" : "show";
         } else {
-            $this->CurrentAction = "show"; // Display record
+            $this->CurrentAction = $this->InlineDelete ?
+                "delete" : // Delete record directly
+                "show"; // Display record
         }
         if ($this->isDelete()) {
             $this->SendEmail = true; // Send email on delete success
@@ -463,7 +438,7 @@ class PronosticadorDelete extends Pronosticador
                 if ($this->getSuccessMessage() == "") {
                     $this->setSuccessMessage($Language->phrase("DeleteSuccess")); // Set up success message
                 }
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate(true);
                     return;
                 } else {
@@ -471,11 +446,23 @@ class PronosticadorDelete extends Pronosticador
                     return;
                 }
             } else { // Delete failed
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate();
                     return;
                 }
-                $this->CurrentAction = "show"; // Display record
+                // Return JSON error message if UseAjaxActions
+                if ($this->UseAjaxActions) {
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return;                    
+                }
+                if ($this->InlineDelete) {
+                    $this->terminate($this->getReturnUrl()); // Return to caller
+                    return;
+                } else {
+                    $this->CurrentAction = "show"; // Display record
+                }
             }
         }
         if ($this->isShow()) { // Load records for display
@@ -549,7 +536,7 @@ class PronosticadorDelete extends Pronosticador
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -660,14 +647,13 @@ class PronosticadorDelete extends Pronosticador
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_ENCUESTA
             $this->ID_ENCUESTA->ViewValue = $this->ID_ENCUESTA->CurrentValue;
-            $this->ID_ENCUESTA->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $curVal = strval($this->ID_PARTICIPANTE->CurrentValue);
             if ($curVal != "") {
                 $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->lookupCacheOption($curVal);
                 if ($this->ID_PARTICIPANTE->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_PARTICIPANTE`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_PARTICIPANTE`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ID_PARTICIPANTE->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -684,7 +670,6 @@ class PronosticadorDelete extends Pronosticador
             } else {
                 $this->ID_PARTICIPANTE->ViewValue = null;
             }
-            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
             // GRUPO
             if (strval($this->GRUPO->CurrentValue) != "") {
@@ -692,14 +677,13 @@ class PronosticadorDelete extends Pronosticador
             } else {
                 $this->GRUPO->ViewValue = null;
             }
-            $this->GRUPO->ViewCustomAttributes = "";
 
             // EQUIPO
             $curVal = strval($this->EQUIPO->CurrentValue);
             if ($curVal != "") {
                 $this->EQUIPO->ViewValue = $this->EQUIPO->lookupCacheOption($curVal);
                 if ($this->EQUIPO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`NOM_EQUIPO_CORTO`" . SearchString("=", $curVal, DATATYPE_MEMO, "");
+                    $filterWrk = SearchFilter("`NOM_EQUIPO_CORTO`", "=", $curVal, DATATYPE_MEMO, "");
                     $sqlWrk = $this->EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -716,7 +700,6 @@ class PronosticadorDelete extends Pronosticador
             } else {
                 $this->EQUIPO->ViewValue = null;
             }
-            $this->EQUIPO->ViewCustomAttributes = "";
 
             // POSICION
             if (strval($this->POSICION->CurrentValue) != "") {
@@ -724,59 +707,47 @@ class PronosticadorDelete extends Pronosticador
             } else {
                 $this->POSICION->ViewValue = null;
             }
-            $this->POSICION->ViewCustomAttributes = "";
 
             // NUMERACION
             $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
-            $this->NUMERACION->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // ID_ENCUESTA
-            $this->ID_ENCUESTA->LinkCustomAttributes = "";
             $this->ID_ENCUESTA->HrefValue = "";
             $this->ID_ENCUESTA->TooltipValue = "";
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
             $this->ID_PARTICIPANTE->TooltipValue = "";
 
             // GRUPO
-            $this->GRUPO->LinkCustomAttributes = "";
             $this->GRUPO->HrefValue = "";
             $this->GRUPO->TooltipValue = "";
 
             // EQUIPO
-            $this->EQUIPO->LinkCustomAttributes = "";
             $this->EQUIPO->HrefValue = "";
             $this->EQUIPO->TooltipValue = "";
 
             // POSICION
-            $this->POSICION->LinkCustomAttributes = "";
             $this->POSICION->HrefValue = "";
             $this->POSICION->TooltipValue = "";
 
             // NUMERACION
-            $this->NUMERACION->LinkCustomAttributes = "";
             $this->NUMERACION->HrefValue = "";
             $this->NUMERACION->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
         }
@@ -824,6 +795,9 @@ class PronosticadorDelete extends Pronosticador
             $deleteRow = $this->rowDeleting($row);
             if ($deleteRow) { // Delete
                 $deleteRow = $this->delete($row);
+                if (!$deleteRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             }
             if ($deleteRow === false) {
                 if ($this->UseTransaction) {
@@ -862,7 +836,7 @@ class PronosticadorDelete extends Pronosticador
 
             // Set warning message if delete some records failed
             if (count($failKeys) > 0) {
-                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
+                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteRecordsFailed")));
             }
             if ($this->AuditTrailOnDelete) {
                 $this->writeAuditTrailDummy($Language->phrase("BatchDeleteSuccess")); // Batch delete success
@@ -876,10 +850,14 @@ class PronosticadorDelete extends Pronosticador
             }
         }
 
-        // Write JSON for API request
-        if (IsApi() && $deleteRows) {
-            $row = $this->getRecordsFromRecordset($rsold);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+        // Write JSON response
+        if ((IsJsonResponse() || ConvertToBool(Param("infinitescroll"))) && $deleteRows) {
+            $rows = $this->getRecordsFromRecordset($rsold);
+            $table = $this->TableVar;
+            if (Route(2) !== null) { // Single delete
+                $rows = $rows[0]; // Return object
+            }
+            WriteJson(["success" => true, "action" => Config("API_DELETE_ACTION"), $table => $rows]);
         }
         return $deleteRows;
     }
@@ -934,7 +912,11 @@ class PronosticadorDelete extends Pronosticador
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -993,5 +975,13 @@ class PronosticadorDelete extends Pronosticador
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

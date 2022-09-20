@@ -1,9 +1,9 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use DiDom\Document;
-use DiDom\Query;
+use DiDom\Element;
 
 /**
  * List option collection class
@@ -26,7 +26,7 @@ class ListOptions implements \ArrayAccess
     public $ButtonGroupClass = "";
     public $GroupOptionName = "button";
     public $DropDownButtonPhrase = "";
-    public $DropDownAutoClose = "true"; // true/inside/outside/false (see https://getbootstrap.com/docs/5.0/components/dropdowns/#auto-close-behavior)
+    public $DropDownAutoClose = "true"; // true/inside/outside/false (see https://getbootstrap.com/docs/5.2/components/dropdowns/#auto-close-behavior)
 
     // Constructor
     public function __construct($args = null)
@@ -200,9 +200,7 @@ class ListOptions implements \ArrayAccess
     {
         return $this->UseDropDownButton || $this->UseButtonGroup
             ? 1
-            : array_reduce($this->Items, function ($cnt, $item) {
-                return $cnt + ($item->Visible ? 1 : 0);
-            }, 0);
+            : array_reduce($this->Items, fn($cnt, $item) => $cnt + ($item->Visible ? 1 : 0), 0);
     }
 
     // Move item to position
@@ -233,7 +231,9 @@ class ListOptions implements \ArrayAccess
     public function render($part, $pos = "", $rowCnt = "", $templateType = "block", $templateId = "", $templateClassName = "", $output = true)
     {
         if ($this->CustomItem == "" && $groupitem = &$this->getItem($this->GroupOptionName) && $this->showPos($groupitem->OnLeft, $pos)) {
-            if ($this->UseDropDownButton) { // Render dropdown
+            $useDropDownButton = $this->UseDropDownButton;
+            $useButtonGroup = $this->UseButtonGroup;
+            if ($useDropDownButton) { // Render dropdown
                 $buttonValue = "";
                 $cnt = 0;
                 foreach ($this->Items as $item) {
@@ -247,7 +247,7 @@ class ListOptions implements \ArrayAccess
                     }
                 }
                 if ($cnt < 1 || $cnt == 1 && !ContainsString($buttonValue, "dropdown-menu")) { // No item to show in dropdown or only one item without dropdown menu
-                    $this->UseDropDownButton = false; // No need to use drop down button
+                    $useDropDownButton = false; // No need to use drop down button
                 } else {
                     $dropdownButtonClass = !ContainsString($this->TagClassName, "ew-multi-column-list-option-card") ? "btn-default" : "";
                     AppendClass($dropdownButtonClass, "btn dropdown-toggle");
@@ -255,29 +255,37 @@ class ListOptions implements \ArrayAccess
                     $groupitem->Visible = true;
                 }
             }
-            if (!$this->UseDropDownButton && $this->UseButtonGroup) { // Render button group
-                $visible = false;
-                $buttongroups = [];
-                foreach ($this->Items as $item) {
-                    if ($item->Name != $this->GroupOptionName && $item->Visible && $item->Body != "") {
-                        if ($item->ShowInButtonGroup) {
-                            $visible = true;
-                            $buttonValue = $item->Body;
-                            if (!array_key_exists($item->ButtonGroupName, $buttongroups)) {
-                                $buttongroups[$item->ButtonGroupName] = "";
+            if (!$useDropDownButton) {
+                if ($useButtonGroup) { // Render button group
+                    $visible = false;
+                    $buttongroups = [];
+                    foreach ($this->Items as $item) {
+                        if ($item->Name != $this->GroupOptionName && $item->Visible && $item->Body != "") {
+                            if ($item->ShowInButtonGroup) {
+                                $visible = true;
+                                $buttonValue = $item->Body;
+                                if (!array_key_exists($item->ButtonGroupName, $buttongroups)) {
+                                    $buttongroups[$item->ButtonGroupName] = "";
+                                }
+                                $buttongroups[$item->ButtonGroupName] .= $buttonValue;
+                            } elseif ($item->Name == "listactions") { // Show listactions as button group
+                                $item->Body = $this->renderButtonGroup($item->Body, $pos);
                             }
-                            $buttongroups[$item->ButtonGroupName] .= $buttonValue;
-                        } elseif ($item->Name == "listactions") { // Show listactions as button group
-                            $item->Body = $this->renderButtonGroup($item->Body, $pos);
                         }
                     }
-                }
-                $groupitem->Body = "";
-                foreach ($buttongroups as $buttongroup => $buttonValue) {
-                    $groupitem->Body .= $this->renderButtonGroup($buttonValue, $pos);
-                }
-                if ($visible) {
-                    $groupitem->Visible = true;
+                    $groupitem->Body = "";
+                    foreach ($buttongroups as $buttongroup => $buttonValue) {
+                        $groupitem->Body .= $this->renderButtonGroup($buttonValue, $pos);
+                    }
+                    if ($visible) {
+                        $groupitem->Visible = true;
+                    }
+                } else { // Render links as button links
+                    foreach ($this->Items as $item) {
+                        if (in_array($item->Name, ["view", "edit", "copy", "delete"])) { // Show actions as button links
+                            $item->Body = $this->renderButtonLinks($item->Body);
+                        }
+                    }
                 }
             }
         }
@@ -445,19 +453,17 @@ class ListOptions implements \ArrayAccess
         return $first;
     }
 
-    // Get button group link
-    public function renderButtonGroup($body, $pos)
+    // Get button links
+    public function renderButtonLinks($body)
     {
         if (EmptyValue($body)) {
             return $body;
         }
-
-        //$dom = new Document($body, false, strtoupper(Config('PROJECT_CHARSET')));
         $doc = new Document(null, false, strtoupper(Config('PROJECT_CHARSET')));
-        $dom = @$doc->load($body); // Suppress htmlParseEntityRef warning if any
+        @$doc->load($body);
 
         // Get and remove <input type="hidden"> and <div class="btn-group">
-        $html = array_reduce($dom->find('div.btn-group, input[type=hidden]'), function ($res, $el) {
+        $html = array_reduce($doc->find('div.btn-group, input[type=hidden]'), function ($res, $el) {
             $res .= $el->toDocument()->format()->html();
             $el->remove();
             return $res;
@@ -465,13 +471,52 @@ class ListOptions implements \ArrayAccess
 
         // Get <a> and <button>
         $btnClass = $this->ButtonClass;
-        $links = array_reduce($dom->find('a, button'), function ($res, $button) use ($btnClass) {
+        $links = array_reduce($doc->find('a, button'), function ($res, $button) use ($btnClass) {
+            if ($button->tagName() == 'a') {
+                $attrs = $button->attributes();
+                $attrs['type'] = 'button';
+                if ($attrs['href'] ?? false) {
+                    $attrs['data-ew-action'] = 'redirect';
+                    $attrs['data-url'] = $attrs['href'];
+                    unset($attrs['href']);
+                }
+                $element = new Element('button', '', $attrs); // Change links to button
+                $element->appendChild($button->children());
+                $button = $element;
+            }
+            $class = $button->getAttribute('class');
+            PrependClass($class, 'btn btn-xs btn-link');
+            $button->setAttribute('class', AppendClass($class, $btnClass)); // Add button classes
+            return $res . $button->toDocument()->format()->html();
+        }, '');
+        return $links . $html;
+    }
+
+    // Get button group link
+    public function renderButtonGroup($body, $pos)
+    {
+        if (EmptyValue($body)) {
+            return $body;
+        }
+        $doc = new Document(null, false, strtoupper(Config('PROJECT_CHARSET')));
+        @$doc->load($body);
+
+        // Get and remove <input type="hidden"> and <div class="btn-group">
+        $html = array_reduce($doc->find('div.btn-group, input[type=hidden]'), function ($res, $el) {
+            $res .= $el->toDocument()->format()->html();
+            $el->remove();
+            return $res;
+        }, '');
+
+        // Get <a> and <button>
+        $btnClass = $this->ButtonClass;
+        $links = array_reduce($doc->find('a, button'), function ($res, $button) use ($btnClass) {
             $class = $button->getAttribute('class');
             PrependClass($class, 'btn btn-default');
             $button->setAttribute('class', AppendClass($class, $btnClass)); // Add button classes
             return $res . $button->toDocument()->format()->html();
         }, '');
-        $btngroupClass = 'btn-group btn-group-sm ew-btn-group' . (StartsText('bottom', $pos) ? ' dropup' : '');
+        $btngroupClass = 'btn-group btn-group-sm ew-btn-group ew-list-options' . (StartsText('bottom', $pos) ? ' dropup' : '');
         $btngroup = $links ? '<div class="' . $btngroupClass . '">' . $links . '</div>' : '';
         return $btngroup . $html;
     }
@@ -482,20 +527,18 @@ class ListOptions implements \ArrayAccess
         if (EmptyValue($body)) {
             return $body;
         }
-
-        //$dom = new Document($body, false, strtoupper(Config('PROJECT_CHARSET')));
         $doc = new Document(null, false, strtoupper(Config('PROJECT_CHARSET')));
-        $dom = @$doc->load($body); // Suppress htmlParseEntityRef warning if any
+        @$doc->load($body);
 
         // Get and remove <div class="d-none"> and <input type="hidden">
-        $html = array_reduce($dom->find('div.d-none, input[type=hidden]'), function ($res, $el) {
+        $html = array_reduce($doc->find('div.d-none, input[type=hidden]'), function ($res, $el) {
             $res .= $el->toDocument()->format()->html();
             $el->remove();
             return $res;
         }, '');
 
         // Get <a> and <button> without data-bs-toggle attribute
-        $buttons = $dom->find('a:not([data-bs-toggle]), button:not([data-bs-toggle])');
+        $buttons = $doc->find('a:not([data-bs-toggle]), button:not([data-bs-toggle])');
         $links = '';
         $submenu = false;
         $submenulink = '';
@@ -510,7 +553,7 @@ class ListOptions implements \ArrayAccess
                 $htmlTitle = HtmlTitle($caption); // Match data-caption='caption' or span.visually-hidden
                 $caption = ($htmlTitle != $caption) ? $htmlTitle : $caption;
                 $button->setAttribute('class', AppendClass($classes, 'dropdown-item'));
-                if (SameText($button->tag, 'a') && !$button->getAttribute('href')) { // Add href for <a>
+                if (SameText($button->tagName(), 'a') && !$button->getAttribute('href')) { // Add href for <a>
                     $button->setAttribute('href', '#');
                 }
                 $icon = $button->find('i.ew-icon')[0] ?? null; // Icon classes contains 'ew-icon'
@@ -528,7 +571,7 @@ class ListOptions implements \ArrayAccess
                         $button->appendChild($icon);
                     }
                     if ($caption !== "") { // Has caption
-                        $button->appendChild($dom->createTextNode($caption));
+                        $button->appendChild($doc->createTextNode($caption));
                     }
                 }
             }
@@ -575,8 +618,8 @@ class ListOptions implements \ArrayAccess
             AppendClass($btngrpclass, $this->ButtonGroupClass);
             $buttontitle = HtmlTitle($this->DropDownButtonPhrase);
             $buttontitle = ($this->DropDownButtonPhrase != $buttontitle) ? $buttontitle : "";
-            $button = '<button class="' . $btnclass . '" title="' . $buttontitle . '" data-bs-toggle="dropdown" data-bs-auto-close="' . $this->DropDownAutoClose . '">' . $this->DropDownButtonPhrase . '</button>' .
-                '<ul class="dropdown-menu ' . ($pos == 'right' || EndsText('end', $pos) ? 'dropdown-menu-end ' : '') . 'ew-menu">' . $links . '</ul>';
+            $button = '<button type="button" class="' . $btnclass . '" data-title="' . $buttontitle . '" data-bs-toggle="dropdown" data-bs-auto-close="' . $this->DropDownAutoClose . '">' . $this->DropDownButtonPhrase . '</button>' .
+                '<ul class="dropdown-menu ' . ($pos == 'right' || EndsText('end', $pos) ? 'dropdown-menu-end ' : '') . 'ew-dropdown-menu ew-list-options">' . $links . '</ul>';
             $btndropdown = '<div class="' . $btngrpclass . '" data-table="' . $this->TableVar . '">' . $button . '</div>'; // Use dropup for bottom
         }
         return $btndropdown . $html;

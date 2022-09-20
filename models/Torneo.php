@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -19,6 +19,7 @@ class Torneo extends DbTable
     protected $SqlGroupBy = "";
     protected $SqlHaving = "";
     protected $SqlOrderBy = "";
+    public $DbErrorMessage = "";
     public $UseSessionForListSql = true;
 
     // Column CSS classes
@@ -28,7 +29,16 @@ class Torneo extends DbTable
     public $TableLeftColumnClass = "w-col-2";
 
     // Export
-    public $ExportDoc;
+    public $UseAjaxActions = false;
+    public $ModalSearch = false;
+    public $ModalView = false;
+    public $ModalAdd = false;
+    public $ModalEdit = false;
+    public $ModalUpdate = false;
+    public $InlineDelete = false;
+    public $ModalGridAdd = false;
+    public $ModalGridEdit = false;
+    public $ModalMultiEdit = false;
 
     // Fields
     public $ID_TORNEO;
@@ -48,27 +58,34 @@ class Torneo extends DbTable
     // Constructor
     public function __construct()
     {
-        global $Language, $CurrentLanguage, $CurrentLocale;
         parent::__construct();
+        global $Language, $CurrentLanguage, $CurrentLocale;
 
         // Language object
         $Language = Container("language");
-        $this->TableVar = 'torneo';
+        $this->TableVar = "torneo";
         $this->TableName = 'torneo';
-        $this->TableType = 'TABLE';
+        $this->TableType = "TABLE";
+        $this->ImportUseTransaction = $this->supportsTransaction() && Config("IMPORT_USE_TRANSACTION");
+        $this->UseTransaction = $this->supportsTransaction() && Config("USE_TRANSACTION");
 
         // Update Table
         $this->UpdateTable = "`torneo`";
         $this->Dbid = 'DB';
         $this->ExportAll = true;
         $this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
+
+        // PDF
         $this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
         $this->ExportPageSize = "a4"; // Page size (PDF only)
-        $this->ExportExcelPageOrientation = ""; // Page orientation (PhpSpreadsheet only)
-        $this->ExportExcelPageSize = ""; // Page size (PhpSpreadsheet only)
-        $this->ExportWordVersion = 12; // Word version (PHPWord only)
-        $this->ExportWordPageOrientation = "portrait"; // Page orientation (PHPWord only)
-        $this->ExportWordPageSize = "A4"; // Page orientation (PHPWord only)
+
+        // PhpSpreadsheet
+        $this->ExportExcelPageOrientation = null; // Page orientation (PhpSpreadsheet only)
+        $this->ExportExcelPageSize = null; // Page size (PhpSpreadsheet only)
+
+        // PHPWord
+        $this->ExportWordPageOrientation = ""; // Page orientation (PHPWord only)
+        $this->ExportWordPageSize = ""; // Page orientation (PHPWord only)
         $this->ExportWordColumnWidth = null; // Cell width (PHPWord only)
         $this->DetailAdd = false; // Allow detail add
         $this->DetailEdit = false; // Allow detail edit
@@ -76,237 +93,243 @@ class Torneo extends DbTable
         $this->ShowMultipleDetails = false; // Show multiple details
         $this->GridAddRowCount = 5;
         $this->AllowAddDeleteRow = true; // Allow add/delete row
+        $this->UseAjaxActions = $this->UseAjaxActions || Config("USE_AJAX_ACTIONS");
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
-        $this->BasicSearch = new BasicSearch($this->TableVar);
+        $this->BasicSearch = new BasicSearch($this);
 
-        // ID_TORNEO
+        // ID_TORNEO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ID_TORNEO = new DbField(
-            'torneo',
-            'torneo',
-            'x_ID_TORNEO',
-            'ID_TORNEO',
-            '`ID_TORNEO`',
-            '`ID_TORNEO`',
-            3,
-            11,
-            -1,
-            false,
-            '`ID_TORNEO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'NO'
+            $this, // Table
+            'x_ID_TORNEO', // Variable name
+            'ID_TORNEO', // Name
+            '`ID_TORNEO`', // Expression
+            '`ID_TORNEO`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`ID_TORNEO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'NO' // Edit Tag
         );
         $this->ID_TORNEO->InputTextType = "text";
         $this->ID_TORNEO->IsAutoIncrement = true; // Autoincrement field
         $this->ID_TORNEO->IsPrimaryKey = true; // Primary key field
         $this->ID_TORNEO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->ID_TORNEO->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['ID_TORNEO'] = &$this->ID_TORNEO;
 
-        // NOM_TORNEO_CORTO
+        // NOM_TORNEO_CORTO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NOM_TORNEO_CORTO = new DbField(
-            'torneo',
-            'torneo',
-            'x_NOM_TORNEO_CORTO',
-            'NOM_TORNEO_CORTO',
-            '`NOM_TORNEO_CORTO`',
-            '`NOM_TORNEO_CORTO`',
-            201,
-            256,
-            -1,
-            false,
-            '`NOM_TORNEO_CORTO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_NOM_TORNEO_CORTO', // Variable name
+            'NOM_TORNEO_CORTO', // Name
+            '`NOM_TORNEO_CORTO`', // Expression
+            '`NOM_TORNEO_CORTO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`NOM_TORNEO_CORTO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->NOM_TORNEO_CORTO->InputTextType = "text";
+        $this->NOM_TORNEO_CORTO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['NOM_TORNEO_CORTO'] = &$this->NOM_TORNEO_CORTO;
 
-        // NOM_TORNEO_LARGO
+        // NOM_TORNEO_LARGO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NOM_TORNEO_LARGO = new DbField(
-            'torneo',
-            'torneo',
-            'x_NOM_TORNEO_LARGO',
-            'NOM_TORNEO_LARGO',
-            '`NOM_TORNEO_LARGO`',
-            '`NOM_TORNEO_LARGO`',
-            201,
-            256,
-            -1,
-            false,
-            '`NOM_TORNEO_LARGO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_NOM_TORNEO_LARGO', // Variable name
+            'NOM_TORNEO_LARGO', // Name
+            '`NOM_TORNEO_LARGO`', // Expression
+            '`NOM_TORNEO_LARGO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`NOM_TORNEO_LARGO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->NOM_TORNEO_LARGO->InputTextType = "text";
+        $this->NOM_TORNEO_LARGO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['NOM_TORNEO_LARGO'] = &$this->NOM_TORNEO_LARGO;
 
-        // PAIS_TORNEO
+        // PAIS_TORNEO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->PAIS_TORNEO = new DbField(
-            'torneo',
-            'torneo',
-            'x_PAIS_TORNEO',
-            'PAIS_TORNEO',
-            '`PAIS_TORNEO`',
-            '`PAIS_TORNEO`',
-            201,
-            256,
-            -1,
-            false,
-            '`PAIS_TORNEO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_PAIS_TORNEO', // Variable name
+            'PAIS_TORNEO', // Name
+            '`PAIS_TORNEO`', // Expression
+            '`PAIS_TORNEO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`PAIS_TORNEO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->PAIS_TORNEO->InputTextType = "text";
+        $this->PAIS_TORNEO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['PAIS_TORNEO'] = &$this->PAIS_TORNEO;
 
-        // REGION_TORNEO
+        // REGION_TORNEO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->REGION_TORNEO = new DbField(
-            'torneo',
-            'torneo',
-            'x_REGION_TORNEO',
-            'REGION_TORNEO',
-            '`REGION_TORNEO`',
-            '`REGION_TORNEO`',
-            201,
-            256,
-            -1,
-            false,
-            '`REGION_TORNEO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_REGION_TORNEO', // Variable name
+            'REGION_TORNEO', // Name
+            '`REGION_TORNEO`', // Expression
+            '`REGION_TORNEO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`REGION_TORNEO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->REGION_TORNEO->InputTextType = "text";
+        $this->REGION_TORNEO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['REGION_TORNEO'] = &$this->REGION_TORNEO;
 
-        // DETALLE_TORNEO
+        // DETALLE_TORNEO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->DETALLE_TORNEO = new DbField(
-            'torneo',
-            'torneo',
-            'x_DETALLE_TORNEO',
-            'DETALLE_TORNEO',
-            '`DETALLE_TORNEO`',
-            '`DETALLE_TORNEO`',
-            201,
-            65535,
-            -1,
-            false,
-            '`DETALLE_TORNEO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_DETALLE_TORNEO', // Variable name
+            'DETALLE_TORNEO', // Name
+            '`DETALLE_TORNEO`', // Expression
+            '`DETALLE_TORNEO`', // Basic search expression
+            201, // Type
+            65535, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`DETALLE_TORNEO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->DETALLE_TORNEO->InputTextType = "text";
+        $this->DETALLE_TORNEO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['DETALLE_TORNEO'] = &$this->DETALLE_TORNEO;
 
-        // LOGO_TORNEO
+        // LOGO_TORNEO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->LOGO_TORNEO = new DbField(
-            'torneo',
-            'torneo',
-            'x_LOGO_TORNEO',
-            'LOGO_TORNEO',
-            '`LOGO_TORNEO`',
-            '`LOGO_TORNEO`',
-            201,
-            1024,
-            -1,
-            true,
-            '`LOGO_TORNEO`',
-            false,
-            false,
-            false,
-            'IMAGE',
-            'FILE'
+            $this, // Table
+            'x_LOGO_TORNEO', // Variable name
+            'LOGO_TORNEO', // Name
+            '`LOGO_TORNEO`', // Expression
+            '`LOGO_TORNEO`', // Basic search expression
+            201, // Type
+            1024, // Size
+            -1, // Date/Time format
+            true, // Is upload field
+            '`LOGO_TORNEO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'IMAGE', // View Tag
+            'FILE' // Edit Tag
         );
         $this->LOGO_TORNEO->InputTextType = "text";
+        $this->LOGO_TORNEO->SearchOperators = ["=", "<>", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['LOGO_TORNEO'] = &$this->LOGO_TORNEO;
 
-        // crea_dato
+        // crea_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->crea_dato = new DbField(
-            'torneo',
-            'torneo',
-            'x_crea_dato',
-            'crea_dato',
-            '`crea_dato`',
-            CastDateFieldForLike("`crea_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`crea_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_crea_dato', // Variable name
+            'crea_dato', // Name
+            '`crea_dato`', // Expression
+            CastDateFieldForLike("`crea_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`crea_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->crea_dato->InputTextType = "text";
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->crea_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['crea_dato'] = &$this->crea_dato;
 
-        // modifica_dato
+        // modifica_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->modifica_dato = new DbField(
-            'torneo',
-            'torneo',
-            'x_modifica_dato',
-            'modifica_dato',
-            '`modifica_dato`',
-            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`modifica_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_modifica_dato', // Variable name
+            'modifica_dato', // Name
+            '`modifica_dato`', // Expression
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`modifica_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->modifica_dato->InputTextType = "text";
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->modifica_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
-        // usuario_dato
+        // usuario_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->usuario_dato = new DbField(
-            'torneo',
-            'torneo',
-            'x_usuario_dato',
-            'usuario_dato',
-            '`usuario_dato`',
-            '`usuario_dato`',
-            201,
-            256,
-            -1,
-            false,
-            '`usuario_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_usuario_dato', // Variable name
+            'usuario_dato', // Name
+            '`usuario_dato`', // Expression
+            '`usuario_dato`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`usuario_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
+        $this->usuario_dato->addMethod("getAutoUpdateValue", fn() => CurrentUserName());
+        $this->usuario_dato->addMethod("getDefault", fn() => "admin");
         $this->usuario_dato->InputTextType = "text";
+        $this->usuario_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
         $this->CacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $this->TableVar);
+
+        // Call Table Load event
+        $this->tableLoad();
     }
 
     // Field Visibility
@@ -357,6 +380,12 @@ class Torneo extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Render X Axis for chart
+    public function renderChartXAxis($chartVar, $chartRow)
+    {
+        return $chartRow;
     }
 
     // Table level SQL
@@ -530,6 +559,12 @@ class Torneo extends DbTable
     // Get SQL
     public function getSql($where, $orderBy = "")
     {
+        return $this->getSqlAsQueryBuilder($where, $orderBy)->getSQL();
+    }
+
+    // Get QueryBuilder
+    public function getSqlAsQueryBuilder($where, $orderBy = "")
+    {
         return $this->buildSelectSql(
             $this->getSqlSelect(),
             $this->getSqlFrom(),
@@ -539,7 +574,7 @@ class Torneo extends DbTable
             $this->getSqlOrderBy(),
             $where,
             $orderBy
-        )->getSQL();
+        );
     }
 
     // Table SQL
@@ -645,7 +680,13 @@ class Torneo extends DbTable
     public function insert(&$rs)
     {
         $conn = $this->getConnection();
-        $success = $this->insertSql($rs)->execute();
+        try {
+            $success = $this->insertSql($rs)->execute();
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
         if ($success) {
             // Get insert id if necessary
             $this->ID_TORNEO->setDbValue($conn->lastInsertId());
@@ -688,8 +729,21 @@ class Torneo extends DbTable
     public function update(&$rs, $where = "", $rsold = null, $curfilter = true)
     {
         // If no field is updated, execute may return 0. Treat as success
-        $success = $this->updateSql($rs, $where, $curfilter)->execute();
-        $success = ($success > 0) ? $success : true;
+        try {
+            $success = $this->updateSql($rs, $where, $curfilter)->execute();
+            $success = ($success > 0) ? $success : true;
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
+
+        // Return auto increment field
+        if ($success) {
+            if (!isset($rs['ID_TORNEO']) && !EmptyValue($this->ID_TORNEO->CurrentValue)) {
+                $rs['ID_TORNEO'] = $this->ID_TORNEO->CurrentValue;
+            }
+        }
         return $success;
     }
 
@@ -723,7 +777,13 @@ class Torneo extends DbTable
     {
         $success = true;
         if ($success) {
-            $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+            try {
+                $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+                $this->DbErrorMessage = "";
+            } catch (\Exception $e) {
+                $success = false;
+                $this->DbErrorMessage = $e->getMessage();
+            }
         }
         return $success;
     }
@@ -792,13 +852,13 @@ class Torneo extends DbTable
     }
 
     // Get record filter
-    public function getRecordFilter($row = null)
+    public function getRecordFilter($row = null, $current = false)
     {
         $keyFilter = $this->sqlKeyFilter();
         if (is_array($row)) {
             $val = array_key_exists('ID_TORNEO', $row) ? $row['ID_TORNEO'] : null;
         } else {
-            $val = $this->ID_TORNEO->OldValue !== null ? $this->ID_TORNEO->OldValue : $this->ID_TORNEO->CurrentValue;
+            $val = !EmptyValue($this->ID_TORNEO->OldValue) && !$current ? $this->ID_TORNEO->OldValue : $this->ID_TORNEO->CurrentValue;
         }
         if (!is_numeric($val)) {
             return "0=1"; // Invalid key
@@ -840,9 +900,8 @@ class Torneo extends DbTable
             return $Language->phrase("Edit");
         } elseif ($pageName == "torneoadd") {
             return $Language->phrase("Add");
-        } else {
-            return "";
         }
+        return "";
     }
 
     // API page name
@@ -864,6 +923,18 @@ class Torneo extends DbTable
         }
     }
 
+    // Current URL
+    public function getCurrentUrl($parm = "")
+    {
+        $url = CurrentPageUrl(false);
+        if ($parm != "") {
+            $url = $this->keyUrl($url, $parm);
+        } else {
+            $url = $this->keyUrl($url, Config("TABLE_SHOW_DETAIL") . "=");
+        }
+        return $this->addMasterUrl($url);
+    }
+
     // List URL
     public function getListUrl()
     {
@@ -874,9 +945,9 @@ class Torneo extends DbTable
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("torneoview", $this->getUrlParm($parm));
+            $url = $this->keyUrl("torneoview", $parm);
         } else {
-            $url = $this->keyUrl("torneoview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("torneoview", Config("TABLE_SHOW_DETAIL") . "=");
         }
         return $this->addMasterUrl($url);
     }
@@ -885,7 +956,7 @@ class Torneo extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "torneoadd?" . $this->getUrlParm($parm);
+            $url = "torneoadd?" . $parm;
         } else {
             $url = "torneoadd";
         }
@@ -895,35 +966,39 @@ class Torneo extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("torneoedit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("torneoedit", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline edit URL
     public function getInlineEditUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=edit"));
+        $url = $this->keyUrl("torneolist", "action=edit");
         return $this->addMasterUrl($url);
     }
 
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("torneoadd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("torneoadd", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline copy URL
     public function getInlineCopyUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=copy"));
+        $url = $this->keyUrl("torneolist", "action=copy");
         return $this->addMasterUrl($url);
     }
 
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("torneodelete", $this->getUrlParm());
+        if ($this->UseAjaxActions && ConvertToBool(Param("infinitescroll")) && CurrentPageID() == "list") {
+            return $this->keyUrl(GetApiUrl(Config("API_DELETE_ACTION") . "/" . $this->TableVar));
+        } else {
+            return $this->keyUrl("torneodelete");
+        }
     }
 
     // Add master url
@@ -960,12 +1035,15 @@ class Torneo extends DbTable
     // Render sort
     public function renderFieldHeader($fld)
     {
-        global $Security, $Language;
+        global $Security, $Language, $Page;
         $sortUrl = "";
         $attrs = "";
         if ($fld->Sortable) {
             $sortUrl = $this->sortUrl($fld);
-            $attrs = ' role="button" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            $attrs = ' role="button" data-ew-action="sort" data-ajax="' . ($this->UseAjaxActions ? "true" : "false") . '" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            if ($this->ContextClass) { // Add context
+                $attrs .= ' data-context="' . HtmlEncode($this->ContextClass) . '"';
+            }
         }
         $html = '<div class="ew-table-header-caption"' . $attrs . '>' . $fld->caption() . '</div>';
         if ($sortUrl) {
@@ -986,14 +1064,18 @@ class Torneo extends DbTable
     // Sort URL
     public function sortUrl($fld)
     {
+        global $DashboardReport;
         if (
             $this->CurrentAction || $this->isExport() ||
             in_array($fld->Type, [128, 204, 205])
         ) { // Unsortable data type
                 return "";
         } elseif ($fld->Sortable) {
-            $urlParm = $this->getUrlParm("order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort());
-            return $this->addMasterUrl(CurrentPageName() . "?" . $urlParm);
+            $urlParm = "order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort();
+            if ($DashboardReport) {
+                $urlParm .= "&amp;dashboard=true";
+            }
+            return $this->addMasterUrl($this->CurrentPageName . "?" . $urlParm);
         } else {
             return "";
         }
@@ -1029,6 +1111,19 @@ class Torneo extends DbTable
             }
         }
         return $ar;
+    }
+
+    // Get filter from records
+    public function getFilterFromRecords($rows)
+    {
+        $keyFilter = "";
+        foreach ($rows as $row) {
+            if ($keyFilter != "") {
+                $keyFilter .= " OR ";
+            }
+            $keyFilter .= "(" . $this->getRecordFilter($row) . ")";
+        }
+        return $keyFilter;
     }
 
     // Get filter from record keys
@@ -1080,6 +1175,24 @@ class Torneo extends DbTable
         $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
+    // Render list content
+    public function renderListContent($filter)
+    {
+        global $Response;
+        $listPage = "TorneoList";
+        $listClass = PROJECT_NAMESPACE . $listPage;
+        $page = new $listClass();
+        $page->loadRecordsetFromFilter($filter);
+        $view = Container("view");
+        $template = $listPage . ".php"; // View
+        $GLOBALS["Title"] ??= $page->Title; // Title
+        try {
+            $Response = $view->render($Response, $template, $GLOBALS);
+        } finally {
+            $page->terminate(); // Terminate page and clean up
+        }
+    }
+
     // Render list row values
     public function renderListRow()
     {
@@ -1112,27 +1225,21 @@ class Torneo extends DbTable
 
         // ID_TORNEO
         $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
-        $this->ID_TORNEO->ViewCustomAttributes = "";
 
         // NOM_TORNEO_CORTO
         $this->NOM_TORNEO_CORTO->ViewValue = $this->NOM_TORNEO_CORTO->CurrentValue;
-        $this->NOM_TORNEO_CORTO->ViewCustomAttributes = "";
 
         // NOM_TORNEO_LARGO
         $this->NOM_TORNEO_LARGO->ViewValue = $this->NOM_TORNEO_LARGO->CurrentValue;
-        $this->NOM_TORNEO_LARGO->ViewCustomAttributes = "";
 
         // PAIS_TORNEO
         $this->PAIS_TORNEO->ViewValue = $this->PAIS_TORNEO->CurrentValue;
-        $this->PAIS_TORNEO->ViewCustomAttributes = "";
 
         // REGION_TORNEO
         $this->REGION_TORNEO->ViewValue = $this->REGION_TORNEO->CurrentValue;
-        $this->REGION_TORNEO->ViewCustomAttributes = "";
 
         // DETALLE_TORNEO
         $this->DETALLE_TORNEO->ViewValue = $this->DETALLE_TORNEO->CurrentValue;
-        $this->DETALLE_TORNEO->ViewCustomAttributes = "";
 
         // LOGO_TORNEO
         if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
@@ -1144,58 +1251,47 @@ class Torneo extends DbTable
         } else {
             $this->LOGO_TORNEO->ViewValue = "";
         }
-        $this->LOGO_TORNEO->ViewCustomAttributes = "";
 
         // crea_dato
         $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
         $this->crea_dato->CssClass = "fst-italic";
         $this->crea_dato->CellCssStyle .= "text-align: right;";
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
         $this->modifica_dato->CssClass = "fst-italic";
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
         $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-        $this->usuario_dato->ViewCustomAttributes = "";
 
         // ID_TORNEO
-        $this->ID_TORNEO->LinkCustomAttributes = "";
         $this->ID_TORNEO->HrefValue = "";
         $this->ID_TORNEO->TooltipValue = "";
 
         // NOM_TORNEO_CORTO
-        $this->NOM_TORNEO_CORTO->LinkCustomAttributes = "";
         $this->NOM_TORNEO_CORTO->HrefValue = "";
         $this->NOM_TORNEO_CORTO->TooltipValue = "";
 
         // NOM_TORNEO_LARGO
-        $this->NOM_TORNEO_LARGO->LinkCustomAttributes = "";
         $this->NOM_TORNEO_LARGO->HrefValue = "";
         $this->NOM_TORNEO_LARGO->TooltipValue = "";
 
         // PAIS_TORNEO
-        $this->PAIS_TORNEO->LinkCustomAttributes = "";
         $this->PAIS_TORNEO->HrefValue = "";
         $this->PAIS_TORNEO->TooltipValue = "";
 
         // REGION_TORNEO
-        $this->REGION_TORNEO->LinkCustomAttributes = "";
         $this->REGION_TORNEO->HrefValue = "";
         $this->REGION_TORNEO->TooltipValue = "";
 
         // DETALLE_TORNEO
-        $this->DETALLE_TORNEO->LinkCustomAttributes = "";
         $this->DETALLE_TORNEO->HrefValue = "";
         $this->DETALLE_TORNEO->TooltipValue = "";
 
         // LOGO_TORNEO
-        $this->LOGO_TORNEO->LinkCustomAttributes = "";
         if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
             $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
             $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
@@ -1216,17 +1312,14 @@ class Torneo extends DbTable
         }
 
         // crea_dato
-        $this->crea_dato->LinkCustomAttributes = "";
         $this->crea_dato->HrefValue = "";
         $this->crea_dato->TooltipValue = "";
 
         // modifica_dato
-        $this->modifica_dato->LinkCustomAttributes = "";
         $this->modifica_dato->HrefValue = "";
         $this->modifica_dato->TooltipValue = "";
 
         // usuario_dato
-        $this->usuario_dato->LinkCustomAttributes = "";
         $this->usuario_dato->HrefValue = "";
         $this->usuario_dato->TooltipValue = "";
 
@@ -1247,43 +1340,35 @@ class Torneo extends DbTable
 
         // ID_TORNEO
         $this->ID_TORNEO->setupEditAttributes();
-        $this->ID_TORNEO->EditCustomAttributes = "";
         $this->ID_TORNEO->EditValue = $this->ID_TORNEO->CurrentValue;
-        $this->ID_TORNEO->ViewCustomAttributes = "";
 
         // NOM_TORNEO_CORTO
         $this->NOM_TORNEO_CORTO->setupEditAttributes();
-        $this->NOM_TORNEO_CORTO->EditCustomAttributes = "";
         $this->NOM_TORNEO_CORTO->EditValue = $this->NOM_TORNEO_CORTO->CurrentValue;
         $this->NOM_TORNEO_CORTO->PlaceHolder = RemoveHtml($this->NOM_TORNEO_CORTO->caption());
 
         // NOM_TORNEO_LARGO
         $this->NOM_TORNEO_LARGO->setupEditAttributes();
-        $this->NOM_TORNEO_LARGO->EditCustomAttributes = "";
         $this->NOM_TORNEO_LARGO->EditValue = $this->NOM_TORNEO_LARGO->CurrentValue;
         $this->NOM_TORNEO_LARGO->PlaceHolder = RemoveHtml($this->NOM_TORNEO_LARGO->caption());
 
         // PAIS_TORNEO
         $this->PAIS_TORNEO->setupEditAttributes();
-        $this->PAIS_TORNEO->EditCustomAttributes = "";
         $this->PAIS_TORNEO->EditValue = $this->PAIS_TORNEO->CurrentValue;
         $this->PAIS_TORNEO->PlaceHolder = RemoveHtml($this->PAIS_TORNEO->caption());
 
         // REGION_TORNEO
         $this->REGION_TORNEO->setupEditAttributes();
-        $this->REGION_TORNEO->EditCustomAttributes = "";
         $this->REGION_TORNEO->EditValue = $this->REGION_TORNEO->CurrentValue;
         $this->REGION_TORNEO->PlaceHolder = RemoveHtml($this->REGION_TORNEO->caption());
 
         // DETALLE_TORNEO
         $this->DETALLE_TORNEO->setupEditAttributes();
-        $this->DETALLE_TORNEO->EditCustomAttributes = "";
         $this->DETALLE_TORNEO->EditValue = $this->DETALLE_TORNEO->CurrentValue;
         $this->DETALLE_TORNEO->PlaceHolder = RemoveHtml($this->DETALLE_TORNEO->caption());
 
         // LOGO_TORNEO
         $this->LOGO_TORNEO->setupEditAttributes();
-        $this->LOGO_TORNEO->EditCustomAttributes = "";
         if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
             $this->LOGO_TORNEO->ImageWidth = 50;
             $this->LOGO_TORNEO->ImageHeight = 0;
@@ -1299,21 +1384,17 @@ class Torneo extends DbTable
 
         // crea_dato
         $this->crea_dato->setupEditAttributes();
-        $this->crea_dato->EditCustomAttributes = "";
         $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
         $this->crea_dato->CssClass = "fst-italic";
         $this->crea_dato->CellCssStyle .= "text-align: right;";
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->setupEditAttributes();
-        $this->modifica_dato->EditCustomAttributes = "";
         $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
         $this->modifica_dato->CssClass = "fst-italic";
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
 
@@ -1423,8 +1504,7 @@ class Torneo extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
-                $this->ExportDoc = &$doc;
-                $this->rowExport($row);
+                $this->rowExport($doc, $row);
             }
             $recordset->moveNext();
         }
@@ -1492,8 +1572,7 @@ class Torneo extends DbTable
                     $downloadPdf = !Config("EMBED_PDF") && Config("DOWNLOAD_PDF_FILE");
                     if ($fileNameFld != "" && !EmptyValue($row[$fileNameFld])) {
                         $fileName = $row[$fileNameFld];
-                        $pathinfo = pathinfo($fileName);
-                        $ext = strtolower(@$pathinfo["extension"]);
+                                        $ext = strtolower($pathinfo["extension"] ?? "");
                         $isPdf = SameText($ext, "pdf");
                         if ($downloadPdf || !$isPdf) { // Skip header if not download PDF
                             AddHeader("Content-Disposition", "attachment; filename=\"" . $fileName . "\"");
@@ -1535,6 +1614,9 @@ class Torneo extends DbTable
                     }
                     $data = [];
                     $ar = [];
+                    if ($fld->hasMethod("getUploadPath")) { // Check field level upload path
+                        $fld->UploadPath = $fld->getUploadPath();
+                    }
                     foreach ($files as $file) {
                         if (!EmptyValue($file)) {
                             if (Config("ENCRYPT_FILE_PATH")) {
@@ -1555,6 +1637,12 @@ class Torneo extends DbTable
     }
 
     // Table level events
+
+    // Table Load event
+    public function tableLoad()
+    {
+        // Enter your code here
+    }
 
     // Recordset Selecting event
     public function recordsetSelecting(&$filter)

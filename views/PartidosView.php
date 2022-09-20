@@ -1,25 +1,11 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PartidosView = &$Page;
 ?>
 <?php if (!$Page->isExport()) { ?>
-<script>
-var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
-ew.deepAssign(ew.vars, { tables: { partidos: currentTable } });
-var currentForm, currentPageID;
-var fpartidosview;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object
-    fpartidosview = new ew.Form("fpartidosview", "view");
-    currentPageID = ew.PAGE_ID = "view";
-    currentForm = fpartidosview;
-    loadjs.done("fpartidosview");
-});
-</script>
 <script>
 loadjs.ready("head", function () {
     // Write your table-specific client script here, no need to add script tags.
@@ -36,14 +22,37 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fpartidosview" id="fpartidosview" class="ew-form ew-view-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<main class="view">
+<form name="fpartidosview" id="fpartidosview" class="ew-form ew-view-form overlay-wrapper" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
+<?php if (!$Page->isExport()) { ?>
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { partidos: currentTable } });
+var currentPageID = ew.PAGE_ID = "view";
+var currentForm;
+var fpartidosview;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
+    // Form object
+    let form = new ew.FormBuilder()
+        .setId("fpartidosview")
+        .setPageId("view")
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
+});
+</script>
+<?php } ?>
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="partidos">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
-<table class="table table-striped table-bordered table-hover table-sm ew-view-table">
+<table class="<?= $Page->TableClass ?>">
 <?php if ($Page->ID_TORNEO->Visible) { // ID_TORNEO ?>
     <tr id="r_ID_TORNEO"<?= $Page->ID_TORNEO->rowAttributes() ?>>
         <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_partidos_ID_TORNEO"><?= $Page->ID_TORNEO->caption() ?></span></td>
@@ -280,6 +289,7 @@ $Page->showMessage();
 <?php } ?>
 </table>
 </form>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

@@ -1,142 +1,105 @@
-(function($) {
+// IDs
+let ids = priv.ids;
 
-    $.hik.jtable.prototype._createErrorDialogDiv = function () {};
+// Get records
+function getRecords() {
+    let rows = priv.permissions.slice(0);
+    return rows.map(row => Object.fromEntries([
+        ["table", row.table], // Table caption
+        ["name", row.name], // Table name
+        ["index", row.index],
+        ["allowed", row.allowed],
+        ...ids.map(id => [id, row.permission & priv[id]])
+    ]));
+}
 
-    $.hik.jtable.prototype._showError = function (message) {
-        ew.alert(message);
+// Get formatter function
+function getFormatter(id) {
+    return function(cell, formatterParams) {
+        let row = cell.getRow(),
+            index = row.getIndex(),
+            name = id + '_' + index,
+            trueValue = priv[id],
+            allowed = row.getData().allowed,
+            checked = cell.getValue() == trueValue;
+        row.checked = checked;
+        return '<div class="form-check"><input type="checkbox" class="form-check-input ew-priv ew-multi-select" name="' + name + '" id="' + name +
+            '" value="' + trueValue + '" data-index="' + index + '"' +
+            (checked ? ' checked' : '') +
+            (((allowed & trueValue) != trueValue) ? ' disabled' : '') + '></div>';
     };
+}
 
-    $.extend(true, $.hik.jtable.prototype.options.messages, {
-        serverCommunicationError: ew.language.phrase("ServerCommunicationError"),
-        loadingMessage: ew.language.phrase("Loading"),
-        noDataAvailable: ew.language.phrase("NoRecord")
-    });
+// Get display table name
+function displayTableName(cell, formatterParams) {
+    let row = cell.getRow();
+    return `<span data-bs-toggle="tooltip" data-bs-title="${ew.htmlEncode(row.getData().name)}">${row.getData().table}</span><input type="hidden" name="table_${row.getIndex()}" value="1">`;
+}
 
-    function getDisplayFn(name, trueValue) {
-        return function(data) {
-            var row = data.record,
-                id = name + '_' + row.index,
-                checked = (row.permission & trueValue) == trueValue;
-            row.checked = checked;
-            return '<div class="form-check"><input type="checkbox" class="form-check-input ew-priv ew-multi-select" name="' + id + '" id="' + id +
-                '" value="' + trueValue + '" data-index="' + row.index + '"' +
-                (checked ? ' checked' : '') +
-                (((row.allowed & trueValue) != trueValue) ? ' disabled' : '') + '></div>';
-        };
-    }
+// Get title HTML
+function getTitleHtml(id, phraseId) {
+    return '<div class="form-check"><input type="checkbox" class="form-check-input ew-priv" name="' + id + '" id="' + id + '" data-ew-action="select-all">' +
+        '<label class="form-check-label" for="' + id + '">' + ew.language.phrase("Permission" + (phraseId || id)) + '</label></div>'
+}
 
-    function displayTableName(data) {
-        var row = data.record;
-        return row.table + '<input type="hidden" name="table_' + row.index + '" value="1">';
-    }
-
-    function getRecords(data, params) {
-        var rows = priv.permissions.slice(0);
-        if (data && data.table) {
-            var table = data.table.toLowerCase();
-            rows = $.map(rows, function(row) {
-                if (row.table.toLowerCase().includes(table))
-                    return row;
-                return null;
-            });
-        }
-        if (params && params.jtSorting) {
-            var asc = params.jtSorting.match(/ASC$/);
-            rows.sort(function(a, b) { // Case-insensitive
-                if (b.table.toLowerCase() > a.table.toLowerCase())
-                    return (asc) ? -1 : 1;
-                else if (b.table.toLowerCase() === a.table.toLowerCase())
-                    return 0
-                else if (b.table.toLowerCase() < a.table.toLowerCase())
-                    return (asc) ? 1 : -1;
-            });
-        }
-        return {
-            Result: "OK",
-            params: Object.assign({}, data, params),
-            Records: rows
-        };
-    }
-
-    function getTitleHtml(id, phraseId) {
-        return '<div class="form-check"><input type="checkbox" class="form-check-input ew-priv" name="' + id + '" id="' + id + '" data-ew-action="select-all">' +
-            '<label class="form-check-label" for="' + id + '">' + ew.language.phrase("Permission" + (phraseId || id)) + '</label></div>'
-    }
-
-    // Fields
-    var _fields = {
-        table: {
+// Get columns
+function getColumns() {
+    return [{
             title: '<span class="fw-normal">' + ew.language.phrase("Tables") + '</span>',
-            display: displayTableName,
-            sorting: true
-        }
-    };
-    ["add", "delete", "edit", "list", "lookup", "view", "search", "import", "admin"].forEach(function(id) {
-        _fields[id] = {
-            title: getTitleHtml(id),
-            display: getDisplayFn(id, priv[id]),
-            sorting: false
-        };
-    });
+            field: "table",
+            formatter: displayTableName,
+            sorter: "string",
+            headerSortTristate: headerSortTristate,
+            resizable: false
+        },
+        ...ids.map(id => {
+            return {
+                title: getTitleHtml(id),
+                field: id,
+                formatter: getFormatter(id),
+                headerSort: false,
+                resizable: false
+            };
+        })
+    ];
+}
 
-    // Init
-    $(".ew-card.ew-user-priv .ew-card-body").jtable({
-        paging: false,
-        sorting: true,
-        defaultSorting: "table ASC",
-        fields: _fields,
-        actions: { listAction: getRecords },
-        rowInserted: function (event, data) {
-            var $row = data.row;
-            $row.find("input[type=checkbox]").on("click", function() {
-                var $this = $(this),
-                    index = parseInt($this.data("index"), 10),
-                    value = parseInt($this.data("value"), 10);
+// Init
+($ => {
+    let options = ew.deepAssign({
+        index: "index",
+        data: getRecords(), // Load row data from array
+        layout: "fitDataFill", // Fit columns to Data
+        initialSort: [ // Set the initial sort order of the data
+            { column: "table", dir: "asc" },
+        ],
+        columnHeaderSortMulti: false, // Multi Column Sorting
+        columns: getColumns() // Define the table columns
+    }, tableOptions);
+
+    let table = new Tabulator(".ew-card.ew-user-priv .ew-card-body", options);
+    table.on("dataProcessed", () => {
+        $("input[type=checkbox]").on("click", function() {
+            let index = parseInt(this.dataset.index, 10),
+                value = parseInt(this.value, 10);
+            if (!isNaN(index) && !isNaN(value)) {
                 if (this.checked)
                     priv.permissions[index].permission |= value;
                 else
                     priv.permissions[index].permission ^= priv.permissions[index].permission ^ value;
-            });
-        },
-        loadingRecords: function () {
-            this.querySelector(".jtable").classList.add("table", "table-sm");
-        },
-        recordsLoaded: function (event, data) {
-            var sorting = data.serverResponse.params.jtSorting,
-                $mc = $(this).find(".jtable-main-container"),
-                $t = $mc.find(".jtable"),
-                $c = $t.find(".jtable-column-header-container:first");
-            if (useFixedHeaderTable) {
-                if (tableHeight)
-                    $mc.height(tableHeight);
-                $t.addClass("table-head-fixed ew-fixed-header-table");
-                if (ew.USE_OVERLAY_SCROLLBARS)
-                    $mc.overlayScrollbars(ew.overlayScrollbarsOptions);
             }
-            if (!$c.find(".ew-table-header-sort")[0])
-                $c.append('<span class="ew-table-header-sort"></span>');
-            $sort = $c.find(".ew-table-header-sort").empty();
-            if (sorting.match(/ASC$/))
-                $sort.append(ew.language.phrase("SortUp"));
-            else if (sorting.match(/DESC$/))
-                $sort.append(ew.language.phrase("SortDown"));
-            ew.initMultiSelectCheckboxes();
-            ew.fixLayoutHeight();
-        }
+        });
+        let container = document.querySelector("main");
+        $("span[data-bs-toggle=tooltip][data-bs-title]").tooltip({ container, offset: [0, 4] });
+        ew.initMultiSelectCheckboxes();
+        ew.fixLayoutHeight();
+        // console.log("dataProcessed");
     });
 
     // Re-load records on search
-    var _timer;
-    $("#table-name").on("keydown keypress cut paste", function(e) {
-        if (_timer)
-            _timer.cancel();
-        _timer = $.later(200, null, function() {
-            $(".ew-card.ew-user-priv .ew-card-body").jtable("load", {
-                table: $("#table-name").val()
-            });
-        });
+    let timer;
+    $("#table-name").on("keydown keypress cut paste", () => {
+        timer?.cancel();
+        timer = $.later(200, null, () => table.setFilter("table", "like", $("#table-name").val()));
     });
-
-    // Load all records
-    $("#table-name").trigger("keydown");
 })(jQuery);

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Slim\Routing\RouteContext;
 use Slim\Exception\HttpBadRequestException;
@@ -67,7 +67,7 @@ class PermissionMiddleware
                 in_array($pageAction, [Config("EDIT_ACTION"), Config("UPDATE_ACTION")]) && !$Security->canEdit() ||
                 $pageAction == Config("ADD_ACTION") && !$Security->canAdd() ||
                 $pageAction == Config("DELETE_ACTION") && !$Security->canDelete() ||
-                $pageAction == Config("SEARCH_ACTION") && !$Security->canSearch()
+                in_array($pageAction, [Config("SEARCH_ACTION"), Config("QUERY_ACTION")]) && !$Security->canSearch()
             ) {
                 $Security->saveLastUrl();
                 $_SESSION[SESSION_FAILURE_MESSAGE] = DeniedMessage(); // Set no permission
@@ -80,7 +80,7 @@ class PermissionMiddleware
                 }
             } elseif (
                 $pageAction == Config("LIST_ACTION") && !$Security->canList() || // List Permission
-                in_array($pageAction, [Config("CUSTOM_REPORT_ACTION"), Config("SUMMARY_REPORT_ACTION"), Config("CROSSTAB_REPORT_ACTION"), Config("DASHBOARD_REPORT_ACTION")]) && !$Security->canReport()
+                in_array($pageAction, [Config("CUSTOM_REPORT_ACTION"), Config("SUMMARY_REPORT_ACTION"), Config("CROSSTAB_REPORT_ACTION"), Config("DASHBOARD_REPORT_ACTION")]) && !$Security->canList()
             ) { // No permission
                 $Security->saveLastUrl();
                 $_SESSION[SESSION_FAILURE_MESSAGE] = DeniedMessage(); // Set no permission
@@ -111,8 +111,10 @@ class PermissionMiddleware
         }
 
         // Validate CSRF
-        if (Config("CHECK_TOKEN") && IsPost() && !ValidateCsrf()) {
-            throw new HttpBadRequestException($request, $Language->phrase("InvalidPostRequest"));
+        if (Config("CHECK_TOKEN") && !IsSamlResponse()) {
+            if (!ValidateCsrf($request)) {
+                throw new HttpBadRequestException($request, $Language->phrase("InvalidPostRequest"));
+            }
         }
 
         // Handle request

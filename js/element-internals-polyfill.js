@@ -71,7 +71,8 @@
         const nativeControlValidity = Array.from(form.elements)
             .filter((element) => element.validity)
             .map((element) => element.validity.valid);
-        const polyfilledValidity = Array.from(formElementsMap.get(form))
+        const polyfilledElements = formElementsMap.get(form) || [];
+        const polyfilledValidity = Array.from(polyfilledElements)
             .filter(control => control.isConnected)
             .map((control) => internalsMap.get(control).validity.valid);
         const hasInvalid = [...nativeControlValidity, ...polyfilledValidity].includes(false);
@@ -294,6 +295,12 @@
         return valid;
     };
 
+    function initNode(node) {
+        const internals = internalsMap.get(node);
+        const { form } = internals;
+        initForm(node, form, internals);
+        initLabels(node, internals.labels);
+    }
     function observerCallback(mutationList) {
         mutationList.forEach(mutationRecord => {
             const { addedNodes, removedNodes } = mutationRecord;
@@ -301,10 +308,7 @@
             const removed = Array.from(removedNodes);
             added.forEach(node => {
                 if (internalsMap.has(node) && node.constructor['formAssociated']) {
-                    const internals = internalsMap.get(node);
-                    const { form } = internals;
-                    initForm(node, form, internals);
-                    initLabels(node, internals.labels);
+                    initNode(node);
                 }
                 if (upgradeMap.has(node)) {
                     const internals = upgradeMap.get(node);
@@ -315,6 +319,20 @@
                         node.setAttribute(aom[key], internals[key]);
                     });
                     upgradeMap.delete(node);
+                }
+                if (node.localName === 'form') {
+                    const formElements = formElementsMap.get(node);
+                    const walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, {
+                        acceptNode(node) {
+                            return internalsMap.has(node) && !formElements && !formElements.has(node) ?
+                                NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                        }
+                    });
+                    let current = walker.nextNode();
+                    while (current) {
+                        initNode(current);
+                        current = walker.nextNode();
+                    }
                 }
             });
             removed.forEach(node => {
@@ -447,7 +465,7 @@
             const id = ref.getAttribute('id');
             const hostRoot = ref.getRootNode();
             if (hostRoot && id) {
-                return hostRoot.querySelectorAll(`[for=${id}]`);
+                return hostRoot.querySelectorAll(`[for="${id}"]`);
             }
             return [];
         }
@@ -479,7 +497,7 @@
                 }
             }
             else if (value != null && value instanceof FormData) {
-                value.forEach((formDataValue, formDataKey) => {
+                Array.from(value).reverse().forEach(([formDataKey, formDataValue]) => {
                     if (typeof formDataValue === 'string') {
                         const hiddenInput = createHiddenInput(ref, this);
                         hiddenInput.name = formDataKey;

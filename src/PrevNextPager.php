@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * PrevNext pager class
@@ -10,16 +10,18 @@ class PrevNextPager extends Pager
     public $PageCount;
     public $CurrentPageNumber;
     public $Modal;
+    public $Url;
 
     // Constructor
-    public function __construct($tableVar, $fromIndex, $pageSize, $recordCount, $pageSizes = "", $range = 10, $autoHidePager = null, $autoHidePageSizeSelector = null, $usePageSizeSelector = null, $isModal = false)
+    public function __construct($table, $fromIndex, $pageSize, $recordCount, $pageSizes = "", $range = 10, $autoHidePager = null, $autoHidePageSizeSelector = null, $usePageSizeSelector = null, $isModal = false, $url = null)
     {
-        parent::__construct($tableVar, $fromIndex, $pageSize, $recordCount, $pageSizes, $range, $autoHidePager, $autoHidePageSizeSelector, $usePageSizeSelector);
-        $this->FirstButton = new PagerItem();
-        $this->PrevButton = new PagerItem();
-        $this->NextButton = new PagerItem();
-        $this->LastButton = new PagerItem();
+        parent::__construct($table, $fromIndex, $pageSize, $recordCount, $pageSizes, $range, $autoHidePager, $autoHidePageSizeSelector, $usePageSizeSelector);
+        $this->FirstButton = new PagerItem($this->ContextClass, $pageSize);
+        $this->PrevButton = new PagerItem($this->ContextClass, $pageSize);
+        $this->NextButton = new PagerItem($this->ContextClass, $pageSize);
+        $this->LastButton = new PagerItem($this->ContextClass, $pageSize);
         $this->Modal = $isModal;
+        $this->Url = $url;
         $this->init();
     }
 
@@ -75,29 +77,16 @@ class PrevNextPager extends Pager
         global $Language;
         $html = "";
         if ($this->isVisible()) {
-            if ($this->FirstButton->Enabled) {
-                $firstBtn = '<a class="btn btn-default" data-table="' . $this->TableVar . '" title="' . $Language->phrase("PagerFirst") . '"' . $this->getStartAttribute($this->FirstButton->Start) . '><i class="icon-first ew-icon"></i></a>';
-            } else {
-                $firstBtn = '<a class="btn btn-default disabled" title="' . $Language->phrase("PagerFirst") . '"><i class="icon-first ew-icon"></i></a>';
-            }
-            if ($this->PrevButton->Enabled) {
-                $prevBtn = '<a class="btn btn-default" data-table="' . $this->TableVar . '" title="' . $Language->phrase("PagerPrevious") . '"' . $this->getStartAttribute($this->PrevButton->Start) . '><i class="icon-prev ew-icon"></i></a>';
-            } else {
-                $prevBtn = '<a class="btn btn-default disabled" title="' . $Language->phrase("PagerPrevious") . '"><i class="icon-prev ew-icon"></i></a>';
-            }
-            if ($this->NextButton->Enabled) {
-                $nextBtn = '<a class="btn btn-default" data-table="' . $this->TableVar . '" title="' . $Language->phrase("PagerNext") . '"' . $this->getStartAttribute($this->NextButton->Start) . '><i class="icon-next ew-icon"></i></a>';
-            } else {
-                $nextBtn = '<a class="btn btn-default disabled" title="' . $Language->phrase("PagerNext") . '"><i class="icon-next ew-icon"></i></a>';
-            }
-            if ($this->LastButton->Enabled) {
-                $lastBtn = '<a class="btn btn-default" data-table="' . $this->TableVar . '" title="' . $Language->phrase("PagerLast") . '"' . $this->getStartAttribute($this->LastButton->Start) . '><i class="icon-last ew-icon"></i></a>';
-            } else {
-                $lastBtn = '<a class="btn btn-default disabled" title="' . $Language->phrase("PagerLast") . '"><i class="icon-last ew-icon"></i></a>';
-            }
+            $url = $this->Url ?? CurrentDashboardPageUrl();
+            $useAjax = $this->Table->UseAjaxActions;
+            $action = $useAjax || $this->Modal ? "refresh" : "redirect";
+            $firstBtn = '<button class="btn btn-default' . $this->FirstButton->getDisabledClass() . '" data-value="first" data-table="' . $this->Table->TableVar . '" title="' . $Language->phrase("PagerFirst") . '" ' . $this->FirstButton->getAttributes($url, $action) . '><i class="fa-solid fa-angles-left ew-icon"></i></button>';
+            $prevBtn = '<button class="btn btn-default' . $this->PrevButton->getDisabledClass() . '" data-value="prev" data-table="' . $this->Table->TableVar . '" title="' . $Language->phrase("PagerPrevious") . '" ' . $this->PrevButton->getAttributes($url, $action) . '><i class="fa-solid fa-angle-left ew-icon"></i></button>';
+            $nextBtn = '<button class="btn btn-default' . $this->NextButton->getDisabledClass() . '" data-value="next" data-table="' . $this->Table->TableVar . '" title="' . $Language->phrase("PagerNext") . '" ' . $this->NextButton->getAttributes($url, $action) . '><i class="fa-solid fa-angle-right ew-icon"></i></button>';
+            $lastBtn = '<button class="btn btn-default' . $this->LastButton->getDisabledClass() . '" data-value="last" data-table="' . $this->Table->TableVar . '" title="' . $Language->phrase("PagerLast") . '" ' . $this->LastButton->getAttributes($url, $action) . '><i class="fa-solid fa-angles-right ew-icon"></i></button>';
             $formatInteger = self::$FormatIntegerFunc;
             $pagePhrase = $Language->phrase($this->PagePhraseId);
-            $pageNumber = '<!-- current page number --><input class="form-control ew-page-no" type="text" data-pagesize="' . $this->PageSize . '" data-pagecount="' . $this->PageCount . '" name="' . $this->PageNumberName . '" value="' . $formatInteger($this->CurrentPageNumber) . '"' . ($this->Modal ? " disabled" : "") . '>';
+            $pageNumber = '<!-- current page number --><input class="form-control ew-page-number" type="text" data-ew-action="change-page" data-ajax="' . ($useAjax ? "true" : "false") . '" data-url="' . $url . '" data-pagesize="' . $this->PageSize . '" data-pagecount="' . $this->PageCount . '"' . ($this->ContextClass ? ' data-context="' . HtmlEncode($this->ContextClass) . '"' : "") . ' name="' . $this->PageNumberName . '" value="' . $formatInteger($this->CurrentPageNumber) . '"' . ($this->Modal ? " disabled" : "") . '>';
             $html = <<<PAGER
                 <div class="ew-pager">
                     <span>{$pagePhrase}&nbsp;</span>
@@ -120,15 +109,5 @@ class PrevNextPager extends Pager
             $html .= parent::render();
         }
         return $html;
-    }
-
-    // Get start attribute
-    protected function getStartAttribute($start)
-    {
-        if ($this->Modal) {
-            return ' data-start="' . $start . '"';
-        } else {
-            return ' href="' . CurrentPageUrl(false) . '?start=' . $start . '"';
-        }
     }
 }

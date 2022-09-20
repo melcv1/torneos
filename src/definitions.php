@@ -1,9 +1,11 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Slim\Views\PhpRenderer;
 use Slim\Csrf\Guard;
+use Slim\HttpCache\CacheProvider;
+use Slim\Flash\Messages;
 use Psr\Container\ContainerInterface;
 use Monolog\Logger;
 use Monolog\Handler\RotatingFileHandler;
@@ -11,26 +13,11 @@ use Doctrine\DBAL\Logging\LoggerChain;
 use Doctrine\DBAL\Logging\DebugStack;
 
 return [
-    "cache" => function (ContainerInterface $c) {
-        return new \Slim\HttpCache\CacheProvider();
-    },
-    "view" => function (ContainerInterface $c) {
-        return new PhpRenderer("views/");
-    },
-    "flash" => function (ContainerInterface $c) {
-        return new \Slim\Flash\Messages();
-    },
-    "audit" => function (ContainerInterface $c) {
-        $logger = new Logger("audit"); // For audit trail
-        $logger->pushHandler(new AuditTrailHandler("registro/audit.log"));
-        return $logger;
-    },
-    "log" => function (ContainerInterface $c) {
-        global $RELATIVE_PATH;
-        $logger = new Logger("log");
-        $logger->pushHandler(new RotatingFileHandler($RELATIVE_PATH . "registro/log.log"));
-        return $logger;
-    },
+    "cache" => \DI\create(CacheProvider::class),
+    "flash" => fn(ContainerInterface $c) => new Messages(),
+    "view" => fn(ContainerInterface $c) => new PhpRenderer($GLOBALS["RELATIVE_PATH"] . "views/"),
+    "audit" => fn(ContainerInterface $c) => (new Logger("audit"))->pushHandler(new AuditTrailHandler("registro/audit.log")), // For audit trail
+    "log" => fn(ContainerInterface $c) => (new Logger("log"))->pushHandler(new RotatingFileHandler($GLOBALS["RELATIVE_PATH"] . "registro/log.log")),
     "sqllogger" => function (ContainerInterface $c) {
         $loggers = [];
         if (Config("DEBUG")) {
@@ -38,10 +25,7 @@ return [
         }
         return (count($loggers) > 0) ? new LoggerChain($loggers) : null;
     },
-    "csrf" => function (ContainerInterface $c) {
-        global $ResponseFactory;
-        return new Guard($ResponseFactory, Config("CSRF_PREFIX"));
-    },
+    "csrf" => fn(ContainerInterface $c) => new Guard($GLOBALS["ResponseFactory"], Config("CSRF_PREFIX")),
     "debugstack" => \DI\create(DebugStack::class),
     "debugsqllogger" => \DI\create(DebugSqlLogger::class),
     "security" => \DI\create(AdvancedSecurity::class),

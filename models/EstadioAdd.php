@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EstadioAdd extends Estadio
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'estadio';
-
     // Page object name
     public $PageObjName = "EstadioAdd";
 
@@ -34,6 +31,9 @@ class EstadioAdd extends Estadio
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "estadioadd";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class EstadioAdd extends Estadio
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class EstadioAdd extends Estadio
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'estadio';
+        $this->TableName = 'estadio';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-desktop-table ew-add-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (estadio)
         if (!isset($GLOBALS["estadio"]) || get_class($GLOBALS["estadio"]) == PROJECT_NAMESPACE . "estadio") {
@@ -164,14 +147,14 @@ class EstadioAdd extends Estadio
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class EstadioAdd extends Estadio
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class EstadioAdd extends Estadio
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("estadio");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class EstadioAdd extends Estadio
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -280,18 +244,17 @@ class EstadioAdd extends Estadio
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => GetUrl($url), "modal" => "1"];
+                $result = ["url" => GetUrl($url), "modal" => "1"];
                 $pageName = GetPageName($url);
-                if ($pageName != $this->getListUrl()) { // Not List page
-                    $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "estadioview") {
-                        $row["view"] = "1";
-                    }
-                } else { // List page should not be shown as modal => error
-                    $row["error"] = $this->getFailureMessage();
+                if ($pageName != $this->getListUrl()) { // Not List page => View page
+                    $result["caption"] = $this->getModalCaption($pageName);
+                    $result["view"] = $pageName == "estadioview";
+                } else { // List page
+                    // $result["list"] = $this->PageID == "search"; // Refresh List page if current page is Search page
+                    $result["error"] = $this->getFailureMessage(); // List page should not be shown as modal => error
                     $this->clearFailureMessage();
                 }
-                WriteJson($row);
+                WriteJson($result);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -400,6 +363,11 @@ class EstadioAdd extends Estadio
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -463,7 +431,6 @@ class EstadioAdd extends Estadio
     public $DbDetailFilter = "";
     public $StartRecord;
     public $Priv = 0;
-    public $OldRecordset;
     public $CopyRecord;
 
     /**
@@ -473,15 +440,17 @@ class EstadioAdd extends Estadio
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $SkipHeaderFooter;
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -493,7 +462,6 @@ class EstadioAdd extends Estadio
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
         $this->usuario_dato->Visible = false;
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -508,6 +476,15 @@ class EstadioAdd extends Estadio
             $this->pageLoad();
         }
 
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
+        }
+
         // Set up lookup cache
         $this->setupLookupOptions($this->id_torneo);
 
@@ -519,7 +496,6 @@ class EstadioAdd extends Estadio
             $SkipHeaderFooter = true;
         }
         $this->IsMobileOrModal = IsMobile() || $this->IsModal;
-        $this->FormClassName = "ew-form ew-add-form";
         $postBack = false;
 
         // Set up current action
@@ -544,8 +520,8 @@ class EstadioAdd extends Estadio
             }
         }
 
-        // Load old record / default values
-        $loaded = $this->loadOldRecord();
+        // Load old record or default values
+        $rsold = $this->loadOldRecord();
 
         // Load form values
         if ($postBack) {
@@ -569,7 +545,7 @@ class EstadioAdd extends Estadio
         // Perform current action
         switch ($this->CurrentAction) {
             case "copy": // Copy an existing record
-                if (!$loaded) { // Record not loaded
+                if (!$rsold) { // Record not loaded
                     if ($this->getFailureMessage() == "") {
                         $this->setFailureMessage($Language->phrase("NoRecord")); // No record found
                     }
@@ -579,7 +555,11 @@ class EstadioAdd extends Estadio
                 break;
             case "insert": // Add new record
                 $this->SendEmail = true; // Send email on add success
-                if ($this->addRow($this->OldRecordset)) { // Add successful
+                if ($this->addRow($rsold)) {
+                    // Do not return Json for UseAjaxActions
+                    if ($this->IsModal && $this->UseAjaxActions) {
+                        $this->IsModal = false;
+                    }
                     if ($this->getSuccessMessage() == "" && Post("addopt") != "1") { // Skip success message for addopt (done in JavaScript)
                         $this->setSuccessMessage($Language->phrase("AddSuccess")); // Set up success message
                     }
@@ -589,7 +569,7 @@ class EstadioAdd extends Estadio
                     } elseif (GetPageName($returnUrl) == "estadioview") {
                         $returnUrl = $this->getViewUrl(); // View page, return to View page with keyurl directly
                     }
-                    if (IsApi()) { // Return to caller
+                    if (IsJsonResponse()) { // Return to caller
                         $this->terminate(true);
                         return;
                     } else {
@@ -599,6 +579,11 @@ class EstadioAdd extends Estadio
                 } elseif (IsApi()) { // API request, return
                     $this->terminate();
                     return;
+                } elseif ($this->UseAjaxActions) { // Return JSON error message
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return; 
                 } else {
                     $this->EventCancelled = true; // Event cancelled
                     $this->restoreFormValues(); // Add failed, restore form values
@@ -650,7 +635,7 @@ class EstadioAdd extends Estadio
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
         $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
@@ -769,16 +754,19 @@ class EstadioAdd extends Estadio
     protected function loadOldRecord()
     {
         // Load old record
-        $this->OldRecordset = null;
-        $validKey = $this->OldKey != "";
-        if ($validKey) {
+        if ($this->OldKey != "") {
+            $this->setKey($this->OldKey);
             $this->CurrentFilter = $this->getRecordFilter();
             $sql = $this->getCurrentSql();
             $conn = $this->getConnection();
-            $this->OldRecordset = LoadRecordset($sql, $conn);
+            $rs = LoadRecordset($sql, $conn);
+            if ($rs && ($row = $rs->fields)) {
+                $this->loadRowValues($row); // Load row values
+                return $row;
+            }
         }
-        $this->loadRowValues($this->OldRecordset); // Load row values
-        return $validKey;
+        $this->loadRowValues(); // Load default row values
+        return null;
     }
 
     // Render row values based on field settings
@@ -818,14 +806,13 @@ class EstadioAdd extends Estadio
         if ($this->RowType == ROWTYPE_VIEW) {
             // id_estadio
             $this->id_estadio->ViewValue = $this->id_estadio->CurrentValue;
-            $this->id_estadio->ViewCustomAttributes = "";
 
             // id_torneo
             $curVal = strval($this->id_torneo->CurrentValue);
             if ($curVal != "") {
                 $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
                 if ($this->id_torneo->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->id_torneo->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -842,11 +829,9 @@ class EstadioAdd extends Estadio
             } else {
                 $this->id_torneo->ViewValue = null;
             }
-            $this->id_torneo->ViewCustomAttributes = "";
 
             // nombre_estadio
             $this->nombre_estadio->ViewValue = $this->nombre_estadio->CurrentValue;
-            $this->nombre_estadio->ViewCustomAttributes = "";
 
             // foto_estadio
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
@@ -858,36 +843,29 @@ class EstadioAdd extends Estadio
             } else {
                 $this->foto_estadio->ViewValue = "";
             }
-            $this->foto_estadio->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // id_torneo
-            $this->id_torneo->LinkCustomAttributes = "";
             $this->id_torneo->HrefValue = "";
 
             // nombre_estadio
-            $this->nombre_estadio->LinkCustomAttributes = "";
             $this->nombre_estadio->HrefValue = "";
 
             // foto_estadio
-            $this->foto_estadio->LinkCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
                 $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
@@ -901,7 +879,6 @@ class EstadioAdd extends Estadio
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // id_torneo
             $this->id_torneo->setupEditAttributes();
-            $this->id_torneo->EditCustomAttributes = "";
             $curVal = trim(strval($this->id_torneo->CurrentValue));
             if ($curVal != "") {
                 $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
@@ -914,7 +891,7 @@ class EstadioAdd extends Estadio
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $this->id_torneo->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $this->id_torneo->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->id_torneo->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -929,13 +906,11 @@ class EstadioAdd extends Estadio
 
             // nombre_estadio
             $this->nombre_estadio->setupEditAttributes();
-            $this->nombre_estadio->EditCustomAttributes = "";
             $this->nombre_estadio->EditValue = HtmlEncode($this->nombre_estadio->CurrentValue);
             $this->nombre_estadio->PlaceHolder = RemoveHtml($this->nombre_estadio->caption());
 
             // foto_estadio
             $this->foto_estadio->setupEditAttributes();
-            $this->foto_estadio->EditCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->ImageWidth = 50;
                 $this->foto_estadio->ImageHeight = 0;
@@ -955,15 +930,12 @@ class EstadioAdd extends Estadio
             // Add refer script
 
             // id_torneo
-            $this->id_torneo->LinkCustomAttributes = "";
             $this->id_torneo->HrefValue = "";
 
             // nombre_estadio
-            $this->nombre_estadio->LinkCustomAttributes = "";
             $this->nombre_estadio->HrefValue = "";
 
             // foto_estadio
-            $this->foto_estadio->LinkCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
                 $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
@@ -988,7 +960,7 @@ class EstadioAdd extends Estadio
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -1094,8 +1066,6 @@ class EstadioAdd extends Estadio
 
         // Load db values from old row
         $this->loadDbValues($rsold);
-        if ($rsold) {
-        }
 
         // Call Row Inserting event
         $insertRow = $this->rowInserting($rsold, $rsnew);
@@ -1116,7 +1086,7 @@ class EstadioAdd extends Estadio
                                         $newFiles[$i] = $newFiles2[$i];
                                     }
                                     if (!$this->foto_estadio->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
-                                        $this->setFailureMessage($Language->phrase("UploadErrMsg7"));
+                                        $this->setFailureMessage($Language->phrase("UploadError7"));
                                         return false;
                                     }
                                 }
@@ -1133,6 +1103,8 @@ class EstadioAdd extends Estadio
                         }
                     }
                 }
+            } elseif (!EmptyValue($this->DbErrorMessage)) { // Show database error
+                $this->setFailureMessage($this->DbErrorMessage);
             }
         } else {
             if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
@@ -1150,16 +1122,11 @@ class EstadioAdd extends Estadio
             $this->rowInserted($rsold, $rsnew);
         }
 
-        // Clean upload path if any
-        if ($addRow) {
-            // foto_estadio
-            CleanUploadTempPath($this->foto_estadio, $this->foto_estadio->Upload->Index);
-        }
-
-        // Write JSON for API request
-        if (IsApi() && $addRow) {
+        // Write JSON response
+        if (IsJsonResponse() && $addRow) {
             $row = $this->getRecordsFromRecordset([$rsnew], true);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+            $table = $this->TableVar;
+            WriteJson(["success" => true, "action" => Config("API_ADD_ACTION"), $table => $row]);
         }
         return $addRow;
     }
@@ -1208,7 +1175,11 @@ class EstadioAdd extends Estadio
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1267,6 +1238,14 @@ class EstadioAdd extends Estadio
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 
     // Form Custom Validate event

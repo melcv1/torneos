@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -19,6 +19,7 @@ class Audittrail extends DbTable
     protected $SqlGroupBy = "";
     protected $SqlHaving = "";
     protected $SqlOrderBy = "";
+    public $DbErrorMessage = "";
     public $UseSessionForListSql = true;
 
     // Column CSS classes
@@ -36,7 +37,16 @@ class Audittrail extends DbTable
     public $AuditTrailOnSearch = false;
 
     // Export
-    public $ExportDoc;
+    public $UseAjaxActions = false;
+    public $ModalSearch = false;
+    public $ModalView = false;
+    public $ModalAdd = false;
+    public $ModalEdit = false;
+    public $ModalUpdate = false;
+    public $InlineDelete = false;
+    public $ModalGridAdd = false;
+    public $ModalGridEdit = false;
+    public $ModalMultiEdit = false;
 
     // Fields
     public $id;
@@ -56,27 +66,34 @@ class Audittrail extends DbTable
     // Constructor
     public function __construct()
     {
-        global $Language, $CurrentLanguage, $CurrentLocale;
         parent::__construct();
+        global $Language, $CurrentLanguage, $CurrentLocale;
 
         // Language object
         $Language = Container("language");
-        $this->TableVar = 'audittrail';
+        $this->TableVar = "audittrail";
         $this->TableName = 'audittrail';
-        $this->TableType = 'TABLE';
+        $this->TableType = "TABLE";
+        $this->ImportUseTransaction = $this->supportsTransaction() && Config("IMPORT_USE_TRANSACTION");
+        $this->UseTransaction = $this->supportsTransaction() && Config("USE_TRANSACTION");
 
         // Update Table
         $this->UpdateTable = "`audittrail`";
         $this->Dbid = 'DB';
         $this->ExportAll = true;
         $this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
+
+        // PDF
         $this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
         $this->ExportPageSize = "a4"; // Page size (PDF only)
-        $this->ExportExcelPageOrientation = ""; // Page orientation (PhpSpreadsheet only)
-        $this->ExportExcelPageSize = ""; // Page size (PhpSpreadsheet only)
-        $this->ExportWordVersion = 12; // Word version (PHPWord only)
-        $this->ExportWordPageOrientation = "portrait"; // Page orientation (PHPWord only)
-        $this->ExportWordPageSize = "A4"; // Page orientation (PHPWord only)
+
+        // PhpSpreadsheet
+        $this->ExportExcelPageOrientation = null; // Page orientation (PhpSpreadsheet only)
+        $this->ExportExcelPageSize = null; // Page size (PhpSpreadsheet only)
+
+        // PHPWord
+        $this->ExportWordPageOrientation = ""; // Page orientation (PHPWord only)
+        $this->ExportWordPageSize = ""; // Page orientation (PHPWord only)
         $this->ExportWordColumnWidth = null; // Cell width (PHPWord only)
         $this->DetailAdd = false; // Allow detail add
         $this->DetailEdit = false; // Allow detail edit
@@ -84,238 +101,242 @@ class Audittrail extends DbTable
         $this->ShowMultipleDetails = false; // Show multiple details
         $this->GridAddRowCount = 5;
         $this->AllowAddDeleteRow = true; // Allow add/delete row
+        $this->UseAjaxActions = $this->UseAjaxActions || Config("USE_AJAX_ACTIONS");
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
-        $this->BasicSearch = new BasicSearch($this->TableVar);
+        $this->BasicSearch = new BasicSearch($this);
 
-        // id
+        // id $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->id = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_id',
-            'id',
-            '`id`',
-            '`id`',
-            3,
-            11,
-            -1,
-            false,
-            '`id`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'NO'
+            $this, // Table
+            'x_id', // Variable name
+            'id', // Name
+            '`id`', // Expression
+            '`id`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`id`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'NO' // Edit Tag
         );
         $this->id->InputTextType = "text";
         $this->id->IsAutoIncrement = true; // Autoincrement field
         $this->id->IsPrimaryKey = true; // Primary key field
         $this->id->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->id->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['id'] = &$this->id;
 
-        // datetime
+        // datetime $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->datetime = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_datetime',
-            'datetime',
-            '`datetime`',
-            CastDateFieldForLike("`datetime`", 0, "DB"),
-            135,
-            19,
-            0,
-            false,
-            '`datetime`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_datetime', // Variable name
+            'datetime', // Name
+            '`datetime`', // Expression
+            CastDateFieldForLike("`datetime`", 0, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            0, // Date/Time format
+            false, // Is upload field
+            '`datetime`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->datetime->InputTextType = "text";
         $this->datetime->Nullable = false; // NOT NULL field
         $this->datetime->Required = true; // Required field
         $this->datetime->DefaultErrorMessage = str_replace("%s", $GLOBALS["DATE_FORMAT"], $Language->phrase("IncorrectDate"));
+        $this->datetime->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN"];
         $this->Fields['datetime'] = &$this->datetime;
 
-        // script
+        // script $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->script = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_script',
-            'script',
-            '`script`',
-            '`script`',
-            200,
-            255,
-            -1,
-            false,
-            '`script`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_script', // Variable name
+            'script', // Name
+            '`script`', // Expression
+            '`script`', // Basic search expression
+            200, // Type
+            255, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`script`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->script->InputTextType = "text";
+        $this->script->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['script'] = &$this->script;
 
-        // user
+        // user $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->user = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_user',
-            'user',
-            '`user`',
-            '`user`',
-            200,
-            255,
-            -1,
-            false,
-            '`user`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_user', // Variable name
+            'user', // Name
+            '`user`', // Expression
+            '`user`', // Basic search expression
+            200, // Type
+            255, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`user`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->user->InputTextType = "text";
+        $this->user->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['user'] = &$this->user;
 
-        // action
+        // action $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->_action = new DbField(
-            'audittrail',
-            'audittrail',
-            'x__action',
-            'action',
-            '`action`',
-            '`action`',
-            200,
-            255,
-            -1,
-            false,
-            '`action`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x__action', // Variable name
+            'action', // Name
+            '`action`', // Expression
+            '`action`', // Basic search expression
+            200, // Type
+            255, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`action`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->_action->InputTextType = "text";
+        $this->_action->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['action'] = &$this->_action;
 
-        // table
+        // table $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->_table = new DbField(
-            'audittrail',
-            'audittrail',
-            'x__table',
-            'table',
-            '`table`',
-            '`table`',
-            200,
-            255,
-            -1,
-            false,
-            '`table`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x__table', // Variable name
+            'table', // Name
+            '`table`', // Expression
+            '`table`', // Basic search expression
+            200, // Type
+            255, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`table`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->_table->InputTextType = "text";
+        $this->_table->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['table'] = &$this->_table;
 
-        // field
+        // field $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->field = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_field',
-            'field',
-            '`field`',
-            '`field`',
-            200,
-            255,
-            -1,
-            false,
-            '`field`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_field', // Variable name
+            'field', // Name
+            '`field`', // Expression
+            '`field`', // Basic search expression
+            200, // Type
+            255, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`field`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->field->InputTextType = "text";
+        $this->field->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['field'] = &$this->field;
 
-        // keyvalue
+        // keyvalue $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->keyvalue = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_keyvalue',
-            'keyvalue',
-            '`keyvalue`',
-            '`keyvalue`',
-            201,
-            -1,
-            -1,
-            false,
-            '`keyvalue`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_keyvalue', // Variable name
+            'keyvalue', // Name
+            '`keyvalue`', // Expression
+            '`keyvalue`', // Basic search expression
+            201, // Type
+            -1, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`keyvalue`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->keyvalue->InputTextType = "text";
+        $this->keyvalue->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['keyvalue'] = &$this->keyvalue;
 
-        // oldvalue
+        // oldvalue $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->oldvalue = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_oldvalue',
-            'oldvalue',
-            '`oldvalue`',
-            '`oldvalue`',
-            201,
-            -1,
-            -1,
-            false,
-            '`oldvalue`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_oldvalue', // Variable name
+            'oldvalue', // Name
+            '`oldvalue`', // Expression
+            '`oldvalue`', // Basic search expression
+            201, // Type
+            -1, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`oldvalue`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->oldvalue->InputTextType = "text";
+        $this->oldvalue->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['oldvalue'] = &$this->oldvalue;
 
-        // newvalue
+        // newvalue $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->newvalue = new DbField(
-            'audittrail',
-            'audittrail',
-            'x_newvalue',
-            'newvalue',
-            '`newvalue`',
-            '`newvalue`',
-            201,
-            -1,
-            -1,
-            false,
-            '`newvalue`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_newvalue', // Variable name
+            'newvalue', // Name
+            '`newvalue`', // Expression
+            '`newvalue`', // Basic search expression
+            201, // Type
+            -1, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`newvalue`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->newvalue->InputTextType = "text";
+        $this->newvalue->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['newvalue'] = &$this->newvalue;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
         $this->CacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $this->TableVar);
+
+        // Call Table Load event
+        $this->tableLoad();
     }
 
     // Field Visibility
@@ -366,6 +387,12 @@ class Audittrail extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Render X Axis for chart
+    public function renderChartXAxis($chartVar, $chartRow)
+    {
+        return $chartRow;
     }
 
     // Table level SQL
@@ -539,6 +566,12 @@ class Audittrail extends DbTable
     // Get SQL
     public function getSql($where, $orderBy = "")
     {
+        return $this->getSqlAsQueryBuilder($where, $orderBy)->getSQL();
+    }
+
+    // Get QueryBuilder
+    public function getSqlAsQueryBuilder($where, $orderBy = "")
+    {
         return $this->buildSelectSql(
             $this->getSqlSelect(),
             $this->getSqlFrom(),
@@ -548,7 +581,7 @@ class Audittrail extends DbTable
             $this->getSqlOrderBy(),
             $where,
             $orderBy
-        )->getSQL();
+        );
     }
 
     // Table SQL
@@ -654,7 +687,13 @@ class Audittrail extends DbTable
     public function insert(&$rs)
     {
         $conn = $this->getConnection();
-        $success = $this->insertSql($rs)->execute();
+        try {
+            $success = $this->insertSql($rs)->execute();
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
         if ($success) {
             // Get insert id if necessary
             $this->id->setDbValue($conn->lastInsertId());
@@ -700,8 +739,21 @@ class Audittrail extends DbTable
     public function update(&$rs, $where = "", $rsold = null, $curfilter = true)
     {
         // If no field is updated, execute may return 0. Treat as success
-        $success = $this->updateSql($rs, $where, $curfilter)->execute();
-        $success = ($success > 0) ? $success : true;
+        try {
+            $success = $this->updateSql($rs, $where, $curfilter)->execute();
+            $success = ($success > 0) ? $success : true;
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
+
+        // Return auto increment field
+        if ($success) {
+            if (!isset($rs['id']) && !EmptyValue($this->id->CurrentValue)) {
+                $rs['id'] = $this->id->CurrentValue;
+            }
+        }
         if ($success && $this->AuditTrailOnEdit && $rsold) {
             $rsaudit = $rs;
             $fldname = 'id';
@@ -743,7 +795,13 @@ class Audittrail extends DbTable
     {
         $success = true;
         if ($success) {
-            $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+            try {
+                $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+                $this->DbErrorMessage = "";
+            } catch (\Exception $e) {
+                $success = false;
+                $this->DbErrorMessage = $e->getMessage();
+            }
         }
         if ($success && $this->AuditTrailOnDelete) {
             $this->writeAuditTrailOnDelete($rs);
@@ -809,13 +867,13 @@ class Audittrail extends DbTable
     }
 
     // Get record filter
-    public function getRecordFilter($row = null)
+    public function getRecordFilter($row = null, $current = false)
     {
         $keyFilter = $this->sqlKeyFilter();
         if (is_array($row)) {
             $val = array_key_exists('id', $row) ? $row['id'] : null;
         } else {
-            $val = $this->id->OldValue !== null ? $this->id->OldValue : $this->id->CurrentValue;
+            $val = !EmptyValue($this->id->OldValue) && !$current ? $this->id->OldValue : $this->id->CurrentValue;
         }
         if (!is_numeric($val)) {
             return "0=1"; // Invalid key
@@ -857,9 +915,8 @@ class Audittrail extends DbTable
             return $Language->phrase("Edit");
         } elseif ($pageName == "audittrailadd") {
             return $Language->phrase("Add");
-        } else {
-            return "";
         }
+        return "";
     }
 
     // API page name
@@ -881,6 +938,18 @@ class Audittrail extends DbTable
         }
     }
 
+    // Current URL
+    public function getCurrentUrl($parm = "")
+    {
+        $url = CurrentPageUrl(false);
+        if ($parm != "") {
+            $url = $this->keyUrl($url, $parm);
+        } else {
+            $url = $this->keyUrl($url, Config("TABLE_SHOW_DETAIL") . "=");
+        }
+        return $this->addMasterUrl($url);
+    }
+
     // List URL
     public function getListUrl()
     {
@@ -891,9 +960,9 @@ class Audittrail extends DbTable
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("audittrailview", $this->getUrlParm($parm));
+            $url = $this->keyUrl("audittrailview", $parm);
         } else {
-            $url = $this->keyUrl("audittrailview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("audittrailview", Config("TABLE_SHOW_DETAIL") . "=");
         }
         return $this->addMasterUrl($url);
     }
@@ -902,7 +971,7 @@ class Audittrail extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "audittrailadd?" . $this->getUrlParm($parm);
+            $url = "audittrailadd?" . $parm;
         } else {
             $url = "audittrailadd";
         }
@@ -912,35 +981,39 @@ class Audittrail extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("audittrailedit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("audittrailedit", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline edit URL
     public function getInlineEditUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=edit"));
+        $url = $this->keyUrl("audittraillist", "action=edit");
         return $this->addMasterUrl($url);
     }
 
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("audittrailadd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("audittrailadd", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline copy URL
     public function getInlineCopyUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=copy"));
+        $url = $this->keyUrl("audittraillist", "action=copy");
         return $this->addMasterUrl($url);
     }
 
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("audittraildelete", $this->getUrlParm());
+        if ($this->UseAjaxActions && ConvertToBool(Param("infinitescroll")) && CurrentPageID() == "list") {
+            return $this->keyUrl(GetApiUrl(Config("API_DELETE_ACTION") . "/" . $this->TableVar));
+        } else {
+            return $this->keyUrl("audittraildelete");
+        }
     }
 
     // Add master url
@@ -977,12 +1050,15 @@ class Audittrail extends DbTable
     // Render sort
     public function renderFieldHeader($fld)
     {
-        global $Security, $Language;
+        global $Security, $Language, $Page;
         $sortUrl = "";
         $attrs = "";
         if ($fld->Sortable) {
             $sortUrl = $this->sortUrl($fld);
-            $attrs = ' role="button" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            $attrs = ' role="button" data-ew-action="sort" data-ajax="' . ($this->UseAjaxActions ? "true" : "false") . '" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            if ($this->ContextClass) { // Add context
+                $attrs .= ' data-context="' . HtmlEncode($this->ContextClass) . '"';
+            }
         }
         $html = '<div class="ew-table-header-caption"' . $attrs . '>' . $fld->caption() . '</div>';
         if ($sortUrl) {
@@ -1003,14 +1079,18 @@ class Audittrail extends DbTable
     // Sort URL
     public function sortUrl($fld)
     {
+        global $DashboardReport;
         if (
             $this->CurrentAction || $this->isExport() ||
             in_array($fld->Type, [128, 204, 205])
         ) { // Unsortable data type
                 return "";
         } elseif ($fld->Sortable) {
-            $urlParm = $this->getUrlParm("order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort());
-            return $this->addMasterUrl(CurrentPageName() . "?" . $urlParm);
+            $urlParm = "order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort();
+            if ($DashboardReport) {
+                $urlParm .= "&amp;dashboard=true";
+            }
+            return $this->addMasterUrl($this->CurrentPageName . "?" . $urlParm);
         } else {
             return "";
         }
@@ -1046,6 +1126,19 @@ class Audittrail extends DbTable
             }
         }
         return $ar;
+    }
+
+    // Get filter from records
+    public function getFilterFromRecords($rows)
+    {
+        $keyFilter = "";
+        foreach ($rows as $row) {
+            if ($keyFilter != "") {
+                $keyFilter .= " OR ";
+            }
+            $keyFilter .= "(" . $this->getRecordFilter($row) . ")";
+        }
+        return $keyFilter;
     }
 
     // Get filter from record keys
@@ -1097,6 +1190,24 @@ class Audittrail extends DbTable
         $this->newvalue->setDbValue($row['newvalue']);
     }
 
+    // Render list content
+    public function renderListContent($filter)
+    {
+        global $Response;
+        $listPage = "AudittrailList";
+        $listClass = PROJECT_NAMESPACE . $listPage;
+        $page = new $listClass();
+        $page->loadRecordsetFromFilter($filter);
+        $view = Container("view");
+        $template = $listPage . ".php"; // View
+        $GLOBALS["Title"] ??= $page->Title; // Title
+        try {
+            $Response = $view->render($Response, $template, $GLOBALS);
+        } finally {
+            $page->terminate(); // Terminate page and clean up
+        }
+    }
+
     // Render list row values
     public function renderListRow()
     {
@@ -1129,92 +1240,72 @@ class Audittrail extends DbTable
 
         // id
         $this->id->ViewValue = $this->id->CurrentValue;
-        $this->id->ViewCustomAttributes = "";
 
         // datetime
         $this->datetime->ViewValue = $this->datetime->CurrentValue;
         $this->datetime->ViewValue = FormatDateTime($this->datetime->ViewValue, $this->datetime->formatPattern());
-        $this->datetime->ViewCustomAttributes = "";
 
         // script
         $this->script->ViewValue = $this->script->CurrentValue;
-        $this->script->ViewCustomAttributes = "";
 
         // user
         $this->user->ViewValue = $this->user->CurrentValue;
-        $this->user->ViewCustomAttributes = "";
 
         // action
         $this->_action->ViewValue = $this->_action->CurrentValue;
-        $this->_action->ViewCustomAttributes = "";
 
         // table
         $this->_table->ViewValue = $this->_table->CurrentValue;
-        $this->_table->ViewCustomAttributes = "";
 
         // field
         $this->field->ViewValue = $this->field->CurrentValue;
-        $this->field->ViewCustomAttributes = "";
 
         // keyvalue
         $this->keyvalue->ViewValue = $this->keyvalue->CurrentValue;
-        $this->keyvalue->ViewCustomAttributes = "";
 
         // oldvalue
         $this->oldvalue->ViewValue = $this->oldvalue->CurrentValue;
-        $this->oldvalue->ViewCustomAttributes = "";
 
         // newvalue
         $this->newvalue->ViewValue = $this->newvalue->CurrentValue;
-        $this->newvalue->ViewCustomAttributes = "";
 
         // id
-        $this->id->LinkCustomAttributes = "";
         $this->id->HrefValue = "";
         $this->id->TooltipValue = "";
 
         // datetime
-        $this->datetime->LinkCustomAttributes = "";
         $this->datetime->HrefValue = "";
         $this->datetime->TooltipValue = "";
 
         // script
-        $this->script->LinkCustomAttributes = "";
         $this->script->HrefValue = "";
         $this->script->TooltipValue = "";
 
         // user
-        $this->user->LinkCustomAttributes = "";
         $this->user->HrefValue = "";
         $this->user->TooltipValue = "";
 
         // action
-        $this->_action->LinkCustomAttributes = "";
         $this->_action->HrefValue = "";
         $this->_action->TooltipValue = "";
 
         // table
-        $this->_table->LinkCustomAttributes = "";
         $this->_table->HrefValue = "";
         $this->_table->TooltipValue = "";
 
         // field
-        $this->field->LinkCustomAttributes = "";
         $this->field->HrefValue = "";
         $this->field->TooltipValue = "";
 
         // keyvalue
-        $this->keyvalue->LinkCustomAttributes = "";
         $this->keyvalue->HrefValue = "";
         $this->keyvalue->TooltipValue = "";
 
         // oldvalue
-        $this->oldvalue->LinkCustomAttributes = "";
         $this->oldvalue->HrefValue = "";
         $this->oldvalue->TooltipValue = "";
 
         // newvalue
-        $this->newvalue->LinkCustomAttributes = "";
         $this->newvalue->HrefValue = "";
         $this->newvalue->TooltipValue = "";
 
@@ -1235,19 +1326,15 @@ class Audittrail extends DbTable
 
         // id
         $this->id->setupEditAttributes();
-        $this->id->EditCustomAttributes = "";
         $this->id->EditValue = $this->id->CurrentValue;
-        $this->id->ViewCustomAttributes = "";
 
         // datetime
         $this->datetime->setupEditAttributes();
-        $this->datetime->EditCustomAttributes = "";
         $this->datetime->EditValue = FormatDateTime($this->datetime->CurrentValue, $this->datetime->formatPattern());
         $this->datetime->PlaceHolder = RemoveHtml($this->datetime->caption());
 
         // script
         $this->script->setupEditAttributes();
-        $this->script->EditCustomAttributes = "";
         if (!$this->script->Raw) {
             $this->script->CurrentValue = HtmlDecode($this->script->CurrentValue);
         }
@@ -1256,7 +1343,6 @@ class Audittrail extends DbTable
 
         // user
         $this->user->setupEditAttributes();
-        $this->user->EditCustomAttributes = "";
         if (!$this->user->Raw) {
             $this->user->CurrentValue = HtmlDecode($this->user->CurrentValue);
         }
@@ -1265,7 +1351,6 @@ class Audittrail extends DbTable
 
         // action
         $this->_action->setupEditAttributes();
-        $this->_action->EditCustomAttributes = "";
         if (!$this->_action->Raw) {
             $this->_action->CurrentValue = HtmlDecode($this->_action->CurrentValue);
         }
@@ -1274,7 +1359,6 @@ class Audittrail extends DbTable
 
         // table
         $this->_table->setupEditAttributes();
-        $this->_table->EditCustomAttributes = "";
         if (!$this->_table->Raw) {
             $this->_table->CurrentValue = HtmlDecode($this->_table->CurrentValue);
         }
@@ -1283,7 +1367,6 @@ class Audittrail extends DbTable
 
         // field
         $this->field->setupEditAttributes();
-        $this->field->EditCustomAttributes = "";
         if (!$this->field->Raw) {
             $this->field->CurrentValue = HtmlDecode($this->field->CurrentValue);
         }
@@ -1292,19 +1375,16 @@ class Audittrail extends DbTable
 
         // keyvalue
         $this->keyvalue->setupEditAttributes();
-        $this->keyvalue->EditCustomAttributes = "";
         $this->keyvalue->EditValue = $this->keyvalue->CurrentValue;
         $this->keyvalue->PlaceHolder = RemoveHtml($this->keyvalue->caption());
 
         // oldvalue
         $this->oldvalue->setupEditAttributes();
-        $this->oldvalue->EditCustomAttributes = "";
         $this->oldvalue->EditValue = $this->oldvalue->CurrentValue;
         $this->oldvalue->PlaceHolder = RemoveHtml($this->oldvalue->caption());
 
         // newvalue
         $this->newvalue->setupEditAttributes();
-        $this->newvalue->EditCustomAttributes = "";
         $this->newvalue->EditValue = $this->newvalue->CurrentValue;
         $this->newvalue->PlaceHolder = RemoveHtml($this->newvalue->caption());
 
@@ -1408,8 +1488,7 @@ class Audittrail extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
-                $this->ExportDoc = &$doc;
-                $this->rowExport($row);
+                $this->rowExport($doc, $row);
             }
             $recordset->moveNext();
         }
@@ -1427,22 +1506,19 @@ class Audittrail extends DbTable
         return false;
     }
 
-    // Write Audit Trail start/end for grid update
+    // Write audit trail start/end for grid update
     public function writeAuditTrailDummy($typ)
     {
-        $table = 'audittrail';
-        $usr = CurrentUserName();
-        WriteAuditLog($usr, $typ, $table, "", "", "", "");
+        WriteAuditLog(CurrentUser(), $typ, 'audittrail', "", "", "", "");
     }
 
-    // Write Audit Trail (add page)
+    // Write audit trail (add page)
     public function writeAuditTrailOnAdd(&$rs)
     {
         global $Language;
         if (!$this->AuditTrailOnAdd) {
             return;
         }
-        $table = 'audittrail';
 
         // Get key value
         $key = "";
@@ -1451,36 +1527,31 @@ class Audittrail extends DbTable
         }
         $key .= $rs['id'];
 
-        // Write Audit Trail
-        $usr = CurrentUserName();
+        // Write audit trail
+        $usr = CurrentUser();
         foreach (array_keys($rs) as $fldname) {
             if (array_key_exists($fldname, $this->Fields) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
-                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") {
-                    $newvalue = $Language->phrase("PasswordMask"); // Password Field
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) {
-                    if (Config("AUDIT_TRAIL_TO_DATABASE")) {
-                        $newvalue = $rs[$fldname];
-                    } else {
-                        $newvalue = "[MEMO]"; // Memo Field
-                    }
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) {
-                    $newvalue = "[XML]"; // XML Field
+                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") { // Password Field
+                    $newvalue = $Language->phrase("PasswordMask");
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo Field
+                    $newvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rs[$fldname] : "[MEMO]";
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML Field
+                    $newvalue = "[XML]";
                 } else {
                     $newvalue = $rs[$fldname];
                 }
-                WriteAuditLog($usr, "A", $table, $fldname, $key, "", $newvalue);
+                WriteAuditLog($usr, "A", 'audittrail', $fldname, $key, "", $newvalue);
             }
         }
     }
 
-    // Write Audit Trail (edit page)
+    // Write audit trail (edit page)
     public function writeAuditTrailOnEdit(&$rsold, &$rsnew)
     {
         global $Language;
         if (!$this->AuditTrailOnEdit) {
             return;
         }
-        $table = 'audittrail';
 
         // Get key value
         $key = "";
@@ -1489,8 +1560,8 @@ class Audittrail extends DbTable
         }
         $key .= $rsold['id'];
 
-        // Write Audit Trail
-        $usr = CurrentUserName();
+        // Write audit trail
+        $usr = CurrentUser();
         foreach (array_keys($rsnew) as $fldname) {
             if (array_key_exists($fldname, $this->Fields) && array_key_exists($fldname, $rsold) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
                 if ($this->Fields[$fldname]->DataType == DATATYPE_DATE) { // DateTime field
@@ -1503,13 +1574,8 @@ class Audittrail extends DbTable
                         $oldvalue = $Language->phrase("PasswordMask");
                         $newvalue = $Language->phrase("PasswordMask");
                     } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo field
-                        if (Config("AUDIT_TRAIL_TO_DATABASE")) {
-                            $oldvalue = $rsold[$fldname];
-                            $newvalue = $rsnew[$fldname];
-                        } else {
-                            $oldvalue = "[MEMO]";
-                            $newvalue = "[MEMO]";
-                        }
+                        $oldvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rsold[$fldname] : "[MEMO]";
+                        $newvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rsnew[$fldname] : "[MEMO]";
                     } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML field
                         $oldvalue = "[XML]";
                         $newvalue = "[XML]";
@@ -1517,20 +1583,19 @@ class Audittrail extends DbTable
                         $oldvalue = $rsold[$fldname];
                         $newvalue = $rsnew[$fldname];
                     }
-                    WriteAuditLog($usr, "U", $table, $fldname, $key, $oldvalue, $newvalue);
+                    WriteAuditLog($usr, "U", 'audittrail', $fldname, $key, $oldvalue, $newvalue);
                 }
             }
         }
     }
 
-    // Write Audit Trail (delete page)
+    // Write audit trail (delete page)
     public function writeAuditTrailOnDelete(&$rs)
     {
         global $Language;
         if (!$this->AuditTrailOnDelete) {
             return;
         }
-        $table = 'audittrail';
 
         // Get key value
         $key = "";
@@ -1539,29 +1604,31 @@ class Audittrail extends DbTable
         }
         $key .= $rs['id'];
 
-        // Write Audit Trail
-        $curUser = CurrentUserName();
+        // Write audit trail
+        $usr = CurrentUser();
         foreach (array_keys($rs) as $fldname) {
             if (array_key_exists($fldname, $this->Fields) && $this->Fields[$fldname]->DataType != DATATYPE_BLOB) { // Ignore BLOB fields
-                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") {
-                    $oldvalue = $Language->phrase("PasswordMask"); // Password Field
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) {
-                    if (Config("AUDIT_TRAIL_TO_DATABASE")) {
-                        $oldvalue = $rs[$fldname];
-                    } else {
-                        $oldvalue = "[MEMO]"; // Memo field
-                    }
-                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) {
-                    $oldvalue = "[XML]"; // XML field
+                if ($this->Fields[$fldname]->HtmlTag == "PASSWORD") { // Password Field
+                    $oldvalue = $Language->phrase("PasswordMask");
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_MEMO) { // Memo field
+                    $oldvalue = Config("AUDIT_TRAIL_TO_DATABASE") ? $rs[$fldname] : "[MEMO]";
+                } elseif ($this->Fields[$fldname]->DataType == DATATYPE_XML) { // XML field
+                    $oldvalue = "[XML]";
                 } else {
                     $oldvalue = $rs[$fldname];
                 }
-                WriteAuditLog($curUser, "D", $table, $fldname, $key, $oldvalue, "");
+                WriteAuditLog($usr, "D", 'audittrail', $fldname, $key, $oldvalue, "");
             }
         }
     }
 
     // Table level events
+
+    // Table Load event
+    public function tableLoad()
+    {
+        // Enter your code here
+    }
 
     // Recordset Selecting event
     public function recordsetSelecting(&$filter)

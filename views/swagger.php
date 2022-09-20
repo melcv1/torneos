@@ -21,6 +21,10 @@ paths:
                   type: string
                 securitycode:
                   type: string
+                expire:
+                  type: string
+                permission:
+                  type: string
               required:
                 - username
                 - password
@@ -36,6 +40,16 @@ paths:
         - name: table
           in: path
           required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: start
+          in: query
+          required: false
           schema:
             type: string
       responses:
@@ -193,6 +207,113 @@ paths:
         - name: fn
           in: path
           required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/api/export/search':
+    get:
+      tags:
+        - Export
+      summary: Search export log
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tablename
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: filename
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: datetime
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: output
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/api/export/{id}':
+    get:
+      tags:
+        - Export
+      summary: Get Exported file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filename
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/api/export/{type}/{table}':
+    get:
+      tags:
+        - Export
+      summary: Export records from a table
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: table
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: recperpage
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: filename
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: save
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: output
+          in: query
+          required: false
           schema:
             type: string
       responses:

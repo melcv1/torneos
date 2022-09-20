@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -31,6 +31,9 @@ class Login extends Usuario
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "login";
 
     // Page headings
     public $Heading = "";
@@ -84,8 +87,7 @@ class Login extends Usuario
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -108,26 +110,22 @@ class Login extends Usuario
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'usuario';
+        $this->TableName = 'usuario';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (usuario)
         if (!isset($GLOBALS["usuario"]) || get_class($GLOBALS["usuario"]) == PROJECT_NAMESPACE . "usuario") {
@@ -141,14 +139,14 @@ class Login extends Usuario
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -195,7 +193,7 @@ class Login extends Usuario
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -207,8 +205,6 @@ class Login extends Usuario
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -219,9 +215,11 @@ class Login extends Usuario
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -238,8 +236,7 @@ class Login extends Usuario
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => $url];
-                WriteJson($row);
+                WriteJson(["url" => $url]);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -261,26 +258,28 @@ class Login extends Usuario
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $Breadcrumb, $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $Breadcrumb, $SkipHeaderFooter;
         $this->OffsetColumnClass = ""; // Override user table
 
         // Create Username/Password field object (used by validation only)
-        $this->Username = new DbField("usuario", "usuario", "username", "username", "username", "", 202, 255, -1, false, "", false, false, false);
+        $this->Username = new DbField("usuario", "username", "username", "username", "", 202, 255, -1, false, "", false, false, false);
         $this->Username->EditAttrs->appendClass("form-control ew-form-control");
-        $this->Password = new DbField("usuario", "usuario", "password", "password", "password", "", 202, 255, -1, false, "", false, false, false);
+        $this->Password = new DbField("usuario", "password", "password", "password", "", 202, 255, -1, false, "", false, false, false);
         $this->Password->EditAttrs->appendClass("form-control ew-form-control");
         if (Config("ENCRYPTED_PASSWORD")) {
             $this->Password->Raw = true;
         }
-        $this->LoginType = new DbField("usuario", "usuario", "type", "logintype", "logintype", "", 202, 255, -1, false, "", false, false, false);
+        $this->LoginType = new DbField("usuario", "type", "logintype", "logintype", "", 202, 255, -1, false, "", false, false, false);
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Global Page Loading event (in userfn*.php)
@@ -308,6 +307,9 @@ class Login extends Usuario
 
         // Show messages
         $flash = Container("flash");
+        if ($heading = $flash->getFirstMessage("heading")) {
+            $this->setMessageHeading($heading);
+        }
         if ($failure = $flash->getFirstMessage("failure")) {
             $this->setFailureMessage($failure);
         }
@@ -328,19 +330,21 @@ class Login extends Usuario
                 $_SESSION[SESSION_USER_PROFILE_USER_NAME] = "";
                 $_SESSION[SESSION_USER_PROFILE_PASSWORD] = "";
                 $_SESSION[SESSION_USER_PROFILE_LOGIN_TYPE] = "";
+                $this->terminate($lastUrl); // Redirect to last page
+                return;
             }
         } elseif (Config("USE_TWO_FACTOR_AUTHENTICATION") && IsLoggingIn2FA()) { // Logging in via 2FA, redirect
             $this->terminate("login2fa");
             return;
-        } elseif ($provider = trim(Get("provider", ""))) { // OAuth provider
+        } elseif ($provider = trim(Get("provider") ?? Route("provider") ?? "")) { // OAuth provider
             $provider = ucfirst(strtolower($provider)); // e.g. Google, Facebook
             $validate = $Security->validateUser($this->Username->CurrentValue, $this->Password->CurrentValue, false, $provider); // Authenticate by provider
             $validPwd = $validate;
             if ($validate) {
-                $this->Username->setFormValue($UserProfile->get("email"));
+                $this->Username->setFormValue($UserProfile->get("email") ?? $UserProfile->get("emailaddress"));
                 if (Config("DEBUG") && !$Security->isLoggedIn()) {
                     $validPwd = false;
-                    $this->setFailureMessage(str_replace("%u", $this->Username->CurrentValue, $Language->phrase("UserNotFound"))); // Show debug message
+                    $this->setFailureMessage(str_replace("%u", $this->Username->CurrentValue ?? "", $Language->phrase("UserNotFound"))); // Show debug message
                 }
             } else {
                 $this->setFailureMessage(str_replace("%p", $provider, $Language->phrase("LoginFailed")));
@@ -351,21 +355,13 @@ class Login extends Usuario
             }
             $Security->loadUserLevel(); // Load user level
             if ($Security->isLoggedIn()) {
-                if ($this->getFailureMessage() != "") { // Show error
-                    $error = [
-                        "statusCode" => 0,
-                        "error" => [
-                            "class" => "text-warning",
-                            "type" => "",
-                            "description" => $this->getFailureMessage(),
-                        ],
-                    ];
-                    Container("flash")->addMessage("error", $error);
-                    $lastUrl = "error";
-                    $this->clearFailureMessage();
-                }
-                $this->terminate($lastUrl); // Redirect to error page
+                $this->terminate($lastUrl); // Redirect to last page
                 return;
+                if ($this->getFailureMessage() != "") { // Throw error
+                    $error = new \ErrorException($this->getFailureMessage(), 0, E_USER_WARNING);
+                    $this->clearFailureMessage();
+                    throw $error;
+                }
             }
             $validate = false;
             if (Post($this->Username->FieldVar) !== null) {
@@ -410,13 +406,16 @@ class Login extends Usuario
                         $this->Username->addErrorMessage($Language->phrase("InvalidUidPwd")); // Invalid user name or password
                         $this->Password->addErrorMessage($Language->phrase("InvalidUidPwd")); // Invalid user name or password
 
-                    // Two factor authentication
-                    } elseif (Config("USE_TWO_FACTOR_AUTHENTICATION") && !IsSysAdmin() && (Config("FORCE_TWO_FACTOR_AUTHENTICATION") || $UserProfile->hasUserSecret($this->Username->CurrentValue, true))) {
+                    // Two factor authentication enabled (go to 2fa page)
+                    } elseif (!IsSysAdmin() && Config("USE_TWO_FACTOR_AUTHENTICATION") && (Config("FORCE_TWO_FACTOR_AUTHENTICATION") || $UserProfile->hasUserSecret($this->Username->CurrentValue, true))) {
                         $_SESSION[SESSION_STATUS] = "loggingin2fa";
                         $_SESSION[SESSION_USER_PROFILE_USER_NAME] = $this->Username->CurrentValue;
                         $_SESSION[SESSION_USER_PROFILE_PASSWORD] = $this->Password->CurrentValue;
                         $_SESSION[SESSION_USER_PROFILE_LOGIN_TYPE] = $this->LoginType->CurrentValue;
                         $this->IsModal = false; // Redirect
+                        if (in_array(strtolower(Config("TWO_FACTOR_AUTHENTICATION_TYPE")), ["email", "sms"]) && $UserProfile->hasUserSecret($this->Username->CurrentValue, true)) { // Send one time password if verified
+                            TwoFactorAuthenticationClass()::sendOneTimePassword($this->Username->CurrentValue);
+                        }
                         $this->terminate("login2fa?" . Config("PAGE_LAYOUT") . "=false");
                     }
                 } else {
@@ -442,6 +441,11 @@ class Login extends Usuario
 
             // Call loggedin event
             $this->userLoggedIn($this->Username->CurrentValue);
+
+            // Two factor authentication enabled (login directly), return JSON
+            if (Config("USE_TWO_FACTOR_AUTHENTICATION")) {
+                $this->IsModal = true;
+            }
             $this->terminate($lastUrl); // Return to last accessed URL
             return;
         } elseif (!EmptyValue($this->Username->CurrentValue) && !EmptyValue($this->Password->CurrentValue)) {
@@ -512,7 +516,7 @@ class Login extends Usuario
     protected function writeAuditTrailOnLogin()
     {
         global $Language;
-        $usr = CurrentUserName();
+        $usr = CurrentUser();
         WriteAuditLog($usr, $Language->phrase("AuditTrailLogin"), CurrentUserIP(), "", "", "", "");
     }
 

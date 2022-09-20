@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Upload class
@@ -132,11 +132,11 @@ class HttpUpload
                     $ar["name"] = $fileName;
                     if (!preg_match($fileTypes, $fileName)) { // Check file extensions
                         $ar["success"] = false;
-                        $ar["error"] = $Language->phrase("UploadErrMsgAcceptFileTypes");
+                        $ar["error"] = $Language->phrase("UploadErrorAcceptFileTypes");
                         $res = false;
                     } elseif (Config("MAX_FILE_SIZE") > 0 && $fileSize > Config("MAX_FILE_SIZE")) { // Check file size
                         $ar["success"] = false;
-                        $ar["error"] = $Language->phrase("UploadErrMsgMaxFileSize");
+                        $ar["error"] = $Language->phrase("UploadErrorMaxFileSize");
                         $res = false;
                     } elseif ($this->moveUploadedFile($uploadedFiles, $path)) {
                         $ar["success"] = true;
@@ -156,11 +156,11 @@ class HttpUpload
                         $arwrk = ["name" => $clientFilename];
                         if (!preg_match($fileTypes, $clientFilename)) { // Check file extensions
                             $arwrk["success"] = false;
-                            $arwrk["error"] = $Language->phrase("UploadErrMsgAcceptFileTypes");
+                            $arwrk["error"] = $Language->phrase("UploadErrorAcceptFileTypes");
                             $res = false;
                         } elseif (Config("MAX_FILE_SIZE") > 0 && $fileSize > Config("MAX_FILE_SIZE")) { // Check file size
                             $arwrk["success"] = false;
-                            $arwrk["error"] = $Language->phrase("UploadErrMsgMaxFileSize");
+                            $arwrk["error"] = $Language->phrase("UploadErrorMaxFileSize");
                             $res = false;
                         } elseif ($this->moveUploadedFile($uploadedFile, $path)) {
                             $arwrk["success"] = true;

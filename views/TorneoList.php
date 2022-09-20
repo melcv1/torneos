@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $TorneoList = &$Page;
@@ -9,55 +9,52 @@ $TorneoList = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { torneo: currentTable } });
-var currentForm, currentPageID;
-var ftorneolist;
+var currentPageID = ew.PAGE_ID = "list";
+var currentForm;
+var <?= $Page->FormName ?>;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    ftorneolist = new ew.Form("ftorneolist", "list");
-    currentPageID = ew.PAGE_ID = "list";
-    currentForm = ftorneolist;
-    ftorneolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+    let form = new ew.FormBuilder()
+        .setId("<?= $Page->FormName ?>")
+        .setPageId("list")
+        .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
+        .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
 
-    // Add fields
-    var fields = currentTable.fields;
-    ftorneolist.addFields([
-        ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
-        ["NOM_TORNEO_CORTO", [fields.NOM_TORNEO_CORTO.visible && fields.NOM_TORNEO_CORTO.required ? ew.Validators.required(fields.NOM_TORNEO_CORTO.caption) : null], fields.NOM_TORNEO_CORTO.isInvalid],
-        ["NOM_TORNEO_LARGO", [fields.NOM_TORNEO_LARGO.visible && fields.NOM_TORNEO_LARGO.required ? ew.Validators.required(fields.NOM_TORNEO_LARGO.caption) : null], fields.NOM_TORNEO_LARGO.isInvalid],
-        ["PAIS_TORNEO", [fields.PAIS_TORNEO.visible && fields.PAIS_TORNEO.required ? ew.Validators.required(fields.PAIS_TORNEO.caption) : null], fields.PAIS_TORNEO.isInvalid],
-        ["REGION_TORNEO", [fields.REGION_TORNEO.visible && fields.REGION_TORNEO.required ? ew.Validators.required(fields.REGION_TORNEO.caption) : null], fields.REGION_TORNEO.isInvalid],
-        ["DETALLE_TORNEO", [fields.DETALLE_TORNEO.visible && fields.DETALLE_TORNEO.required ? ew.Validators.required(fields.DETALLE_TORNEO.caption) : null], fields.DETALLE_TORNEO.isInvalid],
-        ["LOGO_TORNEO", [fields.LOGO_TORNEO.visible && fields.LOGO_TORNEO.required ? ew.Validators.fileRequired(fields.LOGO_TORNEO.caption) : null], fields.LOGO_TORNEO.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
-        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
+            ["NOM_TORNEO_CORTO", [fields.NOM_TORNEO_CORTO.visible && fields.NOM_TORNEO_CORTO.required ? ew.Validators.required(fields.NOM_TORNEO_CORTO.caption) : null], fields.NOM_TORNEO_CORTO.isInvalid],
+            ["NOM_TORNEO_LARGO", [fields.NOM_TORNEO_LARGO.visible && fields.NOM_TORNEO_LARGO.required ? ew.Validators.required(fields.NOM_TORNEO_LARGO.caption) : null], fields.NOM_TORNEO_LARGO.isInvalid],
+            ["PAIS_TORNEO", [fields.PAIS_TORNEO.visible && fields.PAIS_TORNEO.required ? ew.Validators.required(fields.PAIS_TORNEO.caption) : null], fields.PAIS_TORNEO.isInvalid],
+            ["REGION_TORNEO", [fields.REGION_TORNEO.visible && fields.REGION_TORNEO.required ? ew.Validators.required(fields.REGION_TORNEO.caption) : null], fields.REGION_TORNEO.isInvalid],
+            ["DETALLE_TORNEO", [fields.DETALLE_TORNEO.visible && fields.DETALLE_TORNEO.required ? ew.Validators.required(fields.DETALLE_TORNEO.caption) : null], fields.DETALLE_TORNEO.isInvalid],
+            ["LOGO_TORNEO", [fields.LOGO_TORNEO.visible && fields.LOGO_TORNEO.required ? ew.Validators.fileRequired(fields.LOGO_TORNEO.caption) : null], fields.LOGO_TORNEO.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+            ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    ftorneolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    ftorneolist.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    loadjs.done("ftorneolist");
-});
-var ftorneosrch, currentSearchForm, currentAdvancedSearchForm;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object for search
-    ftorneosrch = new ew.Form("ftorneosrch", "list");
-    currentSearchForm = ftorneosrch;
-
-    // Dynamic selection lists
-
-    // Filters
-    ftorneosrch.filterList = <?= $Page->getFilterList() ?>;
-    loadjs.done("ftorneosrch");
+        // Dynamic selection lists
+        .setLists({
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -82,16 +79,42 @@ loadjs.ready("head", function () {
 <?php } ?>
 </div>
 <?php } ?>
-<?php
-$Page->renderOtherOptions();
-?>
 <?php if ($Security->canSearch()) { ?>
-<?php if (!$Page->isExport() && !$Page->CurrentAction && $Page->hasSearchFields()) { ?>
-<form name="ftorneosrch" id="ftorneosrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isExport() && !($Page->CurrentAction && $Page->CurrentAction != "search") && $Page->hasSearchFields()) { ?>
+<form name="ftorneosrch" id="ftorneosrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>" novalidate autocomplete="on">
 <div id="ftorneosrch_search_panel" class="mb-2 mb-sm-0 <?= $Page->SearchPanelClass ?>"><!-- .ew-search-panel -->
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { torneo: currentTable } });
+var currentForm;
+var ftorneosrch, currentSearchForm, currentAdvancedSearchForm;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery,
+        fields = currentTable.fields;
+
+    // Form object for search
+    let form = new ew.FormBuilder()
+        .setId("ftorneosrch")
+        .setPageId("list")
+<?php if ($Page->UseAjaxActions) { ?>
+        .setSubmitWithFetch(true)
+<?php } ?>
+
+        // Dynamic selection lists
+        .setLists({
+        })
+
+        // Filters
+        .setFilterList(<?= $Page->getFilterList() ?>)
+        .build();
+    window[form.id] = form;
+    currentSearchForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="torneo">
-<div class="ew-extended-search container-fluid">
+<div class="ew-extended-search container-fluid ps-2">
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -121,17 +144,22 @@ $Page->renderOtherOptions();
 <?php
 $Page->showMessage();
 ?>
+<main class="list<?= ($Page->TotalRecords == 0) ? " ew-no-record" : "" ?>">
+<div id="ew-list">
 <?php if ($Page->TotalRecords > 0 || $Page->CurrentAction) { ?>
-<div class="card ew-card ew-grid<?php if ($Page->isAddOrEdit()) { ?> ew-grid-add-edit<?php } ?> torneo">
-<form name="ftorneolist" id="ftorneolist" class="ew-form ew-list-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<div class="card ew-card ew-grid<?= $Page->isAddOrEdit() ? " ew-grid-add-edit" : "" ?> <?= $Page->TableGridClass ?>">
+<form name="<?= $Page->FormName ?>" id="<?= $Page->FormName ?>" class="ew-form ew-list-form" action="<?= $Page->PageAction ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="torneo">
-<div id="gmp_torneo" class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit()) { ?>
-<table id="tbl_torneolist" class="table table-bordered table-hover table-sm ew-table"><!-- .ew-table -->
+<?php if ($Page->IsModal) { ?>
+<input type="hidden" name="modal" value="1">
+<?php } ?>
+<div id="gmp_torneo" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<table id="tbl_torneolist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
 <?php
@@ -180,94 +208,13 @@ $Page->ListOptions->render("header", "right");
 ?>
     </tr>
 </thead>
-<tbody>
+<tbody data-page="<?= $Page->getPageNumber() ?>">
 <?php
-if ($Page->ExportAll && $Page->isExport()) {
-    $Page->StopRecord = $Page->TotalRecords;
-} else {
-    // Set the last record to display
-    if ($Page->TotalRecords > $Page->StartRecord + $Page->DisplayRecords - 1) {
-        $Page->StopRecord = $Page->StartRecord + $Page->DisplayRecords - 1;
-    } else {
-        $Page->StopRecord = $Page->TotalRecords;
-    }
-}
-
-// Restore number of post back records
-if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
-    $CurrentForm->Index = -1;
-    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
-        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
-        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
-    }
-}
-$Page->RecordCount = $Page->StartRecord - 1;
-if ($Page->Recordset && !$Page->Recordset->EOF) {
-    // Nothing to do
-} elseif ($Page->isGridAdd() && !$Page->AllowAddDeleteRow && $Page->StopRecord == 0) {
-    $Page->StopRecord = $Page->GridAddRowCount;
-}
-
-// Initialize aggregate
-$Page->RowType = ROWTYPE_AGGREGATEINIT;
-$Page->resetAttributes();
-$Page->renderRow();
-$Page->EditRowCount = 0;
-if ($Page->isEdit()) {
-    $Page->RowIndex = 1;
-}
+$Page->setupGrid();
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
-        $Page->RowCount++;
-
-        // Set up key count
-        $Page->KeyCount = $Page->RowIndex;
-
-        // Init row class and style
-        $Page->resetAttributes();
-        $Page->CssClass = "";
-        if ($Page->isGridAdd()) {
-            $Page->loadRowValues(); // Load default values
-            $Page->OldKey = "";
-            $Page->setKey($Page->OldKey);
-        } else {
-            $Page->loadRowValues($Page->Recordset); // Load row values
-            if ($Page->isGridEdit()) {
-                $Page->OldKey = $Page->getKey(true); // Get from CurrentValue
-                $Page->setKey($Page->OldKey);
-            }
-        }
-        $Page->RowType = ROWTYPE_VIEW; // Render view
-        if ($Page->isEdit()) {
-            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
-                $Page->RowType = ROWTYPE_EDIT; // Render edit
-            }
-        }
-        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
-            $CurrentForm->Index = 1;
-            $Page->restoreFormValues(); // Restore form values
-        }
-        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
-            $Page->EditRowCount++;
-        }
-
-        // Set up row attributes
-        $Page->RowAttrs->merge([
-            "data-rowindex" => $Page->RowCount,
-            "id" => "r" . $Page->RowCount . "_torneo",
-            "data-rowtype" => $Page->RowType,
-            "class" => ($Page->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
-        ]);
-        if ($Page->isAdd() && $Page->RowType == ROWTYPE_ADD || $Page->isEdit() && $Page->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
-            $Page->RowAttrs->appendClass("table-active");
-        }
-
-        // Render row
-        $Page->renderRow();
-
-        // Render list options
-        $Page->renderListOptions();
+        $Page->setupRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
 <?php
@@ -280,8 +227,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_torneo_ID_TORNEO" class="el_torneo_ID_TORNEO">
 <span<?= $Page->ID_TORNEO->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_TORNEO->getDisplayValue($Page->ID_TORNEO->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="torneo" data-field="x_ID_TORNEO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_TORNEO" id="x<?= $Page->RowIndex ?>_ID_TORNEO" value="<?= HtmlEncode($Page->ID_TORNEO->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_ID_TORNEO" class="el_torneo_ID_TORNEO">
@@ -378,15 +325,28 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_LOGO_TORNEO" class="el_torneo_LOGO_TORNEO">
 <div id="fd_x<?= $Page->RowIndex ?>_LOGO_TORNEO" class="fileinput-button ew-file-drop-zone">
-    <input type="file" class="form-control ew-file-input" title="<?= $Page->LOGO_TORNEO->title() ?>" data-table="torneo" data-field="x_LOGO_TORNEO" name="x<?= $Page->RowIndex ?>_LOGO_TORNEO" id="x<?= $Page->RowIndex ?>_LOGO_TORNEO" lang="<?= CurrentLanguageID() ?>"<?= $Page->LOGO_TORNEO->editAttributes() ?><?= ($Page->LOGO_TORNEO->ReadOnly || $Page->LOGO_TORNEO->Disabled) ? " disabled" : "" ?>>
+    <input
+        type="file"
+        id="x<?= $Page->RowIndex ?>_LOGO_TORNEO"
+        name="x<?= $Page->RowIndex ?>_LOGO_TORNEO"
+        class="form-control ew-file-input"
+        title="<?= $Page->LOGO_TORNEO->title() ?>"
+        lang="<?= CurrentLanguageID() ?>"
+        data-table="torneo"
+        data-field="x_LOGO_TORNEO"
+        data-size="1024"
+        data-accept-file-types="<?= $Page->LOGO_TORNEO->acceptFileTypes() ?>"
+        data-max-file-size="<?= $Page->LOGO_TORNEO->UploadMaxFileSize ?>"
+        data-max-number-of-files="null"
+        data-disable-image-crop="<?= $Page->LOGO_TORNEO->ImageCropper ? 0 : 1 ?>"
+        <?= ($Page->LOGO_TORNEO->ReadOnly || $Page->LOGO_TORNEO->Disabled) ? " disabled" : "" ?>
+        <?= $Page->LOGO_TORNEO->editAttributes() ?>
+    >
     <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
 </div>
 <div class="invalid-feedback"><?= $Page->LOGO_TORNEO->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fn_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->Upload->FileName ?>">
 <input type="hidden" name="fa_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fa_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= (Post("fa_x<?= $Page->RowIndex ?>_LOGO_TORNEO") == "0") ? "0" : "1" ?>">
-<input type="hidden" name="fs_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fs_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="1024">
-<input type="hidden" name="fx_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fx_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->UploadAllowedFileExt ?>">
-<input type="hidden" name="fm_x<?= $Page->RowIndex ?>_LOGO_TORNEO" id= "fm_x<?= $Page->RowIndex ?>_LOGO_TORNEO" value="<?= $Page->LOGO_TORNEO->UploadMaxFileSize ?>">
 <table id="ft_x<?= $Page->RowIndex ?>_LOGO_TORNEO" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
 </span>
 <?php } ?>
@@ -405,8 +365,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_torneo_crea_dato" class="el_torneo_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="torneo" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_crea_dato" class="el_torneo_crea_dato">
@@ -422,8 +382,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_torneo_modifica_dato" class="el_torneo_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="torneo" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_torneo_modifica_dato" class="el_torneo_modifica_dato">
@@ -451,8 +411,8 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
 <?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
-<script>
-loadjs.ready(["ftorneolist","load"], () => ftorneolist.updateLists(<?= $Page->RowIndex ?>));
+<script data-rowindex="<?= $Page->RowIndex ?>">
+loadjs.ready(["<?= $Page->FormName ?>","load"], () => <?= $Page->FormName ?>.updateLists(<?= $Page->RowIndex ?><?= $Page->RowIndex === '$rowindex$' ? ", true" : "" ?>));
 </script>
 <?php } ?>
 <?php
@@ -465,12 +425,11 @@ loadjs.ready(["ftorneolist","load"], () => ftorneolist.updateLists(<?= $Page->Ro
 </tbody>
 </table><!-- /.ew-table -->
 <?php } ?>
-</div><!-- /.ew-grid-middle-panel -->
 <?php if ($Page->isEdit()) { ?>
 <input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
-<?php if (!$Page->CurrentAction) { ?>
+</div><!-- /.ew-grid-middle-panel -->
+<?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>
 </form><!-- /.ew-list-form -->
@@ -482,10 +441,8 @@ if ($Page->Recordset) {
 ?>
 <?php if (!$Page->isExport()) { ?>
 <div class="card-footer ew-grid-lower-panel">
-<?php if (!$Page->isGridAdd()) { ?>
-<form name="ew-pager-form" class="ew-form ew-pager-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isGridAdd() && !($Page->isGridEdit() && $Page->ModalGridEdit) && !$Page->isMultiEdit()) { ?>
 <?= $Page->Pager->render() ?>
-</form>
 <?php } ?>
 <div class="ew-list-other-options">
 <?php $Page->OtherOptions->render("body", "bottom") ?>
@@ -498,6 +455,8 @@ if ($Page->Recordset) {
 <?php $Page->OtherOptions->render("body") ?>
 </div>
 <?php } ?>
+</div>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

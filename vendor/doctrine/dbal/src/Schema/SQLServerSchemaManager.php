@@ -90,7 +90,7 @@ class SQLServerSchemaManager extends AbstractSchemaManager
 SELECT name
 FROM   sys.schemas
 WHERE  name NOT IN('guest', 'INFORMATION_SCHEMA', 'sys')
-SQL
+SQL,
         );
     }
 
@@ -253,7 +253,7 @@ SQL
             $tableForeignKey['foreign_table'],
             $tableForeignKey['foreign_columns'],
             $tableForeignKey['name'],
-            $tableForeignKey['options']
+            $tableForeignKey['options'],
         );
     }
 
@@ -263,10 +263,10 @@ SQL
     protected function _getPortableTableDefinition($table)
     {
         if ($table['schema_name'] !== 'dbo') {
-            return $table['schema_name'] . '.' . $table['name'];
+            return $table['schema_name'] . '.' . $table['table_name'];
         }
 
-        return $table['name'];
+        return $table['table_name'];
     }
 
     /**
@@ -288,7 +288,7 @@ SQL
             'doctrine/dbal',
             'https://github.com/doctrine/dbal/issues/4503',
             'SQLServerSchemaManager::getPortableNamespaceDefinition() is deprecated,'
-                . ' use SQLServerSchemaManager::listSchemaNames() instead.'
+                . ' use SQLServerSchemaManager::listSchemaNames() instead.',
         );
 
         return $namespace['name'];
@@ -315,8 +315,8 @@ SQL
                         sprintf(
                             'ALTER TABLE %s DROP CONSTRAINT %s',
                             $tableDiff->name,
-                            $constraint
-                        )
+                            $constraint,
+                        ),
                     );
                 }
             }
@@ -350,21 +350,17 @@ WHERE t.name = ?
   AND c.name = ?
 SQL
             ,
-            [$table, $column]
+            [$table, $column],
         );
     }
 
-    /**
-     * @throws Exception
-     */
+    /** @throws Exception */
     public function createComparator(): Comparator
     {
         return new SQLServer\Comparator($this->_platform, $this->getDatabaseCollation());
     }
 
-    /**
-     * @throws Exception
-     */
+    /** @throws Exception */
     private function getDatabaseCollation(): string
     {
         if ($this->databaseCollation === null) {
@@ -386,7 +382,7 @@ SQL
     {
         // The "sysdiagrams" table must be ignored as it's internal SQL Server table for Database Diagrams
         $sql = <<<'SQL'
-SELECT name,
+SELECT name AS table_name,
        SCHEMA_NAME(schema_id) AS schema_name
 FROM sys.objects
 WHERE type = 'U'
@@ -402,7 +398,7 @@ SQL;
         $sql = 'SELECT';
 
         if ($tableName === null) {
-            $sql .= ' obj.name AS tablename,';
+            $sql .= ' obj.name AS table_name, scm.name AS schema_name,';
         }
 
         $sql .= <<<'SQL'
@@ -433,7 +429,8 @@ SQL;
                 AND       prop.name = 'MS_Description'
 SQL;
 
-        $conditions = ["obj.type = 'U'"];
+        // The "sysdiagrams" table must be ignored as it's internal SQL Server table for Database Diagrams
+        $conditions = ["obj.type = 'U'", "obj.name != 'sysdiagrams'"];
         $params     = [];
 
         if ($tableName !== null) {
@@ -450,7 +447,7 @@ SQL;
         $sql = 'SELECT';
 
         if ($tableName === null) {
-            $sql .= ' tbl.name AS tablename,';
+            $sql .= ' tbl.name AS table_name, scm.name AS schema_name,';
         }
 
         $sql .= <<<'SQL'
@@ -494,7 +491,7 @@ SQL;
         $sql = 'SELECT';
 
         if ($tableName === null) {
-            $sql .= ' OBJECT_NAME (f.parent_object_id),';
+            $sql .= ' OBJECT_NAME (f.parent_object_id) AS table_name, SCHEMA_NAME(f.schema_id) AS schema_name,';
         }
 
         $sql .= <<<'SQL'
@@ -520,7 +517,7 @@ SQL;
             $conditions[] = $this->getTableWhereClause(
                 $tableName,
                 'SCHEMA_NAME(f.schema_id)',
-                'OBJECT_NAME(f.parent_object_id)'
+                'OBJECT_NAME(f.parent_object_id)',
             );
 
             $sql .= ' WHERE ' . implode(' AND ', $conditions);

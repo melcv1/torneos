@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class ParticipanteAdd extends Participante
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'participante';
-
     // Page object name
     public $PageObjName = "ParticipanteAdd";
 
@@ -34,6 +31,9 @@ class ParticipanteAdd extends Participante
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "participanteadd";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class ParticipanteAdd extends Participante
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class ParticipanteAdd extends Participante
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'participante';
+        $this->TableName = 'participante';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-desktop-table ew-add-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (participante)
         if (!isset($GLOBALS["participante"]) || get_class($GLOBALS["participante"]) == PROJECT_NAMESPACE . "participante") {
@@ -164,14 +147,14 @@ class ParticipanteAdd extends Participante
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class ParticipanteAdd extends Participante
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class ParticipanteAdd extends Participante
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("participante");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class ParticipanteAdd extends Participante
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -280,18 +244,17 @@ class ParticipanteAdd extends Participante
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => GetUrl($url), "modal" => "1"];
+                $result = ["url" => GetUrl($url), "modal" => "1"];
                 $pageName = GetPageName($url);
-                if ($pageName != $this->getListUrl()) { // Not List page
-                    $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "participanteview") {
-                        $row["view"] = "1";
-                    }
-                } else { // List page should not be shown as modal => error
-                    $row["error"] = $this->getFailureMessage();
+                if ($pageName != $this->getListUrl()) { // Not List page => View page
+                    $result["caption"] = $this->getModalCaption($pageName);
+                    $result["view"] = $pageName == "participanteview";
+                } else { // List page
+                    // $result["list"] = $this->PageID == "search"; // Refresh List page if current page is Search page
+                    $result["error"] = $this->getFailureMessage(); // List page should not be shown as modal => error
                     $this->clearFailureMessage();
                 }
-                WriteJson($row);
+                WriteJson($result);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -400,6 +363,11 @@ class ParticipanteAdd extends Participante
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -463,7 +431,6 @@ class ParticipanteAdd extends Participante
     public $DbDetailFilter = "";
     public $StartRecord;
     public $Priv = 0;
-    public $OldRecordset;
     public $CopyRecord;
 
     /**
@@ -473,15 +440,17 @@ class ParticipanteAdd extends Participante
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $SkipHeaderFooter;
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -496,7 +465,6 @@ class ParticipanteAdd extends Participante
         $this->crea_dato->Visible = false;
         $this->modifica_dato->Visible = false;
         $this->usuario_dato->Visible = false;
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -511,7 +479,14 @@ class ParticipanteAdd extends Participante
             $this->pageLoad();
         }
 
-        // Set up lookup cache
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
+        }
 
         // Load default values for add
         $this->loadDefaultValues();
@@ -521,7 +496,6 @@ class ParticipanteAdd extends Participante
             $SkipHeaderFooter = true;
         }
         $this->IsMobileOrModal = IsMobile() || $this->IsModal;
-        $this->FormClassName = "ew-form ew-add-form";
         $postBack = false;
 
         // Set up current action
@@ -546,8 +520,8 @@ class ParticipanteAdd extends Participante
             }
         }
 
-        // Load old record / default values
-        $loaded = $this->loadOldRecord();
+        // Load old record or default values
+        $rsold = $this->loadOldRecord();
 
         // Load form values
         if ($postBack) {
@@ -571,7 +545,7 @@ class ParticipanteAdd extends Participante
         // Perform current action
         switch ($this->CurrentAction) {
             case "copy": // Copy an existing record
-                if (!$loaded) { // Record not loaded
+                if (!$rsold) { // Record not loaded
                     if ($this->getFailureMessage() == "") {
                         $this->setFailureMessage($Language->phrase("NoRecord")); // No record found
                     }
@@ -581,7 +555,11 @@ class ParticipanteAdd extends Participante
                 break;
             case "insert": // Add new record
                 $this->SendEmail = true; // Send email on add success
-                if ($this->addRow($this->OldRecordset)) { // Add successful
+                if ($this->addRow($rsold)) {
+                    // Do not return Json for UseAjaxActions
+                    if ($this->IsModal && $this->UseAjaxActions) {
+                        $this->IsModal = false;
+                    }
                     if ($this->getSuccessMessage() == "" && Post("addopt") != "1") { // Skip success message for addopt (done in JavaScript)
                         $this->setSuccessMessage($Language->phrase("AddSuccess")); // Set up success message
                     }
@@ -591,7 +569,7 @@ class ParticipanteAdd extends Participante
                     } elseif (GetPageName($returnUrl) == "participanteview") {
                         $returnUrl = $this->getViewUrl(); // View page, return to View page with keyurl directly
                     }
-                    if (IsApi()) { // Return to caller
+                    if (IsJsonResponse()) { // Return to caller
                         $this->terminate(true);
                         return;
                     } else {
@@ -601,6 +579,11 @@ class ParticipanteAdd extends Participante
                 } elseif (IsApi()) { // API request, return
                     $this->terminate();
                     return;
+                } elseif ($this->UseAjaxActions) { // Return JSON error message
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return; 
                 } else {
                     $this->EventCancelled = true; // Event cancelled
                     $this->restoreFormValues(); // Add failed, restore form values
@@ -649,7 +632,7 @@ class ParticipanteAdd extends Participante
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
         $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
@@ -816,16 +799,19 @@ class ParticipanteAdd extends Participante
     protected function loadOldRecord()
     {
         // Load old record
-        $this->OldRecordset = null;
-        $validKey = $this->OldKey != "";
-        if ($validKey) {
+        if ($this->OldKey != "") {
+            $this->setKey($this->OldKey);
             $this->CurrentFilter = $this->getRecordFilter();
             $sql = $this->getCurrentSql();
             $conn = $this->getConnection();
-            $this->OldRecordset = LoadRecordset($sql, $conn);
+            $rs = LoadRecordset($sql, $conn);
+            if ($rs && ($row = $rs->fields)) {
+                $this->loadRowValues($row); // Load row values
+                return $row;
+            }
         }
-        $this->loadRowValues($this->OldRecordset); // Load row values
-        return $validKey;
+        $this->loadRowValues(); // Load default row values
+        return null;
     }
 
     // Render row values based on field settings
@@ -874,94 +860,74 @@ class ParticipanteAdd extends Participante
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->CurrentValue;
-            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
             // NOMBRE
             $this->NOMBRE->ViewValue = $this->NOMBRE->CurrentValue;
-            $this->NOMBRE->ViewCustomAttributes = "";
 
             // APELLIDO
             $this->APELLIDO->ViewValue = $this->APELLIDO->CurrentValue;
-            $this->APELLIDO->ViewCustomAttributes = "";
 
             // FECHA_NACIMIENTO
             $this->FECHA_NACIMIENTO->ViewValue = $this->FECHA_NACIMIENTO->CurrentValue;
-            $this->FECHA_NACIMIENTO->ViewCustomAttributes = "";
 
             // CEDULA
             $this->CEDULA->ViewValue = $this->CEDULA->CurrentValue;
-            $this->CEDULA->ViewCustomAttributes = "";
 
             // EMAIL
             $this->_EMAIL->ViewValue = $this->_EMAIL->CurrentValue;
-            $this->_EMAIL->ViewCustomAttributes = "";
 
             // TELEFONO
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
-            $this->TELEFONO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // NOMBRE
-            $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
 
             // APELLIDO
-            $this->APELLIDO->LinkCustomAttributes = "";
             $this->APELLIDO->HrefValue = "";
 
             // FECHA_NACIMIENTO
-            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
             $this->FECHA_NACIMIENTO->HrefValue = "";
 
             // CEDULA
-            $this->CEDULA->LinkCustomAttributes = "";
             $this->CEDULA->HrefValue = "";
 
             // EMAIL
-            $this->_EMAIL->LinkCustomAttributes = "";
             $this->_EMAIL->HrefValue = "";
 
             // TELEFONO
-            $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // NOMBRE
             $this->NOMBRE->setupEditAttributes();
-            $this->NOMBRE->EditCustomAttributes = "";
             $this->NOMBRE->EditValue = HtmlEncode($this->NOMBRE->CurrentValue);
             $this->NOMBRE->PlaceHolder = RemoveHtml($this->NOMBRE->caption());
 
             // APELLIDO
             $this->APELLIDO->setupEditAttributes();
-            $this->APELLIDO->EditCustomAttributes = "";
             $this->APELLIDO->EditValue = HtmlEncode($this->APELLIDO->CurrentValue);
             $this->APELLIDO->PlaceHolder = RemoveHtml($this->APELLIDO->caption());
 
             // FECHA_NACIMIENTO
             $this->FECHA_NACIMIENTO->setupEditAttributes();
-            $this->FECHA_NACIMIENTO->EditCustomAttributes = "";
             $this->FECHA_NACIMIENTO->EditValue = HtmlEncode($this->FECHA_NACIMIENTO->CurrentValue);
             $this->FECHA_NACIMIENTO->PlaceHolder = RemoveHtml($this->FECHA_NACIMIENTO->caption());
 
             // CEDULA
             $this->CEDULA->setupEditAttributes();
-            $this->CEDULA->EditCustomAttributes = "";
             if (!$this->CEDULA->Raw) {
                 $this->CEDULA->CurrentValue = HtmlDecode($this->CEDULA->CurrentValue);
             }
@@ -970,13 +936,11 @@ class ParticipanteAdd extends Participante
 
             // EMAIL
             $this->_EMAIL->setupEditAttributes();
-            $this->_EMAIL->EditCustomAttributes = "";
             $this->_EMAIL->EditValue = HtmlEncode($this->_EMAIL->CurrentValue);
             $this->_EMAIL->PlaceHolder = RemoveHtml($this->_EMAIL->caption());
 
             // TELEFONO
             $this->TELEFONO->setupEditAttributes();
-            $this->TELEFONO->EditCustomAttributes = "";
             if (!$this->TELEFONO->Raw) {
                 $this->TELEFONO->CurrentValue = HtmlDecode($this->TELEFONO->CurrentValue);
             }
@@ -986,27 +950,21 @@ class ParticipanteAdd extends Participante
             // Add refer script
 
             // NOMBRE
-            $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
 
             // APELLIDO
-            $this->APELLIDO->LinkCustomAttributes = "";
             $this->APELLIDO->HrefValue = "";
 
             // FECHA_NACIMIENTO
-            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
             $this->FECHA_NACIMIENTO->HrefValue = "";
 
             // CEDULA
-            $this->CEDULA->LinkCustomAttributes = "";
             $this->CEDULA->HrefValue = "";
 
             // EMAIL
-            $this->_EMAIL->LinkCustomAttributes = "";
             $this->_EMAIL->HrefValue = "";
 
             // TELEFONO
-            $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
@@ -1022,7 +980,7 @@ class ParticipanteAdd extends Participante
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -1104,14 +1062,14 @@ class ParticipanteAdd extends Participante
 
         // Load db values from old row
         $this->loadDbValues($rsold);
-        if ($rsold) {
-        }
 
         // Call Row Inserting event
         $insertRow = $this->rowInserting($rsold, $rsnew);
         if ($insertRow) {
             $addRow = $this->insert($rsnew);
             if ($addRow) {
+            } elseif (!EmptyValue($this->DbErrorMessage)) { // Show database error
+                $this->setFailureMessage($this->DbErrorMessage);
             }
         } else {
             if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
@@ -1129,14 +1087,11 @@ class ParticipanteAdd extends Participante
             $this->rowInserted($rsold, $rsnew);
         }
 
-        // Clean upload path if any
-        if ($addRow) {
-        }
-
-        // Write JSON for API request
-        if (IsApi() && $addRow) {
+        // Write JSON response
+        if (IsJsonResponse() && $addRow) {
             $row = $this->getRecordsFromRecordset([$rsnew], true);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+            $table = $this->TableVar;
+            WriteJson(["success" => true, "action" => Config("API_ADD_ACTION"), $table => $row]);
         }
         return $addRow;
     }
@@ -1183,7 +1138,11 @@ class ParticipanteAdd extends Participante
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1242,6 +1201,14 @@ class ParticipanteAdd extends Participante
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 
     // Form Custom Validate event

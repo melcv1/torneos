@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EquipotorneoAddopt extends Equipotorneo
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'equipotorneo';
-
     // Page object name
     public $PageObjName = "EquipotorneoAddopt";
 
@@ -34,6 +31,9 @@ class EquipotorneoAddopt extends Equipotorneo
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "equipotorneoaddopt";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class EquipotorneoAddopt extends Equipotorneo
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class EquipotorneoAddopt extends Equipotorneo
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'equipotorneo';
+        $this->TableName = 'equipotorneo';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (equipotorneo)
         if (!isset($GLOBALS["equipotorneo"]) || get_class($GLOBALS["equipotorneo"]) == PROJECT_NAMESPACE . "equipotorneo") {
@@ -164,14 +147,14 @@ class EquipotorneoAddopt extends Equipotorneo
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class EquipotorneoAddopt extends Equipotorneo
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("equipotorneo");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class EquipotorneoAddopt extends Equipotorneo
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -383,6 +347,11 @@ class EquipotorneoAddopt extends Equipotorneo
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -449,10 +418,13 @@ class EquipotorneoAddopt extends Equipotorneo
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -472,7 +444,6 @@ class EquipotorneoAddopt extends Equipotorneo
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -485,6 +456,15 @@ class EquipotorneoAddopt extends Equipotorneo
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -537,21 +517,21 @@ class EquipotorneoAddopt extends Equipotorneo
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->PARTIDOS_JUGADOS->DefaultValue = 0;
+        $this->PARTIDOS_JUGADOS->DefaultValue = $this->PARTIDOS_JUGADOS->getDefault(); // PHP
         $this->PARTIDOS_JUGADOS->OldValue = $this->PARTIDOS_JUGADOS->DefaultValue;
-        $this->PARTIDOS_GANADOS->DefaultValue = 0;
+        $this->PARTIDOS_GANADOS->DefaultValue = $this->PARTIDOS_GANADOS->getDefault(); // PHP
         $this->PARTIDOS_GANADOS->OldValue = $this->PARTIDOS_GANADOS->DefaultValue;
-        $this->PARTIDOS_EMPATADOS->DefaultValue = 0;
+        $this->PARTIDOS_EMPATADOS->DefaultValue = $this->PARTIDOS_EMPATADOS->getDefault(); // PHP
         $this->PARTIDOS_EMPATADOS->OldValue = $this->PARTIDOS_EMPATADOS->DefaultValue;
-        $this->PARTIDOS_PERDIDOS->DefaultValue = 0;
+        $this->PARTIDOS_PERDIDOS->DefaultValue = $this->PARTIDOS_PERDIDOS->getDefault(); // PHP
         $this->PARTIDOS_PERDIDOS->OldValue = $this->PARTIDOS_PERDIDOS->DefaultValue;
-        $this->GF->DefaultValue = 0;
+        $this->GF->DefaultValue = $this->GF->getDefault(); // PHP
         $this->GF->OldValue = $this->GF->DefaultValue;
-        $this->GC->DefaultValue = 0;
+        $this->GC->DefaultValue = $this->GC->getDefault(); // PHP
         $this->GC->OldValue = $this->GC->DefaultValue;
-        $this->GD->DefaultValue = 0;
+        $this->GD->DefaultValue = $this->GD->getDefault(); // PHP
         $this->GD->OldValue = $this->GD->DefaultValue;
-        $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
         $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
@@ -565,87 +545,87 @@ class EquipotorneoAddopt extends Equipotorneo
         // Check field name 'ID_TORNEO' first before field var 'x_ID_TORNEO'
         $val = $CurrentForm->hasValue("ID_TORNEO") ? $CurrentForm->getValue("ID_TORNEO") : $CurrentForm->getValue("x_ID_TORNEO");
         if (!$this->ID_TORNEO->IsDetailKey) {
-            $this->ID_TORNEO->setFormValue(ConvertFromUtf8($val));
+            $this->ID_TORNEO->setFormValue($val);
         }
 
         // Check field name 'ID_EQUIPO' first before field var 'x_ID_EQUIPO'
         $val = $CurrentForm->hasValue("ID_EQUIPO") ? $CurrentForm->getValue("ID_EQUIPO") : $CurrentForm->getValue("x_ID_EQUIPO");
         if (!$this->ID_EQUIPO->IsDetailKey) {
-            $this->ID_EQUIPO->setFormValue(ConvertFromUtf8($val));
+            $this->ID_EQUIPO->setFormValue($val);
         }
 
         // Check field name 'PARTIDOS_JUGADOS' first before field var 'x_PARTIDOS_JUGADOS'
         $val = $CurrentForm->hasValue("PARTIDOS_JUGADOS") ? $CurrentForm->getValue("PARTIDOS_JUGADOS") : $CurrentForm->getValue("x_PARTIDOS_JUGADOS");
         if (!$this->PARTIDOS_JUGADOS->IsDetailKey) {
-            $this->PARTIDOS_JUGADOS->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->PARTIDOS_JUGADOS->setFormValue($val, true, $validate);
         }
 
         // Check field name 'PARTIDOS_GANADOS' first before field var 'x_PARTIDOS_GANADOS'
         $val = $CurrentForm->hasValue("PARTIDOS_GANADOS") ? $CurrentForm->getValue("PARTIDOS_GANADOS") : $CurrentForm->getValue("x_PARTIDOS_GANADOS");
         if (!$this->PARTIDOS_GANADOS->IsDetailKey) {
-            $this->PARTIDOS_GANADOS->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->PARTIDOS_GANADOS->setFormValue($val, true, $validate);
         }
 
         // Check field name 'PARTIDOS_EMPATADOS' first before field var 'x_PARTIDOS_EMPATADOS'
         $val = $CurrentForm->hasValue("PARTIDOS_EMPATADOS") ? $CurrentForm->getValue("PARTIDOS_EMPATADOS") : $CurrentForm->getValue("x_PARTIDOS_EMPATADOS");
         if (!$this->PARTIDOS_EMPATADOS->IsDetailKey) {
-            $this->PARTIDOS_EMPATADOS->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->PARTIDOS_EMPATADOS->setFormValue($val, true, $validate);
         }
 
         // Check field name 'PARTIDOS_PERDIDOS' first before field var 'x_PARTIDOS_PERDIDOS'
         $val = $CurrentForm->hasValue("PARTIDOS_PERDIDOS") ? $CurrentForm->getValue("PARTIDOS_PERDIDOS") : $CurrentForm->getValue("x_PARTIDOS_PERDIDOS");
         if (!$this->PARTIDOS_PERDIDOS->IsDetailKey) {
-            $this->PARTIDOS_PERDIDOS->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->PARTIDOS_PERDIDOS->setFormValue($val, true, $validate);
         }
 
         // Check field name 'GF' first before field var 'x_GF'
         $val = $CurrentForm->hasValue("GF") ? $CurrentForm->getValue("GF") : $CurrentForm->getValue("x_GF");
         if (!$this->GF->IsDetailKey) {
-            $this->GF->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->GF->setFormValue($val, true, $validate);
         }
 
         // Check field name 'GC' first before field var 'x_GC'
         $val = $CurrentForm->hasValue("GC") ? $CurrentForm->getValue("GC") : $CurrentForm->getValue("x_GC");
         if (!$this->GC->IsDetailKey) {
-            $this->GC->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->GC->setFormValue($val, true, $validate);
         }
 
         // Check field name 'GD' first before field var 'x_GD'
         $val = $CurrentForm->hasValue("GD") ? $CurrentForm->getValue("GD") : $CurrentForm->getValue("x_GD");
         if (!$this->GD->IsDetailKey) {
-            $this->GD->setFormValue(ConvertFromUtf8($val), true, $validate);
+            $this->GD->setFormValue($val, true, $validate);
         }
 
         // Check field name 'GRUPO' first before field var 'x_GRUPO'
         $val = $CurrentForm->hasValue("GRUPO") ? $CurrentForm->getValue("GRUPO") : $CurrentForm->getValue("x_GRUPO");
         if (!$this->GRUPO->IsDetailKey) {
-            $this->GRUPO->setFormValue(ConvertFromUtf8($val));
+            $this->GRUPO->setFormValue($val);
         }
 
         // Check field name 'POSICION_EQUIPO_TORENO' first before field var 'x_POSICION_EQUIPO_TORENO'
         $val = $CurrentForm->hasValue("POSICION_EQUIPO_TORENO") ? $CurrentForm->getValue("POSICION_EQUIPO_TORENO") : $CurrentForm->getValue("x_POSICION_EQUIPO_TORENO");
         if (!$this->POSICION_EQUIPO_TORENO->IsDetailKey) {
-            $this->POSICION_EQUIPO_TORENO->setFormValue(ConvertFromUtf8($val));
+            $this->POSICION_EQUIPO_TORENO->setFormValue($val);
         }
 
         // Check field name 'crea_dato' first before field var 'x_crea_dato'
         $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
         if (!$this->crea_dato->IsDetailKey) {
-            $this->crea_dato->setFormValue(ConvertFromUtf8($val));
+            $this->crea_dato->setFormValue($val);
             $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
         }
 
         // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
         $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
         if (!$this->modifica_dato->IsDetailKey) {
-            $this->modifica_dato->setFormValue(ConvertFromUtf8($val));
+            $this->modifica_dato->setFormValue($val);
             $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
         }
 
         // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
         $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
         if (!$this->usuario_dato->IsDetailKey) {
-            $this->usuario_dato->setFormValue(ConvertFromUtf8($val));
+            $this->usuario_dato->setFormValue($val);
         }
 
         // Check field name 'ID_EQUIPO_TORNEO' first before field var 'x_ID_EQUIPO_TORNEO'
@@ -826,14 +806,13 @@ class EquipotorneoAddopt extends Equipotorneo
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_EQUIPO_TORNEO
             $this->ID_EQUIPO_TORNEO->ViewValue = $this->ID_EQUIPO_TORNEO->CurrentValue;
-            $this->ID_EQUIPO_TORNEO->ViewCustomAttributes = "";
 
             // ID_TORNEO
             $curVal = strval($this->ID_TORNEO->CurrentValue);
             if ($curVal != "") {
                 $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
                 if ($this->ID_TORNEO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ID_TORNEO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -850,7 +829,6 @@ class EquipotorneoAddopt extends Equipotorneo
             } else {
                 $this->ID_TORNEO->ViewValue = null;
             }
-            $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // ID_EQUIPO
             if ($this->ID_EQUIPO->VirtualValue != "") {
@@ -860,7 +838,7 @@ class EquipotorneoAddopt extends Equipotorneo
                 if ($curVal != "") {
                     $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
                     if ($this->ID_EQUIPO->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -878,42 +856,34 @@ class EquipotorneoAddopt extends Equipotorneo
                     $this->ID_EQUIPO->ViewValue = null;
                 }
             }
-            $this->ID_EQUIPO->ViewCustomAttributes = "";
 
             // PARTIDOS_JUGADOS
             $this->PARTIDOS_JUGADOS->ViewValue = $this->PARTIDOS_JUGADOS->CurrentValue;
             $this->PARTIDOS_JUGADOS->ViewValue = FormatNumber($this->PARTIDOS_JUGADOS->ViewValue, $this->PARTIDOS_JUGADOS->formatPattern());
-            $this->PARTIDOS_JUGADOS->ViewCustomAttributes = "";
 
             // PARTIDOS_GANADOS
             $this->PARTIDOS_GANADOS->ViewValue = $this->PARTIDOS_GANADOS->CurrentValue;
             $this->PARTIDOS_GANADOS->ViewValue = FormatNumber($this->PARTIDOS_GANADOS->ViewValue, $this->PARTIDOS_GANADOS->formatPattern());
-            $this->PARTIDOS_GANADOS->ViewCustomAttributes = "";
 
             // PARTIDOS_EMPATADOS
             $this->PARTIDOS_EMPATADOS->ViewValue = $this->PARTIDOS_EMPATADOS->CurrentValue;
             $this->PARTIDOS_EMPATADOS->ViewValue = FormatNumber($this->PARTIDOS_EMPATADOS->ViewValue, $this->PARTIDOS_EMPATADOS->formatPattern());
-            $this->PARTIDOS_EMPATADOS->ViewCustomAttributes = "";
 
             // PARTIDOS_PERDIDOS
             $this->PARTIDOS_PERDIDOS->ViewValue = $this->PARTIDOS_PERDIDOS->CurrentValue;
             $this->PARTIDOS_PERDIDOS->ViewValue = FormatNumber($this->PARTIDOS_PERDIDOS->ViewValue, $this->PARTIDOS_PERDIDOS->formatPattern());
-            $this->PARTIDOS_PERDIDOS->ViewCustomAttributes = "";
 
             // GF
             $this->GF->ViewValue = $this->GF->CurrentValue;
             $this->GF->ViewValue = FormatNumber($this->GF->ViewValue, $this->GF->formatPattern());
-            $this->GF->ViewCustomAttributes = "";
 
             // GC
             $this->GC->ViewValue = $this->GC->CurrentValue;
             $this->GC->ViewValue = FormatNumber($this->GC->ViewValue, $this->GC->formatPattern());
-            $this->GC->ViewCustomAttributes = "";
 
             // GD
             $this->GD->ViewValue = $this->GD->CurrentValue;
             $this->GD->ViewValue = FormatNumber($this->GD->ViewValue, $this->GD->formatPattern());
-            $this->GD->ViewCustomAttributes = "";
 
             // GRUPO
             if (strval($this->GRUPO->CurrentValue) != "") {
@@ -921,7 +891,6 @@ class EquipotorneoAddopt extends Equipotorneo
             } else {
                 $this->GRUPO->ViewValue = null;
             }
-            $this->GRUPO->ViewCustomAttributes = "";
 
             // POSICION_EQUIPO_TORENO
             if (strval($this->POSICION_EQUIPO_TORENO->CurrentValue) != "") {
@@ -929,99 +898,80 @@ class EquipotorneoAddopt extends Equipotorneo
             } else {
                 $this->POSICION_EQUIPO_TORENO->ViewValue = null;
             }
-            $this->POSICION_EQUIPO_TORENO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
             $this->ID_TORNEO->TooltipValue = "";
 
             // ID_EQUIPO
-            $this->ID_EQUIPO->LinkCustomAttributes = "";
             $this->ID_EQUIPO->HrefValue = "";
             $this->ID_EQUIPO->TooltipValue = "";
 
             // PARTIDOS_JUGADOS
-            $this->PARTIDOS_JUGADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_JUGADOS->HrefValue = "";
             $this->PARTIDOS_JUGADOS->TooltipValue = "";
 
             // PARTIDOS_GANADOS
-            $this->PARTIDOS_GANADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_GANADOS->HrefValue = "";
             $this->PARTIDOS_GANADOS->TooltipValue = "";
 
             // PARTIDOS_EMPATADOS
-            $this->PARTIDOS_EMPATADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_EMPATADOS->HrefValue = "";
             $this->PARTIDOS_EMPATADOS->TooltipValue = "";
 
             // PARTIDOS_PERDIDOS
-            $this->PARTIDOS_PERDIDOS->LinkCustomAttributes = "";
             $this->PARTIDOS_PERDIDOS->HrefValue = "";
             $this->PARTIDOS_PERDIDOS->TooltipValue = "";
 
             // GF
-            $this->GF->LinkCustomAttributes = "";
             $this->GF->HrefValue = "";
             $this->GF->TooltipValue = "";
 
             // GC
-            $this->GC->LinkCustomAttributes = "";
             $this->GC->HrefValue = "";
             $this->GC->TooltipValue = "";
 
             // GD
-            $this->GD->LinkCustomAttributes = "";
             $this->GD->HrefValue = "";
             $this->GD->TooltipValue = "";
 
             // GRUPO
-            $this->GRUPO->LinkCustomAttributes = "";
             $this->GRUPO->HrefValue = "";
             $this->GRUPO->TooltipValue = "";
 
             // POSICION_EQUIPO_TORENO
-            $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
             $this->POSICION_EQUIPO_TORENO->HrefValue = "";
             $this->POSICION_EQUIPO_TORENO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // ID_TORNEO
             $this->ID_TORNEO->setupEditAttributes();
-            $this->ID_TORNEO->EditCustomAttributes = "";
             $curVal = trim(strval($this->ID_TORNEO->CurrentValue));
             if ($curVal != "") {
                 $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
@@ -1034,7 +984,7 @@ class EquipotorneoAddopt extends Equipotorneo
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $this->ID_TORNEO->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $this->ID_TORNEO->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->ID_TORNEO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1049,7 +999,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // ID_EQUIPO
             $this->ID_EQUIPO->setupEditAttributes();
-            $this->ID_EQUIPO->EditCustomAttributes = "";
             $curVal = trim(strval($this->ID_EQUIPO->CurrentValue));
             if ($curVal != "") {
                 $this->ID_EQUIPO->ViewValue = $this->ID_EQUIPO->lookupCacheOption($curVal);
@@ -1062,7 +1011,7 @@ class EquipotorneoAddopt extends Equipotorneo
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_EQUIPO`" . SearchString("=", $this->ID_EQUIPO->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $this->ID_EQUIPO->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->ID_EQUIPO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1077,7 +1026,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // PARTIDOS_JUGADOS
             $this->PARTIDOS_JUGADOS->setupEditAttributes();
-            $this->PARTIDOS_JUGADOS->EditCustomAttributes = "";
             $this->PARTIDOS_JUGADOS->EditValue = HtmlEncode($this->PARTIDOS_JUGADOS->CurrentValue);
             $this->PARTIDOS_JUGADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_JUGADOS->caption());
             if (strval($this->PARTIDOS_JUGADOS->EditValue) != "" && is_numeric($this->PARTIDOS_JUGADOS->EditValue)) {
@@ -1086,7 +1034,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // PARTIDOS_GANADOS
             $this->PARTIDOS_GANADOS->setupEditAttributes();
-            $this->PARTIDOS_GANADOS->EditCustomAttributes = "";
             $this->PARTIDOS_GANADOS->EditValue = HtmlEncode($this->PARTIDOS_GANADOS->CurrentValue);
             $this->PARTIDOS_GANADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_GANADOS->caption());
             if (strval($this->PARTIDOS_GANADOS->EditValue) != "" && is_numeric($this->PARTIDOS_GANADOS->EditValue)) {
@@ -1095,7 +1042,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // PARTIDOS_EMPATADOS
             $this->PARTIDOS_EMPATADOS->setupEditAttributes();
-            $this->PARTIDOS_EMPATADOS->EditCustomAttributes = "";
             $this->PARTIDOS_EMPATADOS->EditValue = HtmlEncode($this->PARTIDOS_EMPATADOS->CurrentValue);
             $this->PARTIDOS_EMPATADOS->PlaceHolder = RemoveHtml($this->PARTIDOS_EMPATADOS->caption());
             if (strval($this->PARTIDOS_EMPATADOS->EditValue) != "" && is_numeric($this->PARTIDOS_EMPATADOS->EditValue)) {
@@ -1104,7 +1050,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // PARTIDOS_PERDIDOS
             $this->PARTIDOS_PERDIDOS->setupEditAttributes();
-            $this->PARTIDOS_PERDIDOS->EditCustomAttributes = "";
             $this->PARTIDOS_PERDIDOS->EditValue = HtmlEncode($this->PARTIDOS_PERDIDOS->CurrentValue);
             $this->PARTIDOS_PERDIDOS->PlaceHolder = RemoveHtml($this->PARTIDOS_PERDIDOS->caption());
             if (strval($this->PARTIDOS_PERDIDOS->EditValue) != "" && is_numeric($this->PARTIDOS_PERDIDOS->EditValue)) {
@@ -1113,7 +1058,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // GF
             $this->GF->setupEditAttributes();
-            $this->GF->EditCustomAttributes = "";
             $this->GF->EditValue = HtmlEncode($this->GF->CurrentValue);
             $this->GF->PlaceHolder = RemoveHtml($this->GF->caption());
             if (strval($this->GF->EditValue) != "" && is_numeric($this->GF->EditValue)) {
@@ -1122,7 +1066,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // GC
             $this->GC->setupEditAttributes();
-            $this->GC->EditCustomAttributes = "";
             $this->GC->EditValue = HtmlEncode($this->GC->CurrentValue);
             $this->GC->PlaceHolder = RemoveHtml($this->GC->caption());
             if (strval($this->GC->EditValue) != "" && is_numeric($this->GC->EditValue)) {
@@ -1131,7 +1074,6 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // GD
             $this->GD->setupEditAttributes();
-            $this->GD->EditCustomAttributes = "";
             $this->GD->EditValue = HtmlEncode($this->GD->CurrentValue);
             $this->GD->PlaceHolder = RemoveHtml($this->GD->caption());
             if (strval($this->GD->EditValue) != "" && is_numeric($this->GD->EditValue)) {
@@ -1140,87 +1082,68 @@ class EquipotorneoAddopt extends Equipotorneo
 
             // GRUPO
             $this->GRUPO->setupEditAttributes();
-            $this->GRUPO->EditCustomAttributes = "";
             $this->GRUPO->EditValue = $this->GRUPO->options(true);
             $this->GRUPO->PlaceHolder = RemoveHtml($this->GRUPO->caption());
 
             // POSICION_EQUIPO_TORENO
             $this->POSICION_EQUIPO_TORENO->setupEditAttributes();
-            $this->POSICION_EQUIPO_TORENO->EditCustomAttributes = "";
             $this->POSICION_EQUIPO_TORENO->EditValue = $this->POSICION_EQUIPO_TORENO->options(true);
             $this->POSICION_EQUIPO_TORENO->PlaceHolder = RemoveHtml($this->POSICION_EQUIPO_TORENO->caption());
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
             // usuario_dato
             $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
             $this->usuario_dato->CurrentValue = CurrentUserName();
 
             // Add refer script
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
 
             // ID_EQUIPO
-            $this->ID_EQUIPO->LinkCustomAttributes = "";
             $this->ID_EQUIPO->HrefValue = "";
 
             // PARTIDOS_JUGADOS
-            $this->PARTIDOS_JUGADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_JUGADOS->HrefValue = "";
 
             // PARTIDOS_GANADOS
-            $this->PARTIDOS_GANADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_GANADOS->HrefValue = "";
 
             // PARTIDOS_EMPATADOS
-            $this->PARTIDOS_EMPATADOS->LinkCustomAttributes = "";
             $this->PARTIDOS_EMPATADOS->HrefValue = "";
 
             // PARTIDOS_PERDIDOS
-            $this->PARTIDOS_PERDIDOS->LinkCustomAttributes = "";
             $this->PARTIDOS_PERDIDOS->HrefValue = "";
 
             // GF
-            $this->GF->LinkCustomAttributes = "";
             $this->GF->HrefValue = "";
 
             // GC
-            $this->GC->LinkCustomAttributes = "";
             $this->GC->HrefValue = "";
 
             // GD
-            $this->GD->LinkCustomAttributes = "";
             $this->GD->HrefValue = "";
 
             // GRUPO
-            $this->GRUPO->LinkCustomAttributes = "";
             $this->GRUPO->HrefValue = "";
 
             // POSICION_EQUIPO_TORENO
-            $this->POSICION_EQUIPO_TORENO->LinkCustomAttributes = "";
             $this->POSICION_EQUIPO_TORENO->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
@@ -1236,7 +1159,7 @@ class EquipotorneoAddopt extends Equipotorneo
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -1397,7 +1320,11 @@ class EquipotorneoAddopt extends Equipotorneo
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1456,5 +1383,13 @@ class EquipotorneoAddopt extends Equipotorneo
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

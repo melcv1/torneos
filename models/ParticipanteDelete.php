@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class ParticipanteDelete extends Participante
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'participante';
-
     // Page object name
     public $PageObjName = "ParticipanteDelete";
 
@@ -34,6 +31,9 @@ class ParticipanteDelete extends Participante
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "participantedelete";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class ParticipanteDelete extends Participante
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class ParticipanteDelete extends Participante
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'participante';
+        $this->TableName = 'participante';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (participante)
         if (!isset($GLOBALS["participante"]) || get_class($GLOBALS["participante"]) == PROJECT_NAMESPACE . "participante") {
@@ -164,14 +147,14 @@ class ParticipanteDelete extends Participante
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class ParticipanteDelete extends Participante
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class ParticipanteDelete extends Participante
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("participante");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class ParticipanteDelete extends Participante
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -390,10 +354,13 @@ class ParticipanteDelete extends Participante
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->ID_PARTICIPANTE->setVisibility();
         $this->NOMBRE->setVisibility();
@@ -405,7 +372,6 @@ class ParticipanteDelete extends Participante
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->Visible = false;
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -420,7 +386,14 @@ class ParticipanteDelete extends Participante
             $this->pageLoad();
         }
 
-        // Set up lookup cache
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
+        }
 
         // Set up Breadcrumb
         $this->setupBreadcrumb();
@@ -439,12 +412,12 @@ class ParticipanteDelete extends Participante
         // Get action
         if (IsApi()) {
             $this->CurrentAction = "delete"; // Delete record directly
-        } elseif (Post("action") !== null) {
-            $this->CurrentAction = Post("action");
-        } elseif (Get("action") == "1") {
-            $this->CurrentAction = "delete"; // Delete record directly
+        } elseif (Param("action") !== null) {
+            $this->CurrentAction = Param("action") == "delete" ? "delete" : "show";
         } else {
-            $this->CurrentAction = "show"; // Display record
+            $this->CurrentAction = $this->InlineDelete ?
+                "delete" : // Delete record directly
+                "show"; // Display record
         }
         if ($this->isDelete()) {
             $this->SendEmail = true; // Send email on delete success
@@ -452,7 +425,7 @@ class ParticipanteDelete extends Participante
                 if ($this->getSuccessMessage() == "") {
                     $this->setSuccessMessage($Language->phrase("DeleteSuccess")); // Set up success message
                 }
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate(true);
                     return;
                 } else {
@@ -460,11 +433,23 @@ class ParticipanteDelete extends Participante
                     return;
                 }
             } else { // Delete failed
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate();
                     return;
                 }
-                $this->CurrentAction = "show"; // Display record
+                // Return JSON error message if UseAjaxActions
+                if ($this->UseAjaxActions) {
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return;                    
+                }
+                if ($this->InlineDelete) {
+                    $this->terminate($this->getReturnUrl()); // Return to caller
+                    return;
+                } else {
+                    $this->CurrentAction = "show"; // Display record
+                }
             }
         }
         if ($this->isShow()) { // Load records for display
@@ -538,7 +523,7 @@ class ParticipanteDelete extends Participante
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -653,91 +638,72 @@ class ParticipanteDelete extends Participante
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->CurrentValue;
-            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
             // NOMBRE
             $this->NOMBRE->ViewValue = $this->NOMBRE->CurrentValue;
-            $this->NOMBRE->ViewCustomAttributes = "";
 
             // APELLIDO
             $this->APELLIDO->ViewValue = $this->APELLIDO->CurrentValue;
-            $this->APELLIDO->ViewCustomAttributes = "";
 
             // FECHA_NACIMIENTO
             $this->FECHA_NACIMIENTO->ViewValue = $this->FECHA_NACIMIENTO->CurrentValue;
-            $this->FECHA_NACIMIENTO->ViewCustomAttributes = "";
 
             // CEDULA
             $this->CEDULA->ViewValue = $this->CEDULA->CurrentValue;
-            $this->CEDULA->ViewCustomAttributes = "";
 
             // EMAIL
             $this->_EMAIL->ViewValue = $this->_EMAIL->CurrentValue;
-            $this->_EMAIL->ViewCustomAttributes = "";
 
             // TELEFONO
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
-            $this->TELEFONO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
             $this->ID_PARTICIPANTE->TooltipValue = "";
 
             // NOMBRE
-            $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
             $this->NOMBRE->TooltipValue = "";
 
             // APELLIDO
-            $this->APELLIDO->LinkCustomAttributes = "";
             $this->APELLIDO->HrefValue = "";
             $this->APELLIDO->TooltipValue = "";
 
             // FECHA_NACIMIENTO
-            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
             $this->FECHA_NACIMIENTO->HrefValue = "";
             $this->FECHA_NACIMIENTO->TooltipValue = "";
 
             // CEDULA
-            $this->CEDULA->LinkCustomAttributes = "";
             $this->CEDULA->HrefValue = "";
             $this->CEDULA->TooltipValue = "";
 
             // EMAIL
-            $this->_EMAIL->LinkCustomAttributes = "";
             $this->_EMAIL->HrefValue = "";
             $this->_EMAIL->TooltipValue = "";
 
             // TELEFONO
-            $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
             $this->TELEFONO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
         }
@@ -782,6 +748,9 @@ class ParticipanteDelete extends Participante
             $deleteRow = $this->rowDeleting($row);
             if ($deleteRow) { // Delete
                 $deleteRow = $this->delete($row);
+                if (!$deleteRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             }
             if ($deleteRow === false) {
                 if ($this->UseTransaction) {
@@ -820,7 +789,7 @@ class ParticipanteDelete extends Participante
 
             // Set warning message if delete some records failed
             if (count($failKeys) > 0) {
-                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
+                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteRecordsFailed")));
             }
         } else {
             if ($this->UseTransaction) { // Rollback transaction
@@ -828,10 +797,14 @@ class ParticipanteDelete extends Participante
             }
         }
 
-        // Write JSON for API request
-        if (IsApi() && $deleteRows) {
-            $row = $this->getRecordsFromRecordset($rsold);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+        // Write JSON response
+        if ((IsJsonResponse() || ConvertToBool(Param("infinitescroll"))) && $deleteRows) {
+            $rows = $this->getRecordsFromRecordset($rsold);
+            $table = $this->TableVar;
+            if (Route(2) !== null) { // Single delete
+                $rows = $rows[0]; // Return object
+            }
+            WriteJson(["success" => true, "action" => Config("API_DELETE_ACTION"), $table => $rows]);
         }
         return $deleteRows;
     }
@@ -878,7 +851,11 @@ class ParticipanteDelete extends Participante
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -937,5 +914,13 @@ class ParticipanteDelete extends Participante
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

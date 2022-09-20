@@ -1,15 +1,17 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Export to JSON
  */
-class ExportJson extends ExportBase
+class ExportJson extends AbstractExport
 {
+    public $FileExtension = "json";
+    public $Disposition = "inline";
+    public $HasParent;
     protected $Items;
     protected $Item;
-    public $HasParent;
 
     // Style
     public function setStyle($style)
@@ -17,17 +19,17 @@ class ExportJson extends ExportBase
     }
 
     // Field caption
-    public function exportCaption(&$fld)
+    public function exportCaption($fld)
     {
     }
 
     // Field value
-    public function exportValue(&$fld)
+    public function exportValue($fld)
     {
     }
 
     // Field aggregate
-    public function exportAggregate(&$fld, $type)
+    public function exportAggregate($fld, $type)
     {
     }
 
@@ -50,12 +52,12 @@ class ExportJson extends ExportBase
     }
 
     // Export a value (caption, field value, or aggregate)
-    protected function exportValueEx(&$fld, $val, $useStyle = true)
+    protected function exportValueEx($fld, $val)
     {
     }
 
     // Begin a row
-    public function beginExportRow($rowCnt = 0, $useStyle = true)
+    public function beginExportRow($rowCnt = 0)
     {
         if ($rowCnt <= 0) {
             return;
@@ -97,7 +99,7 @@ class ExportJson extends ExportBase
     }
 
     // Export a field
-    public function exportField(&$fld)
+    public function exportField($fld)
     {
         if ($fld->Exportable && $fld->DataType != DATATYPE_BLOB) {
             if ($fld->UploadMultiple) {
@@ -119,14 +121,20 @@ class ExportJson extends ExportBase
     }
 
     // Export
-    public function export()
+    public function export($fileName = "", $output = true, $save = false)
     {
-        //global $ExportFileName;
-        if (!Config("DEBUG") && ob_get_length()) {
-            ob_end_clean();
+        $encodingOptions = Config("DEBUG") ? JSON_PRETTY_PRINT : 0;
+        $json = json_encode(ConvertToUtf8($this->Items), $encodingOptions);
+        if ($json === false) {
+            $json = json_encode(["json_encode_error" => json_last_error()], $encodingOptions);
         }
-
-        //header('Content-Disposition: attachment; filename=' . $ExportFileName . '.json');
-        WriteJson($this->Items, Config("DEBUG") ? JSON_PRETTY_PRINT : 0);
+        $this->Text = $json;
+        if ($save) { // Save to folder
+            SaveFile(ExportPath(true), $this->getSaveFileName(), $this->Text);
+        }
+        if ($output) { // Output
+            $this->writeHeaders($fileName);
+            $this->write();
+        }
     }
 }

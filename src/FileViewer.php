@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * File Viewer class
@@ -35,12 +35,12 @@ class FileViewer
             $token = Get($GLOBALS["TokenName"] ?? "", "");
             $sessionId = Get("session", "");
             $fn = Get("fn", "");
-            if (!empty(Route(2)) && empty(Route(Config("API_KEY_NAME")))) {
+            if (!empty(Route(2)) && empty(Route(3))) {
                 $fn = Route(2);
             }
             $table = Get(Config("API_OBJECT_NAME"), Route(1));
             $field = Get(Config("API_FIELD_NAME"), Route(2));
-            $recordkey = Get(Config("API_KEY_NAME"), Route(Config("API_KEY_NAME")));
+            $recordkey = Get(Config("API_KEY_NAME"), Route(3, true));
             $resize = Get("resize", "0") == "1";
             $width = Get("width", 0);
             $height = Get("height", 0);
@@ -73,15 +73,13 @@ class FileViewer
 
         // Get image
         $res = false;
-        $func = function ($phpthumb) use ($width, $height) {
-            $phpthumb->adaptiveResize($width, $height);
-        };
+        $func = fn($phpthumb) => $phpthumb->adaptiveResize($width, $height);
         $plugins = $crop ? [$func] : [];
         if ($fn != "") { // Physical file
             $fn = str_replace("\0", "", $fn);
             $info = pathinfo($fn);
             if (file_exists($fn) || @fopen($fn, "rb") !== false) {
-                $ext = strtolower(@$info["extension"]);
+                $ext = strtolower($info["extension"] ?? "");
                 $isPdf = SameText($ext, "pdf");
                 $ct = MimeContentType($fn);
                 if ($ct) {

@@ -1020,19 +1020,25 @@ S2.define('select2/results',[
   };
 
   Results.prototype.option = function (data) {
-    var option = document.createElement('li');
-    option.classList.add('select2-results__option');
-    option.classList.add('select2-results__option--selectable');
+    var option;
+
+    if (data.children) {
+      option = this.$results.find("li[role=group]").filter(function() {
+          $(this).attrs('aria-label') == data.text;
+      })[0]; // Find existing option group //***
+    }
+
+    if (!option) {
+      option = document.createElement('li');
+      option.classList.add('select2-results__option');
+      option.classList.add('select2-results__option--selectable');
+    }
 
     var attrs = {
       'role': 'option'
     };
 
-    var matches = window.Element.prototype.matches ||
-      window.Element.prototype.msMatchesSelector ||
-      window.Element.prototype.webkitMatchesSelector;
-
-    if ((data.element != null && matches.call(data.element, ':disabled')) ||
+    if ((data.element != null && data.element.matches(':disabled')) || //***
         (data.element == null && data.disabled)) {
       attrs['aria-disabled'] = 'true';
 
@@ -6258,7 +6264,7 @@ S2.define('select2/selection/stopPropagation',[
         setup: function() {
             if ( this.addEventListener ) {
                 for ( var i = toBind.length; i; ) {
-                    this.addEventListener( toBind[--i], handler, false );
+                    this.addEventListener( toBind[--i], handler, { passive: true } ); //***
                 }
             } else {
                 this.onmousewheel = handler;
@@ -6271,7 +6277,7 @@ S2.define('select2/selection/stopPropagation',[
         teardown: function() {
             if ( this.removeEventListener ) {
                 for ( var i = toBind.length; i; ) {
-                    this.removeEventListener( toBind[--i], handler, false );
+                    this.removeEventListener( toBind[--i], handler, { passive: true } ); //***
                 }
             } else {
                 this.onmousewheel = null;

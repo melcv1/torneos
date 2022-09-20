@@ -1,5 +1,5 @@
 /*!
- * Core JavaScript for PHPMaker v2022.12.0
+ * Core JavaScript for PHPMaker v2023.0.0
  * Copyright (c) e.World Technology Limited. All rights reserved.
  */
 var ew = (function () {
@@ -269,22 +269,6 @@ var ew = (function () {
   }; // export
    //***
 
-  /**
-   * Language class
-   */
-  let Language =
-  /**
-   * Constructor
-   * @param {Object} obj Phrases
-   */
-  function Language(obj) {
-    this.obj = obj;
-
-    this.phrase = function (id) {
-      return this.obj[id.toLowerCase()];
-    };
-  };
-
   function _defineProperties(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
@@ -298,8 +282,75 @@ var ew = (function () {
   function _createClass(Constructor, protoProps, staticProps) {
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
     return Constructor;
   }
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  /**
+   * Language class
+   */
+  let Language = /*#__PURE__*/function () {
+    /**
+     * Constructor
+     * @param {Object} data Phrases
+     */
+    function Language(data) {
+      _defineProperty(this, "data", {});
+
+      this.data = data != null ? data : {};
+    }
+    /**
+     * Get phrase by ID
+     *
+     * @param {string} id ID
+     * @returns {string} Phrase
+     */
+
+    var _proto = Language.prototype;
+
+    _proto.phrase = function phrase(id) {
+      var _this$data$id$toLower;
+
+      return (_this$data$id$toLower = this.data[id.toLowerCase()]) != null ? _this$data$id$toLower : id;
+    }
+    /**
+     * Get phrases
+     */
+    ;
+
+    _createClass(Language, [{
+      key: "phrases",
+      get: function () {
+        return this.data;
+      }
+      /**
+       * Set phrases
+       */
+      ,
+      set: function (value) {
+        this.data = value;
+      }
+    }]);
+
+    return Language;
+  }();
 
   function _assertThisInitialized(self) {
     if (self === void 0) {
@@ -399,33 +450,136 @@ var ew = (function () {
     return _wrapNativeSuper(Class);
   }
 
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
   /**
    * Class selection list option
    */
-  let SelectionListOption =
-  /**
-   * Constructor
-   */
-  function SelectionListOption(value, text, selected) {
-    this.value = String(value);
-    this.text = String(text);
-    this.selected = !!selected;
-  };
+  let SelectionListOption = /*#__PURE__*/function () {
+    /**
+     * Constructor
+     * @param {*} text Inner HTML
+     * @param {*} value Value
+     * @param {*} defaultSelected Is selected
+     */
+    function SelectionListOption(text, value, defaultSelected) {
+      _defineProperty(this, "_selected", undefined);
+
+      _defineProperty(this, "_selectionList", undefined);
+
+      _defineProperty(this, "_innerHTML", "");
+
+      _defineProperty(this, "_value", "");
+
+      _defineProperty(this, "_defaultSelected", false);
+
+      this._innerHTML = String(text);
+      this._value = String(value);
+      this._defaultSelected = !!defaultSelected;
+    }
+    /**
+     * Get text
+     */
+
+    _createClass(SelectionListOption, [{
+      key: "text",
+      get: function () {
+        return this._innerHTML;
+      }
+      /**
+       * Set text
+       */
+      ,
+      set: function (value) {
+        this._innerHTML = String(value);
+      }
+      /**
+       * Get inner HTML
+       */
+
+    }, {
+      key: "innerHTML",
+      get: function () {
+        return this._innerHTML;
+      }
+      /**
+       * Set inner HTML
+       */
+      ,
+      set: function (value) {
+        this._innerHTML = value;
+      }
+      /**
+       * Get value
+       */
+
+    }, {
+      key: "value",
+      get: function () {
+        return this._value;
+      }
+      /**
+       * Set value
+       */
+      ,
+      set: function (value) {
+        this._value = String(value);
+      }
+      /**
+       * Get default selected
+       */
+
+    }, {
+      key: "defaultSelected",
+      get: function () {
+        return this._defaultSelected;
+      }
+      /**
+       * Set default selected
+       */
+      ,
+      set: function (value) {
+        this._defaultSelected = !!value;
+      }
+      /**
+       * Get selection list
+       */
+
+    }, {
+      key: "selectionList",
+      get: function () {
+        return this._selectionList;
+      }
+      /**
+       * Set selection list
+       */
+      ,
+      set: function (value) {
+        this._selectionList = value;
+      }
+      /**
+       * Get selected
+       */
+
+    }, {
+      key: "selected",
+      get: function () {
+        var _this$_selected;
+
+        return (_this$_selected = this._selected) != null ? _this$_selected : this.defaultSelected;
+      }
+      /**
+       * Set selected
+       */
+      ,
+      set: function (value) {
+        var _this$_selectionList;
+
+        this._selected = value;
+        (_this$_selectionList = this._selectionList) == null ? void 0 : _this$_selectionList.render();
+      }
+    }]);
+
+    return SelectionListOption;
+  }();
 
   /**
    * Class Dynamic Selection List
@@ -474,9 +628,20 @@ var ew = (function () {
      * Add an option
      */
     _proto.add = function add(value, text, selected) {
-      let option = new SelectionListOption(value, text, selected),
-          index = this.options.findIndex(option => option.value == value);
-      if (index > -1) this.options[index] = option;else this.options.push(option);
+      let option = new SelectionListOption(text, value, selected);
+      this.addOption(option);
+    }
+    /**
+     * Add an option
+     */
+    ;
+
+    _proto.addOption = function addOption(option) {
+      if (option instanceof SelectionListOption) {
+        option.selectionList = this;
+        let index = this.options.findIndex(opt => opt.value == option.value);
+        if (index > -1) this.options[index] = option;else this.options.push(option);
+      }
     }
     /**
      * Remove an option
@@ -546,13 +711,33 @@ var ew = (function () {
           let target = document.getElementById(this.targetId),
               inputs = target.querySelectorAll("input"),
               isInvalid = this.isInvalid(newValue);
-          Array.prototype.forEach.call(inputs, input => input.classList.toggle("is-invalid", isInvalid));
+          inputs.forEach(input => input.classList.toggle("is-invalid", isInvalid));
         }
       } else if (name == "value") {
         this._internals.setFormValue(this.value);
 
         if (this.value !== "") this.classList.remove("is-invalid");
       }
+    }
+    /**
+     * Show loading
+     */
+    ;
+
+    _proto.showLoading = function showLoading() {
+      var _this$target;
+
+      (_this$target = this.target) == null ? void 0 : _this$target.appendChild(document.createRange().createContextualFragment(ew.spinnerTemplate()));
+    }
+    /**
+     * Hide loading
+     */
+    ;
+
+    _proto.hideLoading = function hideLoading() {
+      var _this$target2, _this$target2$querySe;
+
+      (_this$target2 = this.target) == null ? void 0 : (_this$target2$querySe = _this$target2.querySelector(".ew-loading")) == null ? void 0 : _this$target2$querySe.remove();
     }
     /**
      * Render checkbox or radio in the target element
@@ -566,7 +751,7 @@ var ew = (function () {
 
       while (target.firstChild) target.removeChild(target.firstChild); // Render
 
-      target.style.cursor = "wait";
+      target.innerHTML = ew.spinnerTemplate();
       let self = this,
           content = template.content,
           cols = this.columns || 1,
@@ -576,64 +761,60 @@ var ew = (function () {
           isInvalid = this.classList.contains("is-invalid"),
           row;
       tbl.className = this.containerClass + " ew-item-container";
-      target.append(tbl);
+      let options = this.options.filter(opt => opt.value);
+      options.forEach((option, i) => {
+        let clone = content.cloneNode(true),
+            input = clone.querySelector("input"),
+            label = clone.querySelector("label"),
+            suffix = "_" + this.getRandom(); // Make sure the id is unique
 
-      try {
-        let options = this.options.filter(opt => opt.value);
-        options.forEach((option, i) => {
-          let clone = content.cloneNode(true),
-              input = clone.querySelector("input"),
-              label = clone.querySelector("label"),
-              suffix = "_" + this.getRandom(); // Make sure the id is unique
+        input.name = input.name + (input.type == "radio" ? radioSuffix : suffix);
+        input.id = input.id + suffix;
+        input.value = option.value;
+        input.setAttribute("data-index", i);
+        input.checked = option.selected;
+        input.classList.add("ew-custom-option");
+        if (isInvalid) input.classList.add("is-invalid");
+        input.addEventListener("click", function () {
+          let index = parseInt(this.getAttribute("data-index"), 10);
 
-          input.name = input.name + (input.type == "radio" ? radioSuffix : suffix);
-          input.id = input.id + suffix;
-          input.value = option.value;
-          input.setAttribute("data-index", i);
-          input.checked = option.selected;
-          input.classList.add("ew-custom-option");
-          if (isInvalid) input.classList.add("is-invalid");
-          input.addEventListener("click", function () {
-            let index = parseInt(this.getAttribute("data-index"), 10);
-
-            if (self.type == "select-one") {
-              for (let option of self.options) option.selected = false;
-            }
-
-            self.options[index].selected = this.checked;
-            self.setAttribute("value", self.value);
-            self.triggerChange();
-          });
-          label.innerHTML = option.text;
-          label.htmlFor = input.id;
-          let cell = document.createElement("div");
-          cell.className = this.cellClass;
-          cell.appendChild(clone);
-
-          if (i % cols == 0) {
-            row = document.createElement("div");
-            row.className = this.rowClass;
+          if (self.type == "select-one") {
+            for (let option of self.options) option.selected = false;
           }
 
-          row.append(cell);
-
-          if (i % cols == cols - 1) {
-            tbl.append(row);
-          } else if (i == cnt - 1) {
-            // Last
-            for (let j = i % cols + 1; j < cols; j++) {
-              let c = document.createElement("div");
-              c.className = this.cellClass;
-              row.append(c);
-            }
-
-            tbl.append(row);
-          }
+          self.options[index].selected = this.checked;
+          self.setAttribute("value", self.value);
+          self.triggerChange();
         });
-        this.setAttribute("value", this.value);
-      } finally {
-        target.style.cursor = "default";
-      }
+        label.innerHTML = option.text;
+        label.htmlFor = input.id;
+        let cell = document.createElement("div");
+        cell.className = this.cellClass;
+        cell.appendChild(clone);
+
+        if (i % cols == 0) {
+          row = document.createElement("div");
+          row.className = this.rowClass;
+        }
+
+        row.append(cell);
+
+        if (i % cols == cols - 1) {
+          tbl.append(row);
+        } else if (i == cnt - 1) {
+          // Last
+          for (let j = i % cols + 1; j < cols; j++) {
+            let c = document.createElement("div");
+            c.className = this.cellClass;
+            row.append(c);
+          }
+
+          tbl.append(row);
+        }
+      });
+      target.innerHTML = "";
+      target.append(tbl);
+      this.setAttribute("value", this.value);
     }
     /**
      * Set focus
@@ -642,9 +823,9 @@ var ew = (function () {
 
     _proto.focus = function focus() {
       if (this.list) {
-        var _this$target, _this$target$querySel;
+        var _this$target3, _this$target3$querySe;
 
-        (_this$target = this.target) == null ? void 0 : (_this$target$querySel = _this$target.querySelector("input")) == null ? void 0 : _this$target$querySel.focus();
+        (_this$target3 = this.target) == null ? void 0 : (_this$target3$querySe = _this$target3.querySelector("input")) == null ? void 0 : _this$target3$querySe.focus();
       } else {
         _HTMLElement.prototype.focus.call(this);
       }
@@ -671,7 +852,7 @@ var ew = (function () {
     }, {
       key: "targetId",
       get: function () {
-        return this.getAttribute("data-bs-target");
+        return this.getAttribute("data-target");
       }
       /**
        * Target
@@ -759,11 +940,7 @@ var ew = (function () {
     }, {
       key: "selectedIndex",
       get: function () {
-        for (let option of this.options) {
-          if (option.selected) return option.index;
-        }
-
-        return -1;
+        return this.options.findIndex(option => option.selected);
       }
       /**
        * Set selected index
@@ -794,11 +971,7 @@ var ew = (function () {
     }, {
       key: "multiple",
       get: function () {
-        if (this.hasAttribute("data-multiple")) {
-          return this.getAttribute("data-multiple") != "0";
-        } else {
-          return this.type == "select-multiple";
-        }
+        return this.type == "select-multiple";
       }
       /**
        * Get value
@@ -837,7 +1010,7 @@ var ew = (function () {
             var _val;
 
             // String
-            val = (_val = val) != null ? _val : String(val);
+            (_val = val) != null ? _val : val = String(val);
             ar = val ? val.split(ew.MULTIPLE_OPTION_SEPARATOR || ",") : [];
           }
 
@@ -852,7 +1025,7 @@ var ew = (function () {
       key: "values",
       get: function () {
         if (this.type == "select-one" || this.type == "select-multiple") {
-          return Array.prototype.filter.call(this.options, option => option.selected).map(option => option.value);
+          return this.options.filter(option => option.selected).map(option => option.value);
         } else {
           let val = this.getAttribute("value");
           return val ? val.split(ew.MULTIPLE_OPTION_SEPARATOR || ",") : [];
@@ -886,6 +1059,15 @@ var ew = (function () {
     return SelectionList;
   }( /*#__PURE__*/_wrapNativeSuper(HTMLElement));
 
+  loadjs.ready("adminlte", function () {
+    let $ = jQuery; // Init Treeview after rendering menu
+
+    $(window).off("load.lte.treeview");
+    loadjs.ready("templates", () => document.querySelectorAll("[data-widget=treeview]").forEach(el => $(el).Treeview("init"))); // Card Refresh
+
+    adminlte.CardRefresh.overlayTemplate = ew.overlayTemplate();
+  });
+
   window.loadjs = loadjs; // Define SelectionList
 
   customElements.define("selection-list", SelectionList); // Select2 templateResult/templateSelection
@@ -894,6 +1076,7 @@ var ew = (function () {
       templateCallback = o => (o.element instanceof HTMLOptionElement ? o.element.innerHTML : "") || o.text;
 
   let ew$1 = {
+    SelectionListOption: SelectionListOption,
     PAGE_ID: "",
     // Page ID // To be updated in page
     RELATIVE_PATH: "",
@@ -905,19 +1088,15 @@ var ew = (function () {
     GENERATE_PASSWORD_SPECIALCHARS: 1,
     // Max. number of special characters (number|boolean)
     CONFIRM_CANCEL: true,
-    ROWTYPE_ADD: 2,
-    ROWTYPE_EDIT: 3,
     UNFORMAT_YEAR: 50,
     LAZY_LOAD_DELAY: 0,
     AJAX_DELAY: 5,
     LOOKUP_DELAY: 250,
     MAX_OPTION_COUNT: 3,
     NUMBERING_SYSTEM: "",
-    USE_OVERLAY_SCROLLBARS: true,
-    // For responsive tables
     Language: Language,
     // Class
-    language: null,
+    language: new Language(),
     // Language object
     vars: null,
     maps: {},
@@ -926,7 +1105,7 @@ var ew = (function () {
     importDialog: null,
     modalDialog: null,
     modalLookupDialog: null,
-    ajaxBatchSize: 10,
+    ajaxBatchSize: 5,
     autoSuggestSettings: {
       highlight: true,
       hint: true,
@@ -941,7 +1120,7 @@ var ew = (function () {
         input: 'tt-input form-control',
         dataset: "tt-dataset",
         suggestion: "tt-suggestion dropdown-item",
-        cursor: "tt-cursor"
+        cursor: "active"
       }
     },
     lightboxSettings: {
@@ -949,7 +1128,51 @@ var ew = (function () {
       photo: true,
       opacity: 0.5
     },
-    uploadOptions: {},
+    calendarOptions: {
+      showViewPageOnEventClick: false,
+      useContextMenu: true,
+      usePopover: true,
+      fullCalendarOptions: {
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+        },
+        themeSystem: "bootstrap",
+        // Bootstrap theme with Font Awesome icons
+        initialView: "dayGridMonth",
+        dayMaxEventRows: true,
+        timeZone: "UTC",
+        droppable: true,
+        editable: true
+      },
+      eventPopoverOptions: {
+        placement: "auto",
+        trigger: "hover",
+        // Either "hover" or "click"
+        html: true
+      }
+    },
+    uploadOptions: {
+      // See https://github.com/blueimp/jQuery-File-Upload/wiki/Options
+      cropperOptions: {
+        // See https://github.com/fengyuanchen/cropperjs/blob/e969348d313dafe3416926125b21388cc67cefb1/README.md#options
+        autoCropArea: 1,
+        // Define the automatic cropping area size (between 0 and 1)
+        viewMode: 2 // Restrict the minimum canvas size to fit within the container
+
+      },
+      cropperCanvasOptions: {
+        // See https://github.com/fengyuanchen/cropperjs/blob/e969348d313dafe3416926125b21388cc67cefb1/README.md#getcroppedcanvasoptions
+        minWidth: 256,
+        minHeight: 256,
+        maxWidth: 4096,
+        maxHeight: 4096,
+        fillColor: "#fff",
+        imageSmoothingQuality: "high" // Quality of image smoothing
+
+      }
+    },
     importUploadOptions: {
       maxFileSize: 10000000,
       maxNumberOfFiles: 10
@@ -1056,6 +1279,10 @@ var ew = (function () {
       cellClass: "col text-nowrap",
       iconClass: "form-check-label"
     },
+    importTabulatorOptions: {
+      height: 300
+    },
+    // See http://tabulator.info/docs/5.1/options
     toastOptions: {
       position: "topRight" // topRight|topLeft|bottomRight|bottomLeft
 
@@ -1077,20 +1304,47 @@ var ew = (function () {
       cursor: "grabbing"
     },
     // See https://api.jqueryui.com/draggable/
+    queryBuilderOptions: {
+      allowViewRules: false,
+      // Show view rules button
+      allowClearRules: false // Show clear rules button
+
+    },
+    // Query builder options
+    queryBuilderPlugins: {
+      // Query builder plugins
+      "filter-description": null,
+      "unique-filter": null,
+      // "invert": null,
+      "not-group": null
+    },
+    queryBuilderErrorClass: "invalid-tooltip",
+    // "invalid-tooltip" or "invalid-feedback"
     bundleIds: ["dom", "head"],
     // All bundle IDs
-    sanitizeFn: null,
-    // For Bootstrap Tooltips and Popovers
+    tooltipOptions: {
+      placement: "bottom",
+      customClass: "ew-custom-tooltip",
+      sanitizeFn: null
+    },
+    popoverOptions: {
+      html: true,
+      customClass: "ew-custom-popover",
+      sanitizeFn: null
+    },
     PDFObjectOptions: {},
     chartConfig: {},
     spinnerClass: "spinner-border text-primary",
     // spinner-border or spinner-grow
+    screenMediaQuery: "(min-width: 768px)",
+    // Media query string for minimum screen width (not mobile), should matches $screen-sm-min
     jsRenderHelpers: {},
+    // JsRender helpers
     jsRenderAttributes: ["src", "href", "title"],
     // Attributes supporting built-in JsRender tags
     autoHideSuccessMessage: true,
     autoHideSuccessMessageDelay: 5000,
-    searchOperatorChanged: noop,
+    searchOperatorChange: noop,
     setLanguage: noop,
     addOptionDialogShow: noop,
     importDialogShow: noop,
@@ -1133,7 +1387,7 @@ var ew = (function () {
    * Init panels/headers/footers
    */
 
-  ew$1.initPanels = el => el.querySelectorAll(ew$1.panelSelectors.join(",")).forEach(ew$1.initPanel); // Request animation frame to init panels
+  ew$1.initPanels = el => el == null ? void 0 : el.querySelectorAll(ew$1.panelSelectors.join(",")).forEach(ew$1.initPanel); // Request animation frame to init panels
 
   let _initPanelsReq;
 
@@ -1283,7 +1537,7 @@ var ew = (function () {
       $(html)[method](target);else if (html && !method && target) // No method, render as inner HTML of target
       $(target).html(html);else if (html && !method && !target) // No method and target, render locally
       $tmpl.parent().append(html);
-    loadjs.done("template" + target);
+    loadjs.done("template." + $tmpl.data("name"));
     return html;
   };
   /**
@@ -1322,6 +1576,15 @@ var ew = (function () {
         ew$1.renderTemplate($(tmpl), data);
       }
     });
+    loadjs.done("templates");
+  }; // Overlay template
+
+  ew$1.overlayTemplate = function () {
+    return '<div class="overlay"><div class="' + this.spinnerClass + '" style="width: 3rem; height: 3rem;" role="status"><span class="visually-hidden">' + this.language.phrase("Loading") + '</span></div></div>';
+  }; // Spinner template
+
+  ew$1.spinnerTemplate = function () {
+    return '<div class="' + this.spinnerClass + ' m-3 ew-loading" role="status"><span class="visually-hidden">' + this.language.phrase("Loading") + '</span></div>';
   };
 
   return ew$1;

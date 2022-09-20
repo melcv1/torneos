@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Base path
 $basePath = BasePath(true);
@@ -8,87 +8,80 @@ $basePath = BasePath(true);
 <!DOCTYPE html>
 <html<?= IsRTL() ? ' lang="' . CurrentLanguageID() . '" dir="rtl"' : '' ?>>
 <head>
-<title><?= $Title ?? $Language->projectPhrase("BodyTitle") ?></title>
+<title><?= CurrentPageTitle() ?></title>
 <meta charset="utf-8">
-<?php if ($ReportExportType != "" && $ReportExportType != "print") { // Stylesheet for exporting reports ?>
-<link rel="stylesheet" href="<?= $basePath ?><?= CssFile(Config("PROJECT_STYLESHEET_FILENAME")) ?>">
-    <?php if ($ReportExportType == "pdf" && Config("PDF_STYLESHEET_FILENAME")) { ?>
-<link rel="stylesheet" href="/<?= $basePath ?><?= CssFile(Config("PDF_STYLESHEET_FILENAME")) ?>"><!-- Absolute path with leading '/' -->
-    <?php } ?>
-<?php } ?>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="<?= $basePath ?>css/select2.min.css">
-<link rel="stylesheet" href="<?= $basePath ?>css/select2-bootstrap5.min.css">
-<link rel="stylesheet" href="<?= $basePath ?>adminlte3/css/<?= CssFile("adminlte.css") ?>">
-<link rel="stylesheet" href="<?= $basePath ?>css/sweetalert2.min.css">
-<link rel="stylesheet" href="<?= $basePath ?>plugins/fontawesome-free/css/all.min.css">
-<link rel="stylesheet" href="<?= $basePath ?>css/OverlayScrollbars.min.css">
-<link rel="stylesheet" href="<?= $basePath ?><?= CssFile(Config("PROJECT_STYLESHEET_FILENAME")) ?>">
-<?php if ($CustomExportType == "pdf" && Config("PDF_STYLESHEET_FILENAME")) { ?>
-<link rel="stylesheet" href="<?= $basePath ?><?= CssFile(Config("PDF_STYLESHEET_FILENAME")) ?>">
-<?php } ?>
-<script data-pace-options='<?= JsonEncode(Config("PACE_OPTIONS")) ?>' src="<?= $basePath ?>js/pace.js"></script><!-- Single quotes for data-pace-options -->
-<script src="<?= $basePath ?>js/element-internals-polyfill.min.js"></script>
-<script src="<?= $basePath ?>js/ewcore.min.js"></script>
+<link rel="stylesheet" href="<?= $basePath ?>css/select2.min.css?v=19.0.4">
+<link rel="stylesheet" href="<?= $basePath ?>css/select2-bootstrap5.min.css?v=19.0.4">
+<link rel="stylesheet" href="<?= $basePath ?>css/sweetalert2.min.css?v=19.0.4">
+<link rel="stylesheet" href="<?= $basePath ?>plugins/fontawesome-free/css/all.min.css?v=19.0.4">
+<link rel="stylesheet" href="<?= $basePath ?>css/OverlayScrollbars.min.css?v=19.0.4">
+<link rel="stylesheet" href="<?= $basePath ?>adminlte3/css/<?= CssFile("adminlte.css") ?>?v=19.0.4">
+<link rel="stylesheet" href="<?= $basePath ?><?= CssFile(Config("PROJECT_STYLESHEET_FILENAME")) ?>?v=19.0.4">
+<script data-pace-options='<?= JsonEncode(Config("PACE_OPTIONS")) ?>' src="<?= $basePath ?>js/pace.js?v=19.0.4"></script><!-- Single quotes for data-pace-options -->
+<script src="<?= $basePath ?>js/element-internals-polyfill.min.js?v=19.0.4"></script>
+<script src="<?= $basePath ?>js/ewcore.min.js?v=19.0.4"></script>
 <script>
 var $rowindex$ = null;
 Object.assign(ew, <?= JsonEncode(ConfigClientVars()) ?>, <?= JsonEncode(GlobalClientVars()) ?>);
-loadjs(ew.PATH_BASE + "jquery/jquery-3.6.0.min.js", "jquery");
-loadjs(ew.PATH_BASE + "js/popper.min.js", "popper");
-loadjs(ew.PATH_BASE + "js/luxon.min.js", "luxon");
+loadjs(ew.PATH_BASE + "jquery/jquery.min.js?v=19.0.4", "jquery");
+loadjs(ew.PATH_BASE + "js/popper.min.js?v=19.0.4", "popper");
+loadjs(ew.PATH_BASE + "js/luxon.min.js?v=19.0.4", "luxon");
 loadjs([
-    ew.PATH_BASE + "js/mobile-detect.min.js",
-    ew.PATH_BASE + "js/purify.min.js",
-    ew.PATH_BASE + "jquery/load-image.all.min.js"
+    ew.PATH_BASE + "js/mobile-detect.min.js?v=19.0.4",
+    ew.PATH_BASE + "js/purify.min.js?v=19.0.4",
+    ew.PATH_BASE + "js/cropper.min.js?v=19.0.4",
+    ew.PATH_BASE + "jquery/load-image.all.min.js?v=19.0.4"
 ], "others");
-loadjs(ew.PATH_BASE + "js/sweetalert2.min.js", "swal");
+loadjs(ew.PATH_BASE + "js/sweetalert2.min.js?v=19.0.4", "swal");
 <?= $Language->toJson() ?>
 ew.vars = <?= JsonEncode(GetClientVar()) ?>;
-ew.ready(["wrapper", "jquery"], ew.PATH_BASE + "jquery/jsrender.min.js", "jsrender", ew.renderJsTemplates);
-ew.ready("jsrender", ew.PATH_BASE + "jquery/jquery.overlayScrollbars.min.js", "scrollbars"); // Init sidebar scrollbars after rendering menu
-ew.ready("jquery", ew.PATH_BASE + "jquery/jquery-ui.min.js", "widget");
+ew.ready(["wrapper", "jquery"], ew.PATH_BASE + "jquery/jsrender.min.js?v=19.0.4", "jsrender", ew.renderJsTemplates);
+ew.ready("jsrender", ew.PATH_BASE + "jquery/jquery.overlayScrollbars.min.js?v=19.0.4", "scrollbars"); // Init sidebar scrollbars after rendering menu
+ew.ready("jquery", ew.PATH_BASE + "jquery/jquery-ui.min.js?v=19.0.4", "widget");
 </script>
 <?php include_once $RELATIVE_PATH . "views/menu.php"; ?>
 <script>
 var cssfiles = [
-    ew.PATH_BASE + "css/jquery.fileupload.css",
-    ew.PATH_BASE + "css/jquery.fileupload-ui.css"
+    ew.PATH_BASE + "css/jquery.fileupload.css?v=19.0.4",
+    ew.PATH_BASE + "css/jquery.fileupload-ui.css?v=19.0.4",
+    ew.PATH_BASE + "css/cropper.min.css?v=19.0.4"
 ];
-cssfiles.push(ew.PATH_BASE + "colorbox/colorbox.css");
+cssfiles.push(ew.PATH_BASE + "colorbox/colorbox.css?v=19.0.4");
 loadjs(cssfiles, "css");
 var cssjs = [];
 <?php foreach (array_merge(Config("STYLESHEET_FILES"), Config("JAVASCRIPT_FILES")) as $file) { // External Stylesheets and JavaScripts ?>
-cssjs.push("<?= (IsRemote($file) ? "" : BasePath(true)) . $file ?>");
+cssjs.push("<?= (IsRemote($file) ? "" : BasePath(true)) . $file ?>?v=19.0.4");
 <?php } ?>
 var jqueryjs = [
-    ew.PATH_BASE + "jquery/select2.full.min.js",
-    ew.PATH_BASE + "jquery/jqueryfileupload.min.js",
-    ew.PATH_BASE + "jquery/typeahead.jquery.min.js"
+    ew.PATH_BASE + "jquery/select2.full.min.js?v=19.0.4",
+    ew.PATH_BASE + "jquery/jqueryfileupload.min.js?v=19.0.4",
+    ew.PATH_BASE + "jquery/typeahead.jquery.min.js?v=19.0.4"
 ];
-jqueryjs.push(ew.PATH_BASE + "colorbox/jquery.colorbox.min.js");
-jqueryjs.push(ew.PATH_BASE + "js/pdfobject.min.js");
-ew.ready(["jquery", "dom", "popper"], ew.PATH_BASE + "bootstrap5/js/bootstrap.min.js", "bootstrap"); // Bootstrap
-ew.ready("bootstrap", ew.PATH_BASE + "adminlte3/js/adminlte.min.js", "adminlte"); // AdminLTE (After Bootstrap)
+jqueryjs.push(ew.PATH_BASE + "colorbox/jquery.colorbox.min.js?v=19.0.4");
+jqueryjs.push(ew.PATH_BASE + "js/pdfobject.min.js?v=19.0.4");
+ew.ready(["jquery", "dom", "popper"], ew.PATH_BASE + "bootstrap5/js/bootstrap.min.js?v=19.0.4", "bootstrap"); // Bootstrap
+ew.ready("bootstrap", ew.PATH_BASE + "adminlte3/js/adminlte.min.js?v=19.0.4", "adminlte"); // AdminLTE (After Bootstrap)
 ew.ready(["jquery", "widget"], [jqueryjs], "jqueryjs");
-ew.ready(["bootstrap", "adminlte", "jqueryjs", "scrollbars", "luxon", "others"], ew.PATH_BASE + "js/ew.min.js", "makerjs");
+ew.ready(["bootstrap", "adminlte", "jqueryjs", "scrollbars", "luxon", "others"], ew.PATH_BASE + "js/ew.min.js?v=19.0.4", "makerjs");
 ew.ready("makerjs", [
     cssjs,
-    ew.PATH_BASE + "js/userfn.js",
-    ew.PATH_BASE + "js/userevent.js"
+    ew.PATH_BASE + "js/userfn.js?v=19.0.4",
+    ew.PATH_BASE + "js/userevent.js?v=19.0.4"
 ], "head");
 </script>
 <script>
-loadjs(ew.PATH_BASE + "css/<?= CssFile("tempus-dominus.css", false) ?>");
+loadjs(ew.PATH_BASE + "css/<?= CssFile("tempus-dominus.css", false) ?>?v=19.0.0");
 ew.ready("head", [
-    ew.PATH_BASE + "js/tempus-dominus.min.js",
-    ew.PATH_BASE + "js/ewdatetimepicker.min.js"
+    ew.PATH_BASE + "js/tempus-dominus.min.js?v=19.0.0",
+    ew.PATH_BASE + "js/ewdatetimepicker.min.js?v=19.0.0"
 ], "datetimepicker");
 </script>
 <!-- Navbar -->
 <script type="text/html" id="navbar-menu-items" class="ew-js-template" data-name="navbar" data-seq="10" data-data="navbar" data-method="appendTo" data-target="#ew-navbar">
 {{if items}}
     {{for items}}
-        <li id="{{:id}}" data-name="{{:name}}" class="{{if parentId == -1}}nav-item ew-navbar-item{{/if}}{{if isHeader && parentId > -1}}dropdown-header{{/if}}{{if items}} dropdown{{/if}}{{if items && parentId != -1}} dropdown-submenu{{/if}}{{if items && level == 1}} dropdown-hover{{/if}} d-none d-md-block">
+        <li id="{{:id}}" data-name="{{:name}}" class="{{if parentId == -1}}nav-item ew-navbar-item{{/if}}{{if isHeader && parentId > -1}}dropdown-header{{/if}}{{if items && parentId == -1}} dropdown{{/if}}{{if items && parentId != -1}} dropdown-submenu{{/if}}{{if items && level == 1}} dropdown-hover{{/if}} d-none d-sm-block">
             {{if isHeader && parentId > -1}}
                 {{if icon}}<i class="{{:icon}}"></i>{{/if}}
                 <span>{{:text}}</span>
@@ -118,7 +111,7 @@ ew.ready("head", [
 <script type="text/html" id="menu-items">
 {{if items}}
     {{for items}}
-        <li id="{{:id}}" data-name="{{:name}}" class="{{if isHeader}}nav-header{{else}}nav-item{{if items}} has-treeview{{/if}}{{if active}} active current{{/if}}{{if open}} menu-open{{/if}}{{/if}}{{if isNavbarItem}} d-block d-md-none{{/if}}">
+        <li id="{{:id}}" data-name="{{:name}}" class="{{if isHeader}}nav-header{{else}}nav-item{{if items}} has-treeview{{/if}}{{if active}} active current{{/if}}{{if open}} menu-open{{/if}}{{/if}}{{if isNavbarItem}} d-block d-sm-none{{/if}}">
             {{if isHeader}}
                 {{if icon}}<i class="{{:icon}}"></i>{{/if}}
                 <span>{{:text}}</span>
@@ -132,7 +125,7 @@ ew.ready("head", [
                 {{if icon}}<i class="nav-icon {{:icon}}"></i>{{/if}}
                 <p>{{:text}}
                     {{if items}}
-                        <i class="right fas fa-angle-left"></i>
+                        <i class="right fa-solid fa-angle-left"></i>
                         {{if label}}
                             <span class="right">
                                 {{:label}}
@@ -167,11 +160,11 @@ ew.ready("head", [
 {{if isLoggedIn}}
 <li class="nav-item dropdown text-body">
     <a id="ew-nav-link-user" class="nav-link ew-user" data-bs-toggle="dropdown" href="#">
-        <i class="fas fa-user"></i>
+        <i class="fa-solid fa-user"></i>
     </a>
     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="ew-nav-link-user">
         <div class="dropdown-header">
-            <i class="fas fa-user me-2"></i>{{:currentUserName}}
+            <i class="fa-solid fa-user me-2"></i>{{:currentUserName}}
         </div>
         <div class="dropdown-divider"></div>
         {{if hasPersonalData}}
@@ -206,7 +199,7 @@ ew.ready("head", [
     {{/if}}
 {{/if}}
 </script>
-<meta name="generator" content="PHPMaker 2022.12.0">
+<meta name="generator" content="PHPMaker 2023.0.1">
 </head>
 <body class="<?= Config("BODY_CLASS") ?>">
 <?php if (@!$SkipHeaderFooter) { ?>
@@ -217,11 +210,11 @@ ew.ready("head", [
         <div class="container-fluid">
             <!-- Left navbar links -->
             <ul id="ew-navbar" class="navbar-nav">
-                <li class="nav-item d-block d-md-none">
-                    <a class="nav-link" data-widget="pushmenu" data-enable-remember="true" data-ew-action="none"><i class="fas fa-bars ew-icon"></i></a>
+                <li class="nav-item d-block d-sm-none">
+                    <a class="nav-link" data-widget="pushmenu" data-enable-remember="true" data-ew-action="none"><i class="fa-solid fa-bars ew-icon"></i></a>
                 </li>
-                <a class="navbar-brand d-none d-md-block" href="#" data-ew-action="none">
-                    <span class="brand-text">Torneos</span>
+                <a class="navbar-brand d-none d-sm-block" href="#" data-ew-action="none">
+                    <span class="brand-text">PHPMaker 2022</span>
                 </a>
             </ul>
             <!-- Right navbar links -->
@@ -234,10 +227,10 @@ ew.ready("head", [
         <div class="brand-container">
             <!-- Brand Logo //** Note: Only licensed users are allowed to change the logo ** -->
             <a href="#" class="brand-link">
-                <span class="brand-text">Torneos</span>
+                <span class="brand-text">PHPMaker 2022</span>
             </a>
             <?php if (preg_match('/\bsidebar-mini\b/', Config("BODY_CLASS"))) { ?>
-            <a class="pushmenu mx-1" data-pushmenu="mini" role="button"><i class="fas fa-angle-double-left"></i></a>
+            <a class="pushmenu mx-1" data-pushmenu="mini" role="button"><i class="fa-solid fa-angle-double-left"></i></a>
             <?php } ?>
         </div>
         <!-- Sidebar -->
@@ -269,7 +262,7 @@ ew.ready("head", [
                     <h1 class="m-0 text-dark"><?= CurrentPageHeading() ?> <small class="text-muted"><?= CurrentPageSubheading() ?></small></h1>
                 </div><!-- /.col -->
                 <div class="col-sm-6">
-                    <?php Breadcrumb()->render() ?>
+                    <?php !Breadcrumb() || Breadcrumb()->render() ?>
                 </div><!-- /.col -->
                 </div><!-- /.row -->
             </div><!-- /.container-fluid -->
@@ -378,34 +371,35 @@ loadjs.done("wrapper");
 {{/for}}
 </script>
 <!-- modal dialog -->
-<div id="ew-modal-dialog" class="modal" role="dialog" aria-hidden="true"><div class="modal-dialog modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $Language->phrase("CloseBtn") ?>"></div><div class="modal-body"></div><div class="modal-footer"></div></div></div></div>
+<div id="ew-modal-dialog" class="modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="ew-modal-dialog-title" aria-hidden="true"><div class="modal-dialog modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-header"><h5 id="ew-modal-dialog-title" class="modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $Language->phrase("CloseBtn") ?>"></button></div><div class="modal-body"></div><div class="modal-footer"></div></div></div></div>
 <!-- table header filter dropdown footer -->
 <div id="ew-filter-dropdown-footer" class="d-none"><div class="dropdown-divider my-0"></div><div class="dropdown-footer text-start p-2"><button type="button" class="btn btn-link ew-btn ew-filter-clear"><?= $Language->phrase("Clear") ?></button><button type="button" class="btn btn-default ew-btn ew-filter-btn ms-2 float-end" data-value="false"><?= $Language->phrase("CancelBtn") ?></button><button type="button" class="btn btn-primary ew-btn ew-filter-btn ms-1 float-end" data-value="true"><?= $Language->phrase("OKBtn") ?></button></div></div>
 <!-- add option dialog -->
-<div id="ew-add-opt-dialog" class="modal" role="dialog" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5></div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-primary ew-btn"><?= $Language->phrase("AddBtn") ?></button><button type="button" class="btn btn-default ew-btn" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button></div></div></div></div>
-<!-- import dialog -->
-<div id="ew-import-dialog" class="modal" role="dialog" aria-hidden="true"><div class="modal-dialog modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5></div>
-<div class="modal-body">
-    <div class="fileinput-button ew-file-drop-zone w-100">
-        <input type="file" class="form-control ew-file-input" title="" id="importfiles" name="importfiles[]" multiple lang="<?= CurrentLanguageID() ?>">
-        <div class="text-muted ew-file-text">Drop file here or click to upload</div>
+<div id="ew-add-opt-dialog" class="modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="ew-add-opt-dialog-title" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 id="ew-add-opt-dialog-title" class="modal-title"></h5></div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-primary ew-btn"><?= $Language->phrase("AddBtn") ?></button><button type="button" class="btn btn-default ew-btn" data-bs-dismiss="modal"><?= $Language->phrase("CancelBtn") ?></button></div></div></div></div>
+<!-- image cropper dialog -->
+<div id="ew-cropper-dialog" class="modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="ew-cropper-dialog-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="ew-cropper-dialog-title" class="modal-title"><?= $Language->phrase("Crop") ?></h5>
+            </div>
+            <div class="modal-body">
+                <div id="ew-crop-image-container"><img id="ew-crop-image" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary ew-crop-btn"><?= $Language->phrase("Crop") ?></button>
+                <button type="button" class="btn btn-default ew-skip-btn" data-bs-dismiss="modal"><?= $Language->phrase("Skip") ?></button>
+            </div>
+        </div>
     </div>
-    <div class="message d-none mt-3"></div>
-    <div class="progress d-none mt-3"><div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div></div>
 </div>
-<div class="modal-footer"><button type="button" class="btn btn-default ew-close-btn" data-bs-dismiss="modal"><?= $Language->phrase("CloseBtn") ?></button></div></div></div></div>
 <!-- tooltip -->
 <div id="ew-tooltip"></div>
 <!-- drill down -->
 <div id="ew-drilldown-panel"></div>
 <script>
 loadjs.done("wrapper");
-</script>
-<script>
-loadjs.ready(ew.bundleIds, function() {
-    if (!loadjs.isDefined("foot"))
-        loadjs.done("foot");
-});
+loadjs.ready(ew.bundleIds, () => loadjs.isDefined("foot") || loadjs.done("foot"));
 </script>
 </body>
 </html>

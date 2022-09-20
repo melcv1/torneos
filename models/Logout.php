@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,6 +20,12 @@ class Logout
     // Project ID
     public $ProjectID = PROJECT_ID;
 
+    // Table name
+    public $TableName;
+
+    // Table variable
+    public $TableVar;
+
     // Page object name
     public $PageObjName = "Logout";
 
@@ -31,6 +37,9 @@ class Logout
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "logout";
 
     // Page headings
     public $Heading = "";
@@ -82,15 +91,16 @@ class Logout
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
@@ -105,14 +115,14 @@ class Logout
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? GetConnection();
+        $GLOBALS["Conn"] ??= GetConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -159,7 +169,7 @@ class Logout
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -171,8 +181,6 @@ class Logout
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -183,9 +191,11 @@ class Logout
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -212,10 +222,13 @@ class Logout
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Global Page Loading event (in userfn*.php)
         Page_Loading();
@@ -237,8 +250,13 @@ class Logout
             $this->terminate($lastUrl); // Go to last accessed URL
             return;
         } else {
-            if (ReadCookie("AutoLogin") == "") // Not autologin
+            $params = $_GET;
+            $flash = Container("flash");
+
+            // Write cookies
+            if (ReadCookie("AutoLogin") == "") { // Not autologin
                 WriteCookie("Username", ""); // Clear user name cookie
+            }
             WriteCookie("Password", ""); // Clear password cookie
             WriteCookie("LastUrl", ""); // Clear last URL
             $this->writeAuditTrailOnLogout();
@@ -253,11 +271,12 @@ class Logout
             $_SESSION = [];
 
             // If session expired, show expired message
-            if (Get("expired") == "1") {
-                Container("flash")->addMessage("failure", $Language->phrase("SessionExpired"));
+            if ($params["expired"] ?? false) {
+                $flash->addMessage("heading", $Language->phrase("Notice"));
+                $flash->addMessage("failure", $Language->phrase("SessionExpired"));
             }
-            if (Get("deleted") == "1") {
-                Container("flash")->addMessage("success", $Language->phrase("PersonalDataDeleteSuccess"));
+            if ($params["deleted"] ?? false) {
+                $flash->addMessage("success", $Language->phrase("PersonalDataDeleteSuccess"));
             }
             session_write_close();
 
@@ -296,8 +315,7 @@ class Logout
     protected function writeAuditTrailOnLogout()
     {
         global $Language;
-        $usr = CurrentUserName();
-        WriteAuditLog($usr, $Language->phrase("AuditTrailLogout"), CurrentUserIP(), "", "", "", "");
+        WriteAuditLog(CurrentUser(), $Language->phrase("AuditTrailLogout"), CurrentUserIP(), "", "", "", "");
     }
 
     // Page Load event

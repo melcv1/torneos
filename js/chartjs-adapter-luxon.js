@@ -1,14 +1,14 @@
 /*!
- * chartjs-adapter-luxon v1.1.0
+ * chartjs-adapter-luxon v1.2.0
  * https://www.chartjs.org
- * (c) 2021 chartjs-adapter-luxon Contributors
+ * (c) 2022 chartjs-adapter-luxon Contributors
  * Released under the MIT license
  */
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('chart.js'), require('luxon')) :
 typeof define === 'function' && define.amd ? define(['chart.js', 'luxon'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Chart, global.luxon));
-}(this, (function (chart_js, luxon) { 'use strict';
+})(this, (function (chart_js, luxon) { 'use strict';
 
 const FORMATS = {
   datetime: luxon.DateTime.DATETIME_MED_WITH_SECONDS,
@@ -33,6 +33,12 @@ chart_js._adapters._date.override({
     return luxon.DateTime.fromMillis(time, this.options);
   },
 
+  init(chartOptions) {
+    if (!this.options.locale) {
+      this.options.locale = chartOptions.locale;
+    }
+  },
+
   formats: function() {
     return FORMATS;
   },
@@ -40,11 +46,11 @@ chart_js._adapters._date.override({
   parse: function(value, format) {
     const options = this.options;
 
-    if (value === null || typeof value === 'undefined') {
+    const type = typeof value;
+    if (value === null || type === 'undefined') {
       return null;
     }
 
-    const type = typeof value;
     if (type === 'number') {
       value = this._create(value);
     } else if (type === 'string') {
@@ -56,7 +62,7 @@ chart_js._adapters._date.override({
     } else if (value instanceof Date) {
       value = luxon.DateTime.fromJSDate(value, options);
     } else if (type === 'object' && !(value instanceof luxon.DateTime)) {
-      value = luxon.DateTime.fromObject(value);
+      value = luxon.DateTime.fromObject(value, options);
     }
 
     return value.isValid ? value.valueOf() : null;
@@ -65,7 +71,7 @@ chart_js._adapters._date.override({
   format: function(time, format) {
     const datetime = this._create(time);
     return typeof format === 'string'
-      ? datetime.toFormat(format, this.options)
+      ? datetime.toFormat(format)
       : datetime.toLocaleString(format);
   },
 
@@ -93,4 +99,4 @@ chart_js._adapters._date.override({
   }
 });
 
-})));
+}));

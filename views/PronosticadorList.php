@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PronosticadorList = &$Page;
@@ -9,57 +9,54 @@ $PronosticadorList = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
-var currentForm, currentPageID;
-var fpronosticadorlist;
+var currentPageID = ew.PAGE_ID = "list";
+var currentForm;
+var <?= $Page->FormName ?>;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fpronosticadorlist = new ew.Form("fpronosticadorlist", "list");
-    currentPageID = ew.PAGE_ID = "list";
-    currentForm = fpronosticadorlist;
-    fpronosticadorlist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+    let form = new ew.FormBuilder()
+        .setId("<?= $Page->FormName ?>")
+        .setPageId("list")
+        .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
+        .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fpronosticadorlist.addFields([
-        ["ID_ENCUESTA", [fields.ID_ENCUESTA.visible && fields.ID_ENCUESTA.required ? ew.Validators.required(fields.ID_ENCUESTA.caption) : null], fields.ID_ENCUESTA.isInvalid],
-        ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
-        ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
-        ["EQUIPO", [fields.EQUIPO.visible && fields.EQUIPO.required ? ew.Validators.required(fields.EQUIPO.caption) : null], fields.EQUIPO.isInvalid],
-        ["POSICION", [fields.POSICION.visible && fields.POSICION.required ? ew.Validators.required(fields.POSICION.caption) : null], fields.POSICION.isInvalid],
-        ["NUMERACION", [fields.NUMERACION.visible && fields.NUMERACION.required ? ew.Validators.required(fields.NUMERACION.caption) : null], fields.NUMERACION.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["ID_ENCUESTA", [fields.ID_ENCUESTA.visible && fields.ID_ENCUESTA.required ? ew.Validators.required(fields.ID_ENCUESTA.caption) : null], fields.ID_ENCUESTA.isInvalid],
+            ["ID_PARTICIPANTE", [fields.ID_PARTICIPANTE.visible && fields.ID_PARTICIPANTE.required ? ew.Validators.required(fields.ID_PARTICIPANTE.caption) : null], fields.ID_PARTICIPANTE.isInvalid],
+            ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
+            ["EQUIPO", [fields.EQUIPO.visible && fields.EQUIPO.required ? ew.Validators.required(fields.EQUIPO.caption) : null], fields.EQUIPO.isInvalid],
+            ["POSICION", [fields.POSICION.visible && fields.POSICION.required ? ew.Validators.required(fields.POSICION.caption) : null], fields.POSICION.isInvalid],
+            ["NUMERACION", [fields.NUMERACION.visible && fields.NUMERACION.required ? ew.Validators.required(fields.NUMERACION.caption) : null], fields.NUMERACION.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fpronosticadorlist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fpronosticadorlist.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    fpronosticadorlist.lists.ID_PARTICIPANTE = <?= $Page->ID_PARTICIPANTE->toClientList($Page) ?>;
-    fpronosticadorlist.lists.GRUPO = <?= $Page->GRUPO->toClientList($Page) ?>;
-    fpronosticadorlist.lists.EQUIPO = <?= $Page->EQUIPO->toClientList($Page) ?>;
-    fpronosticadorlist.lists.POSICION = <?= $Page->POSICION->toClientList($Page) ?>;
-    loadjs.done("fpronosticadorlist");
-});
-var fpronosticadorsrch, currentSearchForm, currentAdvancedSearchForm;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object for search
-    fpronosticadorsrch = new ew.Form("fpronosticadorsrch", "list");
-    currentSearchForm = fpronosticadorsrch;
-
-    // Dynamic selection lists
-
-    // Filters
-    fpronosticadorsrch.filterList = <?= $Page->getFilterList() ?>;
-    loadjs.done("fpronosticadorsrch");
+        // Dynamic selection lists
+        .setLists({
+            "ID_PARTICIPANTE": <?= $Page->ID_PARTICIPANTE->toClientList($Page) ?>,
+            "GRUPO": <?= $Page->GRUPO->toClientList($Page) ?>,
+            "EQUIPO": <?= $Page->EQUIPO->toClientList($Page) ?>,
+            "POSICION": <?= $Page->POSICION->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -84,16 +81,42 @@ loadjs.ready("head", function () {
 <?php } ?>
 </div>
 <?php } ?>
-<?php
-$Page->renderOtherOptions();
-?>
 <?php if ($Security->canSearch()) { ?>
-<?php if (!$Page->isExport() && !$Page->CurrentAction && $Page->hasSearchFields()) { ?>
-<form name="fpronosticadorsrch" id="fpronosticadorsrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isExport() && !($Page->CurrentAction && $Page->CurrentAction != "search") && $Page->hasSearchFields()) { ?>
+<form name="fpronosticadorsrch" id="fpronosticadorsrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>" novalidate autocomplete="on">
 <div id="fpronosticadorsrch_search_panel" class="mb-2 mb-sm-0 <?= $Page->SearchPanelClass ?>"><!-- .ew-search-panel -->
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { pronosticador: currentTable } });
+var currentForm;
+var fpronosticadorsrch, currentSearchForm, currentAdvancedSearchForm;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery,
+        fields = currentTable.fields;
+
+    // Form object for search
+    let form = new ew.FormBuilder()
+        .setId("fpronosticadorsrch")
+        .setPageId("list")
+<?php if ($Page->UseAjaxActions) { ?>
+        .setSubmitWithFetch(true)
+<?php } ?>
+
+        // Dynamic selection lists
+        .setLists({
+        })
+
+        // Filters
+        .setFilterList(<?= $Page->getFilterList() ?>)
+        .build();
+    window[form.id] = form;
+    currentSearchForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="pronosticador">
-<div class="ew-extended-search container-fluid">
+<div class="ew-extended-search container-fluid ps-2">
 <div class="row mb-0">
     <div class="col-sm-auto px-0 pe-sm-2">
         <div class="ew-basic-search input-group">
@@ -123,17 +146,22 @@ $Page->renderOtherOptions();
 <?php
 $Page->showMessage();
 ?>
+<main class="list<?= ($Page->TotalRecords == 0) ? " ew-no-record" : "" ?>">
+<div id="ew-list">
 <?php if ($Page->TotalRecords > 0 || $Page->CurrentAction) { ?>
-<div class="card ew-card ew-grid<?php if ($Page->isAddOrEdit()) { ?> ew-grid-add-edit<?php } ?> pronosticador">
-<form name="fpronosticadorlist" id="fpronosticadorlist" class="ew-form ew-list-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<div class="card ew-card ew-grid<?= $Page->isAddOrEdit() ? " ew-grid-add-edit" : "" ?> <?= $Page->TableGridClass ?>">
+<form name="<?= $Page->FormName ?>" id="<?= $Page->FormName ?>" class="ew-form ew-list-form" action="<?= $Page->PageAction ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="pronosticador">
-<div id="gmp_pronosticador" class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit()) { ?>
-<table id="tbl_pronosticadorlist" class="table table-bordered table-hover table-sm ew-table"><!-- .ew-table -->
+<?php if ($Page->IsModal) { ?>
+<input type="hidden" name="modal" value="1">
+<?php } ?>
+<div id="gmp_pronosticador" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<table id="tbl_pronosticadorlist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
 <?php
@@ -176,94 +204,13 @@ $Page->ListOptions->render("header", "right");
 ?>
     </tr>
 </thead>
-<tbody>
+<tbody data-page="<?= $Page->getPageNumber() ?>">
 <?php
-if ($Page->ExportAll && $Page->isExport()) {
-    $Page->StopRecord = $Page->TotalRecords;
-} else {
-    // Set the last record to display
-    if ($Page->TotalRecords > $Page->StartRecord + $Page->DisplayRecords - 1) {
-        $Page->StopRecord = $Page->StartRecord + $Page->DisplayRecords - 1;
-    } else {
-        $Page->StopRecord = $Page->TotalRecords;
-    }
-}
-
-// Restore number of post back records
-if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
-    $CurrentForm->Index = -1;
-    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
-        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
-        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
-    }
-}
-$Page->RecordCount = $Page->StartRecord - 1;
-if ($Page->Recordset && !$Page->Recordset->EOF) {
-    // Nothing to do
-} elseif ($Page->isGridAdd() && !$Page->AllowAddDeleteRow && $Page->StopRecord == 0) {
-    $Page->StopRecord = $Page->GridAddRowCount;
-}
-
-// Initialize aggregate
-$Page->RowType = ROWTYPE_AGGREGATEINIT;
-$Page->resetAttributes();
-$Page->renderRow();
-$Page->EditRowCount = 0;
-if ($Page->isEdit()) {
-    $Page->RowIndex = 1;
-}
+$Page->setupGrid();
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
-        $Page->RowCount++;
-
-        // Set up key count
-        $Page->KeyCount = $Page->RowIndex;
-
-        // Init row class and style
-        $Page->resetAttributes();
-        $Page->CssClass = "";
-        if ($Page->isGridAdd()) {
-            $Page->loadRowValues(); // Load default values
-            $Page->OldKey = "";
-            $Page->setKey($Page->OldKey);
-        } else {
-            $Page->loadRowValues($Page->Recordset); // Load row values
-            if ($Page->isGridEdit()) {
-                $Page->OldKey = $Page->getKey(true); // Get from CurrentValue
-                $Page->setKey($Page->OldKey);
-            }
-        }
-        $Page->RowType = ROWTYPE_VIEW; // Render view
-        if ($Page->isEdit()) {
-            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
-                $Page->RowType = ROWTYPE_EDIT; // Render edit
-            }
-        }
-        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
-            $CurrentForm->Index = 1;
-            $Page->restoreFormValues(); // Restore form values
-        }
-        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
-            $Page->EditRowCount++;
-        }
-
-        // Set up row attributes
-        $Page->RowAttrs->merge([
-            "data-rowindex" => $Page->RowCount,
-            "id" => "r" . $Page->RowCount . "_pronosticador",
-            "data-rowtype" => $Page->RowType,
-            "class" => ($Page->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
-        ]);
-        if ($Page->isAdd() && $Page->RowType == ROWTYPE_ADD || $Page->isEdit() && $Page->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
-            $Page->RowAttrs->appendClass("table-active");
-        }
-
-        // Render row
-        $Page->renderRow();
-
-        // Render list options
-        $Page->renderListOptions();
+        $Page->setupRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
 <?php
@@ -276,8 +223,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_pronosticador_ID_ENCUESTA" class="el_pronosticador_ID_ENCUESTA">
 <span<?= $Page->ID_ENCUESTA->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_ENCUESTA->getDisplayValue($Page->ID_ENCUESTA->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="pronosticador" data-field="x_ID_ENCUESTA" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_ENCUESTA" id="x<?= $Page->RowIndex ?>_ID_ENCUESTA" value="<?= HtmlEncode($Page->ID_ENCUESTA->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_pronosticador_ID_ENCUESTA" class="el_pronosticador_ID_ENCUESTA">
@@ -297,7 +244,7 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
         id="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE"
         name="x<?= $Page->RowIndex ?>_ID_PARTICIPANTE"
         class="form-select ew-select<?= $Page->ID_PARTICIPANTE->isInvalidClass() ?>"
-        data-select2-id="fpronosticadorlist_x<?= $Page->RowIndex ?>_ID_PARTICIPANTE"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_ID_PARTICIPANTE"
         data-table="pronosticador"
         data-field="x_ID_PARTICIPANTE"
         data-value-separator="<?= $Page->ID_PARTICIPANTE->displayValueSeparatorAttribute() ?>"
@@ -308,14 +255,15 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
     <div class="invalid-feedback"><?= $Page->ID_PARTICIPANTE->getErrorMessage() ?></div>
 <?= $Page->ID_PARTICIPANTE->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_PARTICIPANTE") ?>
 <script>
-loadjs.ready("fpronosticadorlist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_ID_PARTICIPANTE", selectId: "fpronosticadorlist_x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ID_PARTICIPANTE", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_ID_PARTICIPANTE" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadorlist.lists.ID_PARTICIPANTE.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_ID_PARTICIPANTE", form: "fpronosticadorlist" };
+    if (<?= $Page->FormName ?>.lists.ID_PARTICIPANTE?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ID_PARTICIPANTE", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_PARTICIPANTE", form: "fpronosticadorlist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_PARTICIPANTE", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.pronosticador.fields.ID_PARTICIPANTE.selectOptions);
@@ -340,7 +288,7 @@ loadjs.ready("fpronosticadorlist", function() {
         id="x<?= $Page->RowIndex ?>_GRUPO"
         name="x<?= $Page->RowIndex ?>_GRUPO"
         class="form-select ew-select<?= $Page->GRUPO->isInvalidClass() ?>"
-        data-select2-id="fpronosticadorlist_x<?= $Page->RowIndex ?>_GRUPO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_GRUPO"
         data-table="pronosticador"
         data-field="x_GRUPO"
         data-value-separator="<?= $Page->GRUPO->displayValueSeparatorAttribute() ?>"
@@ -350,14 +298,15 @@ loadjs.ready("fpronosticadorlist", function() {
     </select>
     <div class="invalid-feedback"><?= $Page->GRUPO->getErrorMessage() ?></div>
 <script>
-loadjs.ready("fpronosticadorlist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_GRUPO", selectId: "fpronosticadorlist_x<?= $Page->RowIndex ?>_GRUPO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_GRUPO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_GRUPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadorlist.lists.GRUPO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "fpronosticadorlist" };
+    if (<?= $Page->FormName ?>.lists.GRUPO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "fpronosticadorlist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.pronosticador.fields.GRUPO.selectOptions);
@@ -382,7 +331,7 @@ loadjs.ready("fpronosticadorlist", function() {
         id="x<?= $Page->RowIndex ?>_EQUIPO"
         name="x<?= $Page->RowIndex ?>_EQUIPO"
         class="form-select ew-select<?= $Page->EQUIPO->isInvalidClass() ?>"
-        data-select2-id="fpronosticadorlist_x<?= $Page->RowIndex ?>_EQUIPO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_EQUIPO"
         data-table="pronosticador"
         data-field="x_EQUIPO"
         data-value-separator="<?= $Page->EQUIPO->displayValueSeparatorAttribute() ?>"
@@ -393,14 +342,15 @@ loadjs.ready("fpronosticadorlist", function() {
     <div class="invalid-feedback"><?= $Page->EQUIPO->getErrorMessage() ?></div>
 <?= $Page->EQUIPO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_EQUIPO") ?>
 <script>
-loadjs.ready("fpronosticadorlist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_EQUIPO", selectId: "fpronosticadorlist_x<?= $Page->RowIndex ?>_EQUIPO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_EQUIPO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_EQUIPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadorlist.lists.EQUIPO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_EQUIPO", form: "fpronosticadorlist" };
+    if (<?= $Page->FormName ?>.lists.EQUIPO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_EQUIPO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_EQUIPO", form: "fpronosticadorlist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_EQUIPO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.pronosticador.fields.EQUIPO.selectOptions);
@@ -425,7 +375,7 @@ loadjs.ready("fpronosticadorlist", function() {
         id="x<?= $Page->RowIndex ?>_POSICION"
         name="x<?= $Page->RowIndex ?>_POSICION"
         class="form-select ew-select<?= $Page->POSICION->isInvalidClass() ?>"
-        data-select2-id="fpronosticadorlist_x<?= $Page->RowIndex ?>_POSICION"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_POSICION"
         data-table="pronosticador"
         data-field="x_POSICION"
         data-value-separator="<?= $Page->POSICION->displayValueSeparatorAttribute() ?>"
@@ -435,14 +385,15 @@ loadjs.ready("fpronosticadorlist", function() {
     </select>
     <div class="invalid-feedback"><?= $Page->POSICION->getErrorMessage() ?></div>
 <script>
-loadjs.ready("fpronosticadorlist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_POSICION", selectId: "fpronosticadorlist_x<?= $Page->RowIndex ?>_POSICION" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_POSICION", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_POSICION" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fpronosticadorlist.lists.POSICION.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_POSICION", form: "fpronosticadorlist" };
+    if (<?= $Page->FormName ?>.lists.POSICION?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_POSICION", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_POSICION", form: "fpronosticadorlist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_POSICION", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.pronosticador.fields.POSICION.selectOptions);
@@ -463,7 +414,7 @@ loadjs.ready("fpronosticadorlist", function() {
         <td data-name="NUMERACION"<?= $Page->NUMERACION->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_pronosticador_NUMERACION" class="el_pronosticador_NUMERACION">
-<input type="<?= $Page->NUMERACION->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_NUMERACION" id="x<?= $Page->RowIndex ?>_NUMERACION" data-table="pronosticador" data-field="x_NUMERACION" value="<?= $Page->NUMERACION->EditValue ?>" size="30" maxlength="4" placeholder="<?= HtmlEncode($Page->NUMERACION->getPlaceHolder()) ?>"<?= $Page->NUMERACION->editAttributes() ?>>
+<input type="<?= $Page->NUMERACION->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_NUMERACION" id="x<?= $Page->RowIndex ?>_NUMERACION" data-table="pronosticador" data-field="x_NUMERACION" value="<?= $Page->NUMERACION->EditValue ?>" size="30" maxlength="4" placeholder="<?= HtmlEncode($Page->NUMERACION->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->NUMERACION->formatPattern()) ?>"<?= $Page->NUMERACION->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->NUMERACION->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -481,8 +432,8 @@ loadjs.ready("fpronosticadorlist", function() {
 <span id="el<?= $Page->RowCount ?>_pronosticador_crea_dato" class="el_pronosticador_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->crea_dato->getDisplayValue($Page->crea_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="pronosticador" data-field="x_crea_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_pronosticador_crea_dato" class="el_pronosticador_crea_dato">
@@ -498,8 +449,8 @@ loadjs.ready("fpronosticadorlist", function() {
 <span id="el<?= $Page->RowCount ?>_pronosticador_modifica_dato" class="el_pronosticador_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->modifica_dato->getDisplayValue($Page->modifica_dato->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="pronosticador" data-field="x_modifica_dato" data-hidden="1" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_pronosticador_modifica_dato" class="el_pronosticador_modifica_dato">
@@ -515,8 +466,8 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
 <?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
-<script>
-loadjs.ready(["fpronosticadorlist","load"], () => fpronosticadorlist.updateLists(<?= $Page->RowIndex ?>));
+<script data-rowindex="<?= $Page->RowIndex ?>">
+loadjs.ready(["<?= $Page->FormName ?>","load"], () => <?= $Page->FormName ?>.updateLists(<?= $Page->RowIndex ?><?= $Page->RowIndex === '$rowindex$' ? ", true" : "" ?>));
 </script>
 <?php } ?>
 <?php
@@ -529,12 +480,11 @@ loadjs.ready(["fpronosticadorlist","load"], () => fpronosticadorlist.updateLists
 </tbody>
 </table><!-- /.ew-table -->
 <?php } ?>
-</div><!-- /.ew-grid-middle-panel -->
 <?php if ($Page->isEdit()) { ?>
 <input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
-<?php if (!$Page->CurrentAction) { ?>
+</div><!-- /.ew-grid-middle-panel -->
+<?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>
 </form><!-- /.ew-list-form -->
@@ -546,10 +496,8 @@ if ($Page->Recordset) {
 ?>
 <?php if (!$Page->isExport()) { ?>
 <div class="card-footer ew-grid-lower-panel">
-<?php if (!$Page->isGridAdd()) { ?>
-<form name="ew-pager-form" class="ew-form ew-pager-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isGridAdd() && !($Page->isGridEdit() && $Page->ModalGridEdit) && !$Page->isMultiEdit()) { ?>
 <?= $Page->Pager->render() ?>
-</form>
 <?php } ?>
 <div class="ew-list-other-options">
 <?php $Page->OtherOptions->render("body", "bottom") ?>
@@ -562,6 +510,8 @@ if ($Page->Recordset) {
 <?php $Page->OtherOptions->render("body") ?>
 </div>
 <?php } ?>
+</div>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

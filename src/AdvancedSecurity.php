@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\FetchMode;
 
@@ -190,14 +190,15 @@ class AdvancedSecurity
     }
 
     // Get JWT Token
-    public function createJwt($minExpiry = 0)
+    public function createJwt($minExpiry = 0, $permission = 0)
     {
         return CreateJwt(
             $this->currentUserName(),
             $this->sessionUserID(),
             $this->sessionParentUserID(),
             $this->sessionUserLevelID(),
-            $minExpiry
+            $minExpiry,
+            $permission
         );
     }
 
@@ -213,7 +214,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_ADD;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_ADD;
+            $this->CurrentUserLevel ^= ALLOW_ADD;
         }
     }
 
@@ -229,7 +230,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_DELETE;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_DELETE;
+            $this->CurrentUserLevel ^= ALLOW_DELETE;
         }
     }
 
@@ -245,7 +246,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_EDIT;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_EDIT;
+            $this->CurrentUserLevel ^= ALLOW_EDIT;
         }
     }
 
@@ -261,7 +262,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_VIEW;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_VIEW;
+            $this->CurrentUserLevel ^= ALLOW_VIEW;
         }
     }
 
@@ -277,23 +278,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_LIST;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_LIST;
-        }
-    }
-
-    // Can report
-    public function canReport()
-    {
-        return (($this->CurrentUserLevel & ALLOW_REPORT) == ALLOW_REPORT);
-    }
-
-    // Set can report
-    public function setCanReport($b)
-    {
-        if ($b) {
-            $this->CurrentUserLevel |= ALLOW_REPORT;
-        } else {
-            $this->CurrentUserLevel &= ~ALLOW_REPORT;
+            $this->CurrentUserLevel ^= ALLOW_LIST;
         }
     }
 
@@ -309,7 +294,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_SEARCH;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_SEARCH;
+            $this->CurrentUserLevel ^= ALLOW_SEARCH;
         }
     }
 
@@ -325,7 +310,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_ADMIN;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_ADMIN;
+            $this->CurrentUserLevel ^= ALLOW_ADMIN;
         }
     }
 
@@ -341,7 +326,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_IMPORT;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_IMPORT;
+            $this->CurrentUserLevel ^= ALLOW_IMPORT;
         }
     }
 
@@ -357,7 +342,7 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_LOOKUP;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_LOOKUP;
+            $this->CurrentUserLevel ^= ALLOW_LOOKUP;
         }
     }
 
@@ -373,7 +358,23 @@ class AdvancedSecurity
         if ($b) {
             $this->CurrentUserLevel |= ALLOW_PUSH;
         } else {
-            $this->CurrentUserLevel &= ~ALLOW_PUSH;
+            $this->CurrentUserLevel ^= ALLOW_PUSH;
+        }
+    }
+
+    // Can export
+    public function canExport()
+    {
+        return (($this->CurrentUserLevel & ALLOW_EXPORT) == ALLOW_EXPORT);
+    }
+
+    // Set can push
+    public function setCanExport($b)
+    {
+        if ($b) {
+            $this->CurrentUserLevel |= ALLOW_EXPORT;
+        } else {
+            $this->CurrentUserLevel ^= ALLOW_EXPORT;
         }
     }
 
@@ -415,11 +416,6 @@ class AdvancedSecurity
             $pwd = RemoveXss(Get("password"));
             $autologin = $this->validateUser($usr, $pwd, true);
         }
-        if (!$autologin && Config("ALLOW_LOGIN_BY_SESSION") && isset($_SESSION[PROJECT_NAME . "_Username"])) {
-            $usr = Session(PROJECT_NAME . "_Username");
-            $pwd = Session(PROJECT_NAME . "_Password");
-            $autologin = $this->validateUser($usr, $pwd, true);
-        }
         if ($autologin) {
             WriteAuditLog($usr, $GLOBALS["Language"]->phrase("AuditTrailAutoLogin"), CurrentUserIP(), "", "", "", "");
         }
@@ -427,12 +423,15 @@ class AdvancedSecurity
     }
 
     // Login user
-    public function loginUser($userName = null, $userID = null, $parentUserID = null, $userLevel = null)
+    public function loginUser($userName = null, $userID = null, $parentUserID = null, $userLevel = null, $allowedPermission = 0)
     {
         if ($userName != null) {
             $this->setCurrentUserName($userName);
             $this->isLoggedIn = true;
             $_SESSION[SESSION_STATUS] = "login";
+            if ($userName == Container("language")->phrase("UserAdministrator")) { // Handle language phrase as well
+                $userName = Config("ADMIN_USER_NAME");
+            }
             $this->isSysAdmin = $this->validateSysAdmin($userName);
         }
         if ($userID != null) {
@@ -445,6 +444,8 @@ class AdvancedSecurity
             $this->setSessionUserLevelID($userLevel);
             $this->setupUserLevel();
         }
+        // Set allowed permission
+        $this->setAllowedPermissions($allowedPermission);
     }
 
     // Logout user
@@ -470,21 +471,15 @@ class AdvancedSecurity
 
         // OAuth provider
         if ($provider != "") {
-            $authConfig = Config("AUTH_CONFIG");
-            $providers = $authConfig["providers"];
+            $providers = Config("AUTH_CONFIG.providers");
             if (array_key_exists($provider, $providers) && $providers[$provider]["enabled"]) {
                 try {
                     $UserProfile->Provider = $provider;
-                    // Note: callback url is login?provider=xxx
-                    if (!array_key_exists("callback", $authConfig)) {
-                        $authConfig["callback"] = FullUrl("login?provider=" . $provider, "auth");
-                    }
-                    $hybridauth = new \Hybridauth\Hybridauth($authConfig);
-                    $UserProfile->Auth = $hybridauth;
+                    $hybridauth = Container("hybridauth");
                     $adapter = $hybridauth->authenticate($provider); // Authenticate with the selected provider
                     $profile = $adapter->getUserProfile();
                     $UserProfile->assign($profile); // Save profile
-                    $usr = $profile->email;
+                    $usr = $usr ?: ($UserProfile->get("email") ?? $UserProfile->get("emailaddress"));
                     $providerValid = true;
                 } catch (\Throwable $e) {
                     if (Config("DEBUG")) {
@@ -545,7 +540,7 @@ class AdvancedSecurity
                     if (Config("USE_TWO_FACTOR_AUTHENTICATION")) {
                         // Check API login
                         if (IsApi()) {
-                            if (Config("FORCE_TWO_FACTOR_AUTHENTICATION") || $UserProfile->hasUserSecret($usr, true)) { // Verify security code
+                            if (SameText(Config("TWO_FACTOR_AUTHENTICATION_TYPE"), "google") && (Config("FORCE_TWO_FACTOR_AUTHENTICATION") || $UserProfile->hasUserSecret($usr, true))) { // Verify security code for Google Authenticator
                                 if (!$UserProfile->verify2FACode($usr, $securitycode)) {
                                     return false;
                                 }
@@ -573,6 +568,9 @@ class AdvancedSecurity
                     // Set up User Image field
                     if (!EmptyValue(Config("USER_IMAGE_FIELD_NAME"))) {
                         $imageField = $UserTable->Fields[Config("USER_IMAGE_FIELD_NAME")];
+                        if ($imageField->hasMethod("getUploadPath")) {
+                            $imageField->UploadPath = $imageField->getUploadPath();
+                        }
                         $image = GetFileImage($imageField, $row[Config("USER_IMAGE_FIELD_NAME")], Config("USER_IMAGE_SIZE"), Config("USER_IMAGE_SIZE"), Config("USER_IMAGE_CROP"));
                         $UserProfile->set(Config("USER_PROFILE_IMAGE"), base64_encode($image)); // Save as base64 encoded
                     }
@@ -633,21 +631,20 @@ class AdvancedSecurity
         $this->saveUserLevel();
     }
 
-    // Check import/lookup permissions
+    // Check permissions
     protected function checkPermissions()
     {
-        if (is_array($this->UserLevelPriv)) {
-            foreach ($this->UserLevelPriv as &$row) {
-                $priv = &$row[2];
-                if (is_numeric($priv)) {
-                    if (($priv & ALLOW_IMPORT) != ALLOW_IMPORT && ($priv & ALLOW_ADMIN) == ALLOW_ADMIN) {
-                        $priv = $priv | ALLOW_IMPORT; // Import permission not setup, use Admin
-                    }
-                    if (($priv & ALLOW_LOOKUP) != ALLOW_LOOKUP && ($priv & ALLOW_LIST) == ALLOW_LIST) {
-                        $priv = $priv | ALLOW_LOOKUP; // Lookup permission not setup, use List
-                    }
-                    if (($priv & ALLOW_PUSH) != ALLOW_PUSH && ($priv & ALLOW_ADMIN) == ALLOW_ADMIN) {
-                        $priv = $priv | ALLOW_PUSH; // Push permission not setup, use Admin
+    }
+
+    // Set allowed permissions
+    protected function setAllowedPermissions($permission = 0)
+    {
+        if ($permission > 0) {
+            if (is_array($this->UserLevelPriv)) {
+                foreach ($this->UserLevelPriv as &$row) {
+                    $priv = &$row[2];
+                    if (is_numeric($priv)) {
+                        $priv &= $permission;
                     }
                 }
             }
@@ -761,7 +758,7 @@ class AdvancedSecurity
     {
         // Load again if user level list changed
         if (Session(SESSION_USER_LEVEL_LIST_LOADED) != "" && Session(SESSION_USER_LEVEL_LIST_LOADED) != Session(SESSION_USER_LEVEL_LIST)) {
-            $_SESSION[SESSION_AR_USER_LEVEL_PRIV] = "";
+            $_SESSION[SESSION_USER_LEVEL_PRIVS] = "";
         }
         $this->loadUserLevel();
         $this->setSessionUserLevel($this->currentUserLevelPriv($table));
@@ -991,6 +988,12 @@ class AdvancedSecurity
         return ($this->currentUserLevelPriv($tableName) & ALLOW_LOOKUP);
     }
 
+    // Check privilege for export
+    public function allowExport($tableName)
+    {
+        return ($this->currentUserLevelPriv($tableName) & ALLOW_EXPORT);
+    }
+
     // Check if user password expired
     public function isPasswordExpired()
     {
@@ -1049,19 +1052,19 @@ class AdvancedSecurity
     // Save User Level to Session
     public function saveUserLevel()
     {
-        $_SESSION[SESSION_AR_USER_LEVEL] = $this->UserLevel;
-        $_SESSION[SESSION_AR_USER_LEVEL_PRIV] = $this->UserLevelPriv;
+        $_SESSION[SESSION_USER_LEVELS] = $this->UserLevel;
+        $_SESSION[SESSION_USER_LEVEL_PRIVS] = $this->UserLevelPriv;
     }
 
     // Load User Level from Session
     public function loadUserLevel()
     {
-        if (empty(Session(SESSION_AR_USER_LEVEL)) || empty(Session(SESSION_AR_USER_LEVEL_PRIV))) {
+        if (empty(Session(SESSION_USER_LEVELS)) || empty(Session(SESSION_USER_LEVEL_PRIVS))) {
             $this->setupUserLevel();
             $this->saveUserLevel();
         } else {
-            $this->UserLevel = Session(SESSION_AR_USER_LEVEL);
-            $this->UserLevelPriv = Session(SESSION_AR_USER_LEVEL_PRIV);
+            $this->UserLevel = Session(SESSION_USER_LEVELS);
+            $this->UserLevelPriv = Session(SESSION_USER_LEVEL_PRIVS);
         }
     }
 

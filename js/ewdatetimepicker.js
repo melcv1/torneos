@@ -1,7 +1,9 @@
 /**
- * Create Date/Time Picker (for PHPMaker 2022)
+ * Create Date/Time Picker (for PHPMaker 2023)
  * @license Copyright (c) e.World Technology Limited. All rights reserved.
  */
+
+tempusDominus.Namespace.css.toggleMeridiem = "toggleMeridiem,btn,btn-primary";
 
 // Global options
 ew.dateTimePickerOptions = {
@@ -15,7 +17,7 @@ ew.dateTimePickerOptions = {
 ew.createDateTimePicker = function(formid, id, options) {
     if (id.includes("$rowindex$"))
         return;
-    var $ = jQuery,
+    let $ = jQuery,
         el = ew.getElement(id, formid),
         sv = ew.getElement("sv_" + id, formid), // AutoSuggest
         $input = $(sv || el),
@@ -24,22 +26,22 @@ ew.createDateTimePicker = function(formid, id, options) {
     if (!el || $input.data(dataKey) || $input.parent().data(dataKey))
         return;
     options = ew.deepAssign({}, ew.dateTimePickerOptions, options);
-    var inputGroup = $.isBoolean(options.inputGroup) ? options.inputGroup : true;
+    let inputGroup = $.isBoolean(options.inputGroup) ? options.inputGroup : true;
     delete(options.inputGroup);
     // options.debug = options.debug || ew.DEBUG;
-    var args = {"id": id, "form": formid, "enabled": true, "inputGroup": inputGroup, "options": options};
+    let args = {"id": id, "form": formid, "enabled": true, "inputGroup": inputGroup, "options": options};
     $(document).trigger("datetimepicker", [args]);
     if (!args.enabled)
         return;
     if (args.inputGroup !== false) {
         // <div class="input-group date" id="{id}" data-td-target-input="nearest" data-td-target-toggle="nearest">
         // 	<input type="text" class="form-control td-input" data-target="#{id}"/>
-        // 	<button class="btn btn-default" type="button" data-target="#{id}" data-td-toggle="datetimepicker"><i class="far fa-calendar-alt"></i></button>
+        // 	<button class="btn btn-default" type="button" data-target="#{id}" data-td-toggle="datetimepicker"><i class="fa-regular fa-calendar"></i></button>
         // </div>
-        var $textbox = $input,
+        let $textbox = $input,
             isInvalid = $input.hasClass("is-invalid"),
             id = "datetimepicker_" + formid + "_" + $input.attr("id");
-            $btn = $('<button class="btn btn-default" type="button"><i class="far fa-calendar-alt"></i></button>')
+            $btn = $('<button class="btn btn-default" type="button"><i class="fa-regular fa-calendar"></i></button>')
                 .on("click." + dataKey, function() {
                     $textbox.removeClass("is-invalid");
                 });
@@ -68,4 +70,5 @@ ew.createDateTimePicker = function(formid, id, options) {
             });
     }
     $input.tempusDominus(args.options);
+    return $input.data(dataKey);
 }

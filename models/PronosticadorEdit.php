@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class PronosticadorEdit extends Pronosticador
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'pronosticador';
-
     // Page object name
     public $PageObjName = "PronosticadorEdit";
 
@@ -34,6 +31,9 @@ class PronosticadorEdit extends Pronosticador
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "pronosticadoredit";
 
     // Audit Trail
     public $AuditTrailOnAdd = true;
@@ -98,11 +98,7 @@ class PronosticadorEdit extends Pronosticador
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -125,35 +121,22 @@ class PronosticadorEdit extends Pronosticador
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'pronosticador';
+        $this->TableName = 'pronosticador';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-desktop-table ew-edit-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (pronosticador)
         if (!isset($GLOBALS["pronosticador"]) || get_class($GLOBALS["pronosticador"]) == PROJECT_NAMESPACE . "pronosticador") {
@@ -172,14 +155,14 @@ class PronosticadorEdit extends Pronosticador
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -226,7 +209,7 @@ class PronosticadorEdit extends Pronosticador
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -238,27 +221,6 @@ class PronosticadorEdit extends Pronosticador
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("pronosticador");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -269,9 +231,11 @@ class PronosticadorEdit extends Pronosticador
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -288,18 +252,17 @@ class PronosticadorEdit extends Pronosticador
 
             // Handle modal response
             if ($this->IsModal) { // Show as modal
-                $row = ["url" => GetUrl($url), "modal" => "1"];
+                $result = ["url" => GetUrl($url), "modal" => "1"];
                 $pageName = GetPageName($url);
-                if ($pageName != $this->getListUrl()) { // Not List page
-                    $row["caption"] = $this->getModalCaption($pageName);
-                    if ($pageName == "pronosticadorview") {
-                        $row["view"] = "1";
-                    }
-                } else { // List page should not be shown as modal => error
-                    $row["error"] = $this->getFailureMessage();
+                if ($pageName != $this->getListUrl()) { // Not List page => View page
+                    $result["caption"] = $this->getModalCaption($pageName);
+                    $result["view"] = $pageName == "pronosticadorview";
+                } else { // List page
+                    // $result["list"] = $this->PageID == "search"; // Refresh List page if current page is Search page
+                    $result["error"] = $this->getFailureMessage(); // List page should not be shown as modal => error
                     $this->clearFailureMessage();
                 }
-                WriteJson($row);
+                WriteJson($result);
             } else {
                 SaveDebugMessage();
                 Redirect(GetUrl($url));
@@ -408,6 +371,11 @@ class PronosticadorEdit extends Pronosticador
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -466,7 +434,7 @@ class PronosticadorEdit extends Pronosticador
     }
 
     // Properties
-    public $FormClassName = "ew-form ew-edit-form";
+    public $FormClassName = "ew-form ew-edit-form overlay-wrapper";
     public $IsModal = false;
     public $IsMobileOrModal = false;
     public $DbMasterFilter;
@@ -486,15 +454,17 @@ class PronosticadorEdit extends Pronosticador
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm,
-            $SkipHeaderFooter;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $SkipHeaderFooter;
 
         // Is modal
-        $this->IsModal = Param("modal") == "1";
+        $this->IsModal = ConvertToBool(Param("modal"));
         $this->UseLayout = $this->UseLayout && !$this->IsModal;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -508,7 +478,6 @@ class PronosticadorEdit extends Pronosticador
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -523,6 +492,15 @@ class PronosticadorEdit extends Pronosticador
             $this->pageLoad();
         }
 
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
+        }
+
         // Set up lookup cache
         $this->setupLookupOptions($this->ID_PARTICIPANTE);
         $this->setupLookupOptions($this->GRUPO);
@@ -534,7 +512,6 @@ class PronosticadorEdit extends Pronosticador
             $SkipHeaderFooter = true;
         }
         $this->IsMobileOrModal = IsMobile() || $this->IsModal;
-        $this->FormClassName = "ew-form ew-edit-form";
         $loaded = false;
         $postBack = false;
 
@@ -630,11 +607,15 @@ class PronosticadorEdit extends Pronosticador
                     $returnUrl = $this->addMasterUrl($returnUrl); // List page, return to List page with correct master key if necessary
                 }
                 $this->SendEmail = true; // Send email on update success
-                if ($this->editRow()) { // Update record based on key
+                if ($this->editRow()) {
+                    // Do not return Json for UseAjaxActions
+                    if ($this->IsModal && $this->UseAjaxActions) {
+                        $this->IsModal = false;
+                    }
                     if ($this->getSuccessMessage() == "") {
                         $this->setSuccessMessage($Language->phrase("UpdateSuccess")); // Update success
                     }
-                    if (IsApi()) {
+                    if (IsJsonResponse()) {
                         $this->terminate(true);
                         return;
                     } else {
@@ -644,6 +625,11 @@ class PronosticadorEdit extends Pronosticador
                 } elseif (IsApi()) { // API request, return
                     $this->terminate();
                     return;
+                } elseif ($this->UseAjaxActions) { // Return JSON error message
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return; 
                 } elseif ($this->getFailureMessage() == $Language->phrase("NoRecord")) {
                     $this->terminate($returnUrl); // Return to caller
                     return;
@@ -881,16 +867,19 @@ class PronosticadorEdit extends Pronosticador
     protected function loadOldRecord()
     {
         // Load old record
-        $this->OldRecordset = null;
-        $validKey = $this->OldKey != "";
-        if ($validKey) {
+        if ($this->OldKey != "") {
+            $this->setKey($this->OldKey);
             $this->CurrentFilter = $this->getRecordFilter();
             $sql = $this->getCurrentSql();
             $conn = $this->getConnection();
-            $this->OldRecordset = LoadRecordset($sql, $conn);
+            $rs = LoadRecordset($sql, $conn);
+            if ($rs && ($row = $rs->fields)) {
+                $this->loadRowValues($row); // Load row values
+                return $row;
+            }
         }
-        $this->loadRowValues($this->OldRecordset); // Load row values
-        return $validKey;
+        $this->loadRowValues(); // Load default row values
+        return null;
     }
 
     // Render row values based on field settings
@@ -936,14 +925,13 @@ class PronosticadorEdit extends Pronosticador
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_ENCUESTA
             $this->ID_ENCUESTA->ViewValue = $this->ID_ENCUESTA->CurrentValue;
-            $this->ID_ENCUESTA->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $curVal = strval($this->ID_PARTICIPANTE->CurrentValue);
             if ($curVal != "") {
                 $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->lookupCacheOption($curVal);
                 if ($this->ID_PARTICIPANTE->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_PARTICIPANTE`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_PARTICIPANTE`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ID_PARTICIPANTE->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -960,7 +948,6 @@ class PronosticadorEdit extends Pronosticador
             } else {
                 $this->ID_PARTICIPANTE->ViewValue = null;
             }
-            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
             // GRUPO
             if (strval($this->GRUPO->CurrentValue) != "") {
@@ -968,14 +955,13 @@ class PronosticadorEdit extends Pronosticador
             } else {
                 $this->GRUPO->ViewValue = null;
             }
-            $this->GRUPO->ViewCustomAttributes = "";
 
             // EQUIPO
             $curVal = strval($this->EQUIPO->CurrentValue);
             if ($curVal != "") {
                 $this->EQUIPO->ViewValue = $this->EQUIPO->lookupCacheOption($curVal);
                 if ($this->EQUIPO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`NOM_EQUIPO_CORTO`" . SearchString("=", $curVal, DATATYPE_MEMO, "");
+                    $filterWrk = SearchFilter("`NOM_EQUIPO_CORTO`", "=", $curVal, DATATYPE_MEMO, "");
                     $sqlWrk = $this->EQUIPO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -992,7 +978,6 @@ class PronosticadorEdit extends Pronosticador
             } else {
                 $this->EQUIPO->ViewValue = null;
             }
-            $this->EQUIPO->ViewCustomAttributes = "";
 
             // POSICION
             if (strval($this->POSICION->CurrentValue) != "") {
@@ -1000,74 +985,57 @@ class PronosticadorEdit extends Pronosticador
             } else {
                 $this->POSICION->ViewValue = null;
             }
-            $this->POSICION->ViewCustomAttributes = "";
 
             // NUMERACION
             $this->NUMERACION->ViewValue = $this->NUMERACION->CurrentValue;
-            $this->NUMERACION->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_ENCUESTA
-            $this->ID_ENCUESTA->LinkCustomAttributes = "";
             $this->ID_ENCUESTA->HrefValue = "";
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
 
             // GRUPO
-            $this->GRUPO->LinkCustomAttributes = "";
             $this->GRUPO->HrefValue = "";
 
             // EQUIPO
-            $this->EQUIPO->LinkCustomAttributes = "";
             $this->EQUIPO->HrefValue = "";
 
             // POSICION
-            $this->POSICION->LinkCustomAttributes = "";
             $this->POSICION->HrefValue = "";
 
             // NUMERACION
-            $this->NUMERACION->LinkCustomAttributes = "";
             $this->NUMERACION->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_ENCUESTA
             $this->ID_ENCUESTA->setupEditAttributes();
-            $this->ID_ENCUESTA->EditCustomAttributes = "";
             $this->ID_ENCUESTA->EditValue = $this->ID_ENCUESTA->CurrentValue;
-            $this->ID_ENCUESTA->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->setupEditAttributes();
-            $this->ID_PARTICIPANTE->EditCustomAttributes = "";
             $curVal = trim(strval($this->ID_PARTICIPANTE->CurrentValue));
             if ($curVal != "") {
                 $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->lookupCacheOption($curVal);
@@ -1080,7 +1048,7 @@ class PronosticadorEdit extends Pronosticador
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_PARTICIPANTE`" . SearchString("=", $this->ID_PARTICIPANTE->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_PARTICIPANTE`", "=", $this->ID_PARTICIPANTE->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->ID_PARTICIPANTE->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1095,13 +1063,11 @@ class PronosticadorEdit extends Pronosticador
 
             // GRUPO
             $this->GRUPO->setupEditAttributes();
-            $this->GRUPO->EditCustomAttributes = "";
             $this->GRUPO->EditValue = $this->GRUPO->options(true);
             $this->GRUPO->PlaceHolder = RemoveHtml($this->GRUPO->caption());
 
             // EQUIPO
             $this->EQUIPO->setupEditAttributes();
-            $this->EQUIPO->EditCustomAttributes = "";
             $curVal = trim(strval($this->EQUIPO->CurrentValue));
             if ($curVal != "") {
                 $this->EQUIPO->ViewValue = $this->EQUIPO->lookupCacheOption($curVal);
@@ -1114,7 +1080,7 @@ class PronosticadorEdit extends Pronosticador
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`NOM_EQUIPO_CORTO`" . SearchString("=", $this->EQUIPO->CurrentValue, DATATYPE_MEMO, "");
+                    $filterWrk = SearchFilter("`NOM_EQUIPO_CORTO`", "=", $this->EQUIPO->CurrentValue, DATATYPE_MEMO, "");
                 }
                 $sqlWrk = $this->EQUIPO->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -1129,13 +1095,11 @@ class PronosticadorEdit extends Pronosticador
 
             // POSICION
             $this->POSICION->setupEditAttributes();
-            $this->POSICION->EditCustomAttributes = "";
             $this->POSICION->EditValue = $this->POSICION->options(true);
             $this->POSICION->PlaceHolder = RemoveHtml($this->POSICION->caption());
 
             // NUMERACION
             $this->NUMERACION->setupEditAttributes();
-            $this->NUMERACION->EditCustomAttributes = "";
             if (!$this->NUMERACION->Raw) {
                 $this->NUMERACION->CurrentValue = HtmlDecode($this->NUMERACION->CurrentValue);
             }
@@ -1144,58 +1108,45 @@ class PronosticadorEdit extends Pronosticador
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
 
             // Edit refer script
 
             // ID_ENCUESTA
-            $this->ID_ENCUESTA->LinkCustomAttributes = "";
             $this->ID_ENCUESTA->HrefValue = "";
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
 
             // GRUPO
-            $this->GRUPO->LinkCustomAttributes = "";
             $this->GRUPO->HrefValue = "";
 
             // EQUIPO
-            $this->EQUIPO->LinkCustomAttributes = "";
             $this->EQUIPO->HrefValue = "";
 
             // POSICION
-            $this->POSICION->LinkCustomAttributes = "";
             $this->POSICION->HrefValue = "";
 
             // NUMERACION
-            $this->NUMERACION->LinkCustomAttributes = "";
             $this->NUMERACION->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         }
@@ -1212,7 +1163,7 @@ class PronosticadorEdit extends Pronosticador
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -1324,6 +1275,9 @@ class PronosticadorEdit extends Pronosticador
             if (count($rsnew) > 0) {
                 $this->CurrentFilter = $filter; // Set up current filter
                 $editRow = $this->update($rsnew, "", $rsold);
+                if (!$editRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             } else {
                 $editRow = true; // No field to update
             }
@@ -1346,14 +1300,11 @@ class PronosticadorEdit extends Pronosticador
             $this->rowUpdated($rsold, $rsnew);
         }
 
-        // Clean upload path if any
-        if ($editRow) {
-        }
-
-        // Write JSON for API request
-        if (IsApi() && $editRow) {
+        // Write JSON response
+        if (IsJsonResponse() && $editRow) {
             $row = $this->getRecordsFromRecordset([$rsnew], true);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+            $table = $this->TableVar;
+            WriteJson(["success" => true, "action" => Config("API_EDIT_ACTION"), $table => $row]);
         }
         return $editRow;
     }
@@ -1408,7 +1359,11 @@ class PronosticadorEdit extends Pronosticador
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1421,26 +1376,32 @@ class PronosticadorEdit extends Pronosticador
         if ($this->DisplayRecords == 0) {
             return;
         }
-        if ($this->isPageRequest()) { // Validate request
-            $startRec = Get(Config("TABLE_START_REC"));
-            if ($startRec !== null && is_numeric($startRec)) { // Check for "start" parameter
-                $this->StartRecord = $startRec;
-                $this->setStartRecordNumber($this->StartRecord);
-            }
+        $pageNo = Get(Config("TABLE_PAGE_NUMBER"));
+        $startRec = Get(Config("TABLE_START_REC"));
+        $infiniteScroll = false;
+        $recordNo = $pageNo ?? $startRec; // Record number = page number or start record
+        if ($recordNo !== null && is_numeric($recordNo)) {
+            $this->StartRecord = $recordNo;
+        } else {
+            $this->StartRecord = $this->getStartRecordNumber();
         }
-        $this->StartRecord = $this->getStartRecordNumber();
 
         // Check if correct start record counter
-        if (!is_numeric($this->StartRecord) || $this->StartRecord == "") { // Avoid invalid start record counter
+        if (!is_numeric($this->StartRecord) || intval($this->StartRecord) <= 0) { // Avoid invalid start record counter
             $this->StartRecord = 1; // Reset start record counter
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif ($this->StartRecord > $this->TotalRecords) { // Avoid starting record > total records
             $this->StartRecord = (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to last page first record
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif (($this->StartRecord - 1) % $this->DisplayRecords != 0) {
             $this->StartRecord = (int)(($this->StartRecord - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to page boundary
+        }
+        if (!$infiniteScroll) {
             $this->setStartRecordNumber($this->StartRecord);
         }
+    }
+
+    // Get page count
+    public function PageCount() {
+        return ceil($this->TotalRecords / $this->DisplayRecords);
     }
 
     // Page Load event
@@ -1495,6 +1456,14 @@ class PronosticadorEdit extends Pronosticador
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 
     // Form Custom Validate event

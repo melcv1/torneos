@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Captcha base class
@@ -59,7 +59,7 @@ class CaptchaBase implements CaptchaInterface
     }
 
     // Client side validation script
-    public function getScript($formName)
+    public function getScript()
     {
         return "";
     }

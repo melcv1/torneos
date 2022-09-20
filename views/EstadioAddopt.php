@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $EstadioAddopt = &$Page;
@@ -8,38 +8,47 @@ $EstadioAddopt = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { estadio: currentTable } });
-var currentForm, currentPageID;
+var currentPageID = ew.PAGE_ID = "addopt";
+var currentForm;
 var festadioaddopt;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    festadioaddopt = new ew.Form("festadioaddopt", "addopt");
-    currentPageID = ew.PAGE_ID = "addopt";
-    currentForm = festadioaddopt;
+    let form = new ew.FormBuilder()
+        .setId("festadioaddopt")
+        .setPageId("addopt")
 
-    // Add fields
-    var fields = currentTable.fields;
-    festadioaddopt.addFields([
-        ["id_torneo", [fields.id_torneo.visible && fields.id_torneo.required ? ew.Validators.required(fields.id_torneo.caption) : null], fields.id_torneo.isInvalid],
-        ["nombre_estadio", [fields.nombre_estadio.visible && fields.nombre_estadio.required ? ew.Validators.required(fields.nombre_estadio.caption) : null], fields.nombre_estadio.isInvalid],
-        ["foto_estadio", [fields.foto_estadio.visible && fields.foto_estadio.required ? ew.Validators.fileRequired(fields.foto_estadio.caption) : null], fields.foto_estadio.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
-        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["id_torneo", [fields.id_torneo.visible && fields.id_torneo.required ? ew.Validators.required(fields.id_torneo.caption) : null], fields.id_torneo.isInvalid],
+            ["nombre_estadio", [fields.nombre_estadio.visible && fields.nombre_estadio.required ? ew.Validators.required(fields.nombre_estadio.caption) : null], fields.nombre_estadio.isInvalid],
+            ["foto_estadio", [fields.foto_estadio.visible && fields.foto_estadio.required ? ew.Validators.fileRequired(fields.foto_estadio.caption) : null], fields.foto_estadio.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+            ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    festadioaddopt.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    festadioaddopt.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    festadioaddopt.lists.id_torneo = <?= $Page->id_torneo->toClientList($Page) ?>;
-    loadjs.done("festadioaddopt");
+        // Dynamic selection lists
+        .setLists({
+            "id_torneo": <?= $Page->id_torneo->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -48,7 +57,7 @@ loadjs.ready("head", function () {
 });
 </script>
 <?php $Page->showPageHeader(); ?>
-<form name="festadioaddopt" id="festadioaddopt" class="ew-form" action="<?= HtmlEncode(GetUrl(Config("API_URL"))) ?>" method="post">
+<form name="festadioaddopt" id="festadioaddopt" class="ew-form" action="<?= HtmlEncode(GetUrl(Config("API_URL"))) ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -72,14 +81,16 @@ loadjs.ready("head", function () {
         <?= $Page->id_torneo->editAttributes() ?>>
         <?= $Page->id_torneo->selectOptionListHtml("x_id_torneo") ?>
     </select>
+    <?= $Page->id_torneo->getCustomMessage() ?>
     <div class="invalid-feedback"><?= $Page->id_torneo->getErrorMessage() ?></div>
 <?= $Page->id_torneo->Lookup->getParamTag($Page, "p_x_id_torneo") ?>
 <script>
 loadjs.ready("festadioaddopt", function() {
     var options = { name: "x_id_torneo", selectId: "festadioaddopt_x_id_torneo" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (festadioaddopt.lists.id_torneo.lookupOptions.length) {
+    if (festadioaddopt.lists.id_torneo?.lookupOptions.length) {
         options.data = { id: "x_id_torneo", form: "festadioaddopt" };
     } else {
         options.ajax = { id: "x_id_torneo", form: "festadioaddopt", limit: ew.LOOKUP_PAGE_SIZE };
@@ -96,7 +107,8 @@ loadjs.ready("festadioaddopt", function() {
     <div<?= $Page->nombre_estadio->rowAttributes() ?>>
         <label class="col-sm-2 col-form-label ew-label" for="x_nombre_estadio"><?= $Page->nombre_estadio->caption() ?><?= $Page->nombre_estadio->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="col-sm-10"><div<?= $Page->nombre_estadio->cellAttributes() ?>>
-<textarea data-table="estadio" data-field="x_nombre_estadio" name="x_nombre_estadio" id="x_nombre_estadio" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->nombre_estadio->getPlaceHolder()) ?>"<?= $Page->nombre_estadio->editAttributes() ?>><?= $Page->nombre_estadio->EditValue ?></textarea>
+<textarea data-table="estadio" data-field="x_nombre_estadio" name="x_nombre_estadio" id="x_nombre_estadio" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->nombre_estadio->getPlaceHolder()) ?>"<?= $Page->nombre_estadio->editAttributes() ?> aria-describedby="x_nombre_estadio_help"><?= $Page->nombre_estadio->EditValue ?></textarea>
+<?= $Page->nombre_estadio->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->nombre_estadio->getErrorMessage() ?></div>
 </div></div>
     </div>
@@ -106,15 +118,30 @@ loadjs.ready("festadioaddopt", function() {
         <label class="col-sm-2 col-form-label ew-label"><?= $Page->foto_estadio->caption() ?><?= $Page->foto_estadio->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
         <div class="col-sm-10"><div<?= $Page->foto_estadio->cellAttributes() ?>>
 <div id="fd_x_foto_estadio" class="fileinput-button ew-file-drop-zone">
-    <input type="file" class="form-control ew-file-input" title="<?= $Page->foto_estadio->title() ?>" data-table="estadio" data-field="x_foto_estadio" name="x_foto_estadio" id="x_foto_estadio" lang="<?= CurrentLanguageID() ?>"<?= $Page->foto_estadio->editAttributes() ?><?= ($Page->foto_estadio->ReadOnly || $Page->foto_estadio->Disabled) ? " disabled" : "" ?>>
+    <input
+        type="file"
+        id="x_foto_estadio"
+        name="x_foto_estadio"
+        class="form-control ew-file-input"
+        title="<?= $Page->foto_estadio->title() ?>"
+        lang="<?= CurrentLanguageID() ?>"
+        data-table="estadio"
+        data-field="x_foto_estadio"
+        data-size="1024"
+        data-accept-file-types="<?= $Page->foto_estadio->acceptFileTypes() ?>"
+        data-max-file-size="<?= $Page->foto_estadio->UploadMaxFileSize ?>"
+        data-max-number-of-files="null"
+        data-disable-image-crop="<?= $Page->foto_estadio->ImageCropper ? 0 : 1 ?>"
+        aria-describedby="x_foto_estadio_help"
+        <?= ($Page->foto_estadio->ReadOnly || $Page->foto_estadio->Disabled) ? " disabled" : "" ?>
+        <?= $Page->foto_estadio->editAttributes() ?>
+    >
     <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
 </div>
+<?= $Page->foto_estadio->getCustomMessage() ?>
 <div class="invalid-feedback"><?= $Page->foto_estadio->getErrorMessage() ?></div>
 <input type="hidden" name="fn_x_foto_estadio" id= "fn_x_foto_estadio" value="<?= $Page->foto_estadio->Upload->FileName ?>">
 <input type="hidden" name="fa_x_foto_estadio" id= "fa_x_foto_estadio" value="0">
-<input type="hidden" name="fs_x_foto_estadio" id= "fs_x_foto_estadio" value="1024">
-<input type="hidden" name="fx_x_foto_estadio" id= "fx_x_foto_estadio" value="<?= $Page->foto_estadio->UploadAllowedFileExt ?>">
-<input type="hidden" name="fm_x_foto_estadio" id= "fm_x_foto_estadio" value="<?= $Page->foto_estadio->UploadMaxFileSize ?>">
 <table id="ft_x_foto_estadio" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
 </div></div>
     </div>

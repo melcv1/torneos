@@ -1,0 +1,34 @@
+{
+    "name": "hkvstore/htmlpurifier",
+    "description": "Standards compliant HTML filter written in PHP",
+    "type": "library",
+    "keywords": ["html"],
+    "homepage": "http://htmlpurifier.org/",
+    "license": "LGPL-2.1-or-later",
+    "authors": [
+        {
+            "name": "Edward Z. Yang",
+            "email": "admin@htmlpurifier.org",
+            "homepage": "http://ezyang.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-0": { "HTMLPurifier": "library/" },
+        "files": ["library/HTMLPurifier.composer.php"],
+        "exclude-from-classmap": [
+            "/library/HTMLPurifier/Language/"
+        ]
+    },
+    "suggest": {
+        "cerdic/css-tidy": "If you want to use the filter 'Filter.ExtractStyleBlocks'.",
+        "ext-iconv": "Converts text to and from non-UTF-8 encodings",
+        "ext-bcmath": "Used for unit conversion and imagecrash protection",
+        "ext-tidy": "Used for pretty-printing HTML"
+    },
+    "replace": {
+        "ezyang/htmlpurifier": "4.14.0"
+    }
+}

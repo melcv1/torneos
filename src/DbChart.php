@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 
@@ -17,6 +17,7 @@ class DbChart
     public $XFieldName; // Chart X Field name
     public $YFieldName; // Chart Y Field name
     public $Type; // Chart Type
+    public $Position; // Chart Position
     public $SeriesFieldName; // Chart Series Field name
     public $SeriesType; // Chart Series Type
     public $SeriesRenderAs = ""; // Chart Series renderAs
@@ -28,6 +29,7 @@ class DbChart
     public $Width; // Chart Width
     public $Height; // Chart Height
     public $Align; // Chart Align
+    public $ContainerClass = "overlay-wrapper"; // Container class
     public $DrillDownTable = ""; // Chart drill down table name
     public $DrillDownUrl = ""; // Chart drill down URL
     public $UseDrillDownPanel; // Use drill down panel
@@ -46,9 +48,7 @@ class DbChart
     public $SqlOrderBySeries;
     public $ChartSeriesSql;
     public $ChartSql;
-    public $PageBreak = true; // Page break before/after chart
-    public $PageBreakType = "before"; // "before" or "after"
-    public $PageBreakContent; // Page break HTML
+    public $PageBreakClass = ""; // "break-before-page" and/or "break-after-page"
     public $DrillDownInPanel = false;
     public $ScrollChart = false;
     public $IsCustomTemplate = false;
@@ -65,14 +65,14 @@ class DbChart
     public $MaxValue = null;
     public $ShowPercentage = false; // Pie / Doughnut charts only
     public $ShowLookupForXAxis = true;
+    public $ShowChart = true;
     protected $dataLoaded = false;
 
     // Constructor
-    public function __construct(&$tbl, $chartvar, $chartname, $xfld, $yfld, $type, $sfld, $stype, $smrytype, $width, $height, $align = "")
+    public function __construct($tbl, $chartvar, $chartname, $xfld, $yfld, $type, $sfld, $stype, $smrytype, $width, $height, $align = "")
     {
         $this->UseDrillDownPanel = Config("USE_DRILLDOWN_PANEL");
         $this->DefaultNumberFormat = Config("DEFAULT_NUMBER_FORMAT");
-        $this->PageBreakContent = Config("PAGE_BREAK_HTML");
         $this->Table = &$tbl;
         $this->TableVar = $tbl->TableVar; // For compatibility
         $this->TableName = $tbl->TableName; // For compatibility
@@ -150,13 +150,13 @@ class DbChart
     // Sort
     public function getSort()
     {
-        return Session(PROJECT_NAME . "_" . $this->Table->TableVar . "_" . Config("TABLE_SORTCHART") . "_" . $this->ChartVar);
+        return Session(PROJECT_NAME . "_" . $this->Table->TableVar . "_" . Config("TABLE_SORT_CHART") . "_" . $this->ChartVar);
     }
 
     public function setSort($v)
     {
-        if (Session(PROJECT_NAME . "_" . $this->Table->TableVar . "_" . Config("TABLE_SORTCHART") . "_" . $this->ChartVar) != $v) {
-            $_SESSION[PROJECT_NAME . "_" . $this->Table->TableVar . "_" . Config("TABLE_SORTCHART") . "_" . $this->ChartVar] = $v;
+        if (Session(PROJECT_NAME . "_" . $this->Table->TableVar . "_" . Config("TABLE_SORT_CHART") . "_" . $this->ChartVar) != $v) {
+            $_SESSION[PROJECT_NAME . "_" . $this->Table->TableVar . "_" . Config("TABLE_SORT_CHART") . "_" . $this->ChartVar] = $v;
         }
     }
 
@@ -812,63 +812,6 @@ class DbChart
         }
     }
 
-    // Show chart temp image
-    public function getTempImageTag()
-    {
-        global $ExportType;
-        $chartid = "chart_" . $this->ID;
-        $chartImage = TempChartImage($chartid, $this->IsCustomTemplate);
-        $this->resizeTempImage($chartImage);
-        $wrk = "";
-        if ($chartImage != "") {
-            $wrk .= "<img src=\"" . $chartImage . "\" alt=\"\">";
-            if ($this->PageBreak) {
-                $attr = " data-page-break=\"" . ($this->PageBreakType == "before" ? "before" : "after") . "\"";
-            }
-            if ($ExportType == "word" && Config("USE_PHPWORD") || $ExportType == "excel" && Config("USE_PHPEXCEL") || $ExportType == "pdf") {
-                $wrk = "<table class=\"ew-chart\"" . $attr . "><tr><td>" . $wrk . "</td></tr></table>";
-            } else {
-                $wrk = "<div class=\"ew-chart\"" . $attr . ">" . $wrk . "</div>";
-            }
-        }
-        if ($this->PageBreak) {
-            if ($this->PageBreakType == "before") {
-                $wrk = $this->PageBreakContent . $wrk;
-            } else {
-                $wrk .= $this->PageBreakContent;
-            }
-        }
-        return $wrk;
-    }
-
-    // Resize temp image
-    public function resizeTempImage($fn)
-    {
-        global $ExportType;
-        $portrait = SameText($this->Table->ExportPageOrientation, "portrait");
-        $exportPdf = ($ExportType == "pdf");
-        $exportWord = ($ExportType == "word" && Config("USE_PHPWORD"));
-        $exportExcel = ($ExportType == "excel" && Config("USE_PHPEXCEL"));
-        if ($exportPdf) {
-            $maxWidth = $portrait ? Config("PDF_MAX_IMAGE_WIDTH") : Config("PDF_MAX_IMAGE_HEIGHT");
-            $maxHeight = $portrait ? Config("PDF_MAX_IMAGE_HEIGHT") : Config("PDF_MAX_IMAGE_WIDTH");
-        } elseif ($exportWord) {
-            global $WORD_MAX_IMAGE_WIDTH, $WORD_MAX_IMAGE_HEIGHT;
-            $maxWidth = $portrait ? $WORD_MAX_IMAGE_WIDTH : $WORD_MAX_IMAGE_HEIGHT;
-            $maxHeight = $portrait ? $WORD_MAX_IMAGE_HEIGHT : $WORD_MAX_IMAGE_WIDTH;
-        } elseif ($exportExcel) {
-            global $EXCEL_MAX_IMAGE_WIDTH, $EXCEL_MAX_IMAGE_HEIGHT;
-            $maxWidth = $portrait ? $EXCEL_MAX_IMAGE_WIDTH : $EXCEL_MAX_IMAGE_HEIGHT;
-            $maxHeight = $portrait ? $EXCEL_MAX_IMAGE_HEIGHT : $EXCEL_MAX_IMAGE_WIDTH;
-        }
-        if ($exportPdf || $exportWord || $exportExcel) {
-            $w = ($this->Width > 0) ? min($this->Width, $maxWidth) : $maxWidth;
-            $h = ($this->Height > 0) ? min($this->Height, $maxHeight) : $maxHeight;
-            return ResizeFile($fn, $fn, $w, $h);
-        }
-        return true;
-    }
-
     // Get renderAs
     public function getRenderAs($i)
     {
@@ -883,72 +826,75 @@ class DbChart
     }
 
     // Render chart
-    public function render($class = "", $width = -1, $height = -1)
+    public function render(string $class = "", ?int $width = null, ?int $height = null)
     {
-        global $ExportType, $CustomExportType, $DashboardReport, $Language, $Page;
+        global $ExportType, $Language, $Page, $DashboardReport;
+
+        // Skip if ShowChart disabled
+        if (!$this->ShowChart) {
+            return;
+        }
+
+        // Skip if isAddOrEdit
+        if ($Page && method_exists($Page, "isAddOrEdit") && $Page->isAddOrEdit()) {
+            return;
+        }
 
         // Get renderer class
         $rendererClass = ChartTypes::getRendererClass($this->Type);
 
         // Check chart size
-        if ($width <= 0) {
-            $width = $this->Width;
-        }
-        if ($height <= 0) {
-            $height = $this->Height;
-        }
-        if (!is_numeric($width) || $width <= 0) {
-            $width = $rendererClass::$DefaultWidth;
-        }
-        if (!is_numeric($height) || $height <= 0) {
-            $height = $rendererClass::$DefaultHeight;
-        }
+        $width ??= $this->Width ?: $rendererClass::$DefaultWidth;
+        $height ??= $this->Height ?: $rendererClass::$DefaultHeight;
 
         // Set up chart
         $this->setupChart();
 
         // Output HTML
-        echo '<div class="' . $class . '">'; // Start chart
+        AppendClass($class, $this->ContainerClass); // Add container class
+        $html = '<div class="' . $class . '" data-chart="' . $this->ID . '">'; // Start chart
 
-        // Render chart content
-        if ($ExportType == "" || $ExportType == "print" && $CustomExportType == "" || $ExportType == "email" && Post("contenttype") == "url") {
-            // Load chart data
-            $this->loadChartData();
-            $this->loadParameters();
-            $this->loadViewData();
+        // Load chart data
+        $this->loadChartData();
+        $this->loadParameters();
+        $this->loadViewData();
 
-            // Get renderer
-            $renderer = new $rendererClass($this);
-
-            // Output chart html first
-            $isDashBoard = $DashboardReport;
-            $chartDivName = $this->Table->TableVar . '_' . $this->ChartVar;
-            $chartAnchor = 'cht_' . $chartDivName;
-            $isDrillDown = isset($Page) ? $Page->DrillDown : false;
-            $html = '<a id="' . $chartAnchor . '"></a>' .
-                '<div id="div_ctl_' . $chartDivName . '" class="ew-chart">';
-            if ($this->RunTimeSort && !$isDashBoard && !$isDrillDown && $ExportType == "" && $this->hasData()) {
-                $html .= '<form class="row mb-3 ew-chart-sort" action="' . CurrentPageUrl(false) . '#cht_' . $chartDivName . '"><div class="col-sm-auto">' .
-                    $Language->phrase("ChartOrder") .
-                    '</div><div class="col-sm-auto"><select id="chartordertype" name="chartordertype" class="form-select" onchange="this.form.submit();">' .
-                    '<option value="1"' . ($this->SortType == '1' ? ' selected' : '') . '>' . $Language->phrase("ChartOrderXAsc") . '</option>' .
-                    '<option value="2"' . ($this->SortType == '2' ? ' selected' : '') . '>' . $Language->phrase("ChartOrderXDesc") . '</option>' .
-                    '<option value="3"' . ($this->SortType == "3" ? ' selected' : '') . '>' . $Language->phrase("ChartOrderYAsc") . '</option>' .
-                    '<option value="4"' . ($this->SortType == "4" ? ' selected' : '') . '>' . $Language->phrase("ChartOrderYDesc") . '</option>' .
-                    '</select>' .
-                    '<input type="hidden" id="chartorder" name="chartorder" value="' . $this->ChartVar . '">' .
-                    '</div></form>';
-            }
-            $html .= $renderer->getContainer($width, $height);
-            $html .= '</div>';
-            echo $html;
-
-            // Output JavaScript
-            echo $renderer->getScript($width, $height);
-        } elseif ($ExportType == "pdf" || $CustomExportType != "" || $ExportType == "email" || $ExportType == "excel" && Config("USE_PHPEXCEL") || $ExportType == "word" && Config("USE_PHPWORD")) { // Show temp image
-            echo $this->getTempImageTag();
+        // Disable animation if export
+        if (!EmptyValue($ExportType)) {
+            $this->setParameters([
+                ["options.animation", false], // Disables all animations
+                ["options.animations.colors", false], // Disables animation defined by the collection of 'colors' properties
+                ["options.animations.x", false], // Disables animation defined by the 'x' property
+                ["options.transitions.active.animation.duration", 0] // Disables the animation for 'active' mode
+            ]);
         }
-        echo '</div>'; // End chart
+
+        // Get renderer
+        $renderer = new $rendererClass($this);
+
+        // Output chart HTML first
+        $isDrillDown = isset($Page) ? $Page->DrillDown : false;
+        $html .= '<a id="cht_' . $this->ID . '"></a>' . // Anchor
+            '<div id="div_cht_' . $this->ID . '" class="ew-chart' . (!$DashboardReport && $this->PageBreakClass ? ' ' . $this->PageBreakClass : '') . '">';
+        if ($this->RunTimeSort && !$isDrillDown && $ExportType == "" && $this->hasData()) {
+            $url = CurrentDashboardPageUrl() . '/' . $this->ChartVar;
+            $html .= '<form class="row mb-3 ew-chart-sort" action="' . $url . '"><div class="col-sm-auto">' .
+                $Language->phrase("ChartOrder") .
+                '</div><div class="col-sm-auto"><select id="chartordertype" name="chartordertype" class="form-select" data-ew-action="chart-order">' .
+                '<option value="1"' . ($this->SortType == '1' ? ' selected' : '') . '>' . $Language->phrase("ChartOrderXAsc") . '</option>' .
+                '<option value="2"' . ($this->SortType == '2' ? ' selected' : '') . '>' . $Language->phrase("ChartOrderXDesc") . '</option>' .
+                '<option value="3"' . ($this->SortType == "3" ? ' selected' : '') . '>' . $Language->phrase("ChartOrderYAsc") . '</option>' .
+                '<option value="4"' . ($this->SortType == "4" ? ' selected' : '') . '>' . $Language->phrase("ChartOrderYDesc") . '</option>' .
+                '</select>' .
+                '<input type="hidden" id="width" name="width" value="' . $width . '">' .
+                '<input type="hidden" id="height" name="height" value="' . $height . '">' .
+                '</div></form>';
+        }
+        $html .= $renderer->getContainer($width, $height) .
+            '</div>' .
+            $renderer->getScript($width, $height); // JavaScript
+        $html .= '</div>'; // End chart
+        return $html;
     }
 
     /**
@@ -1003,7 +949,7 @@ class DbChart
         // $chartData = &$chart->Data;
         // $chartOptions = &$chart->Options;
         // var_dump($this->ID, $chartData, $chartOptions); // View chart ID, data and options
-        // if ($this->ID == "<Report>_<Chart>") { // Check chart ID
+        // if ($this->ID == "<Table>_<Chart>") { // Check chart ID
         // Your code to customize $chartData and/or $chartOptions;
         // }
     }

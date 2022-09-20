@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -19,6 +19,7 @@ class Usuario extends DbTable
     protected $SqlGroupBy = "";
     protected $SqlHaving = "";
     protected $SqlOrderBy = "";
+    public $DbErrorMessage = "";
     public $UseSessionForListSql = true;
 
     // Column CSS classes
@@ -28,7 +29,16 @@ class Usuario extends DbTable
     public $TableLeftColumnClass = "w-col-2";
 
     // Export
-    public $ExportDoc;
+    public $UseAjaxActions = false;
+    public $ModalSearch = false;
+    public $ModalView = false;
+    public $ModalAdd = false;
+    public $ModalEdit = false;
+    public $ModalUpdate = false;
+    public $InlineDelete = false;
+    public $ModalGridAdd = false;
+    public $ModalGridEdit = false;
+    public $ModalMultiEdit = false;
 
     // Fields
     public $ID_USUARIO;
@@ -42,27 +52,34 @@ class Usuario extends DbTable
     // Constructor
     public function __construct()
     {
-        global $Language, $CurrentLanguage, $CurrentLocale;
         parent::__construct();
+        global $Language, $CurrentLanguage, $CurrentLocale;
 
         // Language object
         $Language = Container("language");
-        $this->TableVar = 'usuario';
+        $this->TableVar = "usuario";
         $this->TableName = 'usuario';
-        $this->TableType = 'TABLE';
+        $this->TableType = "TABLE";
+        $this->ImportUseTransaction = $this->supportsTransaction() && Config("IMPORT_USE_TRANSACTION");
+        $this->UseTransaction = $this->supportsTransaction() && Config("USE_TRANSACTION");
 
         // Update Table
         $this->UpdateTable = "`usuario`";
         $this->Dbid = 'DB';
         $this->ExportAll = true;
         $this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
+
+        // PDF
         $this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
         $this->ExportPageSize = "a4"; // Page size (PDF only)
-        $this->ExportExcelPageOrientation = ""; // Page orientation (PhpSpreadsheet only)
-        $this->ExportExcelPageSize = ""; // Page size (PhpSpreadsheet only)
-        $this->ExportWordVersion = 12; // Word version (PHPWord only)
-        $this->ExportWordPageOrientation = "portrait"; // Page orientation (PHPWord only)
-        $this->ExportWordPageSize = "A4"; // Page orientation (PHPWord only)
+
+        // PhpSpreadsheet
+        $this->ExportExcelPageOrientation = null; // Page orientation (PhpSpreadsheet only)
+        $this->ExportExcelPageSize = null; // Page size (PhpSpreadsheet only)
+
+        // PHPWord
+        $this->ExportWordPageOrientation = ""; // Page orientation (PHPWord only)
+        $this->ExportWordPageSize = ""; // Page orientation (PHPWord only)
         $this->ExportWordColumnWidth = null; // Cell width (PHPWord only)
         $this->DetailAdd = false; // Allow detail add
         $this->DetailEdit = false; // Allow detail edit
@@ -70,108 +87,112 @@ class Usuario extends DbTable
         $this->ShowMultipleDetails = false; // Show multiple details
         $this->GridAddRowCount = 5;
         $this->AllowAddDeleteRow = true; // Allow add/delete row
+        $this->UseAjaxActions = $this->UseAjaxActions || Config("USE_AJAX_ACTIONS");
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
-        $this->BasicSearch = new BasicSearch($this->TableVar);
+        $this->BasicSearch = new BasicSearch($this);
 
-        // ID_USUARIO
+        // ID_USUARIO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ID_USUARIO = new DbField(
-            'usuario',
-            'usuario',
-            'x_ID_USUARIO',
-            'ID_USUARIO',
-            '`ID_USUARIO`',
-            '`ID_USUARIO`',
-            3,
-            11,
-            -1,
-            false,
-            '`ID_USUARIO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'NO'
+            $this, // Table
+            'x_ID_USUARIO', // Variable name
+            'ID_USUARIO', // Name
+            '`ID_USUARIO`', // Expression
+            '`ID_USUARIO`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`ID_USUARIO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'NO' // Edit Tag
         );
         $this->ID_USUARIO->InputTextType = "text";
         $this->ID_USUARIO->IsAutoIncrement = true; // Autoincrement field
         $this->ID_USUARIO->IsPrimaryKey = true; // Primary key field
         $this->ID_USUARIO->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->ID_USUARIO->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['ID_USUARIO'] = &$this->ID_USUARIO;
 
-        // USER
+        // USER $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->USER = new DbField(
-            'usuario',
-            'usuario',
-            'x_USER',
-            'USER',
-            '`USER`',
-            '`USER`',
-            201,
-            256,
-            -1,
-            false,
-            '`USER`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_USER', // Variable name
+            'USER', // Name
+            '`USER`', // Expression
+            '`USER`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`USER`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->USER->InputTextType = "text";
         $this->USER->Required = true; // Required field
+        $this->USER->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['USER'] = &$this->USER;
 
-        // CONTRASENA
+        // CONTRASENA $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->CONTRASENA = new DbField(
-            'usuario',
-            'usuario',
-            'x_CONTRASENA',
-            'CONTRASENA',
-            '`CONTRASENA`',
-            '`CONTRASENA`',
-            201,
-            1024,
-            -1,
-            false,
-            '`CONTRASENA`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_CONTRASENA', // Variable name
+            'CONTRASENA', // Name
+            '`CONTRASENA`', // Expression
+            '`CONTRASENA`', // Basic search expression
+            201, // Type
+            1024, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`CONTRASENA`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->CONTRASENA->InputTextType = "text";
         if (Config("ENCRYPTED_PASSWORD")) {
             $this->CONTRASENA->Raw = true;
         }
         $this->CONTRASENA->Required = true; // Required field
+        $this->CONTRASENA->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['CONTRASENA'] = &$this->CONTRASENA;
 
-        // nombre
+        // nombre $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->nombre = new DbField(
-            'usuario',
-            'usuario',
-            'x_nombre',
-            'nombre',
-            '`nombre`',
-            '`nombre`',
-            201,
-            256,
-            -1,
-            false,
-            '`nombre`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_nombre', // Variable name
+            'nombre', // Name
+            '`nombre`', // Expression
+            '`nombre`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`nombre`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->nombre->InputTextType = "text";
+        $this->nombre->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['nombre'] = &$this->nombre;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
         $this->CacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $this->TableVar);
+
+        // Call Table Load event
+        $this->tableLoad();
     }
 
     // Field Visibility
@@ -222,6 +243,12 @@ class Usuario extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Render X Axis for chart
+    public function renderChartXAxis($chartVar, $chartRow)
+    {
+        return $chartRow;
     }
 
     // Table level SQL
@@ -395,6 +422,12 @@ class Usuario extends DbTable
     // Get SQL
     public function getSql($where, $orderBy = "")
     {
+        return $this->getSqlAsQueryBuilder($where, $orderBy)->getSQL();
+    }
+
+    // Get QueryBuilder
+    public function getSqlAsQueryBuilder($where, $orderBy = "")
+    {
         return $this->buildSelectSql(
             $this->getSqlSelect(),
             $this->getSqlFrom(),
@@ -404,7 +437,7 @@ class Usuario extends DbTable
             $this->getSqlOrderBy(),
             $where,
             $orderBy
-        )->getSQL();
+        );
     }
 
     // Table SQL
@@ -513,7 +546,13 @@ class Usuario extends DbTable
     public function insert(&$rs)
     {
         $conn = $this->getConnection();
-        $success = $this->insertSql($rs)->execute();
+        try {
+            $success = $this->insertSql($rs)->execute();
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
         if ($success) {
             // Get insert id if necessary
             $this->ID_USUARIO->setDbValue($conn->lastInsertId());
@@ -562,8 +601,21 @@ class Usuario extends DbTable
     public function update(&$rs, $where = "", $rsold = null, $curfilter = true)
     {
         // If no field is updated, execute may return 0. Treat as success
-        $success = $this->updateSql($rs, $where, $curfilter)->execute();
-        $success = ($success > 0) ? $success : true;
+        try {
+            $success = $this->updateSql($rs, $where, $curfilter)->execute();
+            $success = ($success > 0) ? $success : true;
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
+
+        // Return auto increment field
+        if ($success) {
+            if (!isset($rs['ID_USUARIO']) && !EmptyValue($this->ID_USUARIO->CurrentValue)) {
+                $rs['ID_USUARIO'] = $this->ID_USUARIO->CurrentValue;
+            }
+        }
         return $success;
     }
 
@@ -597,7 +649,13 @@ class Usuario extends DbTable
     {
         $success = true;
         if ($success) {
-            $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+            try {
+                $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+                $this->DbErrorMessage = "";
+            } catch (\Exception $e) {
+                $success = false;
+                $this->DbErrorMessage = $e->getMessage();
+            }
         }
         return $success;
     }
@@ -654,13 +712,13 @@ class Usuario extends DbTable
     }
 
     // Get record filter
-    public function getRecordFilter($row = null)
+    public function getRecordFilter($row = null, $current = false)
     {
         $keyFilter = $this->sqlKeyFilter();
         if (is_array($row)) {
             $val = array_key_exists('ID_USUARIO', $row) ? $row['ID_USUARIO'] : null;
         } else {
-            $val = $this->ID_USUARIO->OldValue !== null ? $this->ID_USUARIO->OldValue : $this->ID_USUARIO->CurrentValue;
+            $val = !EmptyValue($this->ID_USUARIO->OldValue) && !$current ? $this->ID_USUARIO->OldValue : $this->ID_USUARIO->CurrentValue;
         }
         if (!is_numeric($val)) {
             return "0=1"; // Invalid key
@@ -702,9 +760,8 @@ class Usuario extends DbTable
             return $Language->phrase("Edit");
         } elseif ($pageName == "usuarioadd") {
             return $Language->phrase("Add");
-        } else {
-            return "";
         }
+        return "";
     }
 
     // API page name
@@ -726,6 +783,18 @@ class Usuario extends DbTable
         }
     }
 
+    // Current URL
+    public function getCurrentUrl($parm = "")
+    {
+        $url = CurrentPageUrl(false);
+        if ($parm != "") {
+            $url = $this->keyUrl($url, $parm);
+        } else {
+            $url = $this->keyUrl($url, Config("TABLE_SHOW_DETAIL") . "=");
+        }
+        return $this->addMasterUrl($url);
+    }
+
     // List URL
     public function getListUrl()
     {
@@ -736,9 +805,9 @@ class Usuario extends DbTable
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("usuarioview", $this->getUrlParm($parm));
+            $url = $this->keyUrl("usuarioview", $parm);
         } else {
-            $url = $this->keyUrl("usuarioview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("usuarioview", Config("TABLE_SHOW_DETAIL") . "=");
         }
         return $this->addMasterUrl($url);
     }
@@ -747,7 +816,7 @@ class Usuario extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "usuarioadd?" . $this->getUrlParm($parm);
+            $url = "usuarioadd?" . $parm;
         } else {
             $url = "usuarioadd";
         }
@@ -757,35 +826,39 @@ class Usuario extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("usuarioedit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("usuarioedit", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline edit URL
     public function getInlineEditUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=edit"));
+        $url = $this->keyUrl("usuariolist", "action=edit");
         return $this->addMasterUrl($url);
     }
 
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("usuarioadd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("usuarioadd", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline copy URL
     public function getInlineCopyUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=copy"));
+        $url = $this->keyUrl("usuariolist", "action=copy");
         return $this->addMasterUrl($url);
     }
 
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("usuariodelete", $this->getUrlParm());
+        if ($this->UseAjaxActions && ConvertToBool(Param("infinitescroll")) && CurrentPageID() == "list") {
+            return $this->keyUrl(GetApiUrl(Config("API_DELETE_ACTION") . "/" . $this->TableVar));
+        } else {
+            return $this->keyUrl("usuariodelete");
+        }
     }
 
     // Add master url
@@ -822,12 +895,15 @@ class Usuario extends DbTable
     // Render sort
     public function renderFieldHeader($fld)
     {
-        global $Security, $Language;
+        global $Security, $Language, $Page;
         $sortUrl = "";
         $attrs = "";
         if ($fld->Sortable) {
             $sortUrl = $this->sortUrl($fld);
-            $attrs = ' role="button" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            $attrs = ' role="button" data-ew-action="sort" data-ajax="' . ($this->UseAjaxActions ? "true" : "false") . '" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            if ($this->ContextClass) { // Add context
+                $attrs .= ' data-context="' . HtmlEncode($this->ContextClass) . '"';
+            }
         }
         $html = '<div class="ew-table-header-caption"' . $attrs . '>' . $fld->caption() . '</div>';
         if ($sortUrl) {
@@ -848,14 +924,18 @@ class Usuario extends DbTable
     // Sort URL
     public function sortUrl($fld)
     {
+        global $DashboardReport;
         if (
             $this->CurrentAction || $this->isExport() ||
             in_array($fld->Type, [128, 204, 205])
         ) { // Unsortable data type
                 return "";
         } elseif ($fld->Sortable) {
-            $urlParm = $this->getUrlParm("order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort());
-            return $this->addMasterUrl(CurrentPageName() . "?" . $urlParm);
+            $urlParm = "order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort();
+            if ($DashboardReport) {
+                $urlParm .= "&amp;dashboard=true";
+            }
+            return $this->addMasterUrl($this->CurrentPageName . "?" . $urlParm);
         } else {
             return "";
         }
@@ -891,6 +971,19 @@ class Usuario extends DbTable
             }
         }
         return $ar;
+    }
+
+    // Get filter from records
+    public function getFilterFromRecords($rows)
+    {
+        $keyFilter = "";
+        foreach ($rows as $row) {
+            if ($keyFilter != "") {
+                $keyFilter .= " OR ";
+            }
+            $keyFilter .= "(" . $this->getRecordFilter($row) . ")";
+        }
+        return $keyFilter;
     }
 
     // Get filter from record keys
@@ -936,6 +1029,24 @@ class Usuario extends DbTable
         $this->nombre->setDbValue($row['nombre']);
     }
 
+    // Render list content
+    public function renderListContent($filter)
+    {
+        global $Response;
+        $listPage = "UsuarioList";
+        $listClass = PROJECT_NAMESPACE . $listPage;
+        $page = new $listClass();
+        $page->loadRecordsetFromFilter($filter);
+        $view = Container("view");
+        $template = $listPage . ".php"; // View
+        $GLOBALS["Title"] ??= $page->Title; // Title
+        try {
+            $Response = $view->render($Response, $template, $GLOBALS);
+        } finally {
+            $page->terminate(); // Terminate page and clean up
+        }
+    }
+
     // Render list row values
     public function renderListRow()
     {
@@ -956,37 +1067,29 @@ class Usuario extends DbTable
 
         // ID_USUARIO
         $this->ID_USUARIO->ViewValue = $this->ID_USUARIO->CurrentValue;
-        $this->ID_USUARIO->ViewCustomAttributes = "";
 
         // USER
         $this->USER->ViewValue = $this->USER->CurrentValue;
-        $this->USER->ViewCustomAttributes = "";
 
         // CONTRASENA
         $this->CONTRASENA->ViewValue = $this->CONTRASENA->CurrentValue;
-        $this->CONTRASENA->ViewCustomAttributes = "";
 
         // nombre
         $this->nombre->ViewValue = $this->nombre->CurrentValue;
-        $this->nombre->ViewCustomAttributes = "";
 
         // ID_USUARIO
-        $this->ID_USUARIO->LinkCustomAttributes = "";
         $this->ID_USUARIO->HrefValue = "";
         $this->ID_USUARIO->TooltipValue = "";
 
         // USER
-        $this->USER->LinkCustomAttributes = "";
         $this->USER->HrefValue = "";
         $this->USER->TooltipValue = "";
 
         // CONTRASENA
-        $this->CONTRASENA->LinkCustomAttributes = "";
         $this->CONTRASENA->HrefValue = "";
         $this->CONTRASENA->TooltipValue = "";
 
         // nombre
-        $this->nombre->LinkCustomAttributes = "";
         $this->nombre->HrefValue = "";
         $this->nombre->TooltipValue = "";
 
@@ -1007,25 +1110,20 @@ class Usuario extends DbTable
 
         // ID_USUARIO
         $this->ID_USUARIO->setupEditAttributes();
-        $this->ID_USUARIO->EditCustomAttributes = "";
         $this->ID_USUARIO->EditValue = $this->ID_USUARIO->CurrentValue;
-        $this->ID_USUARIO->ViewCustomAttributes = "";
 
         // USER
         $this->USER->setupEditAttributes();
-        $this->USER->EditCustomAttributes = "";
         $this->USER->EditValue = $this->USER->CurrentValue;
         $this->USER->PlaceHolder = RemoveHtml($this->USER->caption());
 
         // CONTRASENA
         $this->CONTRASENA->setupEditAttributes();
-        $this->CONTRASENA->EditCustomAttributes = "";
         $this->CONTRASENA->EditValue = $this->CONTRASENA->CurrentValue;
         $this->CONTRASENA->PlaceHolder = RemoveHtml($this->CONTRASENA->caption());
 
         // nombre
         $this->nombre->setupEditAttributes();
-        $this->nombre->EditCustomAttributes = "";
         $this->nombre->EditValue = $this->nombre->CurrentValue;
         $this->nombre->PlaceHolder = RemoveHtml($this->nombre->caption());
 
@@ -1105,8 +1203,7 @@ class Usuario extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
-                $this->ExportDoc = &$doc;
-                $this->rowExport($row);
+                $this->rowExport($doc, $row);
             }
             $recordset->moveNext();
         }
@@ -1125,6 +1222,12 @@ class Usuario extends DbTable
     }
 
     // Table level events
+
+    // Table Load event
+    public function tableLoad()
+    {
+        // Enter your code here
+    }
 
     // Recordset Selecting event
     public function recordsetSelecting(&$filter)

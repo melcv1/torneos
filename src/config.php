@@ -1,10 +1,10 @@
 <?php
 
 /**
- * PHPMaker 2022 configuration file
+ * PHPMaker 2023 configuration file
  */
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Locale settings
@@ -48,9 +48,7 @@ $CurrentLocale = ""; // Alias of $CurrentLanguage
 
 // Used by header.php, export checking
 $ExportType = "";
-$ExportFileName = "";
-$ReportExportType = "";
-$CustomExportType = "";
+$ExportId = null; // Used by export API
 
 // Used by header.php/footer.php, skip header/footer checking
 $SkipHeaderFooter = false;
@@ -62,7 +60,7 @@ $DebugMessage = "";
 // Debug timer
 $DebugTimer = null;
 
-// Keep temp image names for delete
+// Temp image names
 $TempImages = [];
 
 // Mobile detect
@@ -74,9 +72,6 @@ $Breadcrumb = null;
 
 // Login status
 $LoginStatus = [];
-
-// LDAP
-$Ldap = null;
 
 // API
 $IsApi = false;
@@ -132,7 +127,7 @@ $CONFIG = [
     "LOG_ERROR_TO_FILE" => true, // Log error to file
     "DEBUG_MESSAGE_TEMPLATE" => '<div class="card card-danger ew-debug"><div class="card-header">' .
         '<h3 class="card-title">%t</h3>' .
-        '<div class="card-tools"><button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button></div>' .
+        '<div class="card-tools"><button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fa-solid fa-minus"></i></button></div>' .
         '</div><div class="card-body">%s</div></div>', // Debug message template
 
     // Environment
@@ -146,21 +141,34 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'JoEEs7fzji9dXZ8j', // Random key for encryption
+    "RANDOM_KEY" => 'KIMv8Q5582irJlj3', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project11.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
     "PROJECT_CHARSET" => "utf-8", // Project charset
     "IS_UTF8" => true, // Project charset
     "EMAIL_CHARSET" => "utf-8", // Email charset
+    "EXPORT_TABLE_CELL_STYLES" => ["border" => "1px solid #dddddd", "padding" => "5px"], // Export table cell CSS styles, use inline style for Gmail
     "HIGHLIGHT_COMPARE" => true, // Highlight compare mode, true(case-insensitive)|false(case-sensitive)
     "RELATED_PROJECT_ID" => "", // Related Project ID (GUID)
     "COMPOSITE_KEY_SEPARATOR" => ",", // Composite key separator
     "CACHE" => false, // Cache
     "LAZY_LOAD" => true, // Lazy loading of images
-    "BODY_CLASS" => "hold-transition sidebar-collapse ew-layout-top-nav",
-    "SIDEBAR_CLASS" => "main-sidebar sidebar-dark-blue",
-    "NAVBAR_CLASS" => "main-header navbar navbar-expand navbar-blue navbar-dark border-bottom-0",
+    "BODY_CLASS" => "hold-transition sidebar-collapse ew-layout-top-nav", // CSS class(es) for <body> tag
+    "SIDEBAR_CLASS" => "main-sidebar sidebar-dark-blue", // CSS class(es) for sidebar
+    "NAVBAR_CLASS" => "main-header navbar navbar-expand navbar-blue navbar-dark border-bottom-0", // CSS class(es) for navbar
+    "CLASS_PREFIX" => "_", // Prefix for invalid CSS class names
+    "USE_JAVASCRIPT_MESSAGE" => true, // Use JavaScript message (toast)
+
+    // Required PHP extesions
+    "PHP_EXTENSIONS" => [
+        "curl" => "curl",
+        "fileinfo" => "fileinfo",
+        "intl" => "intl",
+        "mbstring" => "mbstring",
+        "openssl" => "openssl",
+        "gd" => "image"
+    ],
 
     // Check Token
     "CHECK_TOKEN" => true,
@@ -174,7 +182,7 @@ $CONFIG = [
     // View path
     "VIEW_PATH" => "views/", // With trailing delimiter
 
-    // Controller path
+    // Controler path
     "CONTROLLER_PATH" => "controllers/", // With trailing delimiter
 
     // Font path
@@ -186,23 +194,61 @@ $CONFIG = [
     // External StyleSheets
     "STYLESHEET_FILES" => [],
 
-    // Authentication configuration for Google/Facebook
+    // Authentication configuration for Google/Facebook/Saml
     "AUTH_CONFIG" => [
         "providers" => [
             "Google" => [
                 "enabled" => false,
-                "keys" => ["id" => "", "secret" => ""],
+                "keys" => [
+                    "id" => '',
+                    "secret" => ''
+                ],
                 "color" => "danger"
             ],
             "Facebook" => [
                 "enabled" => false,
-                "keys" => ["id" => "", "secret" => ""],
+                "keys" => [
+                    "id" => '',
+                    "secret" => ''
+                ],
                 "color" => "primary"
+            ],
+            "Azure" => [
+                "enabled" => false,
+                "adapter" => 'PHPMaker2023\\project11\\AzureAD',
+                "keys" => [
+                    "id" => '',
+                    "secret" => '' // Note: Client secret value, not client secret ID
+                ],
+                "color" => "info"
+            ],
+            "Saml" => [
+                "enabled" => false,
+                "adapter" => 'PHPMaker2023\\project11\\Saml2',
+                "idpMetadata" => '', // IdP metadata
+                "entityId" => '', // SP entity ID
+                "certificate" => '', // SP X.509 certificate
+                "privateKey" => '', // SP private key
+                "color" => "success"
             ]
         ],
         "debug_mode" => false,
         "debug_file" => "",
         "curl_options" => null
+    ],
+
+    // LDAP configuration (See https://ldaprecord.com/docs/core/v2/configuration)
+    "LDAP_CONFIG" => [
+        "username" => '', // User distinguished name, e.g. uid={username},dc=foo,dc=bar, "{username}" will be replaced by inputted user name
+        "hosts" => [""],
+        "base_dn" => "", // Base distinguished name, e.g. dc=foo,dc=bar
+        "use_tls" => false,
+        "use_ssl" => false,
+        "port" => 389,
+        "options" => [],
+        "version" => 3,
+        "timeout" => 5,
+        "follow_referrals" => false
     ],
 
     // ADODB (Access)
@@ -258,15 +304,15 @@ $CONFIG = [
     "TABLE_PREFIX" => "||PHPReportMaker||", // For backward compatibility only
     "TABLE_REC_PER_PAGE" => "recperpage", // Records per page
     "TABLE_START_REC" => "start", // Start record
-    "TABLE_PAGE_NO" => "pageno", // Page number
-    "TABLE_BASIC_SEARCH" => "psearch", // Basic search keyword
-    "TABLE_BASIC_SEARCH_TYPE" => "psearchtype", // Basic search type
+    "TABLE_PAGE_NUMBER" => "page", // Page number
+    "TABLE_BASIC_SEARCH" => "search", // Basic search keyword
+    "TABLE_BASIC_SEARCH_TYPE" => "searchtype", // Basic search type
     "TABLE_ADVANCED_SEARCH" => "advsrch", // Advanced search
     "TABLE_SEARCH_WHERE" => "searchwhere", // Search where clause
     "TABLE_WHERE" => "where", // Table where
-    "TABLE_WHERE_LIST" => "where_list", // Table where (list page)
     "TABLE_ORDER_BY" => "orderby", // Table order by
-    "TABLE_ORDER_BY_LIST" => "orderby_list", // Table order by (list page)
+    "TABLE_ORDER_BY_LIST" => "orderbylist", // Table order by (list page)
+    "TABLE_RULES" => "rules", // Table rules (QueryBuilder)
     "TABLE_SORT" => "sort", // Table sort
     "TABLE_KEY" => "key", // Table key
     "TABLE_SHOW_MASTER" => "showmaster", // Table show master
@@ -282,36 +328,66 @@ $CONFIG = [
     "PAGE_LAYOUT" => "layout", // Page layout (string|false)
     "PAGE_LAYOUTS" => ["table", "cards"], // Supported page layouts
 
+    // Page dashboard
+    "PAGE_DASHBOARD" => "dashboard", // Page is dashboard (string|false)
+
+    // View (for PhpRenderer)
+    "VIEW" => "view",
+
+    // Log user ID or user name
+    "LOG_USER_ID" => true, // Write to database
+
     // Audit Trail
-    "AUDIT_TRAIL_TO_DATABASE" => true, // Write audit trail to DB
-    "AUDIT_TRAIL_DBID" => "DB", // Audit trail DBID
-    "AUDIT_TRAIL_TABLE_NAME" => "audittrail", // Audit trail table name
-    "AUDIT_TRAIL_TABLE_VAR" => "audittrail", // Audit trail table var
-    "AUDIT_TRAIL_FIELD_NAME_DATETIME" => "datetime", // Audit trail DateTime field name
-    "AUDIT_TRAIL_FIELD_NAME_SCRIPT" => "script", // Audit trail Script field name
-    "AUDIT_TRAIL_FIELD_NAME_USER" => "user", // Audit trail User field name
-    "AUDIT_TRAIL_FIELD_NAME_ACTION" => "action", // Audit trail Action field name
-    "AUDIT_TRAIL_FIELD_NAME_TABLE" => "table", // Audit trail Table field name
-    "AUDIT_TRAIL_FIELD_NAME_FIELD" => "field", // Audit trail Field field name
-    "AUDIT_TRAIL_FIELD_NAME_KEYVALUE" => "keyvalue", // Audit trail Key Value field name
-    "AUDIT_TRAIL_FIELD_NAME_OLDVALUE" => "oldvalue", // Audit trail Old Value field name
-    "AUDIT_TRAIL_FIELD_NAME_NEWVALUE" => "newvalue", // Audit trail New Value field name
+    "AUDIT_TRAIL_TO_DATABASE" => true, // Write to database
+    "AUDIT_TRAIL_DBID" => "DB", // DB ID
+    "AUDIT_TRAIL_TABLE_NAME" => "audittrail", // Table name
+    "AUDIT_TRAIL_TABLE_VAR" => "audittrail", // Table var
+    "AUDIT_TRAIL_FIELD_NAME_DATETIME" => "datetime", // DateTime field name
+    "AUDIT_TRAIL_FIELD_NAME_SCRIPT" => "script", // Script field name
+    "AUDIT_TRAIL_FIELD_NAME_USER" => "user", // User field name
+    "AUDIT_TRAIL_FIELD_NAME_ACTION" => "action", // Action field name
+    "AUDIT_TRAIL_FIELD_NAME_TABLE" => "table", // Table field name
+    "AUDIT_TRAIL_FIELD_NAME_FIELD" => "field", // Field field name
+    "AUDIT_TRAIL_FIELD_NAME_KEYVALUE" => "keyvalue", // Key Value field name
+    "AUDIT_TRAIL_FIELD_NAME_OLDVALUE" => "oldvalue", // Old Value field name
+    "AUDIT_TRAIL_FIELD_NAME_NEWVALUE" => "newvalue", // New Value field name
+
+    // Export Log
+    "EXPORT_PATH" => "export-1fee5ced-11bb-4991-94a0-946354ae0202", // Export folder
+    "EXPORT_LOG_DBID" => "DB", // DB ID
+    "EXPORT_LOG_TABLE_NAME" => "", // Table name
+    "EXPORT_LOG_TABLE_VAR" => "", // Table var
+    "EXPORT_LOG_FIELD_NAME_FILE_ID" => "undefined", // File id (GUID) field name
+    "EXPORT_LOG_FIELD_NAME_DATETIME" => "undefined", // DateTime field name
+    "EXPORT_LOG_FIELD_NAME_DATETIME_ALIAS" => "datetime", // DateTime field name Alias
+    "EXPORT_LOG_FIELD_NAME_USER" => "undefined", // User field name
+    "EXPORT_LOG_FIELD_NAME_EXPORT_TYPE" => "undefined", // Export Type field name
+    "EXPORT_LOG_FIELD_NAME_EXPORT_TYPE_ALIAS" => "type", // Export Type field name Alias
+    "EXPORT_LOG_FIELD_NAME_TABLE" => "undefined", // Table field name
+    "EXPORT_LOG_FIELD_NAME_TABLE_ALIAS" => "tablename", // Table field name Alias
+    "EXPORT_LOG_FIELD_NAME_KEY_VALUE" => "undefined", // Key Value field name
+    "EXPORT_LOG_FIELD_NAME_FILENAME" => "undefined", // File name field name
+    "EXPORT_LOG_FIELD_NAME_FILENAME_ALIAS" => "filename", // File name field name Alias
+    "EXPORT_LOG_FIELD_NAME_REQUEST" => "undefined", // Request field name
+    "EXPORT_FILES_EXPIRY_TIME" => 0, // Files expiry time
+    "EXPORT_LOG_SEARCH" => "search", // Export log search
+    "EXPORT_LOG_LIMIT" => "limit", // Search by limit
+    "EXPORT_LOG_ARCHIVE_PREFIX" => "export", // Export log archive prefix
 
     // Security
     "CSRF_PREFIX" => "csrf",
     "ENCRYPTION_ENABLED" => false, // Encryption enabled
     "ADMIN_USER_NAME" => "", // Administrator user name
     "ADMIN_PASSWORD" => "", // Administrator password
-    "USE_CUSTOM_LOGIN" => true, // Use custom login
+    "USE_CUSTOM_LOGIN" => true, // Use custom login (Windows/LDAP/User_CustomValidate)
     "ALLOW_LOGIN_BY_URL" => false, // Allow login by URL
-    "ALLOW_LOGIN_BY_SESSION" => false, // Allow login by session variables
     "PHPASS_ITERATION_COUNT_LOG2" => [10, 8], // For PasswordHash
     "PASSWORD_HASH" => false, // Use PHP password hashing functions
     "USE_MODAL_LOGIN" => false, // Use modal login
     "USE_MODAL_REGISTER" => false, // Use modal register
     "USE_MODAL_CHANGE_PASSWORD" => false, // Use modal change password
     "USE_MODAL_RESET_PASSWORD" => false, // Use modal reset password
-    "RESET_PASSWORD_TIME_LIMIT" => 60,
+    "RESET_PASSWORD_TIME_LIMIT" => 60, // Reset password time limit (minutes)
 
     // Default User ID allowed permissions
     "DEFAULT_USER_ID_ALLOW_SECURITY" => 360,
@@ -326,6 +402,7 @@ $CONFIG = [
     "USER_PROFILE_FIELD_NAME" => "nombre",
     "REGISTER_ACTIVATE_FIELD_NAME" => "",
     "USER_EMAIL_FIELD_NAME" => "",
+    "USER_PHONE_FIELD_NAME" => "",
     "USER_IMAGE_FIELD_NAME" => "",
     "USER_IMAGE_SIZE" => 40,
     "USER_IMAGE_CROP" => true,
@@ -352,12 +429,18 @@ $CONFIG = [
     "USER_PROFILE_LANGUAGE_ID" => "LanguageId",
     "USER_PROFILE_SEARCH_FILTERS" => "SearchFilters",
     "SEARCH_FILTER_OPTION" => "Client",
+    "USER_PROFILE_IMAGE" => "UserImage",
+
+    // Two factor authentication
     "USER_PROFILE_SECRET" => "Secret",
     "USER_PROFILE_SECRET_CREATE_DATE_TIME" => "SecretCreateDateTime",
     "USER_PROFILE_SECRET_VERIFY_DATE_TIME" => "SecretVerifyDateTime",
     "USER_PROFILE_SECRET_LAST_VERIFY_CODE" => "SecretLastVerifyCode",
     "USER_PROFILE_BACKUP_CODES" => "BackupCodes",
-    "USER_PROFILE_IMAGE" => "UserImage",
+    "USER_PROFILE_ONE_TIME_PASSWORD" => "OTP",
+    "USER_PROFILE_OTP_ACCOUNT" => "OTPAccount",
+    "USER_PROFILE_OTP_CREATE_DATE_TIME" => "OTPCreateDateTime",
+    "USER_PROFILE_OTP_VERIFY_DATE_TIME" => "OTPVerifyDateTime",
 
     // Email
     "SENDER_EMAIL" => "", // Sender email address
@@ -369,7 +452,16 @@ $CONFIG = [
     "EMAIL_NOTIFY_TEMPLATE" => "notify.html",
     "EMAIL_REGISTER_TEMPLATE" => "register.html",
     "EMAIL_RESET_PASSWORD_TEMPLATE" => "resetpassword.html",
+    "EMAIL_ONE_TIME_PASSWORD_TEMPLATE" => "onetimepassword.html",
     "EMAIL_TEMPLATE_PATH" => "html", // Template path
+
+    // SMS
+    "SMS_CLASS" => PROJECT_NAMESPACE . "Sms",
+    "SMS_ONE_TIME_PASSWORD_TEMPLATE" => "onetimepassword.txt",
+    "SMS_TEMPLATE_PATH" => "txt", // Template path
+    // https://github.com/giggsey/libphonenumber-for-php/blob/master/docs/PhoneNumberUtil.md
+    // - null => Use region code from locale (i.e. en-US => US)
+    "SMS_REGION_CODE" => null,
 
     // Remote file
     "REMOTE_FILE_PATTERN" => '/^((https?\:)?|s3:)\/\//i',
@@ -389,7 +481,8 @@ $CONFIG = [
     "DOWNLOAD_ALLOWED_FILE_EXT" => "csv,pdf,xls,doc,xlsx,docx", // Allowed file extensions for download (non-image)
     "ENCRYPT_FILE_PATH" => true, // Encrypt file path
     "MAX_FILE_SIZE" => 2000000, // Max file size
-    "MAX_FILE_COUNT" => 0, // Max file count
+    "MAX_FILE_COUNT" => null, // Max file count, null => no limit
+    "IMAGE_CROPPER" => false, // Upload cropper
     "THUMBNAIL_DEFAULT_WIDTH" => 100, // Thumbnail default width
     "THUMBNAIL_DEFAULT_HEIGHT" => 0, // Thumbnail default height
     "UPLOADED_FILE_MODE" => 0666, // Uploaded file mode
@@ -403,6 +496,12 @@ $CONFIG = [
     // Save file options
     "SAVE_FILE_OPTIONS" => LOCK_EX,
 
+    // Form hidden tag names (Note: DO NOT modify prefix "k_")
+    "FORM_KEY_COUNT_NAME" => "key_count",
+    "FORM_ROW_ACTION_NAME" => "k_action",
+    "FORM_BLANK_ROW_NAME" => "k_blankrow",
+    "FORM_OLD_KEY_NAME" => "k_oldkey",
+
     // Table actions
     "LIST_ACTION" => "list", // Table list action
     "VIEW_ACTION" => "view", // Table view action
@@ -412,6 +511,7 @@ $CONFIG = [
     "UPDATE_ACTION" => "update", // Table update action
     "DELETE_ACTION" => "delete", // Table delete action
     "SEARCH_ACTION" => "search", // Table search action
+    "QUERY_ACTION" => "query", // Table search action
     "PREVIEW_ACTION" => "preview", // Table preview action
     "CUSTOM_REPORT_ACTION" => "custom", // Custom report action
     "SUMMARY_REPORT_ACTION" => "summary", // Summary report action
@@ -426,12 +526,24 @@ $CONFIG = [
     "API_URL" => "api/", // API accessor URL
     "API_ACTION_NAME" => "action", // API action name
     "API_OBJECT_NAME" => "table", // API object name
+    "API_EXPORT_NAME" => "export", // API export name
+    "API_EXPORT_SAVE" => "save", // API export save file
+    "API_EXPORT_OUTPUT" => "output", // API export output file as inline/attachment
+    "API_EXPORT_DOWNLOAD" => "download", // API export download file => disposition=attachment
+    "API_EXPORT_FILE_NAME" => "filename", // API export file name
+    "API_EXPORT_CONTENT_TYPE" => "contenttype", // API export content type
+    "API_EXPORT_USE_CHARSET" => "usecharset", // API export use charset in content type header
+    "API_EXPORT_USE_BOM" => "usebom", // API export use BOM
+    "API_EXPORT_CACHE_CONTROL" => "cachecontrol", // API export cache control header
+    "API_EXPORT_DISPOSITION" => "disposition", // API export disposition (inline/attachment)
     "API_FIELD_NAME" => "field", // API field name
     "API_KEY_NAME" => "key", // API key name
     "API_FILE_TOKEN_NAME" => "filetoken", // API upload file token name
     "API_LOGIN_USERNAME" => "username", // API login user name
     "API_LOGIN_PASSWORD" => "password", // API login password
     "API_LOGIN_SECURITY_CODE" => "securitycode", // API login security code
+    "API_LOGIN_EXPIRE" => "expire", // API login expire (hours)
+    "API_LOGIN_PERMISSION" => "permission", // API login expire permission (hours)
     "API_LOOKUP_PAGE" => "page", // API lookup page name
     "API_USERLEVEL_NAME" => "userlevel", // API userlevel name
     "API_PUSH_NOTIFICATION_SUBSCRIBE" => "subscribe", // API push notification subscribe
@@ -442,6 +554,8 @@ $CONFIG = [
     "API_2FA_RESET" => "reset", // API two factor authentication reset
     "API_2FA_BACKUP_CODES" => "codes", // API two factor authentication backup codes
     "API_2FA_NEW_BACKUP_CODES" => "newcodes", // API two factor authentication new backup codes
+    "API_2FA_SEND_OTP" => "otp", // API two factor authentication send one time password
+    "API_JWT_TOKEN_NAME" => "jwt", // API JWT token name
 
     // API actions
     "API_LIST_ACTION" => "list", // API list action
@@ -456,22 +570,28 @@ $CONFIG = [
     "API_JQUERY_UPLOAD_ACTION" => "jupload", // API jQuery upload action
     "API_SESSION_ACTION" => "session", // API get session action
     "API_LOOKUP_ACTION" => "lookup", // API lookup action
-    "API_PROGRESS_ACTION" => "progress", // API progress action
+    "API_IMPORT_ACTION" => "import", // API import action
+    "API_EXPORT_ACTION" => "export", // API export action
     "API_EXPORT_CHART_ACTION" => "chart", // API export chart action
     "API_PERMISSIONS_ACTION" => "permissions", // API permissions action
     "API_PUSH_NOTIFICATION_ACTION" => "push", // API push notification action
     "API_2FA_ACTION" => "2fa", // API two factor authentication action
+    "API_METADATA_ACTION" => "metadata", // API metadata action (SP)
 
     // Session-less API actions
     "SESSIONLESS_API_ACTIONS" => ["file"],
+
+    // List page inline/grid/modal settings
+    "USE_AJAX_ACTIONS" => false,
 
     // Send push notification time limit
     "SEND_PUSH_NOTIFICATION_TIME_LIMIT" => 300,
     "PUSH_ANONYMOUS" => false,
 
-    // Use 2FA Authentication
+    // Use two factor Authentication
     "USE_TWO_FACTOR_AUTHENTICATION" => false,
     "FORCE_TWO_FACTOR_AUTHENTICATION" => false,
+    "TWO_FACTOR_AUTHENTICATION_TYPE" => "google",
     "TWO_FACTOR_AUTHENTICATION_ISSUER" => PROJECT_NAME,
     "TWO_FACTOR_AUTHENTICATION_DISCREPANCY" => 1,
     "TWO_FACTOR_AUTHENTICATION_QRCODE_SIZE" => 200,
@@ -487,25 +607,23 @@ $CONFIG = [
     "AUDIT_TRAIL_PATH" => "registro/", // Audit trail path (relative to app root)
 
     // Import records
-    "IMPORT_CSV_DELIMITER" => ",", // Import to CSV delimiter
-    "IMPORT_CSV_QUOTE_CHARACTER" => "\"", // Import to CSV quote character
     "IMPORT_MAX_EXECUTION_TIME" => 300, // Import max execution time
     "IMPORT_FILE_ALLOWED_EXTENSIONS" => "csv,xls,xlsx", // Import file allowed extensions
     "IMPORT_INSERT_ONLY" => true, // Import by insert only
     "IMPORT_USE_TRANSACTION" => false, // Import use transaction
+    "IMPORT_MAX_FAILURES" => 1, // Import maximum number of failures
 
     // Export records
     "EXPORT_ALL" => true, // Export all records
     "EXPORT_ALL_TIME_LIMIT" => 120, // Export all records time limit
-    "XML_ENCODING" => "utf-8", // Encoding for Export to XML
     "EXPORT_ORIGINAL_VALUE" => false,
-    "EXPORT_FIELD_CAPTION" => false, // true to export field caption
-    "EXPORT_FIELD_IMAGE" => true, // true to export field image
-    "EXPORT_CSS_STYLES" => true, // true to export CSS styles
-    "EXPORT_MASTER_RECORD" => true, // true to export master record
-    "EXPORT_MASTER_RECORD_FOR_CSV" => false, // true to export master record for CSV
-    "EXPORT_DETAIL_RECORDS" => true, // true to export detail records
-    "EXPORT_DETAIL_RECORDS_FOR_CSV" => false, // true to export detail records for CSV
+    "EXPORT_FIELD_CAPTION" => false, // True to export field caption
+    "EXPORT_FIELD_IMAGE" => true, // True to export field image
+    "EXPORT_CSS_STYLES" => true, // True to export CSS styles
+    "EXPORT_MASTER_RECORD" => true, // True to export master record
+    "EXPORT_MASTER_RECORD_FOR_CSV" => false, // True to export master record for CSV
+    "EXPORT_DETAIL_RECORDS" => true, // True to export detail records
+    "EXPORT_DETAIL_RECORDS_FOR_CSV" => false, // True to export detail records for CSV
     "EXPORT_CLASSES" => [
         "email" => "ExportEmail",
         "html" => "ExportHtml",
@@ -516,6 +634,13 @@ $CONFIG = [
         "xml" => "ExportXml",
         "json" => "ExportJson"
     ],
+    "REPORT_EXPORT_CLASSES" => [
+        "email" => "ExportEmail",
+        "html" => "ExportHtml",
+        "word" => "ExportWord",
+        "excel" => "ExportExcel",
+        "pdf" => "ExportPdf"
+    ],
 
     // Full URL protocols ("http" or "https")
     "FULL_URL_PROTOCOLS" => [
@@ -523,10 +648,8 @@ $CONFIG = [
         "upload" => "", // Upload page
         "resetpwd" => "", // Reset password
         "activate" => "", // Register page activate link
-        "tmpfile" => "", // Upload temp file
         "auth" => "", // OAuth base URL
-        "export" => "", // export (for reports)
-        "genurl" => "" // generate URL (for reports)
+        "export" => "" // Export (for reports)
     ],
 
     // MIME types
@@ -1040,14 +1163,19 @@ $CONFIG = [
     "MULTIPLE_OPTION_SEPARATOR" => ",",
     "USE_LOOKUP_CACHE" => true,
     "LOOKUP_CACHE_COUNT" => 100,
-    "LOOKUP_CACHE_PAGE_IDS" => ["list", "grid"],
+    "LOOKUP_CACHE_PAGE_IDS" => ["list","grid"],
 
     // Page Title Style
     "PAGE_TITLE_STYLE" => "Breadcrumbs",
 
-    // Responsive tables
+    // Responsive table
     "USE_RESPONSIVE_TABLE" => true,
     "RESPONSIVE_TABLE_CLASS" => "table-responsive",
+
+    // Fixed header table
+    "FIXED_HEADER_TABLE_CLASS" => "table-head-fixed",
+    "USE_FIXED_HEADER_TABLE" => false,
+    "FIXED_HEADER_TABLE_HEIGHT" => "mh-400px", // CSS class for fixed header table height
 
     // Multi column list options position
     "MULTI_COLUMN_LIST_OPTIONS_POSITION" => "bottom-start",
@@ -1080,7 +1208,6 @@ $CONFIG = [
     // Extensions
     "USE_PHPEXCEL" => false,
     "USE_PHPWORD" => false,
-    "PDF_STYLESHEET_FILENAME" => "",
 
     /**
      * Reports
@@ -1105,18 +1232,10 @@ $CONFIG = [
     // Table level constants
     "TABLE_GROUP_PER_PAGE" => "recperpage",
     "TABLE_START_GROUP" => "start",
-    "TABLE_SORTCHART" => "sortc", // Table sort chart
+    "TABLE_SORT_CHART" => "sortchart", // Table sort chart
 
-    // Page break
+    // Page break (Use old page-break-* for better compatibility)
     "PAGE_BREAK_HTML" => '<div style="page-break-after:always;"></div>',
-
-    // Export reports
-    "REPORT_EXPORT_CLASSES" => [
-        "email" => "ExportReportEmail",
-        "word" => "ExportReportWord",
-        "excel" => "ExportReportExcel",
-        "pdf" => "ExportReportPdf"
-    ],
 
     // Download PDF file (instead of shown in browser)
     "DOWNLOAD_PDF_FILE" => false,
@@ -1268,23 +1387,84 @@ $CONFIG = [
 
     // Table client side variables
     "TABLE_CLIENT_VARS" => [
+        "TableName",
         "tableCaption"
     ],
 
     // Field client side variables
     "FIELD_CLIENT_VARS" => [
+        "Name",
         "caption",
         "Visible",
         "Required",
         "IsInvalid",
         "Raw",
-        "clientFormatPattern"
+        "clientFormatPattern",
+        "clientSearchOperators"
     ],
+
+    // Query builder search operators
+    "CLIENT_SEARCH_OPERATORS" => [
+        "=" => "equal",
+        "<>" => "not_equal",
+        "IN" => "in",
+        "NOT IN" => "not_in",
+        "<" => "less",
+        "<=" => "less_or_equal",
+        ">" => "greater",
+        ">=" => "greater_or_equal",
+        "BETWEEN" => "between",
+        "NOT BETWEEN" => "not_between",
+        "STARTS WITH" => "begins_with",
+        "NOT STARTS WITH" => "not_begins_with",
+        "LIKE" => "contains",
+        "NOT LIKE" => "not_contains",
+        "ENDS WITH" => "ends_with",
+        "NOT ENDS WITH" => "not_ends_with",
+        "IS EMPTY" => "is_empty",
+        "IS NOT EMPTY" => "is_not_empty",
+        "IS NULL" => "is_null",
+        "IS NOT NULL" => "is_not_null"
+    ],
+
+    // Query builder search operators settings
+    "QUERY_BUILDER_OPERATORS" => [
+        "equal" => [ "type" => "equal", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string", "number", "datetime", "boolean"] ],
+        "not_equal" => [ "type" => "not_equal", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string", "number", "datetime", "boolean"] ],
+        "in" => [ "type" => "in", "nb_inputs" => 1, "multiple" => true, "apply_to" => ["string", "number", "datetime"] ],
+        "not_in" => [ "type" => "not_in", "nb_inputs" => 1, "multiple" => true, "apply_to" => ["string", "number", "datetime"] ],
+        "less" => [ "type" => "less", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["number", "datetime"] ],
+        "less_or_equal" => [ "type" => "less_or_equal", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["number", "datetime"] ],
+        "greater" => [ "type" => "greater", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["number", "datetime"] ],
+        "greater_or_equal" => [ "type" => "greater_or_equal", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["number", "datetime"] ],
+        "between" => [ "type" => "between", "nb_inputs" => 2, "multiple" => false, "apply_to" => ["number", "datetime"] ],
+        "not_between" => [ "type" => "not_between", "nb_inputs" => 2, "multiple" => false, "apply_to" => ["number", "datetime"] ],
+        "begins_with" => [ "type" => "begins_with", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string"] ],
+        "not_begins_with" => [ "type" => "not_begins_with", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string"] ],
+        "contains" => [ "type" => "contains", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string"] ],
+        "not_contains" => [ "type" => "not_contains", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string"] ],
+        "ends_with" => [ "type" => "ends_with", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string"] ],
+        "not_ends_with" => [ "type" => "not_ends_with", "nb_inputs" => 1, "multiple" => false, "apply_to" => ["string"] ],
+        "is_empty" => [ "type" => "is_empty", "nb_inputs" => 0, "multiple" => false, "apply_to" => ["string"] ],
+        "is_not_empty" => [ "type" => "is_not_empty", "nb_inputs" => 0, "multiple" => false, "apply_to" => ["string"] ],
+        "is_null" => [ "type" => "is_null", "nb_inputs" => 0, "multiple" => false, "apply_to" => ["string", "number", "datetime", "boolean"] ],
+        "is_not_null" => [ "type" => "is_not_null", "nb_inputs" => 0, "multiple" => false, "apply_to" => ["string", "number", "datetime", "boolean"] ]
+    ],
+
+    // Value separator for IN operator
+    "IN_OPERATOR_VALUE_SEPARATOR" => "|",
+
+    // Value separator for BETWEEN operator
+    "BETWEEN_OPERATOR_VALUE_SEPARATOR" => "|",
+
+    // Value separator for OR operator
+    "OR_OPERATOR_VALUE_SEPARATOR" => "||",
 
     // Intl numbering systems
     "INTL_NUMBERING_SYSTEMS" => [
         "ar" => "arab",
         "ar-001" => "arab",
+        "ar-AE" => "arab",
         "ar-BH" => "arab",
         "ar-DJ" => "arab",
         "ar-EG" => "arab",
@@ -1405,7 +1585,8 @@ $CONFIG = [
         "API_SESSION_ACTION", // API get session action
         "API_LOOKUP_ACTION", // API lookup action
         "API_LOOKUP_PAGE", // API lookup page name
-        "API_PROGRESS_ACTION", // API progress action
+        "API_IMPORT_ACTION", // API import action
+        "API_EXPORT_ACTION", // API export action
         "API_EXPORT_CHART_ACTION", // API export chart action
         "PUSH_SERVER_PUBLIC_KEY", // Push Server Public Key
         "API_PUSH_NOTIFICATION_ACTION", // API push notification action
@@ -1417,9 +1598,10 @@ $CONFIG = [
         "API_2FA_RESET", // API two factor authentication reset
         "API_2FA_BACKUP_CODES", // API two factor authentication backup codes
         "API_2FA_NEW_BACKUP_CODES", // API two factor authentication new backup codes
+        "API_2FA_SEND_OTP", // API two factor authentication send one time password
+        "TWO_FACTOR_AUTHENTICATION_TYPE", // Two factor authentication type
         "MULTIPLE_OPTION_SEPARATOR", // Multiple option separator
         "AUTO_SUGGEST_MAX_ENTRIES", // Auto-Suggest max entries
-        "LOOKUP_ALL_DISPLAY_FIELDS", // Auto-Suggest for all display fields
         "LOOKUP_PAGE_SIZE", // Lookup page size
         "FILTER_PAGE_SIZE", // Filter page size
         "MAX_EMAIL_RECIPIENT",
@@ -1429,7 +1611,6 @@ $CONFIG = [
         "IMPORT_FILE_ALLOWED_EXTENSIONS", // Import file allowed extensions
         "USE_COLORBOX",
         "PROJECT_STYLESHEET_FILENAME", // Project style sheet
-        "PDF_STYLESHEET_FILENAME", // PDF style sheet // PHP
         "EMBED_PDF",
         "LAZY_LOAD",
         "REMOVE_XSS",
@@ -1441,11 +1622,29 @@ $CONFIG = [
         "SEARCH_FILTER_OPTION",
         "OPTION_HTML_TEMPLATE",
         "PAGE_LAYOUT",
-        "CLIENT_VALIDATE"
+        "CLIENT_VALIDATE",
+        "IN_OPERATOR_VALUE_SEPARATOR",
+        "TABLE_BASIC_SEARCH",
+        "TABLE_BASIC_SEARCH_TYPE",
+        "TABLE_PAGE_NUMBER",
+        "TABLE_SORT",
+        "FORM_KEY_COUNT_NAME",
+        "FORM_ROW_ACTION_NAME",
+        "FORM_BLANK_ROW_NAME",
+        "FORM_OLD_KEY_NAME",
+        "IMPORT_MAX_FAILURES",
+        "TWO_FACTOR_AUTHENTICATION_PASS_CODE_LENGTH",
+        "USE_JAVASCRIPT_MESSAGE",
+        "LIST_ACTION",
+        "VIEW_ACTION",
+        "EDIT_ACTION"
     ],
 
     // Global client side variables
     "GLOBAL_CLIENT_VARS" => [
+        "ROWTYPE_VIEW", // 1
+        "ROWTYPE_ADD", // 2
+        "ROWTYPE_EDIT", // 3
         "DATE_FORMAT", // Date format
         "TIME_FORMAT", // Time format
         "DATE_SEPARATOR", // Date separator
@@ -1458,7 +1657,10 @@ $CONFIG = [
         "CURRENCY_SYMBOL", // Currency code
         "NUMBERING_SYSTEM", // Numbering system
         "TokenNameKey", // Token name key
-        "TokenName" // Token name
+        "TokenName", // Token name
+        "CurrentUserName", // Current user name
+        "IsSysAdmin", // Is system admin
+        "IsRTL" // Is RTL
     ]
 ];
 
@@ -1470,6 +1672,7 @@ $CONFIG = array_merge(
 $CONFIG_DATA = null;
 
 // Dompdf
+$CONFIG["PDF_BACKEND"] = "CPDF";
 $CONFIG["PDF_STYLESHEET_FILENAME"] = "css/ewpdf.css"; // Export PDF CSS styles
 $CONFIG["PDF_MEMORY_LIMIT"] = "512M"; // Memory limit
 $CONFIG["PDF_TIME_LIMIT"] = 120; // Time limit

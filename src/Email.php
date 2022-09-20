@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Email class
@@ -60,7 +60,7 @@ class Email
                 }
             }
             if (!$exist) {
-                return;
+                throw new \Exception("Email template '" . $wrkfile . "' not found");
             }
             $wrk = file_get_contents($wrkfile); // Load template file content
             if (StartsString("\xEF\xBB\xBF", $wrk)) { // UTF-8 BOM
@@ -82,7 +82,7 @@ class Email
             $i = $m[0][1];
             $header = trim(substr($wrk, 0, $i)) . "\r\n"; // Add last CrLf for matching
             $this->Content = trim(substr($wrk, $i));
-            if (preg_match_all('/^\s*(Subject|From|To|Cc|Bcc|Format)\s*:([^\r\n]*)[\r\n]/m', $header, $m)) {
+            if (preg_match_all('/^\s*(Subject|From|To|Cc|Bcc|Format)\s*:([^\r\n]*)[\r\n]/m', $header ?: "", $m)) {
                 $ar = array_combine($m[1], $m[2]);
                 $this->Subject = trim(@$ar["Subject"]);
                 $this->Sender = trim(@$ar["From"]);

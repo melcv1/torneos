@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class TorneoDelete extends Torneo
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'torneo';
-
     // Page object name
     public $PageObjName = "TorneoDelete";
 
@@ -34,6 +31,9 @@ class TorneoDelete extends Torneo
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "torneodelete";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class TorneoDelete extends Torneo
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class TorneoDelete extends Torneo
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'torneo';
+        $this->TableName = 'torneo';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (torneo)
         if (!isset($GLOBALS["torneo"]) || get_class($GLOBALS["torneo"]) == PROJECT_NAMESPACE . "torneo") {
@@ -164,14 +147,14 @@ class TorneoDelete extends Torneo
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class TorneoDelete extends Torneo
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class TorneoDelete extends Torneo
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("torneo");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class TorneoDelete extends Torneo
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -390,10 +354,13 @@ class TorneoDelete extends Torneo
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->ID_TORNEO->setVisibility();
         $this->NOM_TORNEO_CORTO->setVisibility();
@@ -405,7 +372,6 @@ class TorneoDelete extends Torneo
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -420,7 +386,14 @@ class TorneoDelete extends Torneo
             $this->pageLoad();
         }
 
-        // Set up lookup cache
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
+        }
 
         // Set up Breadcrumb
         $this->setupBreadcrumb();
@@ -439,12 +412,12 @@ class TorneoDelete extends Torneo
         // Get action
         if (IsApi()) {
             $this->CurrentAction = "delete"; // Delete record directly
-        } elseif (Post("action") !== null) {
-            $this->CurrentAction = Post("action");
-        } elseif (Get("action") == "1") {
-            $this->CurrentAction = "delete"; // Delete record directly
+        } elseif (Param("action") !== null) {
+            $this->CurrentAction = Param("action") == "delete" ? "delete" : "show";
         } else {
-            $this->CurrentAction = "show"; // Display record
+            $this->CurrentAction = $this->InlineDelete ?
+                "delete" : // Delete record directly
+                "show"; // Display record
         }
         if ($this->isDelete()) {
             $this->SendEmail = true; // Send email on delete success
@@ -452,7 +425,7 @@ class TorneoDelete extends Torneo
                 if ($this->getSuccessMessage() == "") {
                     $this->setSuccessMessage($Language->phrase("DeleteSuccess")); // Set up success message
                 }
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate(true);
                     return;
                 } else {
@@ -460,11 +433,23 @@ class TorneoDelete extends Torneo
                     return;
                 }
             } else { // Delete failed
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate();
                     return;
                 }
-                $this->CurrentAction = "show"; // Display record
+                // Return JSON error message if UseAjaxActions
+                if ($this->UseAjaxActions) {
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return;                    
+                }
+                if ($this->InlineDelete) {
+                    $this->terminate($this->getReturnUrl()); // Return to caller
+                    return;
+                } else {
+                    $this->CurrentAction = "show"; // Display record
+                }
             }
         }
         if ($this->isShow()) { // Load records for display
@@ -538,7 +523,7 @@ class TorneoDelete extends Torneo
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -654,27 +639,21 @@ class TorneoDelete extends Torneo
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_TORNEO
             $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->CurrentValue;
-            $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // NOM_TORNEO_CORTO
             $this->NOM_TORNEO_CORTO->ViewValue = $this->NOM_TORNEO_CORTO->CurrentValue;
-            $this->NOM_TORNEO_CORTO->ViewCustomAttributes = "";
 
             // NOM_TORNEO_LARGO
             $this->NOM_TORNEO_LARGO->ViewValue = $this->NOM_TORNEO_LARGO->CurrentValue;
-            $this->NOM_TORNEO_LARGO->ViewCustomAttributes = "";
 
             // PAIS_TORNEO
             $this->PAIS_TORNEO->ViewValue = $this->PAIS_TORNEO->CurrentValue;
-            $this->PAIS_TORNEO->ViewCustomAttributes = "";
 
             // REGION_TORNEO
             $this->REGION_TORNEO->ViewValue = $this->REGION_TORNEO->CurrentValue;
-            $this->REGION_TORNEO->ViewCustomAttributes = "";
 
             // DETALLE_TORNEO
             $this->DETALLE_TORNEO->ViewValue = $this->DETALLE_TORNEO->CurrentValue;
-            $this->DETALLE_TORNEO->ViewCustomAttributes = "";
 
             // LOGO_TORNEO
             if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
@@ -686,58 +665,47 @@ class TorneoDelete extends Torneo
             } else {
                 $this->LOGO_TORNEO->ViewValue = "";
             }
-            $this->LOGO_TORNEO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
             $this->ID_TORNEO->TooltipValue = "";
 
             // NOM_TORNEO_CORTO
-            $this->NOM_TORNEO_CORTO->LinkCustomAttributes = "";
             $this->NOM_TORNEO_CORTO->HrefValue = "";
             $this->NOM_TORNEO_CORTO->TooltipValue = "";
 
             // NOM_TORNEO_LARGO
-            $this->NOM_TORNEO_LARGO->LinkCustomAttributes = "";
             $this->NOM_TORNEO_LARGO->HrefValue = "";
             $this->NOM_TORNEO_LARGO->TooltipValue = "";
 
             // PAIS_TORNEO
-            $this->PAIS_TORNEO->LinkCustomAttributes = "";
             $this->PAIS_TORNEO->HrefValue = "";
             $this->PAIS_TORNEO->TooltipValue = "";
 
             // REGION_TORNEO
-            $this->REGION_TORNEO->LinkCustomAttributes = "";
             $this->REGION_TORNEO->HrefValue = "";
             $this->REGION_TORNEO->TooltipValue = "";
 
             // DETALLE_TORNEO
-            $this->DETALLE_TORNEO->LinkCustomAttributes = "";
             $this->DETALLE_TORNEO->HrefValue = "";
             $this->DETALLE_TORNEO->TooltipValue = "";
 
             // LOGO_TORNEO
-            $this->LOGO_TORNEO->LinkCustomAttributes = "";
             if (!EmptyValue($this->LOGO_TORNEO->Upload->DbValue)) {
                 $this->LOGO_TORNEO->HrefValue = GetFileUploadUrl($this->LOGO_TORNEO, $this->LOGO_TORNEO->htmlDecode($this->LOGO_TORNEO->Upload->DbValue)); // Add prefix/suffix
                 $this->LOGO_TORNEO->LinkAttrs["target"] = ""; // Add target
@@ -758,17 +726,14 @@ class TorneoDelete extends Torneo
             }
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         }
@@ -813,6 +778,9 @@ class TorneoDelete extends Torneo
             $deleteRow = $this->rowDeleting($row);
             if ($deleteRow) { // Delete
                 $deleteRow = $this->delete($row);
+                if (!$deleteRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             }
             if ($deleteRow === false) {
                 if ($this->UseTransaction) {
@@ -851,7 +819,7 @@ class TorneoDelete extends Torneo
 
             // Set warning message if delete some records failed
             if (count($failKeys) > 0) {
-                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
+                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteRecordsFailed")));
             }
         } else {
             if ($this->UseTransaction) { // Rollback transaction
@@ -859,10 +827,14 @@ class TorneoDelete extends Torneo
             }
         }
 
-        // Write JSON for API request
-        if (IsApi() && $deleteRows) {
-            $row = $this->getRecordsFromRecordset($rsold);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+        // Write JSON response
+        if ((IsJsonResponse() || ConvertToBool(Param("infinitescroll"))) && $deleteRows) {
+            $rows = $this->getRecordsFromRecordset($rsold);
+            $table = $this->TableVar;
+            if (Route(2) !== null) { // Single delete
+                $rows = $rows[0]; // Return object
+            }
+            WriteJson(["success" => true, "action" => Config("API_DELETE_ACTION"), $table => $rows]);
         }
         return $deleteRows;
     }
@@ -909,7 +881,11 @@ class TorneoDelete extends Torneo
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -968,5 +944,13 @@ class TorneoDelete extends Torneo
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class ParticipanteList extends Participante
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'participante';
-
     // Page object name
     public $PageObjName = "ParticipanteList";
 
@@ -37,16 +34,19 @@ class ParticipanteList extends Participante
 
     // Grid form hidden field names
     public $FormName = "fparticipantelist";
-    public $FormActionName = "k_action";
-    public $FormBlankRowName = "k_blankrow";
-    public $FormKeyCountName = "key_count";
+    public $FormActionName = "";
+    public $FormBlankRowName = "";
+    public $FormKeyCountName = "";
+
+    // CSS class/style
+    public $CurrentPageName = "participantelist";
 
     // Page URLs
     public $AddUrl;
     public $EditUrl;
-    public $CopyUrl;
     public $DeleteUrl;
     public $ViewUrl;
+    public $CopyUrl;
     public $ListUrl;
 
     // Update URLs
@@ -55,6 +55,7 @@ class ParticipanteList extends Participante
     public $InlineEditUrl;
     public $GridAddUrl;
     public $GridEditUrl;
+    public $MultiEditUrl;
     public $MultiDeleteUrl;
     public $MultiUpdateUrl;
 
@@ -113,11 +114,7 @@ class ParticipanteList extends Participante
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -140,35 +137,34 @@ class ParticipanteList extends Participante
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->FormActionName = Config("FORM_ROW_ACTION_NAME");
+        $this->FormBlankRowName = Config("FORM_BLANK_ROW_NAME");
+        $this->FormKeyCountName = Config("FORM_KEY_COUNT_NAME");
+        $this->TableVar = 'participante';
+        $this->TableName = 'participante';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
+
+        // CSS class name as context
+        $this->ContextClass = CheckClassName($this->TableVar);
+        AppendClass($this->TableGridClass, $this->ContextClass);
+
+        // Fixed header table
+        if (!$this->UseCustomTemplate) {
+            $this->setFixedHeaderTable(Config("USE_FIXED_HEADER_TABLE"), Config("FIXED_HEADER_TABLE_HEIGHT"));
+        }
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (participante)
         if (!isset($GLOBALS["participante"]) || get_class($GLOBALS["participante"]) == PROJECT_NAMESPACE . "participante") {
@@ -183,6 +179,7 @@ class ParticipanteList extends Participante
         $this->InlineAddUrl = $pageUrl . "action=add";
         $this->GridAddUrl = $pageUrl . "action=gridadd";
         $this->GridEditUrl = $pageUrl . "action=gridedit";
+        $this->MultiEditUrl = $pageUrl . "action=multiedit";
         $this->MultiDeleteUrl = "participantedelete";
         $this->MultiUpdateUrl = "participanteupdate";
 
@@ -198,7 +195,7 @@ class ParticipanteList extends Participante
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
@@ -249,7 +246,7 @@ class ParticipanteList extends Participante
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -296,7 +293,7 @@ class ParticipanteList extends Participante
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -308,27 +305,6 @@ class ParticipanteList extends Participante
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("participante");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -339,9 +315,11 @@ class ParticipanteList extends Participante
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -355,8 +333,24 @@ class ParticipanteList extends Participante
             if (!Config("DEBUG") && ob_get_length()) {
                 ob_end_clean();
             }
-            SaveDebugMessage();
-            Redirect(GetUrl($url));
+
+            // Handle modal response
+            if ($this->IsModal) { // Show as modal
+                $result = ["url" => GetUrl($url), "modal" => "1"];
+                $pageName = GetPageName($url);
+                if ($pageName != $this->getListUrl()) { // Not List page => View page
+                    $result["caption"] = $this->getModalCaption($pageName);
+                    $result["view"] = $pageName == "participanteview";
+                } else { // List page
+                    // $result["list"] = $this->PageID == "search"; // Refresh List page if current page is Search page
+                    $result["error"] = $this->getFailureMessage(); // List page should not be shown as modal => error
+                    $this->clearFailureMessage();
+                }
+                WriteJson($result);
+            } else {
+                SaveDebugMessage();
+                Redirect(GetUrl($url));
+            }
         }
         return; // Return to controller
     }
@@ -467,6 +461,11 @@ class ParticipanteList extends Participante
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -546,7 +545,7 @@ class ParticipanteList extends Participante
     public $SearchColumnCount = 0; // For extended search
     public $SearchFieldsPerRow = 1; // For extended search
     public $RecordCount = 0; // Record count
-    public $EditRowCount;
+    public $InlineRowCount = 0;
     public $StartRowCount = 1;
     public $RowCount = 0;
     public $Attrs = []; // Row attributes and cell attributes
@@ -565,7 +564,38 @@ class ParticipanteList extends Participante
     public $RestoreSearch = false;
     public $HashValue; // Hash value
     public $DetailPages;
-    public $OldRecordset;
+    public $TopContentClass = "ew-top";
+    public $MiddleContentClass = "ew-middle";
+    public $BottomContentClass = "ew-bottom";
+    public $PageAction;
+    public $RecKeys = [];
+    public $IsModal = false;
+    protected $FilterForModalActions = "";
+    private $UseInfiniteScroll = false;
+
+    /**
+     * Load recordset from filter
+     *
+     * @return void
+     */
+    public function loadRecordsetFromFilter($filter)
+    {
+        // Set up list options
+        $this->setupListOptions();
+
+        // Search options
+        $this->setupSearchOptions();
+
+        // Load recordset
+        $this->TotalRecords = $this->loadRecordCount($filter);
+        $this->StartRecord = 1;
+        $this->StopRecord = $this->DisplayRecords;
+        $this->CurrentFilter = $filter;
+        $this->Recordset = $this->loadRecordset();
+
+        // Set up pager
+        $this->Pager = new PrevNextPager($this, $this->StartRecord, $this->DisplayRecords, $this->TotalRecords, $this->PageSizes, $this->RecordRange, $this->AutoHidePager, $this->AutoHidePageSizeSelector);
+    }
 
     /**
      * Page run
@@ -574,16 +604,36 @@ class ParticipanteList extends Participante
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm, $DashboardReport;
 
         // Multi column button position
         $this->MultiColumnListOptionsPosition = Config("MULTI_COLUMN_LIST_OPTIONS_POSITION");
 
+        // Is modal
+        $this->IsModal = ConvertToBool(Param("modal"));
+
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
+
+        // Get export parameters
+        $custom = "";
+        if (Param("export") !== null) {
+            $this->Export = Param("export");
+            $custom = Param("custom", "");
+        } else {
+            $this->setExportReturnUrl(CurrentUrl());
+        }
+        $ExportType = $this->Export; // Get export parameter, used in header
+        if ($ExportType != "") {
+            global $SkipHeaderFooter;
+            $SkipHeaderFooter = true;
+        }
         $this->CurrentAction = Param("action"); // Set up current action
 
         // Get grid add count
@@ -604,7 +654,6 @@ class ParticipanteList extends Participante
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->Visible = false;
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -619,6 +668,15 @@ class ParticipanteList extends Participante
             $this->pageLoad();
         }
 
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
+        }
+
         // Setup other options
         $this->setupOtherOptions();
 
@@ -627,111 +685,124 @@ class ParticipanteList extends Participante
             $this->ListActions->add($name, $action);
         }
 
-        // Set up lookup cache
-
         // Load default values for add
         $this->loadDefaultValues();
+
+        // Update form name to avoid conflict
+        if ($this->IsModal) {
+            $this->FormName = "fparticipantegrid";
+        }
+
+        // Set up page action
+        $this->PageAction = CurrentPageUrl(false);
+
+        // Set up infinite scroll
+        $this->UseInfiniteScroll = ConvertToBool(Param("infinitescroll"));
 
         // Search filters
         $srchAdvanced = ""; // Advanced search filter
         $srchBasic = ""; // Basic search filter
-        $filter = "";
+        $filter = ""; // Filter
+        $query = ""; // Query builder
 
         // Get command
         $this->Command = strtolower(Get("cmd", ""));
-        if ($this->isPageRequest()) {
-            // Process list action first
-            if ($this->processListAction()) { // Ajax request
+
+        // Process list action first
+        if ($this->processListAction()) { // Ajax request
+            $this->terminate();
+            return;
+        }
+
+        // Set up records per page
+        $this->setupDisplayRecords();
+
+        // Handle reset command
+        $this->resetCmd();
+
+        // Set up Breadcrumb
+        if (!$this->isExport()) {
+            $this->setupBreadcrumb();
+        }
+
+        // Check QueryString parameters
+        if (Get("action") !== null) {
+            $this->CurrentAction = Get("action");
+        } else {
+            if (Post("action") !== null) {
+                $this->CurrentAction = Post("action"); // Get action
+            }
+        }
+
+        // Clear inline mode
+        if ($this->isCancel()) {
+            $this->clearInlineMode();
+        }
+
+        // Switch to inline edit mode
+        if ($this->isEdit()) {
+            $this->inlineEditMode();
+        // Inline Update
+        } elseif (IsPost() && ($this->isUpdate() || $this->isOverwrite()) && Session(SESSION_INLINE_MODE) == "edit") {
+            $this->setKey(Post($this->OldKeyName));
+            // Return JSON error message if UseAjaxActions
+            if (!$this->inlineUpdate() && $this->UseAjaxActions) {
+                WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                $this->clearFailureMessage();
                 $this->terminate();
                 return;
             }
+        }
 
-            // Set up records per page
-            $this->setupDisplayRecords();
+        // Hide list options
+        if ($this->isExport()) {
+            $this->ListOptions->hideAllOptions(["sequence"]);
+            $this->ListOptions->UseDropDownButton = false; // Disable drop down button
+            $this->ListOptions->UseButtonGroup = false; // Disable button group
+        } elseif ($this->isGridAdd() || $this->isGridEdit() || $this->isMultiEdit() || $this->isConfirm()) {
+            $this->ListOptions->hideAllOptions();
+            $this->ListOptions->UseDropDownButton = false; // Disable drop down button
+            $this->ListOptions->UseButtonGroup = false; // Disable button group
+        }
 
-            // Handle reset command
-            $this->resetCmd();
+        // Hide options
+        if ($this->isExport() || !(EmptyValue($this->CurrentAction) || $this->isSearch())) {
+            $this->ExportOptions->hideAllOptions();
+            $this->FilterOptions->hideAllOptions();
+            $this->ImportOptions->hideAllOptions();
+        }
 
-            // Set up Breadcrumb
-            if (!$this->isExport()) {
-                $this->setupBreadcrumb();
-            }
+        // Hide other options
+        if ($this->isExport()) {
+            $this->OtherOptions->hideAllOptions();
+        }
 
-            // Check QueryString parameters
-            if (Get("action") !== null) {
-                $this->CurrentAction = Get("action");
+        // Get default search criteria
+        AddFilter($this->DefaultSearchWhere, $this->basicSearchWhere(true));
 
-                // Clear inline mode
-                if ($this->isCancel()) {
-                    $this->clearInlineMode();
-                }
+        // Get basic search values
+        $this->loadBasicSearchValues();
 
-                // Switch to inline edit mode
-                if ($this->isEdit()) {
-                    $this->inlineEditMode();
-                }
-            } else {
-                if (Post("action") !== null) {
-                    $this->CurrentAction = Post("action"); // Get action
+        // Process filter list
+        if ($this->processFilterList()) {
+            $this->terminate();
+            return;
+        }
 
-                    // Inline Update
-                    if (($this->isUpdate() || $this->isOverwrite()) && Session(SESSION_INLINE_MODE) == "edit") {
-                        $this->setKey(Post($this->OldKeyName));
-                        $this->inlineUpdate();
-                    }
-                }
-            }
+        // Restore search parms from Session if not searching / reset / export
+        if (($this->isExport() || $this->Command != "search" && $this->Command != "reset" && $this->Command != "resetall") && $this->Command != "json" && $this->checkSearchParms()) {
+            $this->restoreSearchParms();
+        }
 
-            // Hide list options
-            if ($this->isExport()) {
-                $this->ListOptions->hideAllOptions(["sequence"]);
-                $this->ListOptions->UseDropDownButton = false; // Disable drop down button
-                $this->ListOptions->UseButtonGroup = false; // Disable button group
-            } elseif ($this->isGridAdd() || $this->isGridEdit()) {
-                $this->ListOptions->hideAllOptions();
-                $this->ListOptions->UseDropDownButton = false; // Disable drop down button
-                $this->ListOptions->UseButtonGroup = false; // Disable button group
-            }
+        // Call Recordset SearchValidated event
+        $this->recordsetSearchValidated();
 
-            // Hide options
-            if ($this->isExport() || $this->CurrentAction) {
-                $this->ExportOptions->hideAllOptions();
-                $this->FilterOptions->hideAllOptions();
-                $this->ImportOptions->hideAllOptions();
-            }
+        // Set up sorting order
+        $this->setupSortOrder();
 
-            // Hide other options
-            if ($this->isExport()) {
-                $this->OtherOptions->hideAllOptions();
-            }
-
-            // Get default search criteria
-            AddFilter($this->DefaultSearchWhere, $this->basicSearchWhere(true));
-
-            // Get basic search values
-            $this->loadBasicSearchValues();
-
-            // Process filter list
-            if ($this->processFilterList()) {
-                $this->terminate();
-                return;
-            }
-
-            // Restore search parms from Session if not searching / reset / export
-            if (($this->isExport() || $this->Command != "search" && $this->Command != "reset" && $this->Command != "resetall") && $this->Command != "json" && $this->checkSearchParms()) {
-                $this->restoreSearchParms();
-            }
-
-            // Call Recordset SearchValidated event
-            $this->recordsetSearchValidated();
-
-            // Set up sorting order
-            $this->setupSortOrder();
-
-            // Get basic search criteria
-            if (!$this->hasInvalidFields()) {
-                $srchBasic = $this->basicSearchWhere();
-            }
+        // Get basic search criteria
+        if (!$this->hasInvalidFields()) {
+            $srchBasic = $this->basicSearchWhere();
         }
 
         // Restore display records
@@ -752,8 +823,12 @@ class ParticipanteList extends Participante
         }
 
         // Build search criteria
-        AddFilter($this->SearchWhere, $srchAdvanced);
-        AddFilter($this->SearchWhere, $srchBasic);
+        if ($query) {
+            AddFilter($this->SearchWhere, $query);
+        } else {
+            AddFilter($this->SearchWhere, $srchAdvanced);
+            AddFilter($this->SearchWhere, $srchBasic);
+        }
 
         // Call Recordset_Searching event
         $this->recordsetSearching($this->SearchWhere);
@@ -763,7 +838,7 @@ class ParticipanteList extends Participante
             $this->setSearchWhere($this->SearchWhere); // Save to Session
             $this->StartRecord = 1; // Reset start record counter
             $this->setStartRecordNumber($this->StartRecord);
-        } elseif ($this->Command != "json") {
+        } elseif ($this->Command != "json" && !$query) {
             $this->SearchWhere = $this->getSearchWhere();
         }
 
@@ -783,12 +858,30 @@ class ParticipanteList extends Participante
             $this->setSessionWhere($filter);
             $this->CurrentFilter = "";
         }
+        $this->Filter = $filter;
         if ($this->isGridAdd()) {
             $this->CurrentFilter = "0=1";
             $this->StartRecord = 1;
             $this->DisplayRecords = $this->GridAddRowCount;
             $this->TotalRecords = $this->DisplayRecords;
             $this->StopRecord = $this->DisplayRecords;
+        } elseif (($this->isEdit() || $this->isCopy() || $this->isInlineInserted() || $this->isInlineUpdated()) && $this->UseInfiniteScroll) { // Get current record only
+            $this->CurrentFilter = $this->isInlineUpdated() ? $this->getRecordFilter() : $this->getFilterFromRecordKeys();
+            $this->TotalRecords = $this->listRecordCount();
+            $this->StartRecord = 1;
+            $this->StopRecord = $this->DisplayRecords;
+            $this->Recordset = $this->loadRecordset();
+        } elseif (
+            $this->UseInfiniteScroll && $this->isGridInserted() ||
+            $this->UseInfiniteScroll && ($this->isGridEdit() || $this->isGridUpdated()) ||
+            $this->isMultiEdit() ||
+            $this->UseInfiniteScroll && $this->isMultiUpdated()
+        ) { // Get current records only
+            $this->CurrentFilter = $this->FilterForModalActions; // Restore filter
+            $this->TotalRecords = $this->listRecordCount();
+            $this->StartRecord = 1;
+            $this->StopRecord = $this->DisplayRecords;
+            $this->Recordset = $this->loadRecordset();
         } else {
             $this->TotalRecords = $this->listRecordCount();
             $this->StartRecord = 1;
@@ -801,7 +894,7 @@ class ParticipanteList extends Participante
             $this->Recordset = $this->loadRecordset($this->StartRecord - 1, $this->DisplayRecords);
 
             // Set no record found message
-            if (!$this->CurrentAction && $this->TotalRecords == 0) {
+            if ((EmptyValue($this->CurrentAction) || $this->isSearch()) && $this->TotalRecords == 0) {
                 if (!$Security->canList()) {
                     $this->setWarningMessage(DeniedMessage());
                 }
@@ -829,20 +922,36 @@ class ParticipanteList extends Participante
 
         // Set up search panel class
         if ($this->SearchWhere != "") {
-            AppendClass($this->SearchPanelClass, "show");
+            if ($query) { // Hide search panel if using QueryBuilder
+                RemoveClass($this->SearchPanelClass, "show");
+            } else {
+                AppendClass($this->SearchPanelClass, "show");
+            }
         }
 
-        // Normal return
+        // API list action
         if (IsApi()) {
-            $rows = $this->getRecordsFromRecordset($this->Recordset);
-            $this->Recordset->close();
-            WriteJson(["success" => true, $this->TableVar => $rows, "totalRecordCount" => $this->TotalRecords]);
-            $this->terminate(true);
-            return;
+            if (Route(0) == Config("API_LIST_ACTION")) {
+                if (!$this->isExport()) {
+                    $rows = $this->getRecordsFromRecordset($this->Recordset);
+                    $this->Recordset->close();
+                    WriteJson(["success" => true, "action" => Config("API_LIST_ACTION"), $this->TableVar => $rows, "totalRecordCount" => $this->TotalRecords]);
+                    $this->terminate(true);
+                }
+                return;
+            } elseif ($this->getFailureMessage() != "") {
+                WriteJson(["error" => $this->getFailureMessage()]);
+                $this->clearFailureMessage();
+                $this->terminate(true);
+                return;
+            }
         }
+
+        // Render other options
+        $this->renderOtherOptions();
 
         // Set up pager
-        $this->Pager = new PrevNextPager($this->TableVar, $this->StartRecord, $this->getRecordsPerPage(), $this->TotalRecords, $this->PageSizes, $this->RecordRange, $this->AutoHidePager, $this->AutoHidePageSizeSelector);
+        $this->Pager = new PrevNextPager($this, $this->StartRecord, $this->DisplayRecords, $this->TotalRecords, $this->PageSizes, $this->RecordRange, $this->AutoHidePager, $this->AutoHidePageSizeSelector);
 
         // Set LoginStatus / Page_Rendering / Page_Render
         if (!IsApi() && !$this->isTerminated()) {
@@ -865,6 +974,12 @@ class ParticipanteList extends Participante
                 $this->renderSearchOptions();
             }
         }
+    }
+
+    // Get page number
+    public function getPageNumber()
+    {
+        return ($this->DisplayRecords > 0 && $this->StartRecord > 0) ? ceil($this->StartRecord / $this->DisplayRecords) : 1;
     }
 
     // Set up number of records displayed per page
@@ -900,13 +1015,13 @@ class ParticipanteList extends Participante
     protected function inlineEditMode()
     {
         global $Security, $Language;
-        if (!$Security->canEdit()) { // No edit permission
-            $this->CurrentAction = "";
-            $this->setFailureMessage($Language->phrase("NoEditPermission"));
-            return false;
+        if (!$Security->canEdit()) {
+            return false; // Edit not allowed
         }
         $inlineEdit = true;
         if (($keyValue = Get("ID_PARTICIPANTE") ?? Route("ID_PARTICIPANTE")) !== null) {
+            $this->ID_PARTICIPANTE->setQueryStringValue($keyValue);
+        } elseif (IsApi() && ($keyValue = Route(2)) !== null) {
             $this->ID_PARTICIPANTE->setQueryStringValue($keyValue);
         } else {
             $inlineEdit = false;
@@ -949,6 +1064,7 @@ class ParticipanteList extends Participante
             $this->EventCancelled = true; // Cancel event
             $this->CurrentAction = "edit"; // Stay in edit mode
         }
+        return $inlineUpdate;
     }
 
     // Check Inline Edit key
@@ -1137,8 +1253,32 @@ class ParticipanteList extends Participante
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
 
+    // Show list of filters
+    public function showFilterList()
+    {
+        global $Language;
+
+        // Initialize
+        $filterList = "";
+        $captionClass = $this->isExport("email") ? "ew-filter-caption-email" : "ew-filter-caption";
+        $captionSuffix = $this->isExport("email") ? ": " : "";
+        if ($this->BasicSearch->Keyword != "") {
+            $filterList .= "<div><span class=\"" . $captionClass . "\">" . $Language->phrase("BasicSearchKeyword") . "</span>" . $captionSuffix . $this->BasicSearch->Keyword . "</div>";
+        }
+
+        // Show Filters
+        if ($filterList != "") {
+            $message = "<div id=\"ew-filter-list\" class=\"callout callout-info d-table\"><div id=\"ew-current-filters\">" .
+                $Language->phrase("CurrentFilters") . "</div>" . $filterList . "</div>";
+            $this->messageShowing($message, "");
+            Write($message);
+        } else { // Output empty tag
+            Write("<div id=\"ew-filter-list\"></div>");
+        }
+    }
+
     // Return basic search WHERE clause based on search keyword and type
-    protected function basicSearchWhere($default = false)
+    public function basicSearchWhere($default = false)
     {
         global $Security;
         $searchStr = "";
@@ -1171,6 +1311,9 @@ class ParticipanteList extends Participante
         if (!$default && $this->Command == "search") {
             $this->BasicSearch->setKeyword($searchKeyword);
             $this->BasicSearch->setType($searchType);
+
+            // Clear rules for QueryBuilder
+            $this->setSessionRules("");
         }
         return $searchStr;
     }
@@ -1354,6 +1497,12 @@ class ParticipanteList extends Participante
             // Set up list options (to be implemented by extensions)
     }
 
+    // Add "hash" parameter to URL
+    public function urlAddHash($url, $hash)
+    {
+        return $this->UseAjaxActions ? $url : UrlAddQuery($url, "hash=" . $hash);
+    }
+
     // Render list options
     public function renderListOptions()
     {
@@ -1387,11 +1536,31 @@ class ParticipanteList extends Participante
         if ($this->isInlineEditRow()) { // Inline-Edit
             $this->ListOptions->CustomItem = "edit"; // Show edit column only
             $cancelurl = $this->addMasterUrl($pageUrl . "action=cancel");
-                $opt->Body = "<div" . (($opt->OnLeft) ? " class=\"text-end\"" : "") . ">" .
-                "<button class=\"ew-grid-link ew-inline-update\" title=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("UpdateLink")) . "\" form=\"fparticipantelist\" formaction=\"" . HtmlEncode(GetUrl(UrlAddHash($this->pageName(), "r" . $this->RowCount . "_" . $this->TableVar))) . "\">" . $Language->phrase("UpdateLink") . "</button>&nbsp;" .
-                "<a class=\"ew-grid-link ew-inline-cancel\" title=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("CancelLink")) . "\" href=\"" . $cancelurl . "\">" . $Language->phrase("CancelLink") . "</a>" .
-                "<input type=\"hidden\" name=\"action\" id=\"action\" value=\"update\"></div>";
-            $opt->Body .= "<input type=\"hidden\" name=\"k" . $this->RowIndex . "_key\" id=\"k" . $this->RowIndex . "_key\" value=\"" . HtmlEncode($this->ID_PARTICIPANTE->CurrentValue) . "\">";
+                $divClass = $opt->OnLeft ? " class=\"text-end\"" : "";
+                $updateCaption = $Language->phrase("UpdateLink");
+                $updateTitle = HtmlTitle($updateCaption);
+                $cancelCaption = $Language->phrase("CancelLink");
+                $cancelTitle = HtmlTitle($cancelCaption);
+                $oldKey = HtmlEncode($this->getKey(true));
+                $inlineUpdateUrl = HtmlEncode(GetUrl($this->urlAddHash($this->pageName(), "r" . $this->RowCount . "_" . $this->TableVar)));
+                if ($this->UseAjaxActions) {
+                    $inlineCancelUrl = $this->InlineEditUrl . "?action=cancel";
+                    $opt->Body = <<<INLINEEDITAJAX
+                    <div{$divClass}>
+                        <button class="ew-grid-link ew-inline-update" title="{$updateTitle}" data-caption="{$updateTitle}" data-ew-action="inline" data-action="update" data-key="{$oldKey}" data-url="{$inlineUpdateUrl}">{$updateCaption}</button>
+                        <button class="ew-grid-link ew-inline-cancel" title="{$cancelTitle}" data-caption="{$cancelTitle}" data-ew-action="inline" data-action="cancel" data-key="{$oldKey}" data-url="{$inlineCancelUrl}">{$cancelCaption}</button>
+                    </div>
+                    INLINEEDITAJAX;
+                } else {
+                    $opt->Body = <<<INLINEEDIT
+                    <div{$divClass}>
+                        <button class="ew-grid-link ew-inline-update" title="{$updateTitle}" data-caption="{$updateTitle}" form="fparticipantelist" formaction="{$inlineUpdateUrl}">{$updateCaption}</button>
+                        <a class="ew-grid-link ew-inline-cancel" title="{$cancelTitle}" data-caption="{$updateTitle}" href="{$cancelurl}">{$cancelCaption}</a>
+                        <input type="hidden" name="action" id="action" value="update">
+                    </div>
+                    INLINEEDIT;
+                }
+            $opt->Body .= "<input type=\"hidden\" name=\"" . $this->OldKeyName . "\" id=\"" . $this->OldKeyName . "\" value=\"" . HtmlEncode($this->ID_PARTICIPANTE->CurrentValue) . "\">";
             return;
         }
         if ($this->CurrentMode == "view") {
@@ -1399,7 +1568,11 @@ class ParticipanteList extends Participante
             $opt = $this->ListOptions["view"];
             $viewcaption = HtmlTitle($Language->phrase("ViewLink"));
             if ($Security->canView()) {
-                $opt->Body = "<a class=\"ew-row-link ew-view\" title=\"" . $viewcaption . "\" data-caption=\"" . $viewcaption . "\" href=\"" . HtmlEncode(GetUrl($this->ViewUrl)) . "\">" . $Language->phrase("ViewLink") . "</a>";
+                if ($this->ModalView && !IsMobile()) {
+                    $opt->Body = "<a class=\"ew-row-link ew-view\" title=\"" . $viewcaption . "\" data-table=\"participante\" data-caption=\"" . $viewcaption . "\" data-ew-action=\"modal\" data-url=\"" . HtmlEncode(GetUrl($this->ViewUrl)) . "\" data-btn=\"null\">" . $Language->phrase("ViewLink") . "</a>";
+                } else {
+                    $opt->Body = "<a class=\"ew-row-link ew-view\" title=\"" . $viewcaption . "\" data-caption=\"" . $viewcaption . "\" href=\"" . HtmlEncode(GetUrl($this->ViewUrl)) . "\">" . $Language->phrase("ViewLink") . "</a>";
+                }
             } else {
                 $opt->Body = "";
             }
@@ -1408,8 +1581,18 @@ class ParticipanteList extends Participante
             $opt = $this->ListOptions["edit"];
             $editcaption = HtmlTitle($Language->phrase("EditLink"));
             if ($Security->canEdit()) {
-                $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("EditLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("EditLink") . "</a>";
-                $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("InlineEditLink")) . "\" href=\"" . HtmlEncode(UrlAddHash(GetUrl($this->InlineEditUrl), "r" . $this->RowCount . "_" . $this->TableVar)) . "\">" . $Language->phrase("InlineEditLink") . "</a>";
+                if ($this->ModalEdit && !IsMobile()) {
+                    $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . $editcaption . "\" data-table=\"participante\" data-caption=\"" . $editcaption . "\" data-ew-action=\"modal\" data-action=\"edit\" data-ajax=\"" . ($this->UseAjaxActions ? "true" : "false") . "\" data-url=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\" data-btn=\"SaveBtn\">" . $Language->phrase("EditLink") . "</a>";
+                } else {
+                    $opt->Body = "<a class=\"ew-row-link ew-edit\" title=\"" . $editcaption . "\" data-caption=\"" . $editcaption . "\" href=\"" . HtmlEncode(GetUrl($this->EditUrl)) . "\">" . $Language->phrase("EditLink") . "</a>";
+                }
+                $inlineEditCaption = $Language->phrase("InlineEditLink");
+                $inlineEditTitle = HtmlTitle($inlineEditCaption);
+                if ($this->UseAjaxActions) {
+                    $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . $inlineEditTitle . "\" data-caption=\"" . $inlineEditTitle . "\" data-ew-action=\"inline\" data-action=\"edit\" data-key=\"" . HtmlEncode($this->getKey(true)) . "\" data-url=\"" . HtmlEncode($this->InlineEditUrl) . "\">" . $inlineEditCaption . "</a>";
+                } else {
+                    $opt->Body .= "<a class=\"ew-row-link ew-inline-edit\" title=\"" . $inlineEditTitle . "\" data-caption=\"" . $inlineEditTitle . "\" href=\"" . HtmlEncode($this->urlAddHash(GetUrl($this->InlineEditUrl), "r" . $this->RowCount . "_" . $this->TableVar)) . "\">" . $inlineEditCaption . "</a>";
+                }
             } else {
                 $opt->Body = "";
             }
@@ -1418,7 +1601,11 @@ class ParticipanteList extends Participante
             $opt = $this->ListOptions["copy"];
             $copycaption = HtmlTitle($Language->phrase("CopyLink"));
             if ($Security->canAdd()) {
-                $opt->Body = "<a class=\"ew-row-link ew-copy\" title=\"" . $copycaption . "\" data-caption=\"" . $copycaption . "\" href=\"" . HtmlEncode(GetUrl($this->CopyUrl)) . "\">" . $Language->phrase("CopyLink") . "</a>";
+                if ($this->ModalAdd && !IsMobile()) {
+                    $opt->Body = "<a class=\"ew-row-link ew-copy\" title=\"" . $copycaption . "\" data-table=\"participante\" data-caption=\"" . $copycaption . "\" data-ew-action=\"modal\" data-action=\"add\" data-ajax=\"" . ($this->UseAjaxActions ? "true" : "false") . "\" data-url=\"" . HtmlEncode(GetUrl($this->CopyUrl)) . "\" data-btn=\"AddBtn\">" . $Language->phrase("CopyLink") . "</a>";
+                } else {
+                    $opt->Body = "<a class=\"ew-row-link ew-copy\" title=\"" . $copycaption . "\" data-caption=\"" . $copycaption . "\" href=\"" . HtmlEncode(GetUrl($this->CopyUrl)) . "\">" . $Language->phrase("CopyLink") . "</a>";
+                }
             } else {
                 $opt->Body = "";
             }
@@ -1445,7 +1632,7 @@ class ParticipanteList extends Participante
                 }
             }
             if (count($links) > 1) { // More than one buttons, use dropdown
-                $body = "<button class=\"dropdown-toggle btn btn-default ew-actions\" title=\"" . HtmlTitle($Language->phrase("ListActionButton")) . "\" data-bs-toggle=\"dropdown\">" . $Language->phrase("ListActionButton") . "</button>";
+                $body = "<button type=\"button\" class=\"dropdown-toggle btn btn-default ew-actions\" title=\"" . HtmlTitle($Language->phrase("ListActionButton")) . "\" data-bs-toggle=\"dropdown\">" . $Language->phrase("ListActionButton") . "</button>";
                 $content = "";
                 foreach ($links as $link) {
                     $content .= "<li>" . $link . "</li>";
@@ -1484,13 +1671,24 @@ class ParticipanteList extends Participante
         // Add
         $item = &$option->add("add");
         $addcaption = HtmlTitle($Language->phrase("AddLink"));
-        $item->Body = "<a class=\"ew-add-edit ew-add\" title=\"" . $addcaption . "\" data-caption=\"" . $addcaption . "\" href=\"" . HtmlEncode(GetUrl($this->AddUrl)) . "\">" . $Language->phrase("AddLink") . "</a>";
+        if ($this->ModalAdd && !IsMobile()) {
+            $item->Body = "<a class=\"ew-add-edit ew-add\" title=\"" . $addcaption . "\" data-table=\"participante\" data-caption=\"" . $addcaption . "\" data-ew-action=\"modal\" data-action=\"add\" data-ajax=\"" . ($this->UseAjaxActions ? "true" : "false") . "\" data-url=\"" . HtmlEncode(GetUrl($this->AddUrl)) . "\" data-btn=\"AddBtn\">" . $Language->phrase("AddLink") . "</a>";
+        } else {
+            $item->Body = "<a class=\"ew-add-edit ew-add\" title=\"" . $addcaption . "\" data-caption=\"" . $addcaption . "\" href=\"" . HtmlEncode(GetUrl($this->AddUrl)) . "\">" . $Language->phrase("AddLink") . "</a>";
+        }
         $item->Visible = $this->AddUrl != "" && $Security->canAdd();
         $option = $options["action"];
 
         // Add multi delete
         $item = &$option->add("multidelete");
-        $item->Body = "<button type=\"button\" class=\"ew-action ew-multi-delete\" title=\"" . HtmlTitle($Language->phrase("DeleteSelectedLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("DeleteSelectedLink")) . "\" form=\"fparticipantelist\" data-ew-action=\"submit\" data-url=\"" . GetUrl($this->MultiDeleteUrl) . "\"data-data='{\"action\":\"show\"}'>" . $Language->phrase("DeleteSelectedLink") . "</button>";
+        $item->Body = "<button type=\"button\" class=\"ew-action ew-multi-delete\" title=\"" .
+            HtmlTitle($Language->phrase("DeleteSelectedLink")) . "\" data-caption=\"" .
+            HtmlTitle($Language->phrase("DeleteSelectedLink")) . "\" form=\"fparticipantelist\"" .
+            " data-ew-action=\"" . ($this->UseAjaxActions ? "inline" : "submit") . "\"" .
+            ($this->UseAjaxActions ? " data-action=\"delete\"" : "") .
+            " data-url=\"" . GetUrl($this->MultiDeleteUrl) . "\"" .
+            ($this->InlineDelete ? " data-msg=\"" . HtmlEncode($Language->phrase("DeleteConfirm")) . "\" data-data='{\"action\":\"delete\"}'" : " data-data='{\"action\":\"show\"}'") .
+            ">" . $Language->phrase("DeleteSelectedLink") . "</button>";
         $item->Visible = $Security->canDelete();
 
         // Show column list for column visibility
@@ -1574,7 +1772,7 @@ class ParticipanteList extends Participante
             }
         }
 
-        // Hide grid edit and other options
+        // Hide multi edit, grid edit and other options
         if ($this->TotalRecords <= 0) {
             $option = $options["addedit"];
             $item = $option["gridedit"];
@@ -1593,11 +1791,14 @@ class ParticipanteList extends Participante
         $userlist = "";
         $user = "";
         $filter = $this->getFilterFromRecordKeys();
-        $userAction = Post("useraction", "");
+        $userAction = Post("action", "");
         if ($filter != "" && $userAction != "") {
             // Check permission first
             $actionCaption = $userAction;
             if (array_key_exists($userAction, $this->ListActions->Items)) {
+                if (array_key_exists($userAction, $this->CustomActions)) {
+                    $this->UserAction = $userAction;
+                }
                 $actionCaption = $this->ListActions[$userAction]->Caption;
                 if (!$this->ListActions[$userAction]->Allow) {
                     $errmsg = str_replace('%s', $actionCaption, $Language->phrase("CustomActionNotAllowed"));
@@ -1614,7 +1815,6 @@ class ParticipanteList extends Participante
             $sql = $this->getCurrentSql();
             $conn = $this->getConnection();
             $rs = LoadRecordset($sql, $conn);
-            $this->UserAction = $userAction;
             $this->ActionValue = Post("actionvalue");
 
             // Call row action event
@@ -1674,10 +1874,153 @@ class ParticipanteList extends Participante
         return false; // Not ajax request
     }
 
+    // Set up Grid
+    public function setupGrid()
+    {
+        global $CurrentForm;
+        if ($this->ExportAll && $this->isExport()) {
+            $this->StopRecord = $this->TotalRecords;
+        } else {
+            // Set the last record to display
+            if ($this->TotalRecords > $this->StartRecord + $this->DisplayRecords - 1) {
+                $this->StopRecord = $this->StartRecord + $this->DisplayRecords - 1;
+            } else {
+                $this->StopRecord = $this->TotalRecords;
+            }
+        }
+
+        // Restore number of post back records
+        if ($CurrentForm && ($this->isConfirm() || $this->EventCancelled)) {
+            $CurrentForm->Index = -1;
+            if ($CurrentForm->hasValue($this->FormKeyCountName) && ($this->isGridAdd() || $this->isGridEdit() || $this->isConfirm())) {
+                $this->KeyCount = $CurrentForm->getValue($this->FormKeyCountName);
+                $this->StopRecord = $this->StartRecord + $this->KeyCount - 1;
+            }
+        }
+        $this->RecordCount = $this->StartRecord - 1;
+        if ($this->Recordset && !$this->Recordset->EOF) {
+            // Nothing to do
+        } elseif ($this->isGridAdd() && !$this->AllowAddDeleteRow && $this->StopRecord == 0) {
+            $this->StopRecord = $this->GridAddRowCount;
+        }
+
+        // Initialize aggregate
+        $this->RowType = ROWTYPE_AGGREGATEINIT;
+        $this->resetAttributes();
+        $this->renderRow();
+        if ($this->isEdit()) {
+            $this->RowIndex = 1;
+        }
+        if (($this->isGridAdd() || $this->isGridEdit())) { // Render template row first
+            $this->RowIndex = '$rowindex$';
+        }
+    }
+
+    // Set up Row
+    public function setupRow()
+    {
+        global $CurrentForm;
+        if (($this->isGridAdd() || $this->isGridEdit())) {
+            if ($this->RowIndex === '$rowindex$') { // Render template row first
+                $this->loadRowValues();
+
+                // Set row properties
+                $this->resetAttributes();
+                $this->RowAttrs->merge(["data-rowindex" => $this->RowIndex, "id" => "r0_participante", "data-rowtype" => ROWTYPE_ADD]);
+                $this->RowAttrs->appendClass("ew-template");
+                // Render row
+                $this->RowType = ROWTYPE_ADD;
+                $this->renderRow();
+
+                // Render list options
+                $this->renderListOptions();
+
+                // Reset record count for template row
+                $this->RecordCount--;
+                return;
+            }
+        }
+
+        // Set up key count
+        $this->KeyCount = $this->RowIndex;
+
+        // Init row class and style
+        $this->resetAttributes();
+        $this->CssClass = "";
+        if ($this->isCopy() && $this->InlineRowCount == 0 && !$this->loadRow()) { // Inline copy
+            $this->CurrentAction = "add";
+        }
+        if ($this->isAdd() && $this->InlineRowCount == 0 || $this->isGridAdd()) {
+            $this->loadRowValues(); // Load default values
+            $this->OldKey = "";
+            $this->setKey($this->OldKey);
+        } elseif ($this->isInlineInserted() && $this->UseInfiniteScroll) {
+            // Nothing to do, just use current values
+        } elseif (!($this->isCopy() && $this->InlineRowCount == 0)) {
+            $this->loadRowValues($this->Recordset); // Load row values
+            if ($this->isGridEdit() || $this->isMultiEdit()) {
+                $this->OldKey = $this->getKey(true); // Get from CurrentValue
+                $this->setKey($this->OldKey);
+            }
+        }
+        $this->RowType = ROWTYPE_VIEW; // Render view
+        if (($this->isAdd() || $this->isCopy()) && $this->InlineRowCount == 0 || $this->isGridAdd()) { // Add
+            $this->RowType = ROWTYPE_ADD; // Render add
+        }
+        if ($this->isEdit() || $this->isInlineUpdated() || $this->isInlineEditCancelled()) { // Inline edit/updated/cancelled
+            if ($this->checkInlineEditKey() && $this->InlineRowCount == 0) {
+                if ($this->isEdit()) { // Inline edit
+                    $this->RowAction = "edit";
+                    $this->RowType = ROWTYPE_EDIT; // Render edit
+                } else { // Inline updated
+                    $this->RowAction = "";
+                    $this->RowType = ROWTYPE_VIEW; // Render view
+                    $this->RowAttrs["data-oldkey"] = $this->getKey(); // Set up old key
+                }
+            } elseif ($this->UseInfiniteScroll) {
+                $this->RowAction = "hide";
+            }
+        }
+        if ($this->isEdit() && $this->RowType == ROWTYPE_EDIT && $this->EventCancelled) { // Update failed
+            $CurrentForm->Index = 1;
+            $this->restoreFormValues(); // Restore form values
+        }
+
+        // Inline Add/Copy row (row 0)
+        if ($this->RowType == ROWTYPE_ADD && ($this->isAdd() || $this->isCopy())) {
+            $this->InlineRowCount++;
+            $this->RecordCount--; // Reset record count for inline add/copy row
+        } else {
+            // Inline Edit row
+            if ($this->RowType == ROWTYPE_EDIT && $this->isEdit()) {
+                $this->InlineRowCount++;
+            }
+            $this->RowCount++; // Increment row count
+        }
+
+        // Set up row attributes
+        $this->RowAttrs->merge([
+            "data-rowindex" => $this->RowCount,
+            "data-key" => $this->getKey(true),
+            "id" => "r" . $this->RowCount . "_participante",
+            "data-rowtype" => $this->RowType,
+            "class" => ($this->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
+        ]);
+        if ($this->isAdd() && $this->RowType == ROWTYPE_ADD || $this->isEdit() && $this->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
+            $this->RowAttrs->appendClass("table-active");
+        }
+
+        // Render row
+        $this->renderRow();
+
+        // Render list options
+        $this->renderListOptions();
+    }
+
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
         $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
@@ -1841,7 +2184,7 @@ class ParticipanteList extends Participante
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -1927,16 +2270,19 @@ class ParticipanteList extends Participante
     protected function loadOldRecord()
     {
         // Load old record
-        $this->OldRecordset = null;
-        $validKey = $this->OldKey != "";
-        if ($validKey) {
+        if ($this->OldKey != "") {
+            $this->setKey($this->OldKey);
             $this->CurrentFilter = $this->getRecordFilter();
             $sql = $this->getCurrentSql();
             $conn = $this->getConnection();
-            $this->OldRecordset = LoadRecordset($sql, $conn);
+            $rs = LoadRecordset($sql, $conn);
+            if ($rs && ($row = $rs->fields)) {
+                $this->loadRowValues($row); // Load row values
+                return $row;
+            }
         }
-        $this->loadRowValues($this->OldRecordset); // Load row values
-        return $validKey;
+        $this->loadRowValues(); // Load default row values
+        return null;
     }
 
     // Render row values based on field settings
@@ -1981,91 +2327,72 @@ class ParticipanteList extends Participante
         if ($this->RowType == ROWTYPE_VIEW) {
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->CurrentValue;
-            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
             // NOMBRE
             $this->NOMBRE->ViewValue = $this->NOMBRE->CurrentValue;
-            $this->NOMBRE->ViewCustomAttributes = "";
 
             // APELLIDO
             $this->APELLIDO->ViewValue = $this->APELLIDO->CurrentValue;
-            $this->APELLIDO->ViewCustomAttributes = "";
 
             // FECHA_NACIMIENTO
             $this->FECHA_NACIMIENTO->ViewValue = $this->FECHA_NACIMIENTO->CurrentValue;
-            $this->FECHA_NACIMIENTO->ViewCustomAttributes = "";
 
             // CEDULA
             $this->CEDULA->ViewValue = $this->CEDULA->CurrentValue;
-            $this->CEDULA->ViewCustomAttributes = "";
 
             // EMAIL
             $this->_EMAIL->ViewValue = $this->_EMAIL->CurrentValue;
-            $this->_EMAIL->ViewCustomAttributes = "";
 
             // TELEFONO
             $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
-            $this->TELEFONO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
             $this->ID_PARTICIPANTE->TooltipValue = "";
 
             // NOMBRE
-            $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
             $this->NOMBRE->TooltipValue = "";
 
             // APELLIDO
-            $this->APELLIDO->LinkCustomAttributes = "";
             $this->APELLIDO->HrefValue = "";
             $this->APELLIDO->TooltipValue = "";
 
             // FECHA_NACIMIENTO
-            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
             $this->FECHA_NACIMIENTO->HrefValue = "";
             $this->FECHA_NACIMIENTO->TooltipValue = "";
 
             // CEDULA
-            $this->CEDULA->LinkCustomAttributes = "";
             $this->CEDULA->HrefValue = "";
             $this->CEDULA->TooltipValue = "";
 
             // EMAIL
-            $this->_EMAIL->LinkCustomAttributes = "";
             $this->_EMAIL->HrefValue = "";
             $this->_EMAIL->TooltipValue = "";
 
             // TELEFONO
-            $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
             $this->TELEFONO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
@@ -2073,25 +2400,21 @@ class ParticipanteList extends Participante
 
             // NOMBRE
             $this->NOMBRE->setupEditAttributes();
-            $this->NOMBRE->EditCustomAttributes = "";
             $this->NOMBRE->EditValue = HtmlEncode($this->NOMBRE->CurrentValue);
             $this->NOMBRE->PlaceHolder = RemoveHtml($this->NOMBRE->caption());
 
             // APELLIDO
             $this->APELLIDO->setupEditAttributes();
-            $this->APELLIDO->EditCustomAttributes = "";
             $this->APELLIDO->EditValue = HtmlEncode($this->APELLIDO->CurrentValue);
             $this->APELLIDO->PlaceHolder = RemoveHtml($this->APELLIDO->caption());
 
             // FECHA_NACIMIENTO
             $this->FECHA_NACIMIENTO->setupEditAttributes();
-            $this->FECHA_NACIMIENTO->EditCustomAttributes = "";
             $this->FECHA_NACIMIENTO->EditValue = HtmlEncode($this->FECHA_NACIMIENTO->CurrentValue);
             $this->FECHA_NACIMIENTO->PlaceHolder = RemoveHtml($this->FECHA_NACIMIENTO->caption());
 
             // CEDULA
             $this->CEDULA->setupEditAttributes();
-            $this->CEDULA->EditCustomAttributes = "";
             if (!$this->CEDULA->Raw) {
                 $this->CEDULA->CurrentValue = HtmlDecode($this->CEDULA->CurrentValue);
             }
@@ -2100,13 +2423,11 @@ class ParticipanteList extends Participante
 
             // EMAIL
             $this->_EMAIL->setupEditAttributes();
-            $this->_EMAIL->EditCustomAttributes = "";
             $this->_EMAIL->EditValue = HtmlEncode($this->_EMAIL->CurrentValue);
             $this->_EMAIL->PlaceHolder = RemoveHtml($this->_EMAIL->caption());
 
             // TELEFONO
             $this->TELEFONO->setupEditAttributes();
-            $this->TELEFONO->EditCustomAttributes = "";
             if (!$this->TELEFONO->Raw) {
                 $this->TELEFONO->CurrentValue = HtmlDecode($this->TELEFONO->CurrentValue);
             }
@@ -2115,81 +2436,64 @@ class ParticipanteList extends Participante
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
             $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
             $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
 
             // Add refer script
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
 
             // NOMBRE
-            $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
 
             // APELLIDO
-            $this->APELLIDO->LinkCustomAttributes = "";
             $this->APELLIDO->HrefValue = "";
 
             // FECHA_NACIMIENTO
-            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
             $this->FECHA_NACIMIENTO->HrefValue = "";
 
             // CEDULA
-            $this->CEDULA->LinkCustomAttributes = "";
             $this->CEDULA->HrefValue = "";
 
             // EMAIL
-            $this->_EMAIL->LinkCustomAttributes = "";
             $this->_EMAIL->HrefValue = "";
 
             // TELEFONO
-            $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
         } elseif ($this->RowType == ROWTYPE_EDIT) {
             // ID_PARTICIPANTE
             $this->ID_PARTICIPANTE->setupEditAttributes();
-            $this->ID_PARTICIPANTE->EditCustomAttributes = "";
             $this->ID_PARTICIPANTE->EditValue = $this->ID_PARTICIPANTE->CurrentValue;
-            $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
             // NOMBRE
             $this->NOMBRE->setupEditAttributes();
-            $this->NOMBRE->EditCustomAttributes = "";
             $this->NOMBRE->EditValue = HtmlEncode($this->NOMBRE->CurrentValue);
             $this->NOMBRE->PlaceHolder = RemoveHtml($this->NOMBRE->caption());
 
             // APELLIDO
             $this->APELLIDO->setupEditAttributes();
-            $this->APELLIDO->EditCustomAttributes = "";
             $this->APELLIDO->EditValue = HtmlEncode($this->APELLIDO->CurrentValue);
             $this->APELLIDO->PlaceHolder = RemoveHtml($this->APELLIDO->caption());
 
             // FECHA_NACIMIENTO
             $this->FECHA_NACIMIENTO->setupEditAttributes();
-            $this->FECHA_NACIMIENTO->EditCustomAttributes = "";
             $this->FECHA_NACIMIENTO->EditValue = HtmlEncode($this->FECHA_NACIMIENTO->CurrentValue);
             $this->FECHA_NACIMIENTO->PlaceHolder = RemoveHtml($this->FECHA_NACIMIENTO->caption());
 
             // CEDULA
             $this->CEDULA->setupEditAttributes();
-            $this->CEDULA->EditCustomAttributes = "";
             if (!$this->CEDULA->Raw) {
                 $this->CEDULA->CurrentValue = HtmlDecode($this->CEDULA->CurrentValue);
             }
@@ -2198,13 +2502,11 @@ class ParticipanteList extends Participante
 
             // EMAIL
             $this->_EMAIL->setupEditAttributes();
-            $this->_EMAIL->EditCustomAttributes = "";
             $this->_EMAIL->EditValue = HtmlEncode($this->_EMAIL->CurrentValue);
             $this->_EMAIL->PlaceHolder = RemoveHtml($this->_EMAIL->caption());
 
             // TELEFONO
             $this->TELEFONO->setupEditAttributes();
-            $this->TELEFONO->EditCustomAttributes = "";
             if (!$this->TELEFONO->Raw) {
                 $this->TELEFONO->CurrentValue = HtmlDecode($this->TELEFONO->CurrentValue);
             }
@@ -2213,58 +2515,45 @@ class ParticipanteList extends Participante
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // Edit refer script
 
             // ID_PARTICIPANTE
-            $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
             $this->ID_PARTICIPANTE->HrefValue = "";
 
             // NOMBRE
-            $this->NOMBRE->LinkCustomAttributes = "";
             $this->NOMBRE->HrefValue = "";
 
             // APELLIDO
-            $this->APELLIDO->LinkCustomAttributes = "";
             $this->APELLIDO->HrefValue = "";
 
             // FECHA_NACIMIENTO
-            $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
             $this->FECHA_NACIMIENTO->HrefValue = "";
 
             // CEDULA
-            $this->CEDULA->LinkCustomAttributes = "";
             $this->CEDULA->HrefValue = "";
 
             // EMAIL
-            $this->_EMAIL->LinkCustomAttributes = "";
             $this->_EMAIL->HrefValue = "";
 
             // TELEFONO
-            $this->TELEFONO->LinkCustomAttributes = "";
             $this->TELEFONO->HrefValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
         }
@@ -2281,7 +2570,7 @@ class ParticipanteList extends Participante
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -2396,6 +2685,9 @@ class ParticipanteList extends Participante
             if (count($rsnew) > 0) {
                 $this->CurrentFilter = $filter; // Set up current filter
                 $editRow = $this->update($rsnew, "", $rsold);
+                if (!$editRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             } else {
                 $editRow = true; // No field to update
             }
@@ -2416,16 +2708,6 @@ class ParticipanteList extends Participante
         // Call Row_Updated event
         if ($editRow) {
             $this->rowUpdated($rsold, $rsnew);
-        }
-
-        // Clean upload path if any
-        if ($editRow) {
-        }
-
-        // Write JSON for API request
-        if (IsApi() && $editRow) {
-            $row = $this->getRecordsFromRecordset([$rsnew], true);
-            WriteJson(["success" => true, $this->TableVar => $row]);
         }
         return $editRow;
     }
@@ -2498,14 +2780,14 @@ class ParticipanteList extends Participante
 
         // Load db values from old row
         $this->loadDbValues($rsold);
-        if ($rsold) {
-        }
 
         // Call Row Inserting event
         $insertRow = $this->rowInserting($rsold, $rsnew);
         if ($insertRow) {
             $addRow = $this->insert($rsnew);
             if ($addRow) {
+            } elseif (!EmptyValue($this->DbErrorMessage)) { // Show database error
+                $this->setFailureMessage($this->DbErrorMessage);
             }
         } else {
             if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
@@ -2521,16 +2803,6 @@ class ParticipanteList extends Participante
         if ($addRow) {
             // Call Row Inserted event
             $this->rowInserted($rsold, $rsnew);
-        }
-
-        // Clean upload path if any
-        if ($addRow) {
-        }
-
-        // Write JSON for API request
-        if (IsApi() && $addRow) {
-            $row = $this->getRecordsFromRecordset([$rsnew], true);
-            WriteJson(["success" => true, $this->TableVar => $row]);
         }
         return $addRow;
     }
@@ -2550,7 +2822,11 @@ class ParticipanteList extends Participante
 
         // Show all button
         $item = &$this->SearchOptions->add("showall");
-        $item->Body = "<a class=\"btn btn-default ew-show-all\" title=\"" . $Language->phrase("ShowAll") . "\" data-caption=\"" . $Language->phrase("ShowAll") . "\" href=\"" . $pageUrl . "cmd=reset\">" . $Language->phrase("ShowAllBtn") . "</a>";
+        if ($this->UseCustomTemplate || !$this->UseAjaxActions) {
+            $item->Body = "<a class=\"btn btn-default ew-show-all\" role=\"button\" title=\"" . $Language->phrase("ShowAll") . "\" data-caption=\"" . $Language->phrase("ShowAll") . "\" href=\"" . $pageUrl . "cmd=reset\">" . $Language->phrase("ShowAllBtn") . "</a>";
+        } else {
+            $item->Body = "<a class=\"btn btn-default ew-show-all\" role=\"button\" title=\"" . $Language->phrase("ShowAll") . "\" data-caption=\"" . $Language->phrase("ShowAll") . "\" data-ew-action=\"refresh\" data-url=\"" . $pageUrl . "cmd=reset\">" . $Language->phrase("ShowAllBtn") . "</a>";
+        }
         $item->Visible = ($this->SearchWhere != $this->DefaultSearchWhere && $this->SearchWhere != "0=101");
 
         // Button group for search
@@ -2564,7 +2840,7 @@ class ParticipanteList extends Participante
         $item->Visible = false;
 
         // Hide search options
-        if ($this->isExport() || $this->CurrentAction) {
+        if ($this->isExport() || $this->CurrentAction && $this->CurrentAction != "search") {
             $this->SearchOptions->hideAllOptions();
         }
         if (!$Security->canSearch()) {
@@ -2628,7 +2904,11 @@ class ParticipanteList extends Participante
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -2641,38 +2921,41 @@ class ParticipanteList extends Participante
         if ($this->DisplayRecords == 0) {
             return;
         }
-        if ($this->isPageRequest()) { // Validate request
-            $startRec = Get(Config("TABLE_START_REC"));
-            $pageNo = Get(Config("TABLE_PAGE_NO"));
-            if ($pageNo !== null) { // Check for "pageno" parameter first
-                $pageNo = ParseInteger($pageNo);
-                if (is_numeric($pageNo)) {
-                    $this->StartRecord = ($pageNo - 1) * $this->DisplayRecords + 1;
-                    if ($this->StartRecord <= 0) {
-                        $this->StartRecord = 1;
-                    } elseif ($this->StartRecord >= (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1) {
-                        $this->StartRecord = (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1;
-                    }
-                    $this->setStartRecordNumber($this->StartRecord);
+        $pageNo = Get(Config("TABLE_PAGE_NUMBER"));
+        $startRec = Get(Config("TABLE_START_REC"));
+        $infiniteScroll = ConvertToBool(Param("infinitescroll"));
+        if ($pageNo !== null) { // Check for "pageno" parameter first
+            $pageNo = ParseInteger($pageNo);
+            if (is_numeric($pageNo)) {
+                $this->StartRecord = ($pageNo - 1) * $this->DisplayRecords + 1;
+                if ($this->StartRecord <= 0) {
+                    $this->StartRecord = 1;
+                } elseif ($this->StartRecord >= (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1) {
+                    $this->StartRecord = (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1;
                 }
-            } elseif ($startRec !== null && is_numeric($startRec)) { // Check for "start" parameter
-                $this->StartRecord = $startRec;
-                $this->setStartRecordNumber($this->StartRecord);
             }
+        } elseif ($startRec !== null && is_numeric($startRec)) { // Check for "start" parameter
+            $this->StartRecord = $startRec;
+        } elseif (!$infiniteScroll) {
+            $this->StartRecord = $this->getStartRecordNumber();
         }
-        $this->StartRecord = $this->getStartRecordNumber();
 
         // Check if correct start record counter
-        if (!is_numeric($this->StartRecord) || $this->StartRecord == "") { // Avoid invalid start record counter
+        if (!is_numeric($this->StartRecord) || intval($this->StartRecord) <= 0) { // Avoid invalid start record counter
             $this->StartRecord = 1; // Reset start record counter
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif ($this->StartRecord > $this->TotalRecords) { // Avoid starting record > total records
             $this->StartRecord = (int)(($this->TotalRecords - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to last page first record
-            $this->setStartRecordNumber($this->StartRecord);
         } elseif (($this->StartRecord - 1) % $this->DisplayRecords != 0) {
             $this->StartRecord = (int)(($this->StartRecord - 1) / $this->DisplayRecords) * $this->DisplayRecords + 1; // Point to page boundary
+        }
+        if (!$infiniteScroll) {
             $this->setStartRecordNumber($this->StartRecord);
         }
+    }
+
+    // Get page count
+    public function PageCount() {
+        return ceil($this->TotalRecords / $this->DisplayRecords);
     }
 
     // Page Load event
@@ -2729,6 +3012,14 @@ class ParticipanteList extends Participante
         //$footer = "your footer";
     }
 
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
+    }
+
     // Form Custom Validate event
     public function formCustomValidate(&$customError)
     {
@@ -2769,34 +3060,34 @@ class ParticipanteList extends Participante
     }
 
     // Page Exporting event
-    // $this->ExportDoc = export document object
-    public function pageExporting()
+    // $doc = export object
+    public function pageExporting(&$doc)
     {
-        //$this->ExportDoc->Text = "my header"; // Export header
+        //$doc->Text = "my header"; // Export header
         //return false; // Return false to skip default export and use Row_Export event
         return true; // Return true to use default export and skip Row_Export event
     }
 
     // Row Export event
-    // $this->ExportDoc = export document object
-    public function rowExport($rs)
+    // $doc = export document object
+    public function rowExport($doc, $rs)
     {
-        //$this->ExportDoc->Text .= "my content"; // Build HTML with field value: $rs["MyField"] or $this->MyField->ViewValue
+        //$doc->Text .= "my content"; // Build HTML with field value: $rs["MyField"] or $this->MyField->ViewValue
     }
 
     // Page Exported event
-    // $this->ExportDoc = export document object
-    public function pageExported()
+    // $doc = export document object
+    public function pageExported($doc)
     {
-        //$this->ExportDoc->Text .= "my footer"; // Export footer
-        //Log($this->ExportDoc->Text);
+        //$doc->Text .= "my footer"; // Export footer
+        //Log($doc->Text);
     }
 
     // Page Importing event
-    public function pageImporting($reader, &$options)
+    public function pageImporting(&$builder, &$options)
     {
-        //var_dump($reader); // Import data reader
         //var_dump($options); // Show all options for importing
+        //$builder = fn($workflow) => $workflow->addStep($myStep);
         //return false; // Return false to skip import
         return true;
     }
@@ -2811,9 +3102,9 @@ class ParticipanteList extends Participante
     }
 
     // Page Imported event
-    public function pageImported($reader, $results)
+    public function pageImported($obj, $results)
     {
-        //var_dump($reader); // Import data reader
+        //var_dump($obj); // Workflow result object
         //var_dump($results); // Import results
     }
 }

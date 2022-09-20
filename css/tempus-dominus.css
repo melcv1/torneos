@@ -18,7 +18,7 @@
   border-radius: 4px;
   display: none;
   background-color: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--bs-border-color-translucent);
   z-index: 9999;
 }
 .tempus-dominus-widget.calendarWeeks {

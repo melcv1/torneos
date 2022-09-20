@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Upload handler
 class UploadHandler extends \UploadHandler
@@ -263,7 +263,7 @@ class FileUploadHandler
     {
         global $Language, $TokenName, $TokenNameKey, $TokenValue, $TokenValueKey;
         $Language = Container("language");
-        //**$GLOBALS["Conn"] = GetConnection();
+        //**$GLOBALS["Conn"] ??= GetConnection();
 
         // Set up upload parameters
         $uploadId = Param("id", "");
@@ -274,25 +274,25 @@ class FileUploadHandler
             WriteJson(["files" => [["error" => "Invalid session"]]]);
             return false;
         }
-        $exts = Param("exts", "");
-        $arExt = explode(",", $exts);
+        $acceptFileTypes = Param("acceptFileTypes", "");
+        $arExt = explode(",", $acceptFileTypes);
         $allowedExt = Config("UPLOAD_ALLOWED_FILE_EXT");
         if ($allowedExt != "") {
             $arAllowedExt = explode(",", $allowedExt);
-            $exts = implode(",", array_intersect($arExt, $arAllowedExt)) ?: $allowedExt; // Make sure $exts is a subset of $allowedExt
-        } elseif ($exts == "") {
-            $exts = "[\s\S]+"; // Allow all file types
+            $acceptFileTypes = implode(",", array_intersect($arExt, $arAllowedExt)) ?: $allowedExt; // Make sure $acceptFileTypes is a subset of $allowedExt
+        } elseif ($acceptFileTypes == "") {
+            $acceptFileTypes = "[\s\S]+"; // Allow all file types
         }
-        $filetypes = '/\\.(' . str_replace(",", "|", $exts) . ')$/i';
-        $maxsize = Param("maxsize");
-        if ($maxsize != null) {
-            $maxsize = (int)$maxsize;
+        $fileTypes = '/\\.(' . str_replace(",", "|", $acceptFileTypes) . ')$/i';
+        $maxFileSize = Param("maxFileSize");
+        if ($maxFileSize != null) {
+            $maxFileSize = (int)$maxFileSize;
         }
-        $maxfilecount = Param("maxfilecount");
-        if ($maxfilecount != null) {
-            $maxfilecount = (int)$maxfilecount;
-            if ($maxfilecount < 1) {
-                $maxfilecount = null;
+        $maxNumberOfFiles = Param("maxNumberOfFiles");
+        if ($maxNumberOfFiles != null) {
+            $maxNumberOfFiles = (int)$maxNumberOfFiles;
+            if ($maxNumberOfFiles < 1) {
+                $maxNumberOfFiles = null;
             }
         }
         $params = ["rnd" => Random()];
@@ -313,8 +313,8 @@ class FileUploadHandler
             $params["session"] = $sessionIdEncrypted; // Add id/table/session for display and delete
         }
         $url = UrlFor(Config("API_URL") . Config("API_JQUERY_UPLOAD_ACTION"), [], $params);
-        $uploaddir = UploadTempPath();
-        $uploadurl = UploadTempPath(false);
+        $uploaddir = UploadTempPathRoot();
+        $uploadurl = UploadTempPathRoot(false);
         $inlineFileTypes = array_merge(explode(",", Config("IMAGE_ALLOWED_FILE_EXT")), (Config("EMBED_PDF") || !Config("DOWNLOAD_PDF_FILE")) ? ["pdf"] : []);
         $options = [
             "param_name" => $uploadId,
@@ -324,9 +324,9 @@ class FileUploadHandler
             "script_url" => $url,
             "upload_dir" => $uploaddir,
             "upload_url" => $uploadurl,
-            "max_file_size" => $maxsize,
-            "max_number_of_files" => $maxfilecount,
-            "accept_file_types" => $filetypes,
+            "max_file_size" => $maxFileSize,
+            "max_number_of_files" => $maxNumberOfFiles,
+            "accept_file_types" => $fileTypes,
             "inline_file_types" => '/\.(' . implode("|", $inlineFileTypes) . ')$/i',
             "image_library" => 0, // Set to 0 to use the GD library to scale and orient images
             "image_versions" => [
@@ -342,22 +342,22 @@ class FileUploadHandler
             ]
         ];
         $error_messages = [
-            1 => $Language->phrase("UploadErrMsg1"),
-            2 => $Language->phrase("UploadErrMsg2"),
-            3 => $Language->phrase("UploadErrMsg3"),
-            4 => $Language->phrase("UploadErrMsg4"),
-            6 => $Language->phrase("UploadErrMsg6"),
-            7 => $Language->phrase("UploadErrMsg7"),
-            8 => $Language->phrase("UploadErrMsg8"),
-            'post_max_size' => $Language->phrase("UploadErrMsgPostMaxSize"),
-            'max_file_size' => $Language->phrase("UploadErrMsgMaxFileSize"),
-            'min_file_size' => $Language->phrase("UploadErrMsgMinFileSize"),
-            'accept_file_types' => $Language->phrase("UploadErrMsgAcceptFileTypes"),
-            'max_number_of_files' => $Language->phrase("UploadErrMsgMaxNumberOfFiles"),
-            'max_width' => $Language->phrase("UploadErrMsgMaxWidth"),
-            'min_width' => $Language->phrase("UploadErrMsgMinWidth"),
-            'max_height' => $Language->phrase("UploadErrMsgMaxHeight"),
-            'min_height' => $Language->phrase("UploadErrMsgMinHeight")
+            1 => $Language->phrase("UploadError1"),
+            2 => $Language->phrase("UploadError2"),
+            3 => $Language->phrase("UploadError3"),
+            4 => $Language->phrase("UploadError4"),
+            6 => $Language->phrase("UploadError6"),
+            7 => $Language->phrase("UploadError7"),
+            8 => $Language->phrase("UploadError8"),
+            'post_max_size' => $Language->phrase("UploadErrorPostMaxSize"),
+            'max_file_size' => $Language->phrase("UploadErrorMaxFileSize"),
+            'min_file_size' => $Language->phrase("UploadErrorMinFileSize"),
+            'accept_file_types' => $Language->phrase("UploadErrorAcceptFileTypes"),
+            'max_number_of_files' => $Language->phrase("UploadErrorMaxNumberOfFiles"),
+            'max_width' => $Language->phrase("UploadErrorMaxWidth"),
+            'min_width' => $Language->phrase("UploadErrorMinWidth"),
+            'max_height' => $Language->phrase("UploadErrorMaxHeight"),
+            'min_height' => $Language->phrase("UploadErrorMinHeight")
         ];
         if (ob_get_length()) {
             ob_end_clean();

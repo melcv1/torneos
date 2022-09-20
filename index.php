@@ -1,8 +1,8 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
-use PHPMaker2022\project11\{UserProfile, Language, AdvancedSecurity, Timer, HttpErrorHandler};
+use PHPMaker2023\project11\{UserProfile, Language, AdvancedSecurity, Timer, HttpErrorHandler};
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Container\ContainerInterface;
@@ -16,6 +16,7 @@ use Slim\Factory\ServerRequestCreatorFactory;
 use Slim\Exception\HttpInternalServerErrorException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
+use Middlewares\Whoops;
 
 // Relative path
 $RELATIVE_PATH = "";
@@ -26,6 +27,13 @@ require_once "src/constants.php";
 require_once "src/config.php";
 require_once "src/phpfn.php";
 require_once "src/userfn.php";
+
+// Check PHP extensions
+$exts = array_filter(Config("PHP_EXTENSIONS"), fn($ext) => !extension_loaded($ext), ARRAY_FILTER_USE_KEY);
+if (count($exts)) {
+    $exts = array_map(fn($ext) => '<p><a href="https://www.php.net/manual/en/book.' . $exts[$ext] . '.php" target="_blank">' . $ext . '</a></p>', array_keys($exts));
+    die("<p>Missing PHP extension(s)! Please install or enable the following required PHP extension(s) first:</p>" . implode("", $exts));
+}
 
 // Environment
 $isProduction = IsProduction();
@@ -81,6 +89,8 @@ $Request = $serverRequestCreator->createServerRequestFromGlobals();
 // Create error handler
 $ResponseFactory = $app->getResponseFactory();
 $errorHandler = new HttpErrorHandler($callableResolver, $ResponseFactory);
+$errorHandler->LayoutTemplate = "layout.php";
+$errorHandler->ErrorTemplate = "Error.php";
 
 // Set base path
 $app->setBasePath(BasePath());
@@ -114,7 +124,7 @@ $cookieConfiguration->secure = Config("COOKIE_SECURE");
 $app->add(new SameSiteCookieMiddleware($cookieConfiguration));
 $app->add(new SameSiteSessionMiddleware());
 
-// Add error handling middleware
+// Add error handling middlewares
 $errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logErrors, $logErrorDetails);
 $errorMiddleware->setDefaultErrorHandler($errorHandler);
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
@@ -89,12 +89,9 @@ class PushNotification
         ];
 
         // Insert subscription
-        $addSubscription = true;
+        $addSubscription = false;
         $tbl = Container(Config("SUBSCRIPTION_TABLE_VAR"));
-        if (method_exists($tbl, "rowInserting")) {
-            $addSubscription = $tbl->rowInserting(null, $rsnew);
-        }
-        if ($addSubscription) {
+        if ($tbl && (!method_exists($tbl, "rowInserting") || $tbl->rowInserting(null, $rsnew))) {
             $addSubscription = $tbl->insert($rsnew);
             if ($addSubscription && method_exists($tbl, "rowInserted")) {
                 $tbl->rowInserted(null, $rsnew);
@@ -143,9 +140,7 @@ class PushNotification
             Log(json_encode($reports));
             $results = $reports;
         } else {
-            $results = array_map(function ($report) {
-                return ["success" => $report["success"]]; // Return "success" only
-            }, $reports);
+            $results = array_map(fn($report) => ["success" => $report["success"]], $reports); // Return "success" only
         }
         WriteJson($results);
     }

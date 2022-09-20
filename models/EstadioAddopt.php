@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class EstadioAddopt extends Estadio
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'estadio';
-
     // Page object name
     public $PageObjName = "EstadioAddopt";
 
@@ -34,6 +31,9 @@ class EstadioAddopt extends Estadio
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "estadioaddopt";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class EstadioAddopt extends Estadio
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class EstadioAddopt extends Estadio
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'estadio';
+        $this->TableName = 'estadio';
+
+        // Table CSS class
+        $this->TableClass = "table table-striped table-bordered table-hover table-sm ew-view-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (estadio)
         if (!isset($GLOBALS["estadio"]) || get_class($GLOBALS["estadio"]) == PROJECT_NAMESPACE . "estadio") {
@@ -164,14 +147,14 @@ class EstadioAddopt extends Estadio
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class EstadioAddopt extends Estadio
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class EstadioAddopt extends Estadio
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("estadio");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class EstadioAddopt extends Estadio
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -383,6 +347,11 @@ class EstadioAddopt extends Estadio
         // Get lookup object
         $fieldName = $ar["field"] ?? Post("field");
         $lookup = $this->Fields[$fieldName]->Lookup;
+        $name = $ar["name"] ?? Post("name");
+        $isQuery = ContainsString($name, "query_builder_rule");
+        if ($isQuery) {
+            $lookup->FilterFields = []; // Skip parent fields if any
+        }
 
         // Get lookup parameters
         $lookupType = $ar["ajax"] ?? Post("ajax", "unknown");
@@ -449,10 +418,13 @@ class EstadioAddopt extends Estadio
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
 
         // Create form object
         $CurrentForm = new HttpForm();
@@ -464,7 +436,6 @@ class EstadioAddopt extends Estadio
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -477,6 +448,15 @@ class EstadioAddopt extends Estadio
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -529,7 +509,7 @@ class EstadioAddopt extends Estadio
     // Load default values
     protected function loadDefaultValues()
     {
-        $this->usuario_dato->DefaultValue = "admin";
+        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
         $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
     }
 
@@ -543,33 +523,33 @@ class EstadioAddopt extends Estadio
         // Check field name 'id_torneo' first before field var 'x_id_torneo'
         $val = $CurrentForm->hasValue("id_torneo") ? $CurrentForm->getValue("id_torneo") : $CurrentForm->getValue("x_id_torneo");
         if (!$this->id_torneo->IsDetailKey) {
-            $this->id_torneo->setFormValue(ConvertFromUtf8($val));
+            $this->id_torneo->setFormValue($val);
         }
 
         // Check field name 'nombre_estadio' first before field var 'x_nombre_estadio'
         $val = $CurrentForm->hasValue("nombre_estadio") ? $CurrentForm->getValue("nombre_estadio") : $CurrentForm->getValue("x_nombre_estadio");
         if (!$this->nombre_estadio->IsDetailKey) {
-            $this->nombre_estadio->setFormValue(ConvertFromUtf8($val));
+            $this->nombre_estadio->setFormValue($val);
         }
 
         // Check field name 'crea_dato' first before field var 'x_crea_dato'
         $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
         if (!$this->crea_dato->IsDetailKey) {
-            $this->crea_dato->setFormValue(ConvertFromUtf8($val));
+            $this->crea_dato->setFormValue($val);
             $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
         }
 
         // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
         $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
         if (!$this->modifica_dato->IsDetailKey) {
-            $this->modifica_dato->setFormValue(ConvertFromUtf8($val));
+            $this->modifica_dato->setFormValue($val);
             $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
         }
 
         // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
         $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
         if (!$this->usuario_dato->IsDetailKey) {
-            $this->usuario_dato->setFormValue(ConvertFromUtf8($val));
+            $this->usuario_dato->setFormValue($val);
         }
 
         // Check field name 'id_estadio' first before field var 'x_id_estadio'
@@ -698,14 +678,13 @@ class EstadioAddopt extends Estadio
         if ($this->RowType == ROWTYPE_VIEW) {
             // id_estadio
             $this->id_estadio->ViewValue = $this->id_estadio->CurrentValue;
-            $this->id_estadio->ViewCustomAttributes = "";
 
             // id_torneo
             $curVal = strval($this->id_torneo->CurrentValue);
             if ($curVal != "") {
                 $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
                 if ($this->id_torneo->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->id_torneo->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -722,11 +701,9 @@ class EstadioAddopt extends Estadio
             } else {
                 $this->id_torneo->ViewValue = null;
             }
-            $this->id_torneo->ViewCustomAttributes = "";
 
             // nombre_estadio
             $this->nombre_estadio->ViewValue = $this->nombre_estadio->CurrentValue;
-            $this->nombre_estadio->ViewCustomAttributes = "";
 
             // foto_estadio
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
@@ -738,38 +715,31 @@ class EstadioAddopt extends Estadio
             } else {
                 $this->foto_estadio->ViewValue = "";
             }
-            $this->foto_estadio->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
             $this->crea_dato->CssClass = "fst-italic";
             $this->crea_dato->CellCssStyle .= "text-align: right;";
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
             $this->modifica_dato->CssClass = "fst-italic";
             $this->modifica_dato->CellCssStyle .= "text-align: right;";
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // id_torneo
-            $this->id_torneo->LinkCustomAttributes = "";
             $this->id_torneo->HrefValue = "";
             $this->id_torneo->TooltipValue = "";
 
             // nombre_estadio
-            $this->nombre_estadio->LinkCustomAttributes = "";
             $this->nombre_estadio->HrefValue = "";
             $this->nombre_estadio->TooltipValue = "";
 
             // foto_estadio
-            $this->foto_estadio->LinkCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
                 $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
@@ -790,23 +760,19 @@ class EstadioAddopt extends Estadio
             }
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
         } elseif ($this->RowType == ROWTYPE_ADD) {
             // id_torneo
             $this->id_torneo->setupEditAttributes();
-            $this->id_torneo->EditCustomAttributes = "";
             $curVal = trim(strval($this->id_torneo->CurrentValue));
             if ($curVal != "") {
                 $this->id_torneo->ViewValue = $this->id_torneo->lookupCacheOption($curVal);
@@ -819,7 +785,7 @@ class EstadioAddopt extends Estadio
                 if ($curVal == "") {
                     $filterWrk = "0=1";
                 } else {
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $this->id_torneo->CurrentValue, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $this->id_torneo->CurrentValue, DATATYPE_NUMBER, "");
                 }
                 $sqlWrk = $this->id_torneo->Lookup->getSql(true, $filterWrk, '', $this, false, true);
                 $conn = Conn();
@@ -834,13 +800,11 @@ class EstadioAddopt extends Estadio
 
             // nombre_estadio
             $this->nombre_estadio->setupEditAttributes();
-            $this->nombre_estadio->EditCustomAttributes = "";
             $this->nombre_estadio->EditValue = HtmlEncode($this->nombre_estadio->CurrentValue);
             $this->nombre_estadio->PlaceHolder = RemoveHtml($this->nombre_estadio->caption());
 
             // foto_estadio
             $this->foto_estadio->setupEditAttributes();
-            $this->foto_estadio->EditCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->ImageWidth = 50;
                 $this->foto_estadio->ImageHeight = 0;
@@ -859,31 +823,25 @@ class EstadioAddopt extends Estadio
 
             // crea_dato
             $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditCustomAttributes = "";
             $this->crea_dato->CurrentValue = FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
 
             // modifica_dato
             $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditCustomAttributes = "";
             $this->modifica_dato->CurrentValue = FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
 
             // usuario_dato
             $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditCustomAttributes = "";
             $this->usuario_dato->CurrentValue = CurrentUserName();
 
             // Add refer script
 
             // id_torneo
-            $this->id_torneo->LinkCustomAttributes = "";
             $this->id_torneo->HrefValue = "";
 
             // nombre_estadio
-            $this->nombre_estadio->LinkCustomAttributes = "";
             $this->nombre_estadio->HrefValue = "";
 
             // foto_estadio
-            $this->foto_estadio->LinkCustomAttributes = "";
             if (!EmptyValue($this->foto_estadio->Upload->DbValue)) {
                 $this->foto_estadio->HrefValue = GetFileUploadUrl($this->foto_estadio, $this->foto_estadio->htmlDecode($this->foto_estadio->Upload->DbValue)); // Add prefix/suffix
                 $this->foto_estadio->LinkAttrs["target"] = ""; // Add target
@@ -896,15 +854,12 @@ class EstadioAddopt extends Estadio
             $this->foto_estadio->ExportHrefValue = $this->foto_estadio->UploadPath . $this->foto_estadio->Upload->DbValue;
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
         }
         if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
@@ -920,7 +875,7 @@ class EstadioAddopt extends Estadio
     // Validate form
     protected function validateForm()
     {
-        global $Language;
+        global $Language, $Security;
 
         // Check if validation required
         if (!Config("SERVER_VALIDATE")) {
@@ -1014,7 +969,11 @@ class EstadioAddopt extends Estadio
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1073,5 +1032,13 @@ class EstadioAddopt extends Estadio
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -19,6 +19,7 @@ class Participante extends DbTable
     protected $SqlGroupBy = "";
     protected $SqlHaving = "";
     protected $SqlOrderBy = "";
+    public $DbErrorMessage = "";
     public $UseSessionForListSql = true;
 
     // Column CSS classes
@@ -28,7 +29,16 @@ class Participante extends DbTable
     public $TableLeftColumnClass = "w-col-2";
 
     // Export
-    public $ExportDoc;
+    public $UseAjaxActions = false;
+    public $ModalSearch = false;
+    public $ModalView = false;
+    public $ModalAdd = false;
+    public $ModalEdit = false;
+    public $ModalUpdate = false;
+    public $InlineDelete = false;
+    public $ModalGridAdd = false;
+    public $ModalGridEdit = false;
+    public $ModalMultiEdit = false;
 
     // Fields
     public $ID_PARTICIPANTE;
@@ -48,27 +58,34 @@ class Participante extends DbTable
     // Constructor
     public function __construct()
     {
-        global $Language, $CurrentLanguage, $CurrentLocale;
         parent::__construct();
+        global $Language, $CurrentLanguage, $CurrentLocale;
 
         // Language object
         $Language = Container("language");
-        $this->TableVar = 'participante';
+        $this->TableVar = "participante";
         $this->TableName = 'participante';
-        $this->TableType = 'TABLE';
+        $this->TableType = "TABLE";
+        $this->ImportUseTransaction = $this->supportsTransaction() && Config("IMPORT_USE_TRANSACTION");
+        $this->UseTransaction = $this->supportsTransaction() && Config("USE_TRANSACTION");
 
         // Update Table
         $this->UpdateTable = "`participante`";
         $this->Dbid = 'DB';
         $this->ExportAll = true;
         $this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
+
+        // PDF
         $this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
         $this->ExportPageSize = "a4"; // Page size (PDF only)
-        $this->ExportExcelPageOrientation = ""; // Page orientation (PhpSpreadsheet only)
-        $this->ExportExcelPageSize = ""; // Page size (PhpSpreadsheet only)
-        $this->ExportWordVersion = 12; // Word version (PHPWord only)
-        $this->ExportWordPageOrientation = "portrait"; // Page orientation (PHPWord only)
-        $this->ExportWordPageSize = "A4"; // Page orientation (PHPWord only)
+
+        // PhpSpreadsheet
+        $this->ExportExcelPageOrientation = null; // Page orientation (PhpSpreadsheet only)
+        $this->ExportExcelPageSize = null; // Page size (PhpSpreadsheet only)
+
+        // PHPWord
+        $this->ExportWordPageOrientation = ""; // Page orientation (PHPWord only)
+        $this->ExportWordPageSize = ""; // Page orientation (PHPWord only)
         $this->ExportWordColumnWidth = null; // Cell width (PHPWord only)
         $this->DetailAdd = false; // Allow detail add
         $this->DetailEdit = false; // Allow detail edit
@@ -76,237 +93,243 @@ class Participante extends DbTable
         $this->ShowMultipleDetails = false; // Show multiple details
         $this->GridAddRowCount = 5;
         $this->AllowAddDeleteRow = true; // Allow add/delete row
+        $this->UseAjaxActions = $this->UseAjaxActions || Config("USE_AJAX_ACTIONS");
         $this->UserIDAllowSecurity = Config("DEFAULT_USER_ID_ALLOW_SECURITY"); // Default User ID allowed permissions
-        $this->BasicSearch = new BasicSearch($this->TableVar);
+        $this->BasicSearch = new BasicSearch($this);
 
-        // ID_PARTICIPANTE
+        // ID_PARTICIPANTE $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->ID_PARTICIPANTE = new DbField(
-            'participante',
-            'participante',
-            'x_ID_PARTICIPANTE',
-            'ID_PARTICIPANTE',
-            '`ID_PARTICIPANTE`',
-            '`ID_PARTICIPANTE`',
-            3,
-            11,
-            -1,
-            false,
-            '`ID_PARTICIPANTE`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'NO'
+            $this, // Table
+            'x_ID_PARTICIPANTE', // Variable name
+            'ID_PARTICIPANTE', // Name
+            '`ID_PARTICIPANTE`', // Expression
+            '`ID_PARTICIPANTE`', // Basic search expression
+            3, // Type
+            11, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`ID_PARTICIPANTE`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'NO' // Edit Tag
         );
         $this->ID_PARTICIPANTE->InputTextType = "text";
         $this->ID_PARTICIPANTE->IsAutoIncrement = true; // Autoincrement field
         $this->ID_PARTICIPANTE->IsPrimaryKey = true; // Primary key field
         $this->ID_PARTICIPANTE->DefaultErrorMessage = $Language->phrase("IncorrectInteger");
+        $this->ID_PARTICIPANTE->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['ID_PARTICIPANTE'] = &$this->ID_PARTICIPANTE;
 
-        // NOMBRE
+        // NOMBRE $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->NOMBRE = new DbField(
-            'participante',
-            'participante',
-            'x_NOMBRE',
-            'NOMBRE',
-            '`NOMBRE`',
-            '`NOMBRE`',
-            201,
-            256,
-            -1,
-            false,
-            '`NOMBRE`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_NOMBRE', // Variable name
+            'NOMBRE', // Name
+            '`NOMBRE`', // Expression
+            '`NOMBRE`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`NOMBRE`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->NOMBRE->InputTextType = "text";
+        $this->NOMBRE->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['NOMBRE'] = &$this->NOMBRE;
 
-        // APELLIDO
+        // APELLIDO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->APELLIDO = new DbField(
-            'participante',
-            'participante',
-            'x_APELLIDO',
-            'APELLIDO',
-            '`APELLIDO`',
-            '`APELLIDO`',
-            201,
-            256,
-            -1,
-            false,
-            '`APELLIDO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_APELLIDO', // Variable name
+            'APELLIDO', // Name
+            '`APELLIDO`', // Expression
+            '`APELLIDO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`APELLIDO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->APELLIDO->InputTextType = "text";
+        $this->APELLIDO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['APELLIDO'] = &$this->APELLIDO;
 
-        // FECHA_NACIMIENTO
+        // FECHA_NACIMIENTO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->FECHA_NACIMIENTO = new DbField(
-            'participante',
-            'participante',
-            'x_FECHA_NACIMIENTO',
-            'FECHA_NACIMIENTO',
-            '`FECHA_NACIMIENTO`',
-            '`FECHA_NACIMIENTO`',
-            201,
-            256,
-            -1,
-            false,
-            '`FECHA_NACIMIENTO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x_FECHA_NACIMIENTO', // Variable name
+            'FECHA_NACIMIENTO', // Name
+            '`FECHA_NACIMIENTO`', // Expression
+            '`FECHA_NACIMIENTO`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`FECHA_NACIMIENTO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->FECHA_NACIMIENTO->InputTextType = "text";
+        $this->FECHA_NACIMIENTO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['FECHA_NACIMIENTO'] = &$this->FECHA_NACIMIENTO;
 
-        // CEDULA
+        // CEDULA $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->CEDULA = new DbField(
-            'participante',
-            'participante',
-            'x_CEDULA',
-            'CEDULA',
-            '`CEDULA`',
-            '`CEDULA`',
-            200,
-            10,
-            -1,
-            false,
-            '`CEDULA`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_CEDULA', // Variable name
+            'CEDULA', // Name
+            '`CEDULA`', // Expression
+            '`CEDULA`', // Basic search expression
+            200, // Type
+            10, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`CEDULA`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->CEDULA->InputTextType = "text";
+        $this->CEDULA->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['CEDULA'] = &$this->CEDULA;
 
-        // EMAIL
+        // EMAIL $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->_EMAIL = new DbField(
-            'participante',
-            'participante',
-            'x__EMAIL',
-            'EMAIL',
-            '`EMAIL`',
-            '`EMAIL`',
-            201,
-            256,
-            -1,
-            false,
-            '`EMAIL`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXTAREA'
+            $this, // Table
+            'x__EMAIL', // Variable name
+            'EMAIL', // Name
+            '`EMAIL`', // Expression
+            '`EMAIL`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`EMAIL`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXTAREA' // Edit Tag
         );
         $this->_EMAIL->InputTextType = "text";
+        $this->_EMAIL->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['EMAIL'] = &$this->_EMAIL;
 
-        // TELEFONO
+        // TELEFONO $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->TELEFONO = new DbField(
-            'participante',
-            'participante',
-            'x_TELEFONO',
-            'TELEFONO',
-            '`TELEFONO`',
-            '`TELEFONO`',
-            200,
-            10,
-            -1,
-            false,
-            '`TELEFONO`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_TELEFONO', // Variable name
+            'TELEFONO', // Name
+            '`TELEFONO`', // Expression
+            '`TELEFONO`', // Basic search expression
+            200, // Type
+            10, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`TELEFONO`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->TELEFONO->InputTextType = "text";
+        $this->TELEFONO->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['TELEFONO'] = &$this->TELEFONO;
 
-        // crea_dato
+        // crea_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->crea_dato = new DbField(
-            'participante',
-            'participante',
-            'x_crea_dato',
-            'crea_dato',
-            '`crea_dato`',
-            CastDateFieldForLike("`crea_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`crea_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_crea_dato', // Variable name
+            'crea_dato', // Name
+            '`crea_dato`', // Expression
+            CastDateFieldForLike("`crea_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`crea_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->crea_dato->InputTextType = "text";
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->crea_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['crea_dato'] = &$this->crea_dato;
 
-        // modifica_dato
+        // modifica_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->modifica_dato = new DbField(
-            'participante',
-            'participante',
-            'x_modifica_dato',
-            'modifica_dato',
-            '`modifica_dato`',
-            CastDateFieldForLike("`modifica_dato`", 15, "DB"),
-            135,
-            19,
-            15,
-            false,
-            '`modifica_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_modifica_dato', // Variable name
+            'modifica_dato', // Name
+            '`modifica_dato`', // Expression
+            CastDateFieldForLike("`modifica_dato`", 15, "DB"), // Basic search expression
+            135, // Type
+            19, // Size
+            15, // Date/Time format
+            false, // Is upload field
+            '`modifica_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
         $this->modifica_dato->InputTextType = "text";
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", DateFormat(15), $Language->phrase("IncorrectDate"));
+        $this->modifica_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
 
-        // usuario_dato
+        // usuario_dato $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
         $this->usuario_dato = new DbField(
-            'participante',
-            'participante',
-            'x_usuario_dato',
-            'usuario_dato',
-            '`usuario_dato`',
-            '`usuario_dato`',
-            201,
-            256,
-            -1,
-            false,
-            '`usuario_dato`',
-            false,
-            false,
-            false,
-            'FORMATTED TEXT',
-            'TEXT'
+            $this, // Table
+            'x_usuario_dato', // Variable name
+            'usuario_dato', // Name
+            '`usuario_dato`', // Expression
+            '`usuario_dato`', // Basic search expression
+            201, // Type
+            256, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`usuario_dato`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
         );
+        $this->usuario_dato->addMethod("getAutoUpdateValue", fn() => CurrentUserName());
+        $this->usuario_dato->addMethod("getDefault", fn() => "admin");
         $this->usuario_dato->InputTextType = "text";
+        $this->usuario_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
         $this->CacheProfile = new \Doctrine\DBAL\Cache\QueryCacheProfile(0, $this->TableVar);
+
+        // Call Table Load event
+        $this->tableLoad();
     }
 
     // Field Visibility
@@ -357,6 +380,12 @@ class Participante extends DbTable
             }
             $field->setSort($fldSort);
         }
+    }
+
+    // Render X Axis for chart
+    public function renderChartXAxis($chartVar, $chartRow)
+    {
+        return $chartRow;
     }
 
     // Table level SQL
@@ -530,6 +559,12 @@ class Participante extends DbTable
     // Get SQL
     public function getSql($where, $orderBy = "")
     {
+        return $this->getSqlAsQueryBuilder($where, $orderBy)->getSQL();
+    }
+
+    // Get QueryBuilder
+    public function getSqlAsQueryBuilder($where, $orderBy = "")
+    {
         return $this->buildSelectSql(
             $this->getSqlSelect(),
             $this->getSqlFrom(),
@@ -539,7 +574,7 @@ class Participante extends DbTable
             $this->getSqlOrderBy(),
             $where,
             $orderBy
-        )->getSQL();
+        );
     }
 
     // Table SQL
@@ -645,7 +680,13 @@ class Participante extends DbTable
     public function insert(&$rs)
     {
         $conn = $this->getConnection();
-        $success = $this->insertSql($rs)->execute();
+        try {
+            $success = $this->insertSql($rs)->execute();
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
         if ($success) {
             // Get insert id if necessary
             $this->ID_PARTICIPANTE->setDbValue($conn->lastInsertId());
@@ -688,8 +729,21 @@ class Participante extends DbTable
     public function update(&$rs, $where = "", $rsold = null, $curfilter = true)
     {
         // If no field is updated, execute may return 0. Treat as success
-        $success = $this->updateSql($rs, $where, $curfilter)->execute();
-        $success = ($success > 0) ? $success : true;
+        try {
+            $success = $this->updateSql($rs, $where, $curfilter)->execute();
+            $success = ($success > 0) ? $success : true;
+            $this->DbErrorMessage = "";
+        } catch (\Exception $e) {
+            $success = false;
+            $this->DbErrorMessage = $e->getMessage();
+        }
+
+        // Return auto increment field
+        if ($success) {
+            if (!isset($rs['ID_PARTICIPANTE']) && !EmptyValue($this->ID_PARTICIPANTE->CurrentValue)) {
+                $rs['ID_PARTICIPANTE'] = $this->ID_PARTICIPANTE->CurrentValue;
+            }
+        }
         return $success;
     }
 
@@ -723,7 +777,13 @@ class Participante extends DbTable
     {
         $success = true;
         if ($success) {
-            $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+            try {
+                $success = $this->deleteSql($rs, $where, $curfilter)->execute();
+                $this->DbErrorMessage = "";
+            } catch (\Exception $e) {
+                $success = false;
+                $this->DbErrorMessage = $e->getMessage();
+            }
         }
         return $success;
     }
@@ -786,13 +846,13 @@ class Participante extends DbTable
     }
 
     // Get record filter
-    public function getRecordFilter($row = null)
+    public function getRecordFilter($row = null, $current = false)
     {
         $keyFilter = $this->sqlKeyFilter();
         if (is_array($row)) {
             $val = array_key_exists('ID_PARTICIPANTE', $row) ? $row['ID_PARTICIPANTE'] : null;
         } else {
-            $val = $this->ID_PARTICIPANTE->OldValue !== null ? $this->ID_PARTICIPANTE->OldValue : $this->ID_PARTICIPANTE->CurrentValue;
+            $val = !EmptyValue($this->ID_PARTICIPANTE->OldValue) && !$current ? $this->ID_PARTICIPANTE->OldValue : $this->ID_PARTICIPANTE->CurrentValue;
         }
         if (!is_numeric($val)) {
             return "0=1"; // Invalid key
@@ -834,9 +894,8 @@ class Participante extends DbTable
             return $Language->phrase("Edit");
         } elseif ($pageName == "participanteadd") {
             return $Language->phrase("Add");
-        } else {
-            return "";
         }
+        return "";
     }
 
     // API page name
@@ -858,6 +917,18 @@ class Participante extends DbTable
         }
     }
 
+    // Current URL
+    public function getCurrentUrl($parm = "")
+    {
+        $url = CurrentPageUrl(false);
+        if ($parm != "") {
+            $url = $this->keyUrl($url, $parm);
+        } else {
+            $url = $this->keyUrl($url, Config("TABLE_SHOW_DETAIL") . "=");
+        }
+        return $this->addMasterUrl($url);
+    }
+
     // List URL
     public function getListUrl()
     {
@@ -868,9 +939,9 @@ class Participante extends DbTable
     public function getViewUrl($parm = "")
     {
         if ($parm != "") {
-            $url = $this->keyUrl("participanteview", $this->getUrlParm($parm));
+            $url = $this->keyUrl("participanteview", $parm);
         } else {
-            $url = $this->keyUrl("participanteview", $this->getUrlParm(Config("TABLE_SHOW_DETAIL") . "="));
+            $url = $this->keyUrl("participanteview", Config("TABLE_SHOW_DETAIL") . "=");
         }
         return $this->addMasterUrl($url);
     }
@@ -879,7 +950,7 @@ class Participante extends DbTable
     public function getAddUrl($parm = "")
     {
         if ($parm != "") {
-            $url = "participanteadd?" . $this->getUrlParm($parm);
+            $url = "participanteadd?" . $parm;
         } else {
             $url = "participanteadd";
         }
@@ -889,35 +960,39 @@ class Participante extends DbTable
     // Edit URL
     public function getEditUrl($parm = "")
     {
-        $url = $this->keyUrl("participanteedit", $this->getUrlParm($parm));
+        $url = $this->keyUrl("participanteedit", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline edit URL
     public function getInlineEditUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=edit"));
+        $url = $this->keyUrl("participantelist", "action=edit");
         return $this->addMasterUrl($url);
     }
 
     // Copy URL
     public function getCopyUrl($parm = "")
     {
-        $url = $this->keyUrl("participanteadd", $this->getUrlParm($parm));
+        $url = $this->keyUrl("participanteadd", $parm);
         return $this->addMasterUrl($url);
     }
 
     // Inline copy URL
     public function getInlineCopyUrl()
     {
-        $url = $this->keyUrl(CurrentPageName(), $this->getUrlParm("action=copy"));
+        $url = $this->keyUrl("participantelist", "action=copy");
         return $this->addMasterUrl($url);
     }
 
     // Delete URL
     public function getDeleteUrl()
     {
-        return $this->keyUrl("participantedelete", $this->getUrlParm());
+        if ($this->UseAjaxActions && ConvertToBool(Param("infinitescroll")) && CurrentPageID() == "list") {
+            return $this->keyUrl(GetApiUrl(Config("API_DELETE_ACTION") . "/" . $this->TableVar));
+        } else {
+            return $this->keyUrl("participantedelete");
+        }
     }
 
     // Add master url
@@ -954,12 +1029,15 @@ class Participante extends DbTable
     // Render sort
     public function renderFieldHeader($fld)
     {
-        global $Security, $Language;
+        global $Security, $Language, $Page;
         $sortUrl = "";
         $attrs = "";
         if ($fld->Sortable) {
             $sortUrl = $this->sortUrl($fld);
-            $attrs = ' role="button" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            $attrs = ' role="button" data-ew-action="sort" data-ajax="' . ($this->UseAjaxActions ? "true" : "false") . '" data-sort-url="' . $sortUrl . '" data-sort-type="1"';
+            if ($this->ContextClass) { // Add context
+                $attrs .= ' data-context="' . HtmlEncode($this->ContextClass) . '"';
+            }
         }
         $html = '<div class="ew-table-header-caption"' . $attrs . '>' . $fld->caption() . '</div>';
         if ($sortUrl) {
@@ -980,14 +1058,18 @@ class Participante extends DbTable
     // Sort URL
     public function sortUrl($fld)
     {
+        global $DashboardReport;
         if (
             $this->CurrentAction || $this->isExport() ||
             in_array($fld->Type, [128, 204, 205])
         ) { // Unsortable data type
                 return "";
         } elseif ($fld->Sortable) {
-            $urlParm = $this->getUrlParm("order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort());
-            return $this->addMasterUrl(CurrentPageName() . "?" . $urlParm);
+            $urlParm = "order=" . urlencode($fld->Name) . "&amp;ordertype=" . $fld->getNextSort();
+            if ($DashboardReport) {
+                $urlParm .= "&amp;dashboard=true";
+            }
+            return $this->addMasterUrl($this->CurrentPageName . "?" . $urlParm);
         } else {
             return "";
         }
@@ -1023,6 +1105,19 @@ class Participante extends DbTable
             }
         }
         return $ar;
+    }
+
+    // Get filter from records
+    public function getFilterFromRecords($rows)
+    {
+        $keyFilter = "";
+        foreach ($rows as $row) {
+            if ($keyFilter != "") {
+                $keyFilter .= " OR ";
+            }
+            $keyFilter .= "(" . $this->getRecordFilter($row) . ")";
+        }
+        return $keyFilter;
     }
 
     // Get filter from record keys
@@ -1074,6 +1169,24 @@ class Participante extends DbTable
         $this->usuario_dato->setDbValue($row['usuario_dato']);
     }
 
+    // Render list content
+    public function renderListContent($filter)
+    {
+        global $Response;
+        $listPage = "ParticipanteList";
+        $listClass = PROJECT_NAMESPACE . $listPage;
+        $page = new $listClass();
+        $page->loadRecordsetFromFilter($filter);
+        $view = Container("view");
+        $template = $listPage . ".php"; // View
+        $GLOBALS["Title"] ??= $page->Title; // Title
+        try {
+            $Response = $view->render($Response, $template, $GLOBALS);
+        } finally {
+            $page->terminate(); // Terminate page and clean up
+        }
+    }
+
     // Render list row values
     public function renderListRow()
     {
@@ -1106,96 +1219,76 @@ class Participante extends DbTable
 
         // ID_PARTICIPANTE
         $this->ID_PARTICIPANTE->ViewValue = $this->ID_PARTICIPANTE->CurrentValue;
-        $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
         // NOMBRE
         $this->NOMBRE->ViewValue = $this->NOMBRE->CurrentValue;
-        $this->NOMBRE->ViewCustomAttributes = "";
 
         // APELLIDO
         $this->APELLIDO->ViewValue = $this->APELLIDO->CurrentValue;
-        $this->APELLIDO->ViewCustomAttributes = "";
 
         // FECHA_NACIMIENTO
         $this->FECHA_NACIMIENTO->ViewValue = $this->FECHA_NACIMIENTO->CurrentValue;
-        $this->FECHA_NACIMIENTO->ViewCustomAttributes = "";
 
         // CEDULA
         $this->CEDULA->ViewValue = $this->CEDULA->CurrentValue;
-        $this->CEDULA->ViewCustomAttributes = "";
 
         // EMAIL
         $this->_EMAIL->ViewValue = $this->_EMAIL->CurrentValue;
-        $this->_EMAIL->ViewCustomAttributes = "";
 
         // TELEFONO
         $this->TELEFONO->ViewValue = $this->TELEFONO->CurrentValue;
-        $this->TELEFONO->ViewCustomAttributes = "";
 
         // crea_dato
         $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
         $this->crea_dato->CellCssStyle .= "text-align: right;";
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
         $this->modifica_dato->CssClass = "fst-italic";
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
         $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-        $this->usuario_dato->ViewCustomAttributes = "";
 
         // ID_PARTICIPANTE
-        $this->ID_PARTICIPANTE->LinkCustomAttributes = "";
         $this->ID_PARTICIPANTE->HrefValue = "";
         $this->ID_PARTICIPANTE->TooltipValue = "";
 
         // NOMBRE
-        $this->NOMBRE->LinkCustomAttributes = "";
         $this->NOMBRE->HrefValue = "";
         $this->NOMBRE->TooltipValue = "";
 
         // APELLIDO
-        $this->APELLIDO->LinkCustomAttributes = "";
         $this->APELLIDO->HrefValue = "";
         $this->APELLIDO->TooltipValue = "";
 
         // FECHA_NACIMIENTO
-        $this->FECHA_NACIMIENTO->LinkCustomAttributes = "";
         $this->FECHA_NACIMIENTO->HrefValue = "";
         $this->FECHA_NACIMIENTO->TooltipValue = "";
 
         // CEDULA
-        $this->CEDULA->LinkCustomAttributes = "";
         $this->CEDULA->HrefValue = "";
         $this->CEDULA->TooltipValue = "";
 
         // EMAIL
-        $this->_EMAIL->LinkCustomAttributes = "";
         $this->_EMAIL->HrefValue = "";
         $this->_EMAIL->TooltipValue = "";
 
         // TELEFONO
-        $this->TELEFONO->LinkCustomAttributes = "";
         $this->TELEFONO->HrefValue = "";
         $this->TELEFONO->TooltipValue = "";
 
         // crea_dato
-        $this->crea_dato->LinkCustomAttributes = "";
         $this->crea_dato->HrefValue = "";
         $this->crea_dato->TooltipValue = "";
 
         // modifica_dato
-        $this->modifica_dato->LinkCustomAttributes = "";
         $this->modifica_dato->HrefValue = "";
         $this->modifica_dato->TooltipValue = "";
 
         // usuario_dato
-        $this->usuario_dato->LinkCustomAttributes = "";
         $this->usuario_dato->HrefValue = "";
         $this->usuario_dato->TooltipValue = "";
 
@@ -1216,31 +1309,25 @@ class Participante extends DbTable
 
         // ID_PARTICIPANTE
         $this->ID_PARTICIPANTE->setupEditAttributes();
-        $this->ID_PARTICIPANTE->EditCustomAttributes = "";
         $this->ID_PARTICIPANTE->EditValue = $this->ID_PARTICIPANTE->CurrentValue;
-        $this->ID_PARTICIPANTE->ViewCustomAttributes = "";
 
         // NOMBRE
         $this->NOMBRE->setupEditAttributes();
-        $this->NOMBRE->EditCustomAttributes = "";
         $this->NOMBRE->EditValue = $this->NOMBRE->CurrentValue;
         $this->NOMBRE->PlaceHolder = RemoveHtml($this->NOMBRE->caption());
 
         // APELLIDO
         $this->APELLIDO->setupEditAttributes();
-        $this->APELLIDO->EditCustomAttributes = "";
         $this->APELLIDO->EditValue = $this->APELLIDO->CurrentValue;
         $this->APELLIDO->PlaceHolder = RemoveHtml($this->APELLIDO->caption());
 
         // FECHA_NACIMIENTO
         $this->FECHA_NACIMIENTO->setupEditAttributes();
-        $this->FECHA_NACIMIENTO->EditCustomAttributes = "";
         $this->FECHA_NACIMIENTO->EditValue = $this->FECHA_NACIMIENTO->CurrentValue;
         $this->FECHA_NACIMIENTO->PlaceHolder = RemoveHtml($this->FECHA_NACIMIENTO->caption());
 
         // CEDULA
         $this->CEDULA->setupEditAttributes();
-        $this->CEDULA->EditCustomAttributes = "";
         if (!$this->CEDULA->Raw) {
             $this->CEDULA->CurrentValue = HtmlDecode($this->CEDULA->CurrentValue);
         }
@@ -1249,13 +1336,11 @@ class Participante extends DbTable
 
         // EMAIL
         $this->_EMAIL->setupEditAttributes();
-        $this->_EMAIL->EditCustomAttributes = "";
         $this->_EMAIL->EditValue = $this->_EMAIL->CurrentValue;
         $this->_EMAIL->PlaceHolder = RemoveHtml($this->_EMAIL->caption());
 
         // TELEFONO
         $this->TELEFONO->setupEditAttributes();
-        $this->TELEFONO->EditCustomAttributes = "";
         if (!$this->TELEFONO->Raw) {
             $this->TELEFONO->CurrentValue = HtmlDecode($this->TELEFONO->CurrentValue);
         }
@@ -1264,20 +1349,16 @@ class Participante extends DbTable
 
         // crea_dato
         $this->crea_dato->setupEditAttributes();
-        $this->crea_dato->EditCustomAttributes = "";
         $this->crea_dato->EditValue = $this->crea_dato->CurrentValue;
         $this->crea_dato->EditValue = FormatDateTime($this->crea_dato->EditValue, $this->crea_dato->formatPattern());
         $this->crea_dato->CellCssStyle .= "text-align: right;";
-        $this->crea_dato->ViewCustomAttributes = "";
 
         // modifica_dato
         $this->modifica_dato->setupEditAttributes();
-        $this->modifica_dato->EditCustomAttributes = "";
         $this->modifica_dato->EditValue = $this->modifica_dato->CurrentValue;
         $this->modifica_dato->EditValue = FormatDateTime($this->modifica_dato->EditValue, $this->modifica_dato->formatPattern());
         $this->modifica_dato->CssClass = "fst-italic";
         $this->modifica_dato->CellCssStyle .= "text-align: right;";
-        $this->modifica_dato->ViewCustomAttributes = "";
 
         // usuario_dato
 
@@ -1387,8 +1468,7 @@ class Participante extends DbTable
 
             // Call Row Export server event
             if ($doc->ExportCustom) {
-                $this->ExportDoc = &$doc;
-                $this->rowExport($row);
+                $this->rowExport($doc, $row);
             }
             $recordset->moveNext();
         }
@@ -1407,6 +1487,12 @@ class Participante extends DbTable
     }
 
     // Table level events
+
+    // Table Load event
+    public function tableLoad()
+    {
+        // Enter your code here
+    }
 
     // Recordset Selecting event
     public function recordsetSelecting(&$filter)

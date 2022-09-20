@@ -1,11 +1,11 @@
 /*!
- * JavaScript for PHPMaker v2022.12.0
+ * JavaScript for PHPMaker v2023.0.0
  * Copyright (c) e.World Technology Limited. All rights reserved.
  */
 (function (ew$1, $$1, luxon) {
   'use strict';
 
-  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+  var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
   var ew__default = /*#__PURE__*/_interopDefaultLegacy(ew$1);
   var $__default = /*#__PURE__*/_interopDefaultLegacy($$1);
@@ -39,7 +39,7 @@
 
     this.showPagerBottom = false; // Show pager at bottom
 
-    this.pagerTemplate = '<nav><ul class="pagination"><li class="page-item previous ew-prev"><a href="#" class="page-link"><span class="icon-prev"></span> {Prev}</a></li><li class="page-item next ew-next"><a href="#" class="page-link">{Next} <span class="icon-next"></span></a></li></ul></nav>'; // Pager template
+    this.pagerTemplate = '<nav><ul class="pagination"><li class="page-item previous ew-prev"><a href="#" class="page-link"><i class="fa-solid fa-angle-left"></i> {Prev}</a></li><li class="page-item next ew-next"><a href="#" class="page-link">{Next} <i class="fa-solid fa-angle-right"></i></a></li></ul></nav>'; // Pager template
     // "show" handler (for disabled tabs)
 
     var _show = function (e) {
@@ -49,11 +49,11 @@
     var _properties = ["lastPageSubmit", "hideDisabledButton", "hideInactivePages", "lockTabs", "hideTabs", "showPagerTop", "showPagerBottom", "pagerTemplate"];
 
     this.set = function () {
-      if (arguments.length == 1 && $__default["default"].isObject(arguments[0])) {
+      if (arguments.length == 1 && $__default.default.isObject(arguments[0])) {
         var obj = arguments[0];
 
         for (var i in obj) {
-          var p = i[0].toLowerCase() + i.substr(1); // Camel case
+          var p = i[0].toLowerCase() + i.substring(1); // Camel case
 
           if (_properties.includes(p)) this[p] = obj[i];
         }
@@ -95,20 +95,20 @@
       if (this.isTab) {
         if (this.lockTabs) this.$pages.on("show.bs.tab", _show);
         this.$pages.each(function () {
-          var $this = $__default["default"](this);
+          var $this = $__default.default(this);
           if (self.hideInactivePages) $this.toggleClass("d-none", !$this.hasClass("active"));
           if (self.lockTabs) $this.toggleClass("disabled", !$this.hasClass("active"));
         });
       } else if (this.isCollapse) {
         this.$pages.closest(".accordion-item").each(function () {
-          var $this = $__default["default"](this);
+          var $this = $__default.default(this);
           if (self.hideInactivePages) $this.toggleClass("d-none", !$this.find(".collapse.show")[0]);
         });
       }
 
       var disabled = this.lastPageSubmit && this.pageIndex != this.maxPageIndex;
       var $btn = this.$form.closest(".content, .modal-content").find("#btn-action, button.ew-submit").prop("disabled", disabled).toggle(!this.hideDisabledButton || !disabled);
-      $__default["default"](".ew-captcha").toggle($btn.is(":visible:not(:disabled)")); // Re-captcha uses class "disabled", not "disabled" property.
+      $__default.default(".ew-captcha").toggle($btn.is(":visible:not(:disabled)")); // Re-captcha uses class "disabled", not "disabled" property.
 
       disabled = this.pageIndex <= this.minPageIndex;
       this.$form.find(".ew-prev").toggleClass("disabled", disabled);
@@ -136,7 +136,7 @@
     this.gotoPageByIndex = this.gotoPage; // Go to page by element
 
     this.gotoPageByElement = function (el) {
-      this.gotoPage(parseInt($__default["default"](el).data("page"), 10) || -1);
+      this.gotoPage(parseInt($__default.default(el).data("page"), 10) || -1);
     }; // Go to page by element's id or name or data-field attribute
 
     this.gotoPageByElementId = function (id) {
@@ -153,7 +153,7 @@
     }; // Render
 
     this.render = function () {
-      this.$form = $__default["default"]("#" + formid);
+      this.$form = $__default.default("#" + formid);
       this.pageIndexes = this.$form.find("[data-page]").map(function () {
         var index = parseInt(this.dataset.page, 10);
         return index > 0 ? index : null;
@@ -171,7 +171,7 @@
         $tabs.on("shown.bs.tab", function (e) {
           self.pageIndex = $tabs.index(e.target) + 1;
           self.pageShow();
-          $__default["default"]($__default["default"](this).attr("href")).find(".ew-map").each(function () {
+          $__default.default($__default.default(this).attr("href")).find(".ew-map").each(function () {
             var m = ew.maps[this.id];
 
             if (m != null && m["map"]) {
@@ -191,7 +191,7 @@
           $bodies.on("shown.bs.collapse", function (e) {
             self.pageIndex = $bodies.index(e.target) + 1;
             self.pageShow();
-            $__default["default"](this).find(".ew-map").each(function () {
+            $__default.default(this).find(".ew-map").each(function () {
               var m = ew.maps[this.id];
 
               if (m != null && m["map"]) {
@@ -204,12 +204,13 @@
         }
       }
 
-      $__default["default"](function () {
+      $__default.default(function () {
         self.init();
       });
     };
   }
 
+  let DateTime$1 = luxon__default.default.DateTime;
   /**
    * User level ID validator
    */
@@ -218,7 +219,7 @@
     if (el && !ew.checkInteger(el.value)) return {
       userLevelId: ew.language.phrase("UserLevelIDInteger")
     };
-    var level = parseInt(el.value, 10);
+    let level = parseInt(el.value, 10);
     if (level < 1) return {
       userLevelId: ew.language.phrase("UserLevelIDIncorrect")
     };
@@ -267,8 +268,8 @@
     return function (el) {
       var _$el$data;
 
-      let $el = $__default["default"](el),
-          $p = $el.closest("#r_" + ((_$el$data = $el.data("field")) == null ? void 0 : _$el$data.substr(2))); // Find the row
+      let $el = $__default.default(el),
+          $p = $el.closest("#r_" + ((_$el$data = $el.data("field")) == null ? void 0 : _$el$data.substring(2))); // Find the row
 
       if (!$p[0]) $p = $el.closest("[id^=el]"); // Find the span
 
@@ -332,9 +333,13 @@
     if (el.id.startsWith("y_")) {
       x = document.getElementById(el.id.replace(/^y_/, "x_"));
       z = document.getElementById(el.id.replace(/^y_/, "z_"));
+    } else if (el.id.endsWith("_value_1")) {
+      // QueryBuider
+      x = document.getElementById(el.id.replace(/_value_1$/, "_value_0"));
+      z = document.getElementById(el.id.replace(/_value_1$/, "_operator"));
     }
 
-    if (ew.hasValue(x) && $__default["default"](z).val() == "BETWEEN" && !ew.hasValue(el)) {
+    if (ew.hasValue(x) && $__default.default(z).val().toUpperCase() == "BETWEEN" && !ew.hasValue(el)) {
       return {
         between: ew.language.phrase("EnterValue2")
       };
@@ -347,7 +352,7 @@
    */
 
   function passwordStrength(el) {
-    let $el = $__default["default"](el);
+    let $el = $__default.default(el);
 
     if (!ew.isMaskedPassword(el) && $el.hasClass("ew-password-strength") && !$el.data("validated")) {
       return {
@@ -406,7 +411,7 @@
 
       if (!ew.checkEmails(value, cnt)) {
         return {
-          email: err
+          emails: err
         };
       }
 
@@ -458,7 +463,7 @@
 
     if (!ew.checkNumber(value)) {
       return {
-        time: ew.language.phrase("IncorrectFloat")
+        float: ew.language.phrase("IncorrectFloat")
       };
     }
 
@@ -608,11 +613,15 @@
   }
   /**
     * Custom validator
-    * @param {*} fn Function(value, ...args)
-    * @param  {...any} args Additional arguments for the function
+    * @param {Function} fn Function(value, ...args)
+    * @param {...any} args Additional arguments for the function
     */
 
-  function custom(fn, ...args) {
+  function custom(fn) {
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
     return function (el) {
       if (typeof fn == "function") {
         let value = ew.getValue(el);
@@ -639,7 +648,6 @@
   }
   /**
    * reCaptcha validator
-   * @param {number} id reCaptcha ID
    */
 
   function recaptcha(el) {
@@ -653,35 +661,163 @@
 
     return false;
   }
+  /**
+   * Min date/time validator
+   * @param {Function|HTMLElement|DateTime|Date} min Min date
+   */
+
+  function minDate(min) {
+    return function (el) {
+      let value = ew.getValue(el),
+          format = el.dataset.formatPattern,
+          minDateTime;
+      min = typeof min == "function" ? min() : min;
+
+      if (min instanceof HTMLElement) {
+        let minValue = min.value,
+            minFormat = min.dataset.formatPattern;
+        if (min.value && min.dataset.formatPattern) minDateTime = ew.parseDate(minValue, minFormat);
+      } else if (min instanceof Date) {
+        minDateTime = DateTime$1.fromJSDate(min, {
+          zone: "utc"
+        });
+      } else if (min instanceof DateTime$1) {
+        minDateTime = min;
+      }
+
+      if (value && format && minDateTime) {
+        let dateTime = ew.parseDate(value, format);
+        if (dateTime < minDateTime) return {
+          minDate: ew.language.phrase("IncorrectMinDate").replace("%s", ew.formatDateTime(minDateTime, ew.DATE_FORMAT + " " + ew.TIME_FORMAT))
+        };
+      }
+
+      return false;
+    };
+  }
+  /**
+   * Max date/time validator
+   * @param {Function|HTMLElement|DateTime|Date} max Max date
+   */
+
+  function maxDate(max) {
+    return function (el) {
+      let value = ew.getValue(el),
+          format = el.dataset.formatPattern,
+          maxDateTime;
+      max = typeof max == "function" ? max() : max;
+
+      if (max instanceof HTMLElement) {
+        let maxValue = max.value,
+            maxFormat = max.dataset.formatPattern;
+        if (max.value && max.dataset.formatPattern) maxDateTime = ew.parseDate(maxValue, maxFormat);
+      } else if (max instanceof Date) {
+        maxDateTime = DateTime$1.fromJSDate(max, {
+          zone: "utc"
+        });
+      } else if (max instanceof DateTime$1) {
+        maxDateTime = max;
+      }
+
+      if (value && format && maxDateTime) {
+        let dateTime = ew.parseDate(value, format);
+        if (dateTime > maxDateTime) return {
+          maxDate: ew.language.phrase("IncorrectMaxDate").replace("%s", ew.formatDateTime(maxDateTime, ew.DATE_FORMAT + " " + ew.TIME_FORMAT))
+        };
+      }
+
+      return false;
+    };
+  }
+  /**
+   * Min validator
+   * @param {Function|HTMLElement|String|Number} min Min value
+   */
+
+  function min(min) {
+    return function (el) {
+      let value = ew.parseNumber(ew.getValue(el)),
+          minValue;
+      min = typeof min == "function" ? min() : min;
+
+      if (min instanceof HTMLElement) {
+        minValue = ew.parseNumber(ew.getValue(min));
+      } else if (typeof min == "string") {
+        minValue = ew.parseNumber(min);
+      } else if (typeof min == "number") {
+        minValue = min;
+      }
+
+      if (typeof value == "number" && typeof minValue == "number") {
+        if (value < minValue) return {
+          min: ew.language.phrase("IncorrectMin").replace("%s", minValue)
+        };
+      }
+
+      return false;
+    };
+  }
+  /**
+   * Max validator
+   * @param {Function|HTMLElement|String|Number} max Max value
+   */
+
+  function max(max) {
+    return function (el) {
+      let value = ew.parseNumber(ew.getValue(el)),
+          maxValue;
+      max = typeof max == "function" ? max() : max;
+
+      if (max instanceof HTMLElement) {
+        maxValue = ew.parseNumber(ew.getValue(max));
+      } else if (typeof max == "string") {
+        maxValue = ew.parseNumber(max);
+      } else if (typeof max == "number") {
+        maxValue = max;
+      }
+
+      if (typeof value == "number" && typeof maxValue == "number") {
+        if (value > maxValue) return {
+          max: ew.language.phrase("IncorrectMax").replace("%s", maxValue)
+        };
+      }
+
+      return false;
+    };
+  }
 
   var Validators = {
     __proto__: null,
-    userLevelId: userLevelId,
-    userLevelName: userLevelName,
-    required: required,
-    fileRequired: fileRequired,
-    mismatchPassword: mismatchPassword,
-    between: between,
-    passwordStrength: passwordStrength,
-    username: username,
-    password: password,
-    email: email,
-    emails: emails,
-    datetime: datetime,
-    time: time,
-    float: float,
-    range: range,
-    integer: integer,
-    phone: phone,
-    zip: zip,
-    creditCard: creditCard,
-    ssn: ssn,
-    guid: guid,
-    regex: regex,
-    url: url,
-    custom: custom,
-    captcha: captcha,
-    recaptcha: recaptcha
+    userLevelId,
+    userLevelName,
+    required,
+    fileRequired,
+    mismatchPassword,
+    between,
+    passwordStrength,
+    username,
+    password,
+    email,
+    emails,
+    datetime,
+    time,
+    float,
+    range,
+    integer,
+    phone,
+    zip,
+    creditCard,
+    ssn,
+    guid,
+    regex,
+    url,
+    custom,
+    captcha,
+    recaptcha,
+    minDate,
+    maxDate,
+    min,
+    max
   };
 
   function _defineProperties(target, props) {
@@ -697,6 +833,9 @@
   function _createClass(Constructor, protoProps, staticProps) {
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
     return Constructor;
   }
 
@@ -745,7 +884,7 @@
    */
   // Global batch settings
 
-  $__default["default"].batchSettings = {
+  $__default.default.batchSettings = {
     type: 'POST',
     contentType: 'application/json',
     processData: false,
@@ -754,12 +893,12 @@
     parse: data => data
   }; // Setup method
 
-  $__default["default"].batchSetup = function (options) {
-    return $__default["default"].extend($__default["default"].batchSettings, options);
+  $__default.default.batchSetup = function (options) {
+    return $__default.default.extend($__default.default.batchSettings, options);
   }; // $.batch class
   // -------------
 
-  var Batch = $__default["default"].batch = function (func, options) {
+  var Batch = $__default.default.batch = function (func, options) {
     // Always instantiate a Batch class even if called without "new"
     if (!(this instanceof Batch)) {
       return new Batch(func, options);
@@ -770,9 +909,9 @@
       func = undefined;
     } // Default options
 
-    this.options = $__default["default"].extend({}, $__default["default"].batchSettings, options); // Find a parent batch object, if we're nested
+    this.options = $__default.default.extend({}, $__default.default.batchSettings, options); // Find a parent batch object, if we're nested
 
-    this.parent = $__default["default"].ajaxSetup()._batch; // Requests storage
+    this.parent = $__default.default.ajaxSetup()._batch; // Requests storage
 
     this.requests = []; // Add any requests
 
@@ -783,13 +922,13 @@
     return this;
   }; // Our methods
 
-  $__default["default"].extend(Batch.prototype, {
+  $__default.default.extend(Batch.prototype, {
     // Method for adding requests to the batch
     add: function (func) {
       var _func$name;
 
       // Set global _batch variable in jQuery.ajaxSettings
-      $__default["default"].ajaxSetup({
+      $__default.default.ajaxSetup({
         _batch: this.parent || this
       }); // Call the user's function
 
@@ -797,11 +936,11 @@
         // Bound function
         func();
       } else {
-        func.call($__default["default"].ajaxSetup()._batch);
+        func.call($__default.default.ajaxSetup()._batch);
       } // Remove the global _batch variable when we're not nested
 
       if (!this.parent) {
-        $__default["default"].ajaxSetup({
+        $__default.default.ajaxSetup({
           _batch: null
         });
       }
@@ -831,7 +970,7 @@
       } // When we're handling the top-most batch, send the request
       else if (this.requests.length) {
         // Map an array of requests
-        var requests = $__default["default"].map(this.requests, function (request) {
+        var requests = $__default.default.map(this.requests, function (request) {
           return request.settings.data;
         }); // Override the success callback
 
@@ -851,13 +990,13 @@
           }
         }; // Build the Ajax request options
 
-        options = $__default["default"].extend({}, this.options, options); // Create hash of requests to pass as the data in the Ajax request
+        options = $__default.default.extend({}, this.options, options); // Create hash of requests to pass as the data in the Ajax request
 
         if (!options.data) {
-          options.data = $__default["default"].batchSettings.toJSON(requests);
+          options.data = $__default.default.batchSettings.toJSON(requests);
         } // Call the request
 
-        return $__default["default"].ajax(options);
+        return $__default.default.ajax(options);
       }
     },
     // Private method to add a request to the batch requests array
@@ -873,16 +1012,16 @@
 
       var instance = this; // Pass the response off to the user to parse out the responses
 
-      var responses = $__default["default"].batchSettings.parse(data);
+      var responses = $__default.default.batchSettings.parse(data);
 
       if (responses != null && (_responses$error = responses.error) != null && _responses$error.description) {
         var _responses$error2;
 
-        ew__default["default"].alert(responses == null ? void 0 : (_responses$error2 = responses.error) == null ? void 0 : _responses$error2.description);
+        ew__default.default.alert(responses == null ? void 0 : (_responses$error2 = responses.error) == null ? void 0 : _responses$error2.description);
         return;
       } // Loop through the responses
 
-      $__default["default"].each(responses, function (i, response) {
+      $__default.default.each(responses, function (i, response) {
         var _request$settings$com;
 
         // Only work with batch requests that we have stored
@@ -909,9 +1048,9 @@
   // a $.batch() function and add them to the batch requests array for
   // that batch instance
 
-  var $ajax = $__default["default"].ajax;
+  var $ajax = $__default.default.ajax;
 
-  $__default["default"].ajax = function (url, options) {
+  $__default.default.ajax = function (url, options) {
     // Shift arguments when options are passed as first argument
     if (typeof url === 'object') {
       options = url;
@@ -945,14 +1084,14 @@
   };
 
   function FormBase(id, pageId) {
-    var self = this,
-        $self = $__default["default"](self);
+    let self = this,
+        $self = $__default.default(self);
     this._initiated = false;
     this.id = id; // Same ID as the form
 
     this.element = document.getElementById(id); // HTML form or div
 
-    this.$element = $__default["default"](this.element); // jQuery object of the form or div
+    this.$element = $__default.default(this.element); // jQuery object of the form or div
 
     this.pageId = pageId;
     this.htmlForm = null; // HTML form element
@@ -972,35 +1111,34 @@
 
     this.formKeyCountName = ""; // For list/grid pages
 
-    this.submitReturnsPromise = false; // Submit form and returns Promise
-    // Disable form
+    this.submitWithFetch = false; // Submit form with Fetch API and returns Promise
+
+    this.enableOnInit = false; // Disable form during init
+
+    this.filterList = null; // Disable form
 
     this.disableForm = function () {
-      var form = this.getForm();
-      $__default["default"](form).find(":submit:not(.dropdown-toggle)").prop("disabled", true).addClass("disabled");
-      this.trigger("disabled");
-    }; // Disable form
-
-    this.disableForm = function () {
+      document.body.style.cursor = "wait";
       let form = this.getForm();
-      $__default["default"](form.elements).filter(":submit:not(.dropdown-toggle), .ew-submit").prop("disabled", true).addClass("disabled");
+      $__default.default(form.elements).filter(":submit:not(.dropdown-toggle), .ew-submit").prop("disabled", true).addClass("disabled");
       this.trigger("disabled");
     }; // Enable form
 
     this.enableForm = function () {
       let form = this.getForm(),
-          $elements = $__default["default"](form.elements);
+          $elements = $__default.default(form.elements);
       $elements.filter(".ew-disabled-element").removeClass("ew-disabled-element").prop("disabled", false);
       $elements.filter(".ew-enabled-element").removeClass("ew-enabled-element").prop("disabled", true);
       $elements.filter(":submit:not(.dropdown-toggle), .ew-submit").not(".ew-disabled") // Exclude submit buttons with .ew-disabled (disabled purposely)
       .prop("disabled", false).removeClass("disabled");
       this.trigger("enabled");
+      document.body.style.cursor = "default";
     }; // Append hidden element with form name
 
     this.appendHidden = function (el) {
       var form = this.getForm(),
-          $form = $__default["default"](form),
-          $dp = $__default["default"](el).closest(".ew-form"),
+          $form = $__default.default(form),
+          $dp = $__default.default(el).closest(".ew-form"),
           name = $dp.attr("id") + "$" + el.name;
       if ($form.find("input:hidden[name='" + name + "']")[0]) // Already appended
         return;
@@ -1008,21 +1146,23 @@
 
       if (ar.length) {
         ar.forEach(function (o, i) {
-          $__default["default"]('<input type="hidden" name="' + name + '">').val(o.value).appendTo($form);
+          $__default.default('<input type="hidden" name="' + name + '">').val(o.value).appendTo($form);
         });
       } else {
-        $__default["default"]('<input type="hidden" name="' + name + '">').val("").appendTo($form);
+        $__default.default('<input type="hidden" name="' + name + '">').val("").appendTo($form);
       }
     }; // Can submit
 
     this.canSubmit = async function (e) {
+      var _await$this$validate, _this$validate;
+
       var form = this.getForm(),
-          $form = $__default["default"](form);
+          $form = $__default.default(form);
       this.disableForm();
       this.updateTextArea();
 
-      if (!this.validate || this.validate() && !$form.find(".is-invalid")[0]) {
-        $form.find("input[name^=sv_], input[name^=p_], .ew-template input, .ew-custom-option") // Do not submit these values
+      if (((_await$this$validate = await ((_this$validate = this.validate) == null ? void 0 : _this$validate.call(this, e))) != null ? _await$this$validate : true) && !$form.find(".is-invalid")[0]) {
+        $form.find("input[name^=sv_], input[name^=p_], [name*=_query_builder_rule_], .ew-template input, .ew-custom-option") // Do not submit these values
         .prop("disabled", true).addClass("ew-disabled-element");
         $form.find("[data-readonly=1][disabled]").prop("disabled", false).addClass("ew-enabled-element"); // Submit readonly values
 
@@ -1033,7 +1173,7 @@
         if ($dps.length > 1) {
           // Multiple Master/Detail, check element names
           $dps.each(function (i, dp) {
-            $__default["default"](dp).find(":input").each(function (j, el) {
+            $__default.default(dp).find(":input").each(function (j, el) {
               if (/^(fn_)?(x|o)\d*_/.test(el.name)) {
                 var $els = $dps.not(dp).find(":input[name='" + el.name + "']");
 
@@ -1054,13 +1194,13 @@
           form: form,
           result: true
         },
-            evt = $__default["default"].Event("beforesubmit", {
+            evt = $__default.default.Event("beforesubmit", {
           originalEvent: e
         });
         $form.trigger(evt, [args]);
         let result = await args.result; // Support Promise<boolean|Object>
 
-        if (!evt.isDefaultPrevented() && (result === true || $__default["default"].isObject(result) && result.value)) // Support Swal.fire()
+        if (!evt.isDefaultPrevented() && (result === true || $__default.default.isObject(result) && result.value)) // Support Swal.fire()
           return true;
       } else {
         this.enableForm();
@@ -1074,13 +1214,17 @@
 
       let form = this.getForm(),
           formAction = e == null ? void 0 : (_e$originalEvent = e.originalEvent) == null ? void 0 : (_e$originalEvent$subm = _e$originalEvent.submitter) == null ? void 0 : _e$originalEvent$subm.formAction;
-      if (formAction) form.setAttribute("action", formAction);
+
+      if (formAction) {
+        formAction = ew.parseUrl(formAction).pathname;
+        form.setAttribute("action", formAction);
+      }
 
       if (await this.canSubmit(e)) {
-        if (this.submitReturnsPromise) {
-          let url = form.getAttribute("action").split("#")[0].split("?")[0],
+        if (this.submitWithFetch) {
+          let url = form.getAttribute("action"),
               method = form.method.toUpperCase(),
-              body = $__default["default"](form).serialize();
+              body = $__default.default(form).serialize();
           return ew.fetch(url, {
             method,
             body
@@ -1094,16 +1238,28 @@
     }; // Get dynamic selection list by element name or id
 
     this.getList = function (name) {
+      var _this$getElement, _this$getElement$data;
+
+      if ($__default.default.isObject(name)) {
+        // Object
+        let obj = name;
+        name = obj.name || obj.id;
+        if (name.includes("query_builder_rule")) name = obj.dataset.field;
+      }
+
       name = name.replace(/^(sv_)?[xy](\d*|\$rowindex\$)_|\[\]$/g, ""); // Remove element name prefix/suffix
 
-      return this.lists[name];
+      if (this.lists[name]) return this.lists[name];
+      let field = (_this$getElement = this.getElement(name)) == null ? void 0 : (_this$getElement$data = _this$getElement.dataset.field) == null ? void 0 : _this$getElement$data.replace(/^x_|\[\]$/g, ""); // Remove element name prefix/suffix
+
+      return field ? this.lists[field] : {};
     }; // Compile templates
 
     this.compileTemplates = function () {
       let lists = Object.values(this.lists);
 
       for (let list of lists) {
-        if (list.template && $__default["default"].isString(list.template)) list.template = $__default["default"].templates(list.template);
+        if (list.template && $__default.default.isString(list.template)) list.template = $__default.default.templates(list.template);
       }
     }; // Get the HTML form element
 
@@ -1128,20 +1284,58 @@
     }; // Get form element(s) as single element or array of radio/checkbox
 
     this.getElements = function (name) {
-      var selector = "[name='" + name + "']";
-      selector = "input" + selector + ",selection-list" + selector + ",select" + selector + ",textarea" + selector + ",button" + selector;
-      var $els = this.$element.find(selector);
-      if ($els.length == 0) return null;
-      if ($els.length == 1 && $els.is("[type=checkbox]")) // Single checkbox (boolean field)
-        return $els[0];
-      if ($els.length == 1 && $els.is(":not([type=checkbox]):not([type=radio])")) return $els[0];
-      if ($els.length == 2 && $els.eq(0).is("selection-list") && $els.eq(1).is("input[type=hidden]")) // Polyfill for the ElementInternals
-        return $els[0];
-      return $els.get();
+      return ew.getElements(name, this.$element);
+    }; // Fix ID
+
+    this.fixId = function (id, multiple, rowindex) {
+      let t = "",
+          ar = id.split(" ");
+
+      if (ar.length > 1) {
+        t = ar[0];
+        rowindex = "";
+        id = ar[1];
+      }
+
+      let prefix = $__default.default.isNumber(rowindex) ? "x" + rowindex + "_" : "x_"; // Add row index
+
+      id = id.startsWith("x_") ? id.replace(/^x_/, prefix) // Field element name
+      : prefix + id; // Field var
+
+      if (multiple && !id.endsWith("[]")) // Add [] if select-multiple
+        id += "[]";
+      return t ? t + " " + id : id;
+    };
+    /**
+     * Update a selection list
+     * @param {string|HTMLElement} id - ID (Field param) or HTML element
+     * @param {Object} list - List
+     * @param {(null|undefined|number)} rowindex - Row index
+     * @param {boolean} immediate - Send request immediately
+     * @returns
+     */
+
+    this.updateList = function (id, list, rowindex, immediate) {
+      var _list, _Object$entries$find;
+
+      (_list = list) != null ? _list : list = $__default.default.isString(id) // Find the list if not provided
+      ? (_Object$entries$find = Object.entries(this.lists).find(entry => entry[0] == id.replace(/^x_/, ""))) == null ? void 0 : _Object$entries$find[1] // String
+      : this.getList(id); // HTMLElement
+
+      if (list.template && $__default.default.isString(list.template)) // Compile template in case updateLists() called before init()
+        list.template = $__default.default.templates(list.template);
+      let form = this.getForm(),
+          parents = list.parentFields.slice().map(parent => this.fixId(parent, false, rowindex)),
+          // Clone and fix index
+      ajax = list.ajax && !list.lookupOptions.length; // Has link table and no lookup cache
+
+      id = $__default.default.isString(id) ? this.fixId(id, list.multiple, rowindex) : id;
+      return !ajax || immediate ? ew.updateOptions.call(this, id, parents, ajax, false) // Non-Ajax (lookup cache or user values) or update immediately
+      : [id, parents.map(parent => ew.getOptionValues(parent, form)), ajax, false]; // Ajax (async) => to be batch updated
     };
     /**
      * Update selection lists
-     * @param {(null|undefined|number)*} rowindex - Row index
+     * @param {(null|undefined|number)} rowindex - Row index
      * @param {bool} [immediate] - Send request immediately
      * @returns
      */
@@ -1151,62 +1345,23 @@
 
       if (rowindex === null) // rowindex == $rowindex$ == null
         return;
-      if (this.pageId == "grid" && !$__default["default"].isNumber(rowindex) && !$__default["default"].isUndefined(rowindex)) return;
-      var form = this.getForm(); // Set up $element and htmlForm
+      if (this.pageId == "grid" && !$__default.default.isNumber(rowindex) && !$__default.default.isUndefined(rowindex)) return;
+      let form = this.getForm(); // Set up $element and htmlForm
 
       if ((form == null ? void 0 : (_form$querySelector = form.querySelector("input#confirm")) == null ? void 0 : _form$querySelector.value) == "confirm") // Confirm page
         return;
-
-      var fixId = (id, multiple) => {
-        var t = "",
-            i = rowindex,
-            ar = id.split(" ");
-
-        if (ar.length > 1) {
-          t = ar[0];
-          i = "";
-          id = ar[1];
-        }
-
-        let prefix = $__default["default"].isNumber(i) ? "x" + i + "_" : "x_"; // Add row index
-
-        if (id.startsWith("x_")) // Field element name
-          id = id.replace(/^x_/, prefix);else // Field var
-          id = prefix + id;
-        if (multiple && !id.endsWith("[]")) // Add [] if select-multiple
-          id += "[]";
-        return t ? t + " " + id : id;
-      };
-
-      var selector = Object.entries(this.lists).map(([id, list]) => {
-        return "[name='" + fixId(id, list.multiple) + "']";
+      let selector = Object.entries(this.lists).map(_ref => {
+        let [id, list] = _ref;
+        return "[name='" + this.fixId(id, list.multiple, rowindex) + "']";
       }).join();
-
-      if (selector && form.querySelector(selector)) {
-        // Lists found
-        this.compileTemplates(); // For grid where updateList() called before init()
-
-        var requests = [];
-
-        for (let [id, list] of Object.entries(this.lists)) {
-          let parents = list.parentFields.slice().map(parent => fixId(parent)),
-              // Clone and fix index
-          ajax = list.ajax && !list.lookupOptions.length; // Has link table and no lookup cache
-
-          id = fixId(id, list.multiple);
-
-          if (ajax) {
-            // Ajax (async)
-            let pvalues = parents.map(parent => ew.getOptionValues(parent, form));
-            requests.push([id, pvalues, ajax, false]);
-          } else {
-            // Non-Ajax (lookup cache or user values)
-            ew.updateOptions.call(this, id, parents, false, false);
-          }
-        }
-
-        requests.forEach(request => this.batch.add(ew.updateOptions.bind(this, ...request)));
-      } // Update the Ajax lists
+      if (selector && form.querySelector(selector)) // List found
+        Object.entries(this.lists).map(_ref2 => {
+          let [id, list] = _ref2;
+          return this.updateList(id, list, rowindex);
+        }) // Update each list
+        .filter(result => Array.isArray(result)) // Get ajax requests for batch update
+        .forEach(request => this.batch.add(ew.updateOptions.bind(this, ...request))); // Batch update async requests
+      // Update the Ajax lists
 
       if (this.batch.requests.length) {
         if (rowindex === undefined || immediate) {
@@ -1225,13 +1380,13 @@
           if (this.batch.requests.length > 0) deferreds.push(this.batch.send({
             url: ew.getApiUrl(ew.API_LOOKUP_ACTION)
           }));
-          $__default["default"].when(...deferreds).then(() => $__default["default"](document).trigger("updatedone", [{
+          $__default.default.when(...deferreds).then(() => $__default.default(document).trigger("updatedone", [{
             source: self,
             target: form
           }])).fail(error => console.log(error)).always(() => this.batch.clear());
         }
       } else {
-        $__default["default"](document).trigger("updatedone", [{
+        $__default.default(document).trigger("updatedone", [{
           source: self,
           target: form
         }]);
@@ -1249,16 +1404,16 @@
 
     this.initEditors = function () {
       var form = this.getForm();
-      $__default["default"](form.elements).filter("textarea.editor").each(function (i, el) {
-        var ed = $__default["default"](el).data("editor");
+      $__default.default(form.elements).filter("textarea.editor").each(function (i, el) {
+        var ed = $__default.default(el).data("editor");
         if (ed && !ed.active && !ed.name.includes("$rowindex$")) ed.create();
       });
     }; // Update textareas
 
     this.updateTextArea = function (name) {
       var form = this.getForm();
-      $__default["default"](form.elements).filter("textarea.editor").each(function (i, el) {
-        var ed = $__default["default"](el).data("editor");
+      $__default.default(form.elements).filter("textarea.editor").each(function (i, el) {
+        var ed = $__default.default(el).data("editor");
         if (!ed || name && ed.name != name) return true; // Continue
 
         ed.save();
@@ -1268,8 +1423,8 @@
 
     this.destroyEditor = function (name) {
       var form = this.getForm();
-      $__default["default"](form.elements).filter("textarea.editor").each(function (i, el) {
-        var ed = $__default["default"](el).data("editor");
+      $__default.default(form.elements).filter("textarea.editor").each(function (i, el) {
+        var ed = $__default.default(el).data("editor");
         if (!ed || name && ed.name != name) return true; // Continue
 
         ed.destroy();
@@ -1283,25 +1438,25 @@
 
     this.initUpload = function () {
       var form = this.getForm();
-      $__default["default"](form.elements).filter("input:file:not([name*='$rowindex$'])").each(function (index) {
-        $__default["default"].later(ew.AJAX_DELAY * index, null, ew.upload, this); // Delay a little in case of large number of upload fields
+      $__default.default(form.elements).filter("input:file:not([name*='$rowindex$'])").each(function (index) {
+        $__default.default.later(ew.AJAX_DELAY * index, null, ew.upload, this); // Delay a little in case of large number of upload fields
       });
     }; // Set up filters
 
     this.setupFilters = function (e, filters) {
-      var id = this.id,
+      let id = this.id,
           data = this.filterList ? this.filterList.data : null,
-          $sf = $__default["default"](".ew-save-filter[data-form=" + id + "]").toggleClass("disabled", !data),
-          $df = $__default["default"](".ew-delete-filter[data-form=" + id + "]").toggleClass("disabled", !filters.length).toggleClass("dropdown-toggle", !!filters.length),
+          $sf = $__default.default(".ew-save-filter[data-form=" + id + "]").toggleClass("disabled", !data),
+          $df = $__default.default(".ew-delete-filter[data-form=" + id + "]").toggleClass("disabled", !filters.length).toggleClass("dropdown-toggle", !!filters.length),
           $delete = $df.parent("li").toggleClass("dropdown-submenu dropdown-hover", !!filters.length).toggleClass("disabled", !filters.length),
           $save = $sf.parent("li").toggleClass("disabled", !data);
 
-      var saveFilters = function (id, filters) {
-        if (ew.SEARCH_FILTER_OPTION == "Client") {
+      let saveFilters = function (id, filters) {
+        if (ew.CLIENT_SEARCH_FILTER) {
           localStorage.setItem(ew.PROJECT_NAME + "_" + id + "_filters", JSON.stringify(filters));
-        } else if (ew.SEARCH_FILTER_OPTION == "Server") {
-          var $body = $__default["default"]("body").css("cursor", "wait");
-          $__default["default"].ajax(ew.currentPage(), {
+        } else if (ew.SERVER_SEARCH_FILTER) {
+          document.body.style.cursor = "wait";
+          $__default.default.ajax(ew.currentPage(), {
             type: "POST",
             dataType: "json",
             data: {
@@ -1309,9 +1464,11 @@
               "filters": JSON.stringify(filters)
             }
           }).done(function (result) {
-            if (result[0] && result[0].success) self.filterList.filters = filters; // Save filters
+            var _result$;
+
+            if ((_result$ = result[0]) != null && _result$.success) self.filterList.filters = filters; // Save filters
           }).always(function () {
-            $body.css("cursor", "default");
+            document.body.style.cursor = "default";
           });
         }
       };
@@ -1334,44 +1491,30 @@
       $df.next("ul.dropdown-menu").remove();
 
       if (filters.length) {
-        var $submenu = $__default["default"]("<ul class='dropdown-menu'></ul>");
-
-        for (var i in filters) {
-          if (!Array.isArray(filters[i])) continue;
-          $__default["default"]('<li><a class="dropdown-item" data-index="' + i + '" data-ew-action="none">' + filters[i][0] + '</a></li>').on("click", function (e) {
+        let $submenu = $__default.default('<ul class="dropdown-menu"></ul>');
+        filters.forEach((filter, i, ar) => {
+          $__default.default('<li><a class="dropdown-item" data-index="' + i + '" data-ew-action="none">' + filter[0] + '</a></li>').on("click", function (e) {
             // Delete
-            var i = $__default["default"](this).find("a[data-index]").data("index");
-            ew.prompt(ew.language.phrase("DeleteFilterConfirm").replace("%s", filters[i][0]), result => {
+            let index = this.querySelector("a[data-index]").dataset.index;
+            ew.prompt(ew.language.phrase("DeleteFilterConfirm").replace("%s", filter[0]), result => {
               if (result) {
-                filters.splice(i, 1);
+                ar.splice(index, 1);
                 saveFilters(id, filters);
               }
             });
           }).appendTo($submenu);
-          $__default["default"]('<li><a class="dropdown-item ew-filter-list" data-index="' + i + '" data-ew-action="none">' + filters[i][0] + '</a></li>').insertBefore($save).on("click", function (e) {
-            var i = $__default["default"](this).find("a[data-index]").data("index");
-            $__default["default"]("<form>").attr({
-              method: "post",
-              action: ew.currentPage()
-            }).append($__default["default"]("<input type='hidden'>").attr({
-              name: "cmd",
-              value: "resetfilter"
-            }), $__default["default"]("<input type='hidden'>").attr({
-              name: ew.TOKEN_NAME_KEY,
-              value: ew.TOKEN_NAME
-            }), // PHP
-            $__default["default"]("<input type='hidden'>").attr({
-              name: ew.ANTIFORGERY_TOKEN_KEY,
-              value: ew.ANTIFORGERY_TOKEN
-            }), // PHP
-            $__default["default"]("<input type='hidden'>").attr({
-              name: "filter",
-              value: JSON.stringify(filters[i][1])
-            })).appendTo("body").trigger("submit");
+          $__default.default('<li><a class="dropdown-item ew-reset-filter-list" data-index="' + i + '" data-ew-action="none">' + filter[0] + '</a></li>').insertBefore($save).on("click", function (e) {
+            let body = {
+              cmd: "resetfilter",
+              filter: JSON.stringify(filter[1])
+            };
+            ew.refresh(ew.fetch(ew.setLayout(ew.currentPage(), false), {
+              method: "POST",
+              body
+            }));
           });
-        }
-
-        $__default["default"]("<li class='dropdown-divider'></li>").insertBefore($save);
+        });
+        $__default.default('<li class="dropdown-divider"></li>').insertBefore($save);
         $delete.append($submenu);
       }
     }; // Add event handler
@@ -1397,38 +1540,18 @@
 
       var form = this.getForm();
       if (!form) return;
-      var $form = $__default["default"](form); // Filters button
-
-      if (ew.SEARCH_FILTER_OPTION == "Client" || ew.SEARCH_FILTER_OPTION == "Server" && ew.IS_LOGGEDIN && !ew.IS_SYS_ADMIN && ew.CURRENT_USER_NAME != "") {
-        $__default["default"](".ew-filter-option .ew-btn-dropdown").on("show.bs.dropdown", function (e) {
-          var _self$filterList$filt, _self$filterList;
-
-          var filters = [];
-
-          if (ew.SEARCH_FILTER_OPTION == "Client") {
-            var item = localStorage.getItem(ew.PROJECT_NAME + "_" + self.id + "_filters");
-            if (item) filters = ew.parseJson(item) || [];
-          } else if (ew.SEARCH_FILTER_OPTION == "Server") filters = (_self$filterList$filt = (_self$filterList = self.filterList) == null ? void 0 : _self$filterList.filters) != null ? _self$filterList$filt : [];
-
-          var ar = $__default["default"].grep(filters, function (val) {
-            if (Array.isArray(val) && val.length == 2) return val;
-          });
-          self.setupFilters(e, ar);
-        }).removeClass("d-none").show();
-      } else {
-        $__default["default"](".ew-filter-option").addClass("d-none").hide();
-      } // Compile templates
+      var $form = $__default.default(form); // Compile templates
 
       this.compileTemplates(); // Search form
 
       if (/s(ea)?rch$/.test(this.id)) {
         // Search panel
-        if (this.initSearchPanel && !ew.hasFormData(form)) $__default["default"]("#" + this.id + "_search_panel").removeClass("show"); // Hide search operator column
+        if (this.initSearchPanel && !ew.hasFormData(form)) $__default.default("#" + this.id + "_search_panel").removeClass("show"); // Hide search operator column
 
-        if (!$__default["default"](".ew-table .ew-search-operator").text().trim()) $__default["default"](".ew-table .ew-search-operator").parent("td").hide(); // Search operators
+        if (!$__default.default(".ew-table .ew-search-operator").text().trim()) $__default.default(".ew-table .ew-search-operator").parent("td").hide(); // Search operators
 
         $form.find("select[id^=z_]").each(function () {
-          var $this = $__default["default"](this).trigger("change");
+          var $this = $__default.default(this).trigger("change");
           if ($this.val() != "BETWEEN") $form.find("#w_" + this.id.substring(2)).trigger("change");
         });
       } // Multi-page
@@ -1446,18 +1569,18 @@
         // Not Grid page
         // Detail pages
         this.$element.find(".ew-detail-pages .ew-nav a[data-bs-toggle=tab]").on("shown.bs.tab", function (e) {
-          var $tab = $__default["default"](e.target.getAttribute("href")),
+          var $tab = $__default.default(e.target.getAttribute("href")),
               $panel = $tab.find(".table-responsive.ew-grid-middle-panel"),
               $container = $tab.closest(".container-fluid");
           if ($panel.width() >= $container.width()) $panel.width($container.width() + "px");else $panel.width("auto");
         });
-        $form.on("submit", function (e) {
+        $form.off("submit.ew").on("submit.ew", function (e) {
           // Bind submit event
           let args = {
             form: form,
             result: self.submit(e)
           },
-              evt = $__default["default"].Event("aftersubmit", {
+              evt = $__default.default.Event("aftersubmit", {
             originalEvent: e
           });
           self.trigger(evt, [args]);
@@ -1489,7 +1612,9 @@
 
       this._initiated = true; // Store form object as data
 
-      this.$element.data("form", this); // Trigger listeners
+      this.$element.data("form", this); // Enable form
+
+      if (this.enableOnInit || Array.from(form.elements).find(el => el.matches("button.disabled.enable-on-init"))) this.enableForm(); // Trigger listeners
 
       this.trigger("initiated");
     }; // Add to the global forms object
@@ -1844,13 +1969,16 @@
     /**
      * Get HTML elements for a field
      * @param {string} name - Field name
-     * @param {number} rowIndex [undefined] - Row index
+     * @param {number} rowIndex - Row index
      * @returns HTMLElement|HTMLElement[]|null
      */
     _proto.getFieldElements = function getFieldElements(name, rowIndex) {
-      return this.getElements("x" + (rowIndex != null ? rowIndex : "") + "_" + name) || // Set element
-      this.getElements("x" + (rowIndex != null ? rowIndex : "") + "_" + name + "[]") || // Field with []
-      this.getElements(name); // Field by name directly (e.g. email form)
+      var _rowIndex;
+
+      (_rowIndex = rowIndex) != null ? _rowIndex : rowIndex = this.getCurrentRowIndex();
+      return this.getElements("x" + rowIndex + "_" + name) || // By name with prefix
+      this.getElements("x" + rowIndex + "_" + name + "[]") || // By name with prefix and []
+      this.getElements(name); // By name directly (e.g. email form)
     }
     /**
      * Set focus to a HTML element
@@ -1861,7 +1989,7 @@
     _proto.setFocus = function setFocus(el) {
       let delay = this.makeVisible(el) ? Form.focusDelay : 0;
 
-      if (el != document.activeElement && el.focus) {
+      if (el && el != document.activeElement && el.focus) {
         let preventScroll = !el.closest(".modal-body") && Form.autoFocusPreventScroll && this.autoFocusPreventScroll;
         setTimeout(() => {
           el.focus({
@@ -1939,7 +2067,7 @@
       }
 
       for (let [fldvar, field] of Object.entries(this.fields)) {
-        if (fieldName && fieldName !== fldvar) continue;
+        if (typeof fieldName == "string" && fieldName !== fldvar) continue;
         field.element = null; // Reset field element first so that it will get the first element
 
         this.getFocusable(field);
@@ -1950,9 +2078,11 @@
         }
       }
 
-      if (this.id.endsWith("srch") && this.element.psearch && this.element.psearch != document.activeElement) {
+      let input = this.element[ew.TABLE_BASIC_SEARCH]; // Quick Search input
+
+      if (this.id.endsWith("srch") && input && input != document.activeElement) {
         // Extended Search
-        this.element.psearch.focus({
+        input.focus({
           preventScroll: Form.autoFocusPreventScroll && this.autoFocusPreventScroll
         }); // Focus the Quick Search input
 
@@ -2000,9 +2130,9 @@
     ;
 
     _proto.validateFields = function validateFields(rowIndex) {
-      var _rowIndex;
+      var _rowIndex2;
 
-      (_rowIndex = rowIndex) != null ? _rowIndex : rowIndex = "";
+      (_rowIndex2 = rowIndex) != null ? _rowIndex2 : rowIndex = this.getCurrentRowIndex();
       if (rowIndex < 2) // Regular pages (""), Inline-Add ("0") or first row ("1")
         this.value = null; // Reset
 
@@ -2035,11 +2165,19 @@
 
       this.focus();
       return result;
-    } // Validate
+    }
+    /**
+     * Key count (number|NaN)
+     */
     ;
 
-    _proto.validate = function validate() {
-      var _form$querySelector, _form$querySelector2, _form$querySelector3;
+    /**
+     * Validate
+     * @param {Event} e - Event
+     * @returns {bool}
+     */
+    _proto.validate = async function validate(e) {
+      var _form$querySelector, _form$querySelector2, _ref, _e$currentTarget;
 
       if (!this.validateRequired) return true; // Ignore validation
 
@@ -2052,19 +2190,19 @@
       }
 
       let addcnt = 0,
-          action = (_form$querySelector2 = form.querySelector("#action")) == null ? void 0 : _form$querySelector2.value,
-          keycnt = this.formKeyCountName ? (_form$querySelector3 = form.querySelector("#" + this.formKeyCountName)) == null ? void 0 : _form$querySelector3.value : null,
-          // Get key_count
-      detailpages = form.querySelectorAll("input[name=detailpage]"),
-          gridinsert = action == "gridinsert" || action == "insert" && Array.from(detailpages).some(dp => dp.value == this.id),
-          // Master/Detail-Add or Grid-Add
-      insert = action == "insert" && !gridinsert,
+          inlineAdd = form.querySelector(".ew-inline-insert"),
           // Inline-Add
-      startcnt = insert ? 0 : 1,
-          rowcnt = insert ? 0 : parseInt(keycnt, 10) || 1;
+      action = ((_form$querySelector2 = form.querySelector("#action")) == null ? void 0 : _form$querySelector2.value) || ((_ref = (_e$currentTarget = e == null ? void 0 : e.currentTarget) != null ? _e$currentTarget : inlineAdd) == null ? void 0 : _ref.dataset.action),
+          keycnt = inlineAdd ? 0 : this.keyCount,
+          gridinsert = action == "gridinsert" || ["insert", "confirm"].includes(action) && keycnt,
+          // Grid-Add or Master/Detail-Add
+      startcnt = inlineAdd ? 0 : 1,
+          rowcnt = inlineAdd ? 0 : keycnt || 1;
 
       for (let i = startcnt; i <= rowcnt; i++) {
-        let rowIndex = keycnt ? String(i) : "";
+        var _await$this$customVal, _this$customValidate;
+
+        let rowIndex = keycnt >= 0 ? String(i) : "";
         form.dataset.rowindex = rowIndex;
 
         if (["list", "grid"].includes(this.pageId)) {
@@ -2073,26 +2211,48 @@
 
         if (!this.validateFields(rowIndex)) return false; // Call customValidate event
 
-        if (this.customValidate && !this.customValidate(form)) {
+        if (!((_await$this$customVal = await ((_this$customValidate = this.customValidate) == null ? void 0 : _this$customValidate.call(this, form))) != null ? _await$this$customVal : true)) {
           this.focus();
           return false;
         }
       }
 
+      delete form.dataset.rowindex; // Reset
+
       if (this.pageId == "list" && gridinsert && addcnt == 0) {
         // No row added
-        ew.alert(ew.language.phrase("NoAddRecord"));
+        ew.alert({
+          html: ew.language.phrase("NoAddRecord"),
+          returnFocus: false
+        }); // Do not return focus
+
+        this.tryFocus(true);
         return false;
       } // Process detail forms
 
       if (["add", "edit"].includes(this.pageId)) {
-        detailpages.forEach(dp => {
+        let detailpages = form.querySelectorAll("input[name=detailpage]");
+
+        for (let dp of detailpages) {
+          var _await$frm$validate;
+
           let frm = ew.forms.get(dp.value);
-          if (frm && !frm.validate()) return false;
-        });
+          if (!((_await$frm$validate = await (frm == null ? void 0 : frm.validate == null ? void 0 : frm.validate(e))) != null ? _await$frm$validate : true)) return false;
+        }
       }
 
       return true;
+    }
+    /**
+     * Get current row index (during validation)
+     * @returns {string} Row index
+     */
+    ;
+
+    _proto.getCurrentRowIndex = function getCurrentRowIndex() {
+      var _this$getForm$dataset;
+
+      return (_this$getForm$dataset = this.getForm().dataset.rowindex) != null ? _this$getForm$dataset : "";
     }
     /**
      * Get field values of the specified row
@@ -2101,9 +2261,9 @@
     ;
 
     _proto.getValue = function getValue(rowIndex) {
-      var _rowIndex2;
+      var _rowIndex3;
 
-      rowIndex = (_rowIndex2 = rowIndex) != null ? _rowIndex2 : "";
+      (_rowIndex3 = rowIndex) != null ? _rowIndex3 : rowIndex = this.getCurrentRowIndex();
       let value = {};
 
       for (let field of Object.values(this.fields)) {
@@ -2116,6 +2276,46 @@
       return value;
     }
     /**
+     * Get a field value of the specified row
+     * @param {string} fldvar - Field variable name
+     * @param {number} rowIndex - Row index
+     */
+    ;
+
+    _proto.getFieldValue = function getFieldValue(fldvar, rowIndex) {
+      let field = this.getField(fldvar);
+
+      if (field) {
+        var _rowIndex4, _field$element3;
+
+        (_rowIndex4 = rowIndex) != null ? _rowIndex4 : rowIndex = this.getCurrentRowIndex();
+        (_field$element3 = field.element) != null ? _field$element3 : field.element = this.getFieldElements(field.name, rowIndex);
+        return field.value;
+      }
+
+      return null;
+    }
+    /**
+     * Get field element of the specified row
+     * @param {string} fldvar - Field variable name
+     * @param {number} rowIndex - Row index
+     */
+    ;
+
+    _proto.getFieldElement = function getFieldElement(fldvar, rowIndex) {
+      let field = this.getField(fldvar);
+
+      if (field) {
+        var _rowIndex5, _field$element4;
+
+        (_rowIndex5 = rowIndex) != null ? _rowIndex5 : rowIndex = this.getCurrentRowIndex();
+        (_field$element4 = field.element) != null ? _field$element4 : field.element = this.getFieldElements(field.name, rowIndex);
+        return field.element;
+      }
+
+      return null;
+    }
+    /**
      * Set invalid fields of the specified row
      * @param {number} rowIndex - Row index. If undefined, set for the whole form.
      */
@@ -2125,19 +2325,20 @@
       let form = this.getForm(); // Get HTML form
 
       if (typeof rowIndex === "undefined" && this.formKeyCountName) {
-        let k = form.querySelector("#" + this.formKeyCountName),
-            // Get key_count
-        rowcnt = parseInt(k == null ? void 0 : k.value, 10) || 1,
-            startcnt = rowcnt === 0 ? 0 : 1; // Check rowcnt === 0 => Inline-Add
+        let inlineAdd = form.querySelector(".ew-inline-insert"),
+            // Inline-Add
+        keycnt = inlineAdd ? 0 : this.keyCount,
+            startcnt = inlineAdd ? 0 : 1,
+            rowcnt = inlineAdd ? 0 : keycnt || 1;
 
         for (let i = startcnt; i <= rowcnt; i++) {
-          let rowIndex = k ? String(i) : "";
+          let rowIndex = keycnt >= 0 ? String(i) : "";
           this.setInvalid(rowIndex);
         }
       } else {
-        var _rowIndex3;
+        var _rowIndex6;
 
-        rowIndex = (_rowIndex3 = rowIndex) != null ? _rowIndex3 : "";
+        (_rowIndex6 = rowIndex) != null ? _rowIndex6 : rowIndex = "";
 
         for (let field of Object.values(this.fields)) {
           field.element = this.getFieldElements(field.name, rowIndex); // Always get element in case Grid-Add/Edit
@@ -2176,6 +2377,15 @@
       get: function () {
         return this._error || Object.values(this.fields).some(field => field.invalid);
       }
+    }, {
+      key: "keyCount",
+      get: function () {
+        var _this$getForm$querySe;
+
+        let keycnt = this.formKeyCountName ? (_this$getForm$querySe = this.getForm().querySelector("#" + this.formKeyCountName)) == null ? void 0 : _this$getForm$querySe.value : undefined; // Get key_count
+
+        return parseInt(keycnt, 10);
+      }
     }]);
 
     return Form;
@@ -2186,6 +2396,183 @@
   _defineProperty(Form, "autoFocusPreventScroll", true);
 
   _defineProperty(Form, "focusDelay", 200);
+
+  /**
+   * Class FormBuilder
+   */
+  let FormBuilder = /*#__PURE__*/function () {
+    function FormBuilder() {
+      _defineProperty(this, "lists", {});
+
+      _defineProperty(this, "fields", []);
+
+      _defineProperty(this, "validateRequired", false);
+
+      _defineProperty(this, "multiPage", false);
+
+      _defineProperty(this, "submitWithFetch", false);
+
+      _defineProperty(this, "initSearchPanel", false);
+
+      _defineProperty(this, "enableOnInit", false);
+    }
+
+    var _proto = FormBuilder.prototype;
+
+    // Set ID
+    _proto.setId = function setId(value) {
+      this.id = value;
+      return this;
+    } // Set page ID
+    ;
+
+    _proto.setPageId = function setPageId(value) {
+      this.pageId = value;
+      return this;
+    } // Set lists
+    ;
+
+    _proto.setLists = function setLists(value) {
+      if (value && typeof value == "object" && !Array.isArray(value)) this.lists = value;
+      return this;
+    } // Set lists for query builder (Dynamic Selection Lists and AutoFill not supported since there can be multiple inputs for the same field)
+    ;
+
+    _proto.setQueryBuilderLists = function setQueryBuilderLists(value) {
+      if (value && typeof value == "object" && !Array.isArray(value)) {
+        for (let [id, list] of Object.entries(value)) value[id] = { ...list,
+          ...{
+            autoFillTargetFields: [],
+            childFields: [],
+            filterFieldVars: [],
+            filterFields: [],
+            parentFields: []
+          }
+        };
+
+        this.lists = value;
+      }
+
+      return this;
+    } // Add list
+    ;
+
+    _proto.addList = function addList(name, value) {
+      this.lists[name] = value;
+      return this;
+    } // Set fields
+    ;
+
+    _proto.setFields = function setFields(value) {
+      if (Array.isArray(value)) this.fields = value;
+      return this;
+    } // Add field
+    ;
+
+    _proto.addField = function addField(fldvar, validators, invalid) {
+      if (!this.fields.find(field => field[0] == fldvar)) this.fields.push([fldvar, validators, invalid]);
+      return this;
+    } // Add fields
+    ;
+
+    _proto.addFields = function addFields(value) {
+      if (Array.isArray(value)) this.fields = [...this.fields, ...value];
+      return this;
+    } // Set validate
+    ;
+
+    _proto.setValidate = function setValidate(value) {
+      this.validate = value;
+      return this;
+    } // Set custom validate
+    ;
+
+    _proto.setCustomValidate = function setCustomValidate(value) {
+      this.customValidate = value;
+      return this;
+    } // Set validate required
+    ;
+
+    _proto.setValidateRequired = function setValidateRequired(value) {
+      this.validateRequired = value;
+      return this;
+    } // Set submit
+    ;
+
+    _proto.setSubmit = function setSubmit(value) {
+      this.submit = value;
+      return this;
+    } // Set form KeyCount name
+    ;
+
+    _proto.setFormKeyCountName = function setFormKeyCountName(value) {
+      this.formKeyCountName = value;
+      return this;
+    } // Set empty row
+    ;
+
+    _proto.setEmptyRow = function setEmptyRow(value) {
+      this.emptyRow = value;
+      return this;
+    } // Set multi page
+    ;
+
+    _proto.setMultiPage = function setMultiPage(value) {
+      this.multiPage = value;
+      return this;
+    } // Set submit with Fetch API
+    ;
+
+    _proto.setSubmitWithFetch = function setSubmitWithFetch(value) {
+      this.submitWithFetch = value;
+      return this;
+    } // Set filter list
+    ;
+
+    _proto.setFilterList = function setFilterList(value) {
+      this.filterList = value;
+      return this;
+    } // Set initSearchPanel
+    ;
+
+    _proto.setInitSearchPanel = function setInitSearchPanel(value) {
+      this.initSearchPanel = value;
+      return this;
+    } // Set enableOnInit
+    ;
+
+    _proto.setEnableOnInit = function setEnableOnInit(value) {
+      this.enableOnInit = value;
+      return this;
+    } // Build
+    ;
+
+    _proto.build = function build() {
+      let form = new ew.Form(this.id, this.pageId);
+      if (Array.isArray(this.fields)) form.addFields(this.fields);
+      if (typeof this.validate == 'function') form.validate = this.validate;
+      if (typeof this.customValidate == 'function') form.customValidate = this.customValidate;
+      if (typeof this.emptyRow == 'function') form.emptyRow = this.emptyRow;
+      if (typeof this.submit == 'function') form.submit = this.submit;
+      if (this.formKeyCountName) form.formKeyCountName = this.formKeyCountName;
+      if (this.multiPage) form.multiPage = new ew.MultiPage(this.id);
+      if (this.enableOnInit) form.enableOnInit = true;
+
+      if (this.submitWithFetch) {
+        form.submitWithFetch = true;
+        form.on("aftersubmit", (e, args) => ew.refresh(args == null ? void 0 : args.result));
+      }
+
+      if (this.filterList) form.filterList = this.filterList;
+      if (this.lists) form.lists = this.lists;
+      form.validateRequired = !!this.validateRequired;
+      form.initSearchPanel = !!this.initSearchPanel;
+      form.lists = this.lists;
+      return form;
+    };
+
+    return FormBuilder;
+  }();
 
   let AjaxLookup = /*#__PURE__*/function () {
     /**
@@ -2198,23 +2585,25 @@
      * @param {string} settings.action - Ajax action: "autosuggest" or "modal"
      */
     function AjaxLookup(settings) {
+      var _this$list$parentFiel, _this$list$parentFiel2;
+
       _defineProperty(this, "_isAutoSuggest", null);
 
       this.elementId = settings.id; // Id
 
       this.form = settings.form; // Form
 
-      if ($__default["default"].isString(this.form)) // Form is string => Form id
+      if ($__default.default.isString(this.form)) // Form is string => Form id
         this.form = ew.forms.get(this.form);
       this.element = this.form.getElement(this.elementId); // Actual HTML element
 
       this.formElement = this.form.getElement(); // HTML form or DIV
 
-      this.list = this.form.getList(this.elementId);
+      this.list = this.form.getList(this.element);
       let m = this.elementId.match(/^[xy](\d*|\$rowindex\$)_/),
           rowindex = m ? m[1] : "";
-      this.parentFields = this.list.parentFields.slice() // Clone
-      .map(pf => pf.split(" ").length == 1 ? pf.replace(/^x_/, "x" + rowindex + "_") : pf); // Parent field in the same table, add row index
+      this.parentFields = (_this$list$parentFiel = (_this$list$parentFiel2 = this.list.parentFields) == null ? void 0 : _this$list$parentFiel2.slice() // Clone
+      .map(pf => pf.split(" ").length == 1 ? pf.replace(/^x_/, "x" + rowindex + "_") : pf)) != null ? _this$list$parentFiel : []; // Parent field in the same table, add row index
 
       this.limit = settings.limit;
       this.debounce = settings.debounce;
@@ -2234,12 +2623,7 @@
      */
     _proto.formatResult = function formatResult(opt) {
       this.form.compileTemplates();
-
-      if (this.list.template && !this.isAutoSuggest) {
-        return this.list.template.render(opt, ew.jsRenderHelpers);
-      } else {
-        return ew.displayValue(opt, this.element) || opt[0];
-      }
+      return this.list.template && !this.isAutoSuggest ? this.list.template.render(opt, ew.jsRenderHelpers) : ew.displayValue(opt, this.element) || opt[0];
     }
     /**
      * Generate request
@@ -2256,14 +2640,7 @@
         language: ew.LANGUAGE_ID
       }, ew.getUserParams("#p_" + this.elementId, this.formElement));
       (_data$ajax = data.ajax) != null ? _data$ajax : data.ajax = this.action;
-
-      if (this.parentFields.length > 0) {
-        this.parentFields.forEach((pf, i) => {
-          let arp = ew.getOptionValues(pf, this.formElement);
-          data["v" + (i + 1)] = arp.join(ew.MULTIPLE_OPTION_SEPARATOR);
-        });
-      }
-
+      if (this.parentFields.length > 0) this.parentFields.forEach((pf, i) => data["v" + (i + 1)] = ew.getOptionValue(pf, this.formElement));
       return data;
     }
     /**
@@ -2276,7 +2653,7 @@
         q: query || "",
         n: this.limit,
         rnd: ew.random(),
-        start: $__default["default"].isNumber(start) ? start : -1
+        start: $__default.default.isNumber(start) ? start : -1
       });
       return ew.getApiUrl(ew.API_LOOKUP_ACTION, params.toString());
     }
@@ -2310,12 +2687,61 @@
       }
 
       return results;
+    }
+    /**
+     * Convert options to Select2 data format
+     * @param {Object[]} options Options
+     * @returns {Object[]}
+     */
+    ;
+
+    _proto.toSelect2Data = function toSelect2Data(options) {
+      if (Array.isArray(options)) {
+        if (options.every(item => item.hasOwnProperty("gf"))) {
+          // Has group by field
+          let groups = [...new Set(options.map(item => item.gf))];
+          return groups.map(group => {
+            return {
+              text: group,
+              children: options.filter(item => item.gf == group).map(item => {
+                return {
+                  id: item.lf,
+                  text: this.formatResult({
+                    lf: item.lf,
+                    df: item.df,
+                    df2: item.df2,
+                    df3: item.df3,
+                    df4: item.df4
+                  })
+                };
+              })
+            };
+          });
+        } else {
+          return options.map(item => {
+            return {
+              id: item.lf,
+              text: this.formatResult({
+                lf: item.lf,
+                df: item.df,
+                df2: item.df2,
+                df3: item.df3,
+                df4: item.df4
+              })
+            };
+          });
+        }
+      }
+
+      return options;
     };
 
     _createClass(AjaxLookup, [{
       key: "isAutoSuggest",
       get: function () {
-        if (this._isAutoSuggest === null) this._isAutoSuggest = ew.isAutoSuggest(this.element);
+        var _this$_isAutoSuggest;
+
+        (_this$_isAutoSuggest = this._isAutoSuggest) != null ? _this$_isAutoSuggest : this._isAutoSuggest = ew.isAutoSuggest(this.element);
         return this._isAutoSuggest;
       }
       /**
@@ -2332,19 +2758,6 @@
     return AjaxLookup;
   }();
 
-  /**
-   * Class selection list option
-   */
-  let SelectionListOption =
-  /**
-   * Constructor
-   */
-  function SelectionListOption(value, text, selected) {
-    this.value = String(value);
-    this.text = String(text);
-    this.selected = !!selected;
-  };
-
   let AutoSuggest = /*#__PURE__*/function (_AjaxLookup) {
     _inheritsLoose(AutoSuggest, _AjaxLookup);
 
@@ -2357,8 +2770,8 @@
       if (!_this.input || _this.elementId.includes("$rowindex$")) return _assertThisInitialized(_this);
 
       let self = _assertThisInitialized(_this),
-          $input = $__default["default"](_this.input),
-          $element = $__default["default"](_this.element); // Properties
+          $input = $__default.default(_this.input),
+          $element = $__default.default(_this.element); // Properties
 
       _this.minWidth = settings.minWidth;
       _this.maxHeight = settings.maxHeight;
@@ -2374,6 +2787,7 @@
       _this.forceSelection = settings.forceSelect;
       _this.lineHeight = settings.lineHeight;
       _this.paddingY = settings.paddingY;
+      _this.lookupAllDisplayFields = settings.lookupAllDisplayFields;
       _this.$input = $input;
       _this.$element = $element; // Save instance
 
@@ -2412,17 +2826,17 @@
           timer; // Option template ("suggestion" template)
 
       let tpl = self.list.template || self.templates.suggestion;
-      if (tpl && $__default["default"].isString(tpl)) tpl = $__default["default"].templates(tpl);
+      if (tpl && $__default.default.isString(tpl)) tpl = $__default.default.templates(tpl);
       if (tpl) self.templates.suggestion = tpl.render.bind(tpl);
-      if (async && !self.templates.footer) self.templates.footer = '<div class="tt-footer dropdown-item">' + ew.language.phrase("LoadingMore") + '</div>'; // "footer" template
+      if (async && !self.templates.footer) self.templates.footer = '<div class="tt-footer dropdown-item"><div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">' + ew.language.phrase("LoadingMore") + '</span></div></div>'; // "footer" template
 
       let source = (query, syncResults, asyncResults) => {
         if (async) {
           if (timer) timer.cancel();
-          timer = $__default["default"].later(_this.debounce, null, () => {
+          timer = $__default.default.later(_this.debounce, null, () => {
             _this.recordCount = 0; // Reset
 
-            $__default["default"].ajax(_this.prepare(query)).done(data => asyncResults(_this.transform(data)));
+            $__default.default.ajax(_this.prepare(query)).done(data => asyncResults(_this.transform(data)));
           });
         } else {
           let records = _this.getSyncResults(query);
@@ -2435,7 +2849,7 @@
         }
       }; // Create Typeahead
 
-      $__default["default"](function () {
+      $__default.default(function () {
         // Typeahead options and dataset
         let options = {
           highlight: self.highlight,
@@ -2483,7 +2897,7 @@
             var _loadingMoreTimer;
 
             (_loadingMoreTimer = loadingMoreTimer) == null ? void 0 : _loadingMoreTimer.cancel();
-            loadingMoreTimer = $__default["default"].later(self.delay, null, () => {
+            loadingMoreTimer = $__default.default.later(self.delay, null, () => {
               let $footer = $menu.find(".tt-footer");
 
               if (!$footer.is(":hidden") && !loadingMore) {
@@ -2538,7 +2952,7 @@
         text: _AjaxLookup.prototype.formatResult.call(this, item)
       }));
 
-      this.element.options = results.map(item => new SelectionListOption(item.lf || item[0], item.text));
+      this.element.options = results.map(item => new ew.SelectionListOption(item.text, item.lf || item[0]));
       return results;
     } // Get current suggestion count
     ;
@@ -2547,7 +2961,7 @@
     _proto.getSyncResults = function getSyncResults(query) {
       if (this.options.length) {
         let results = this.options.filter(item => {
-          if (ew.LOOKUP_ALL_DISPLAY_FIELDS) {
+          if (this.lookupAllDisplayFields) {
             let v = [item.df, item.df2, item.df3, item.df4].map(df => String(df).toLowerCase()).join(" ");
             return query.toLowerCase().split(" ").filter(q => q !== "").every(q => v.includes(q));
           } else {
@@ -2566,7 +2980,7 @@
       let menu = this.typeahead.menu,
           start = this.count,
           settings = this.prepare(menu.query, start);
-      return $__default["default"].ajax(settings).done(data => menu.datasets[0]._append(menu.query, this.transform(data)));
+      return $__default.default.ajax(settings).done(data => menu.datasets[0]._append(menu.query, this.transform(data)));
     };
 
     _createClass(AutoSuggest, [{
@@ -2598,7 +3012,7 @@
       var _ew$getForm;
 
       if (!el) return null;
-      let id = $__default["default"].isString(el) ? el : (_ew$getForm = ew.getForm(el)) == null ? void 0 : _ew$getForm.id;
+      let id = $__default.default.isString(el) ? el : (_ew$getForm = ew.getForm(el)) == null ? void 0 : _ew$getForm.id;
       return this._forms[id];
     }
     /**
@@ -2624,42 +3038,43 @@
     return Forms;
   }();
 
+  let lang = ew.language.phrase("select2");
   var Select2Language = {
     errorLoading: function () {
-      return ew.language.phrase("ErrorLoading");
+      return lang.errorLoading;
     },
     inputTooLong: function (args) {
       var overChars = args.input.length - args.maximum;
-      return ew.language.phrase("InputTooLong").replace("%s", overChars);
+      return lang.inputTooLong.replace("%s", overChars);
     },
     inputTooShort: function (args) {
       var remainingChars = args.minimum - args.input.length;
-      return ew.language.phrase("InputTooShort").replace("%s", remainingChars);
+      return lang.inputTooShort.replace("%s", remainingChars);
     },
     loadingMore: function () {
-      return ew.language.phrase("LoadingMore");
+      return '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">' + lang.loadingMore + '</span></div>';
     },
     maximumSelected: function (args) {
-      return ew.language.phrase("MaximumSelected").replace("%s", args.maximum);
+      return lang.maximumSelected.replace("%s", args.maximum);
     },
     noResults: function () {
-      return ew.language.phrase("NoResults");
+      return lang.noResults;
     },
     searching: function () {
-      return ew.language.phrase("Searching");
+      return '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">' + lang.searching + '</span></div>';
     },
     removeAllItems: function () {
-      return ew.language.phrase("RemoveAllItems");
+      return lang.removeAllItems;
     },
     removeItem: function () {
-      return ew.language.phrase("RemoveItem");
+      return lang.removeItem;
     },
     search: function () {
-      return ew.language.phrase("Search");
+      return lang.search;
     }
   };
 
-  let _defined$3 = $__default["default"].fn.select2.amd.require._defined,
+  let _defined$3 = $__default.default.fn.select2.amd.require._defined,
       Utils$3 = _defined$3['select2/utils'];
   /**
    * Select2 decorator for Results
@@ -2671,7 +3086,7 @@
     var _proto = Select2ResultsDecorator.prototype;
 
     _proto.render = function render(decorated) {
-      var $results = $__default["default"]('<div class="select2-results__options ' + this.options.get('containerClass') + '" role="listbox"></div>'); //***
+      var $results = $__default.default('<div class="select2-results__options ' + this.options.get('containerClass') + '" role="listbox"></div>'); //***
 
       if (this.options.get('multiple')) {
         $results.attr('aria-multiselectable', 'true');
@@ -2685,7 +3100,7 @@
       var escapeMarkup = this.options.get('escapeMarkup');
       this.clear();
       this.hideLoading();
-      var $message = $__default["default"]('<div role="alert" aria-live="assertive"' + ' class="select2-results__option"></div>'); //***
+      var $message = $__default.default('<div role="alert" aria-live="assertive"' + ' class="select2-results__option"></div>'); //***
 
       if (params.message.includes("<") && params.message.includes(">")) {
         // HTML //***
@@ -2731,7 +3146,7 @@
 
         if (!$row.length || $row.children().length == cols) {
           // Add new row
-          $row = $__default["default"]('<div class="' + this.options.get('rowClass') + '"></div>');
+          $row = $__default.default('<div class="' + this.options.get('rowClass') + '"></div>');
           this.$results.append($row);
         }
 
@@ -2815,7 +3230,7 @@
     return Select2ResultsDecorator;
   }();
 
-  let _defined$2 = $__default["default"].fn.select2.amd.require._defined,
+  let _defined$2 = $__default.default.fn.select2.amd.require._defined,
       Utils$2 = _defined$2['select2/utils'];
   /**
    * Results for modal lookup
@@ -2860,7 +3275,7 @@
       });
       this.$results.on('mouseup', '.select2-results__option--selectable', function (evt) {
         if (!this._mousedown) return;
-        var $this = $__default["default"](this);
+        var $this = $__default.default(this);
         var data = Utils$2.GetData(this, 'data');
 
         if ($this.hasClass('select2-results__option--selected')) {
@@ -2935,7 +3350,7 @@
     return DropdownSearchDecorator;
   }();
 
-  let AttachBody$2 = $__default["default"].fn.select2.amd.require._defined['select2/dropdown/attachBody'];
+  let AttachBody$2 = $__default.default.fn.select2.amd.require._defined['select2/dropdown/attachBody'];
   /**
    * Select2 AttachBody with popper
    */
@@ -2960,14 +3375,14 @@
         self._resizeDropdown();
       };
 
-      $__default["default"](window).on(events.join(' '), handler);
+      $__default.default(window).on(events.join(' '), handler);
       container.$element.closest('.modal').on('scroll.select2.' + container.id, handler);
     };
 
     // Override _detachPositioningHandler
     _proto._detachPositioningHandler = function _detachPositioningHandler(decorated, container) {
       var events = ['scroll.select2.' + container.id, 'resize.select2.' + container.id, 'orientationchange.select2.' + container.id];
-      $__default["default"](window).off(events.join(' '));
+      $__default.default(window).off(events.join(' '));
       container.$element.closest('.modal').off('scroll.select2.' + container.id);
     };
 
@@ -3020,7 +3435,7 @@
     function ModalAttachBody(decorated, $element, options) {
       _defineProperty(this, "$modal", null);
 
-      options.set('dropdownParent', $__default["default"](document.body));
+      options.set('dropdownParent', $__default.default(document.body));
       decorated.call(this, $element, options);
     }
 
@@ -3047,7 +3462,7 @@
     };
 
     _proto.render = function render(decorated) {
-      let $container = $__default["default"]('<span></span>');
+      let $container = $__default.default('<span></span>');
       let $dropdown = decorated.call(this);
       $container.append($dropdown);
       this.$dropdownContainer = $container;
@@ -3104,13 +3519,13 @@
       let self = this,
           oldValue = this.$element.val();
       this.$dropdownContainer.appendTo(this.options.get('dropdownParent'));
-      (_this$$modal = this.$modal) != null ? _this$$modal : this.$modal = $__default["default"]('#ew-modal-lookup-dialog');
+      (_this$$modal = this.$modal) != null ? _this$$modal : this.$modal = $__default.default('#ew-modal-lookup-dialog');
 
       this._updateDropdown();
 
       this.$modal.find('.modal-title').empty().append(ew.language.phrase('LookupTitle').replace('%s', this.$element.data('caption')));
       this.$modal.find('.modal-footer button[data-value]').off().on('click', function () {
-        if (!$__default["default"](this).data('value')) // Cancel
+        if (!$__default.default(this).data('value')) // Cancel
           self.$element.val(oldValue).trigger('change');
       });
       this.$modal.modal('show').on('hidden.bs.modal', function (event) {
@@ -3121,7 +3536,7 @@
     return ModalAttachBody;
   }();
 
-  let AttachBody$1 = $__default["default"].fn.select2.amd.require._defined['select2/dropdown/attachBody'];
+  let AttachBody$1 = $__default.default.fn.select2.amd.require._defined['select2/dropdown/attachBody'];
   /**
    * Select2 AttachBody for table header filter
    */
@@ -3182,13 +3597,13 @@
 
       let self = this,
           oldValue = this.$element.val(),
-          $footer = $__default["default"]('#ew-filter-dropdown-footer').contents().clone();
-      $footer.find('.ew-filter-btn[data-value]').off().on('click', function (e) {
-        let value = $__default["default"](this).data('value');
+          $footer = $__default.default('#ew-filter-dropdown-footer').contents().clone();
+      $footer.find('.ew-filter-btn[data-value]').off('click.ew').on('click.ew', function (e) {
+        let value = $__default.default(this).data('value');
 
         if (value) {
           // OK
-          ew.forms.get(self.$element[0].form).submit();
+          $__default.default(self.$element[0].form).triggerHandler('submit');
         } else {
           // Cancel
           self.$element.val(oldValue).trigger('change');
@@ -3196,7 +3611,7 @@
 
         self.$element.select2('close');
       });
-      $footer.find('.ew-filter-clear').off().on('click', e => self.$element.data('select2').selection._handleClear(e));
+      $footer.find('.ew-filter-clear').off('click.ew').on('click.ew', e => self.$element.data('select2').selection._handleClear(e));
       let $filterDropdown = this.$dropdownContainer.find('.ew-filter-dropdown');
       if (!$filterDropdown.find('.ew-filter-btn')[0]) $filterDropdown.append($footer); // Popper
 
@@ -3240,7 +3655,7 @@
     return FilterAttachBody;
   }(AttachBody$1);
 
-  let AttachBody = $__default["default"].fn.select2.amd.require._defined['select2/dropdown/attachBody'];
+  let AttachBody = $__default.default.fn.select2.amd.require._defined['select2/dropdown/attachBody'];
   /**
    * Select2 AttachBody for dropdown
    */
@@ -3321,7 +3736,7 @@
     return DropdownAttachBody;
   }(AttachBody);
 
-  let _defined$1 = $__default["default"].fn.select2.amd.require._defined,
+  let _defined$1 = $__default.default.fn.select2.amd.require._defined,
       AllowClear$1 = _defined$1['select2/selection/allowClear'],
       Utils$1 = _defined$1['select2/utils'];
   /**
@@ -3378,7 +3793,7 @@
         }
       }
 
-      this.$element.trigger('input').trigger('change'); //***this.trigger('toggle', {});
+      this.$element.trigger('input').trigger('change');
     };
 
     return FilterAllowClear;
@@ -3583,37 +3998,26 @@
 
   let currentUrl = new URL(window.location);
   let forms = new Forms();
-  let $document$1 = $__default["default"](document),
-      $body = $__default["default"]("body");
+  let $document$1 = $__default.default(document),
+      $body = $__default.default("body");
   let fieldContainerSelector = ".row, [id^=el_], [class^=el_]"; // Set focus
 
   Pace.on("done", () => {
     var _forms$get;
 
     let form = document.querySelector(".modal.show form.ew-form") || document.querySelector("form.ew-form");
-    if (form) (_forms$get = forms.get(form.id)) == null ? void 0 : _forms$get.tryFocus();
+    (_forms$get = forms.get(form == null ? void 0 : form.id)) == null ? void 0 : _forms$get.tryFocus();
   }); // Create select2
 
   function createSelect(options) {
     if (options.selectId.includes("$rowindex$")) return;
 
-    if ($__default["default"].isObject(options.data)) {
+    if ($__default.default.isObject(options.data)) {
       let lookup = new ew.AjaxLookup(options.data);
-      options.data = lookup.options.map(item => {
-        return {
-          id: item.lf,
-          text: lookup.formatResult({
-            lf: item.lf,
-            df: item.df,
-            df2: item.df2,
-            df3: item.df3,
-            df4: item.df4
-          })
-        };
-      });
+      options.data = lookup.toSelect2Data(lookup.options);
     }
 
-    if ($__default["default"].isObject(options.ajax)) {
+    if ($__default.default.isObject(options.ajax)) {
       let limit = options.ajax.limit,
           lookup = new ew.AjaxLookup({ ...options.ajax,
         ...{
@@ -3634,23 +4038,17 @@
 
           let self = this;
           return {
-            results: lookup.transform(data).map(item => {
-              return {
-                id: item.lf,
-                text: lookup.formatResult({
-                  lf: item.lf,
-                  df: item.df,
-                  df2: item.df2,
-                  df3: item.df3,
-                  df4: item.df4
-                })
-              };
-            }),
+            results: lookup.toSelect2Data(lookup.transform(data)),
             pagination: {
               more: self.container.$results.find(".select2-results__option:not(.select2-results__option--load-more)").length + ((_data$records$length = (_data$records = data.records) == null ? void 0 : _data$records.length) != null ? _data$records$length : 0) < lookup.recordCount
             }
           };
-        }
+        },
+        transport: (params, success, failure) => $__default.default.ajax(params).then(data => {
+          let error = getError(data);
+          !error || _alert(error);
+          success(data);
+        }).fail(failure)
       };
     }
 
@@ -3659,22 +4057,22 @@
       options
     };
     $document$1.trigger("select2", [args]);
-    let $select = $__default["default"]("select[data-select2-id='" + options.selectId + "']").select2(args.options);
+    let $select = $__default.default("select[data-select2-id='" + options.selectId + "']").select2(args.options);
     $select.on("select2:open", function () {
       var _$$data$$dropdown$fin;
 
-      (_$$data$$dropdown$fin = $__default["default"](this).data("select2").$dropdown.find(".select2-search__field")[0]) == null ? void 0 : _$$data$$dropdown$fin.focus();
+      (_$$data$$dropdown$fin = $__default.default(this).data("select2").$dropdown.find(".select2-search__field")[0]) == null ? void 0 : _$$data$$dropdown$fin.focus();
     });
 
-    if ($__default["default"].isObject(options.ajax)) {
+    if ($__default.default.isObject(options.ajax)) {
       $select.on("select2:opening", function () {
-        $__default["default"](this).data("select2").$results.find(".select2-results__option:not(.loading-results)").remove();
+        $__default.default(this).data("select2").$results.find(".select2-results__option:not(.loading-results)").remove();
       });
     }
 
     if (options.minimumResultsForSearch === Infinity) {
       $select.on("select2:opening select2:closing", function () {
-        $__default["default"](this).data("select2").$dropdown.find(".select2-search--dropdown").addClass("select2-search--hide");
+        $__default.default(this).data("select2").$dropdown.find(".select2-search--dropdown").addClass("select2-search--hide");
       });
     }
   } // Create modal lookup
@@ -3682,7 +4080,7 @@
   function createModalLookup(options) {
     if (options.selectId.includes("$rowindex$")) return;
 
-    if ($__default["default"].isObject(options.data)) {
+    if ($__default.default.isObject(options.data)) {
       let lookup = new ew.AjaxLookup(options.data);
       options.data = lookup.options.map(item => {
         return {
@@ -3698,7 +4096,7 @@
       });
     }
 
-    if ($__default["default"].isObject(options.ajax)) {
+    if ($__default.default.isObject(options.ajax)) {
       let limit = options.ajax.limit,
           lookup = new ew.AjaxLookup({ ...options.ajax,
         ...{
@@ -3735,20 +4133,25 @@
               more: self.container.$results.find(".select2-results__option:not(.select2-results__option--load-more)").length + ((_data$records$length2 = (_data$records2 = data.records) == null ? void 0 : _data$records2.length) != null ? _data$records$length2 : 0) < lookup.recordCount
             }
           };
-        }
+        },
+        transport: (params, success, failure) => $__default.default.ajax(params).then(data => {
+          let error = getError(data);
+          !error || _alert(error);
+          success(data);
+        }).fail(failure)
       };
     }
 
-    let $select = $__default["default"]("select[data-select2-id='" + options.selectId + "']").select2(options);
+    let $select = $__default.default("select[data-select2-id='" + options.selectId + "']").select2(options);
     $select.on("select2:open", function () {
       var _$$data$$dropdown$fin2;
 
-      (_$$data$$dropdown$fin2 = $__default["default"](this).data("select2").$dropdown.find(".select2-search__field").addClass("form-control")[0]) == null ? void 0 : _$$data$$dropdown$fin2.focus();
+      (_$$data$$dropdown$fin2 = $__default.default(this).data("select2").$dropdown.find(".select2-search__field").addClass("form-control")[0]) == null ? void 0 : _$$data$$dropdown$fin2.focus();
     });
 
-    if ($__default["default"].isObject(options.ajax)) {
+    if ($__default.default.isObject(options.ajax)) {
       $select.on("select2:opening", function () {
-        $__default["default"](this).data("select2").$results.find(".select2-results__option:not(.loading-results)").remove();
+        $__default.default(this).data("select2").$results.find(".select2-results__option:not(.loading-results)").remove();
       });
     }
   } // Create table header filter
@@ -3756,7 +4159,7 @@
   function createFilter(options) {
     if (options.selectId.includes("$rowindex$")) return;
 
-    if ($__default["default"].isObject(options.data)) {
+    if ($__default.default.isObject(options.data)) {
       let lookup = new ew.AjaxLookup(options.data);
       options.data = lookup.options.map(item => {
         return {
@@ -3772,7 +4175,7 @@
       });
     }
 
-    if ($__default["default"].isObject(options.ajax)) {
+    if ($__default.default.isObject(options.ajax)) {
       let limit = options.ajax.limit,
           lookup = new ew.AjaxLookup({ ...options.ajax,
         ...{
@@ -3809,22 +4212,27 @@
               more: self.container.$results.find(".select2-results__option:not(.select2-results__option--load-more)").length + ((_data$records$length3 = (_data$records3 = data.records) == null ? void 0 : _data$records3.length) != null ? _data$records$length3 : 0) < lookup.recordCount
             }
           };
-        }
+        },
+        transport: (params, success, failure) => $__default.default.ajax(params).then(data => {
+          let error = getError(data);
+          !error || _alert(error);
+          success(data);
+        }).fail(failure)
       };
     }
 
-    let $select = $__default["default"]("select[data-select2-id='" + options.selectId + "']").select2(options);
+    let $select = $__default.default("select[data-select2-id='" + options.selectId + "']").select2(options);
     $select.on("select2:open", function () {
       var _$$data$$dropdown$fin3;
 
-      (_$$data$$dropdown$fin3 = $__default["default"](this).data("select2").$dropdown.find(".select2-search__field").addClass("form-control")[0]) == null ? void 0 : _$$data$$dropdown$fin3.focus({
+      (_$$data$$dropdown$fin3 = $__default.default(this).data("select2").$dropdown.find(".select2-search__field").addClass("form-control")[0]) == null ? void 0 : _$$data$$dropdown$fin3.focus({
         preventScroll: options.preventScroll
       }); // Do not scroll on focus by default
     });
 
-    if ($__default["default"].isObject(options.ajax)) {
+    if ($__default.default.isObject(options.ajax)) {
       $select.on("select2:opening", function () {
-        $__default["default"](this).data("select2").$results.find(".select2-results__option:not(.loading-results)").remove();
+        $__default.default(this).data("select2").$results.find(".select2-results__option:not(.loading-results)").remove();
       });
     }
   } // Init icon tooltip
@@ -3833,22 +4241,19 @@
     var _e$target;
 
     let el = (_e$target = e == null ? void 0 : e.target) != null ? _e$target : document,
-        tooltipOptions = {
+        tooltipOptions = { ...ew.tooltipOptions,
       container: "body",
-      trigger: ew.IS_MOBILE ? "manual" : "hover",
-      placement: "bottom",
-      sanitizeFn: ew.sanitizeFn
+      trigger: ew.IS_MOBILE ? "manual" : "hover"
     };
-    $__default["default"](el).find(".ew-icon").closest(".btn").each(function () {
-      let $this = $__default["default"](this);
+    $__default.default(el).find(".ew-icon").closest(".btn, .ew-home, .ew-row-link:not(.dropdown-item)").each(function () {
+      let $this = $__default.default(this);
 
       if ($this.hasClass("dropdown-toggle")) {
         let $p = $this.closest(".btn-group");
 
         if ($p.children(".btn").length == 1) {
-          $p.tooltip({
-            title: this.title,
-            ...tooltipOptions
+          $p.tooltip({ ...tooltipOptions,
+            title: this.dataset.title || this.title
           }).on("mouseleave", e => {
             var _bootstrap$Tooltip$ge;
 
@@ -3867,15 +4272,15 @@
 
     var el = (_e$target2 = e == null ? void 0 : e.target) != null ? _e$target2 : document;
 
-    if ($__default["default"].fn.pStrength && typeof ew.MIN_PASSWORD_STRENGTH != "undefined") {
-      $__default["default"](el).find(".ew-password-strength").each(function () {
-        var $this = $__default["default"](this);
+    if ($__default.default.fn.pStrength && typeof ew.MIN_PASSWORD_STRENGTH != "undefined") {
+      $__default.default(el).find(".ew-password-strength").each(function () {
+        var $this = $__default.default(this);
         if (!$this.data("pStrength")) $this.pStrength({
           "changeBackground": false,
           "backgrounds": [],
           "passwordValidFrom": ew.MIN_PASSWORD_STRENGTH,
           "onPasswordStrengthChanged": function (strength, percentage) {
-            var $pst = $__default["default"]("[id='" + this.attr("data-password-strength") + "']"),
+            var $pst = $__default.default("[id='" + this.attr("data-password-strength") + "']"),
                 // Do not use #
             $pb = $pst.find(".progress-bar");
 
@@ -3911,9 +4316,9 @@
       });
     }
 
-    if ($__default["default"].fn.pGenerator) {
-      $__default["default"](el).find(".ew-password-generator").each(function () {
-        var $this = $__default["default"](this);
+    if ($__default.default.fn.pGenerator) {
+      $__default.default(el).find(".ew-password-generator").each(function () {
+        var $this = $__default.default(this);
         if (!$this.data("pGenerator")) $this.pGenerator({
           "passwordLength": ew.GENERATE_PASSWORD_LENGTH,
           "uppercase": ew.GENERATE_PASSWORD_UPPERCASE,
@@ -3921,8 +4326,8 @@
           "numbers": ew.GENERATE_PASSWORD_NUMBER,
           "specialChars": ew.GENERATE_PASSWORD_SPECIALCHARS,
           "onPasswordGenerated": function (pwd) {
-            $__default["default"]("#" + this.attr("data-password-confirm")).val(pwd);
-            $__default["default"]("#" + this.attr("data-password-field")).val(pwd).trigger("change").trigger("focus").triggerHandler("click"); // Trigger click to remove "is-invalid" class (Do not use $this.data)
+            $__default.default("#" + this.attr("data-password-confirm")).val(pwd);
+            $__default.default("#" + this.attr("data-password-field")).val(pwd).trigger("change").trigger("focus").triggerHandler("click"); // Trigger click to remove "is-invalid" class (Do not use $this.data)
           }
         });
       });
@@ -3931,15 +4336,15 @@
   /**
    * Get API action URL
    * @param {string|string[]} action - Route as string or array, e.g. "foo", ["foo", "1"]
-   * @param {string|string[]|object} query - Search params, e.g. "foo=1&bar=2", [["foo", "1"], ["bar", "2"]], {"foo": "1", "bar": "2"}
+   * @param {string|string[]|Object|URLSearchParams|FormData} query - Search params, e.g. "foo=1&bar=2", [["foo", "1"], ["bar", "2"]], {"foo": "1", "bar": "2"}
    */
 
   function getApiUrl(action, query) {
     var url = ew.PATH_BASE + ew.API_URL,
-        params = new URLSearchParams(query),
+        params = query instanceof URLSearchParams ? query : new URLSearchParams(query),
         qs = params.toString();
 
-    if ($__default["default"].isString(action)) {
+    if ($__default.default.isString(action)) {
       // Route as string
       url += action ? action : "";
     } else if (Array.isArray(action)) {
@@ -3951,22 +4356,170 @@
     }
 
     return url + (qs ? "?" + qs : "");
+  }
+  /**
+   * Parse URL
+   * Note: .search is read only, always use .searchParams to change parameters
+   * @param {string} url - URL
+   * @returns {Object}
+   */
+
+  function parseUrl(url) {
+    var _pathname, _hash;
+
+    let pathname, search, hash;
+    [pathname, hash] = url.split("#");
+    [pathname, search] = pathname.split("?");
+    if (!search && pathname.includes("=")) [pathname, search] = ["", pathname];
+    let obj = {
+      url: url,
+      pathname: (_pathname = pathname) != null ? _pathname : "",
+      hash: (_hash = hash) != null ? _hash : "",
+      searchParams: new URLSearchParams(search)
+    };
+    Object.defineProperty(obj, "search", {
+      // Read only
+      value: search,
+      writable: false,
+      enumerable: true
+    });
+    return obj;
+  }
+  /**
+   * Create URLSearchParams
+   * @param {*} params - search parameters
+   * @returns {URLSearchParams}
+   */
+
+  function createSearchParams(params) {
+    try {
+      return new URLSearchParams(params);
+    } catch (e) {
+      console.log(e);
+      return new URLSearchParams();
+    }
+  }
+  /**
+   * Get URL search parameters
+   * @param {string} url - URL
+   * @returns {URLSearchParams}
+   */
+
+  function getSearchParams(url) {
+    return parseUrl(url).searchParams;
+  }
+  /**
+   * Get a search parameter from URL
+   * @param {string} url - URL
+   * @param {string} name - Name
+   * @returns {string} Value
+   */
+
+  function getSearchParam(url, name) {
+    return getSearchParams(url).get(name);
+  }
+  /**
+   * Set URL search parameters
+   * @param {string} url - URL
+   * @param {*} args - search parameters to be merged
+   * @returns {string} URL
+   */
+
+  function setSearchParams(url) {
+    let obj = parseUrl(url);
+
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    obj.searchParams = mergeSearchParams(obj.searchParams, ...args);
+    return buildUrl(obj);
+  }
+  /**
+   * Merge URL search parameters
+   * @param {*} args - search parameters to be merged
+   * @returns {URLSearchParams}
+   */
+
+  function mergeSearchParams() {
+    let searchParams = new URLSearchParams();
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    for (const params of args) {
+      if ($__default.default.isObject(params) || $__default.default.isString(params) && params) {
+        // Note: Array is also object
+        let newParams = params instanceof URLSearchParams ? params : createSearchParams(params);
+        newParams.forEach((value, key) => searchParams.has(key) ? key.endsWith("[]") ? searchParams.append(key, value) : searchParams.set(key, value) : searchParams.set(key, value));
+      }
+    }
+
+    return searchParams;
+  }
+  /**
+   * Set URL search parameter
+   * @param {string} url - URL
+   * @param {string} name - Name
+   * @param {string} value - Value
+   * @returns {string} URL
+   */
+
+  function setSearchParam(url, name, value) {
+    return setSearchParams(url, {
+      [name]: value
+    });
+  }
+  /**
+   * Delete search parameters from URL
+   * @param {string} url - URL
+   * @param {string[]} names - Names
+   * @returns {string} URL
+   */
+
+  function deleteSearchParam(url) {
+    let obj = parseUrl(url);
+
+    for (var _len3 = arguments.length, names = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      names[_key3 - 1] = arguments[_key3];
+    }
+
+    names.forEach(name => obj.searchParams.delete(name));
+    return buildUrl(obj);
+  }
+  /**
+   * Build URL
+   * @param {Object} obj Object { pathname, searchParams, hash }
+   * @returns {string} URL
+   */
+
+  function buildUrl(obj) {
+    let search = obj.searchParams.toString();
+    return obj.pathname + (obj.pathname && search ? "?" : "") + search + (obj.hash ? "#" + obj.hash : "");
+  }
+  /**
+   * Set layout parameter to URL
+   * Disable layout by adding "layout=false"
+   * @param {string} url - URL
+   * @param {string} value - Layout
+   * @returns {string} URL
+   */
+
+  function setLayout(url, value) {
+    return url && url != "#" ? setSearchParams(url, {
+      [ew.PAGE_LAYOUT]: String(value)
+    }) : url;
   } // Sanitize URL
 
   function sanitizeUrl(url) {
-    var ar = url.split("?"),
-        search = ar[1];
-
-    if (search) {
-      var searchParams = new URLSearchParams(search);
-      searchParams.forEach((value, key) => {
-        value = decodeURIComponent(value);
-        if (["<>", "<=", ">=", ">", "<"].includes(value)) searchParams.set(key, value);else searchParams.set(key, ew.sanitize(value));
-      });
-      search = searchParams.toString();
-    }
-
-    return ar[0] + (search ? "?" + search : "");
+    let obj = parseUrl(url),
+        searchParams = obj.searchParams;
+    searchParams.forEach((value, key) => {
+      value = decodeURIComponent(value);
+      if (["<>", "<=", ">=", ">", "<"].includes(value)) searchParams.set(key, value);else searchParams.set(key, ew.sanitize(value));
+    });
+    return buildUrl(obj);
   } // Set session timer
 
   function setSessionTimer() {
@@ -3977,10 +4530,10 @@
         useKeepAlive = ew.SESSION_KEEP_ALIVE_INTERVAL > 0 || ew.IS_LOGGEDIN && ew.IS_AUTOLOGIN; // Keep alive
 
     var keepAlive = () => {
-      $__default["default"].get(getApiUrl(ew.API_SESSION_ACTION), {
+      $__default.default.get(getApiUrl(ew.API_SESSION_ACTION), {
         "rnd": random()
       }, token => {
-        if (token && $__default["default"].isObject(token)) {
+        if (token && $__default.default.isObject(token)) {
           // PHP
           ew.TOKEN_NAME = token[ew.TOKEN_NAME_KEY];
           ew.ANTIFORGERY_TOKEN = token[ew.ANTIFORGERY_TOKEN_KEY];
@@ -4059,14 +4612,14 @@
     var setTimer = () => {
       resetTimer(); // Reset timer first
 
-      timer = $__default["default"].later(timeoutTime * 1000, null, timeout);
+      timer = $__default.default.later(timeoutTime * 1000, null, timeout);
     };
 
     if (useKeepAlive) {
       // Keep alive
       var keepAliveInterval = ew.SESSION_KEEP_ALIVE_INTERVAL > 0 ? ew.SESSION_KEEP_ALIVE_INTERVAL : ew.SESSION_TIMEOUT - ew.SESSION_TIMEOUT_COUNTDOWN;
       if (keepAliveInterval <= 0) keepAliveInterval = 60;
-      keepAliveTimer = $__default["default"].later(keepAliveInterval * 1000, null, keepAlive, null, true); // Periodic
+      keepAliveTimer = $__default.default.later(keepAliveInterval * 1000, null, keepAlive, null, true); // Periodic
     } else {
       if (ew.SESSION_TIMEOUT > 0) // Set session timeout
         setTimer();
@@ -4077,9 +4630,9 @@
     var _e$target3;
 
     var el = (_e$target3 = e == null ? void 0 : e.target) != null ? _e$target3 : document;
-    $__default["default"](el).find("a.ew-export-link[href]:not(.ew-email):not(.ew-print):not(.ew-xml)").on("click", function (e) {
-      var href = this.href;
-      if (href && href != "#") fileDownload(href);
+    $__default.default(el).find("a.ew-export-link[href]:not(.ew-email):not(.ew-print):not(.ew-xml)").on("click", function (e) {
+      let href = this.href;
+      if (href && href != "#") fileDownload(href, getchartParams());
       e.preventDefault();
     });
   } // Init multi-select checkboxes
@@ -4088,73 +4641,97 @@
     var _e$target4;
 
     var el = (_e$target4 = e == null ? void 0 : e.target) != null ? _e$target4 : document,
-        $el = $__default["default"](el),
+        $el = $__default.default(el),
         $cbs = $el.find("input[type=checkbox].ew-multi-select");
 
     var _update = function (id) {
       var $els = $cbs.filter("[name^='" + id + "_']"),
           cnt = $els.length,
           len = $els.filter(":checked").length;
-      $__default["default"]("input[type=checkbox]#" + id).prop("checked", len == cnt).prop("indeterminate", len != cnt && len != 0);
+      $__default.default("input[type=checkbox]#" + id).prop("checked", len == cnt).prop("indeterminate", len != cnt && len != 0);
     };
 
     $cbs.on("click", e => _update(e.target.name.split("_")[0]));
     $el.find("input[type=checkbox].ew-priv:not(.ew-multi-select)").each((i, el) => _update(el.id)); // Init
+  } // Get error from response
+
+  function getError(result) {
+    var _result$error, _result$error2;
+
+    return result && (((_result$error = result.error) == null ? void 0 : _result$error.description) || ((_result$error2 = result.error) == null ? void 0 : _result$error2.message) || $__default.default.isString(result.error) && result.error || result.failureMessage || // Check this first
+    result.success === false && result.message || null);
   } // Download file
 
   function fileDownload(href, data) {
-    let isHtml = href.includes("export=html");
-    return Swal.fire({ ...ew.sweetAlertSettings,
+    let isHtml = href.includes("export=html") || href.includes(getApiUrl([ew.API_EXPORT_ACTION, "html"])),
+        swal = window.parent.Swal; // Use window.parent.Swal in case in iframe
+
+    return swal.fire({ ...ew.sweetAlertSettings,
       showConfirmButton: false,
       html: "<p>" + ew.language.phrase("Exporting") + "</p>",
       allowOutsideClick: false,
       allowEscapeKey: false,
       willOpen: () => {
-        Swal.showLoading();
-        $__default["default"].ajax({
-          url: href,
-          type: data ? "POST" : "GET",
-          cache: false,
-          data: data || null,
-          xhrFields: {
-            responseType: isHtml ? "text" : "blob"
-          }
-        }).done((data, textStatus, jqXHR) => {
-          var url = URL.createObjectURL(isHtml ? new Blob([data], {
-            type: "text/html"
-          }) : data),
-              a = document.createElement("a"),
-              cd = jqXHR.getResponseHeader("Content-Disposition"),
-              m = cd.match(/\bfilename=((['"])(.+)\2|([^;]+))/i);
-          a.style.display = "none";
-          a.href = url;
-          if (m) a.download = m[3] || m[4];
-          document.body.appendChild(a);
-          a.click();
-          $document$1.trigger("export", [{
-            "type": "done",
-            "url": href,
-            "objectUrl": url
-          }]);
-          URL.revokeObjectURL(url);
-          Swal.close();
-        }).fail((jqXHR, textStatus, errorThrown) => {
-          var _Swal$getActions;
+        swal.showLoading();
 
-          Swal.hideLoading();
-          Swal.update({
+        _fetch(href, {
+          method: data ? "POST" : "GET",
+          body: data || null
+        }).then(async response => {
+          let ct = response.headers.get("Content-Type");
+
+          if (ct != null && ct.includes("json")) {
+            var _getError;
+
+            let result = await response.json(),
+                error = (_getError = getError(result)) != null ? _getError : ew.language.phrase("FailedToExport");
+
+            if (error) {
+              swal.hideLoading();
+              swal.update({
+                html: "<div class='text-danger'>" + error + "</div>",
+                showConfirmButton: true
+              });
+              $document$1.trigger("export", [{
+                type: "fail",
+                url: href
+              }]);
+            }
+          } else {
+            let data = isHtml ? await response.text() : await response.blob(),
+                url = URL.createObjectURL(isHtml ? new Blob([data], {
+              type: "text/html"
+            }) : data),
+                a = document.createElement("a"),
+                cd = response.headers.get("Content-Disposition"),
+                m = cd == null ? void 0 : cd.match(/\bfilename=((['"])(.+)\2|([^;]+))/i);
+            a.style.display = "none";
+            a.href = url;
+            if (m) a.download = m[3] || m[4];
+            document.body.appendChild(a);
+            a.click();
+            $document$1.trigger("export", [{
+              type: "done",
+              url: href,
+              objectUrl: url
+            }]);
+            URL.revokeObjectURL(url);
+            swal.close();
+          }
+        }).catch(error => {
+          swal.hideLoading();
+          swal.update({
+            html: "<div class='text-danger'>" + error + "</div>",
             showConfirmButton: true
           });
-          (_Swal$getActions = Swal.getActions()) == null ? void 0 : _Swal$getActions.classList.add("d-flex");
-          Swal.showValidationMessage("<div class='text-danger'>" + (errorThrown || ew.language.phrase("FailedToExport")) + "</div>");
           $document$1.trigger("export", [{
-            "type": "fail",
-            "url": href
+            type: "fail",
+            url: href
           }]);
-        }).always(() => {
+        }).finally(() => {
           $document$1.trigger("export", [{
-            "type": "always",
-            "url": href
+            type: "always",
+            url: href
           }]);
         });
       }
@@ -4173,7 +4750,7 @@
   } // Update select2 dropdown position
 
   function updateDropdownPosition() {
-    var select = $__default["default"](".select2-container--open").prev(".ew-select").data("select2");
+    var select = $__default.default(".select2-container--open").prev(".ew-select").data("select2");
 
     if (select) {
       select.dropdown._positionDropdown();
@@ -4196,8 +4773,8 @@
       xhrError: ew.language.phrase("LightboxXhrError"),
       imgError: ew.language.phrase("LightboxImgError")
     });
-    $__default["default"](el).find(".ew-lightbox").each(function () {
-      var $this = $__default["default"](this);
+    $__default.default(el).find(".ew-lightbox").each(function () {
+      var $this = $__default.default(this);
       $this.colorbox(Object.assign({
         rel: $this.data("rel")
       }, settings));
@@ -4208,11 +4785,11 @@
     var _e$target7;
 
     if (!ew.EMBED_PDF) return;
-    var el = (_e$target7 = e == null ? void 0 : e.target) != null ? _e$target7 : document,
+    let el = (_e$target7 = e == null ? void 0 : e.target) != null ? _e$target7 : document,
         options = Object.assign({}, ew.PDFObjectOptions);
-    $__default["default"](el).find(".ew-pdfobject").not(":has(.pdfobject)").each(function () {
+    $__default.default(el).find(".ew-pdfobject").not(":has(.pdfobject)").each(function () {
       // Not already embedded
-      var $this = $__default["default"](this),
+      let $this = $__default.default(this),
           url = $this.data("url"),
           html = $this.html();
       if (url) PDFObject.embed(url, this, Object.assign(options, {
@@ -4224,29 +4801,23 @@
   function initTooltips(e) {
     var _e$target8;
 
-    var el = (_e$target8 = e == null ? void 0 : e.target) != null ? _e$target8 : document,
-        $el = $__default["default"](el);
-    $el.find("input[data-bs-toggle=tooltip],textarea[data-bs-toggle=tooltip],select[data-bs-toggle=tooltip]").each(function () {
-      var $this = $__default["default"](this);
-      $this.tooltip(Object.assign({
+    let el = (_e$target8 = e == null ? void 0 : e.target) != null ? _e$target8 : document,
+        $el = $__default.default(el);
+    $el.find("input[data-bs-toggle=tooltip], textarea[data-bs-toggle=tooltip], select[data-bs-toggle=tooltip]").each(function () {
+      let $this = $__default.default(this);
+      $this.tooltip({ ...ew.tooltipOptions,
         html: true,
-        placement: "bottom",
-        sanitizeFn: ew.sanitizeFn
-      }, $this.data()));
+        ...$this.data()
+      });
     });
-    $el.find("a.ew-tooltip-link").each(tooltip); // Init tooltips
+    $el.find("a.ew-tooltip-link").each(tooltip); // Set up tooltip links as popovers
 
-    $el.find(".ew-tooltip").tooltip({
-      placement: "bottom",
-      sanitizeFn: ew.sanitizeFn
-    });
-    $el.find(".ew-popover").popover({
-      sanitizeFn: ew.sanitizeFn
-    });
+    $el.find(".ew-tooltip").tooltip(ew.tooltipOptions);
+    $el.find(".ew-popover").popover(ew.popoverOptions);
   } // Parse JSON
 
   function parseJson(data) {
-    if ($__default["default"].isString(data)) {
+    if ($__default.default.isString(data)) {
       try {
         return JSON.parse(data);
       } catch (e) {
@@ -4257,10 +4828,10 @@
     return data;
   } // Change search operator
 
-  function searchOperatorChanged(el) {
-    var $el = $__default["default"](el),
+  function searchOperatorChange(el) {
+    let $el = $__default.default(el),
         $p = $el.closest("[id^=r_], [id^=xs_]"),
-        parm = el.id.substr(2),
+        parm = el.id.substring(2),
         $fld = $p.find(".ew-search-field"),
         $fld2 = $p.find(".ew-search-field2"),
         $y = $fld2.find("[name='y_" + parm + "'], [name='y_" + parm + "[]']"),
@@ -4273,13 +4844,13 @@
         opr = $opr.find("[name='z_" + parm + "']").val(),
         $opr2 = $p.find(".ew-search-operator2"),
         opr2 = $opr2.find("[name='w_" + parm + "']").val(),
-        isBetween = opr == "BETWEEN",
+        isBetween = opr.includes("BETWEEN"),
         // Can only be operator 1
-    isNullOpr = ["IS NULL", "IS NOT NULL"].includes(opr),
-        isNullOpr2 = ["IS NULL", "IS NOT NULL"].includes(opr2),
+    isEmptyOpr = ["IS NULL", "IS NOT NULL", "IS EMPTY", "IS NOT EMPTY"].includes(opr),
+        isEmptyOpr2 = ["IS NULL", "IS NOT NULL", "IS EMPTY", "IS NOT EMPTY"].includes(opr2),
         hideOpr2 = !hasY || isBetween,
-        hideX = isNullOpr,
-        hideY = !isBetween && (!hasCond || isNullOpr2);
+        hideX = isEmptyOpr,
+        hideY = !isBetween && (!hasCond || isEmptyOpr2);
     $cond.toggleClass("d-none", hideOpr2).find(":input").prop("disabled", hideOpr2);
     $and.toggleClass("d-none", !isBetween);
     $opr2.toggleClass("d-none", hideOpr2).find(":input").prop("disabled", hideOpr2);
@@ -4291,31 +4862,30 @@
     var _e$target9;
 
     let el = (_e$target9 = e == null ? void 0 : e.target) != null ? _e$target9 : document,
-        $el = $__default["default"](el),
         ids = ew.forms.ids();
 
     for (let id of ids) {
-      if ($el.find("#" + id)) forms.get(id).init();
+      if (el.matches != null && el.matches("#" + id) || el.querySelector("#" + id)) forms.get(id).init();
     }
   } // Is function
 
-  function isFunction$2(x) {
+  function isFunction$1(x) {
     return typeof x === "function";
   }
   /**
    * Alert (OK button only)
    *
-   * @param {string} msg - Message
+   * @param {string|Object} msg - Message or config
    * @param {callback} [cb] - Callback function
-   * @param {string} [type] - CSS class (see https://getbootstrap.com/docs/5.0/utilities/colors/#color)
+   * @param {string} [type] - CSS class (see https://getbootstrap.com/docs/5.2/utilities/colors/)
    * @returns {Promise}
    */
 
   function _alert(msg, cb, type) {
-    let config = $__default["default"].isObject(msg) ? msg : {};
-    msg = $__default["default"].isString(msg) ? msg : "";
-    type = $__default["default"].isString(cb) ? cb : type;
-    config = $__default["default"].extend(true, {}, ew.sweetAlertSettings, {
+    let config = $__default.default.isObject(msg) ? msg : {};
+    msg = $__default.default.isString(msg) ? msg : "";
+    type = $__default.default.isString(cb) ? cb : type;
+    config = $__default.default.extend(true, {}, ew.sweetAlertSettings, {
       html: msg,
       confirmButtonText: ew.language.phrase("OKBtn"),
       customClass: {
@@ -4328,7 +4898,7 @@
       show: true
     };
     $document$1.trigger("alert", [args]);
-    if (args.show) return Swal.fire(args.config).then(result => isFunction$2(cb) ? cb(result.isConfirmed) : result);
+    if (args.show) return Swal.fire(args.config).then(result => isFunction$1(cb) ? cb(result.isConfirmed) : result);
   }
   /**
    * Prompt/Confirm/Alert
@@ -4341,9 +4911,9 @@
   function _prompt(cfg, cb) {
     var _config, _config$inputValidato;
 
-    let config = $__default["default"].isObject(cfg) ? cfg : {};
-    config = $__default["default"].extend(true, {}, ew.sweetAlertSettings, {
-      html: $__default["default"].isString(cfg) ? cfg : "",
+    let config = $__default.default.isObject(cfg) ? cfg : {};
+    config = $__default.default.extend(true, {}, ew.sweetAlertSettings, {
+      html: $__default.default.isString(cfg) ? cfg : "",
       showCancelButton: true,
       confirmButtonText: ew.language.phrase("OKBtn"),
       cancelButtonText: ew.language.phrase("CancelBtn")
@@ -4353,40 +4923,44 @@
       (_config$inputValidato = (_config = config).inputValidator) != null ? _config$inputValidato : _config.inputValidator = value => {
         if (!value) return ew.language.phrase("EnterValue");
       };
-    return Swal.fire(config).then(result => isFunction$2(cb) ? cb(result.value) : result);
+    return Swal.fire(config).then(result => isFunction$1(cb) ? cb(result.value) : result);
   }
 
   function toast(options) {
     options = Object.assign({}, ew.toastOptions, options);
     $document$1.Toasts("create", options);
     var position = options.position,
-        $container = $__default["default"]("#toastsContainer" + position[0].toUpperCase() + position.substring(1));
+        $container = $__default.default("#toastsContainer" + position[0].toUpperCase() + position.substring(1));
     return $container.children().first();
   }
   /**
    * Show toast
    *
    * @param {string} message - Message
-   * @param {string} type - CSS class: "muted|primary|success|info|warning|danger"
+   * @param {string} type - CSS class: "primary|secondary|success|info|warning|danger|light|dark"
+   * @param {string} title - Title
    */
 
-  function showToast(message, type) {
+  function showToast(message, type, title) {
     if (!message) return;
-    type = type || "danger";
+    type || (type = "danger");
+    title || (title = ew.language.phrase(type));
     let args = {
       message,
       type,
+      title,
       show: true
     };
     $document$1.trigger("toast", [args]);
     if (!args.show) return;
     ({
       message,
-      type
+      type,
+      title
     } = args);
     return toast({
       class: "ew-toast bg-" + type,
-      title: ew.language.phrase(type),
+      title,
       body: message,
       autohide: type == "success" ? ew.autoHideSuccessMessage : false,
       // Autohide for success message
@@ -4396,26 +4970,26 @@
 
   function getForm(el) {
     if (el instanceof Form) return el.$element[0];
-    var $el = $__default["default"](el),
+    var $el = $__default.default(el),
         $f = $el.closest(".ew-form");
     if (!$f[0]) // Element not inside form
-      $f = $el.closest(".ew-grid, .ew-multi-column-grid").find(".ew-form").not(".ew-pager-form");
+      $f = $el.closest(".ew-grid, .ew-multi-column-grid").find(".ew-form");
     return $f[0];
   } // Check form data
 
   function hasFormData(form) {
-    var selector = "[name^=x_],[name^=y_],[name^=z_],[name^=w_],[name=psearch]",
-        els = $__default["default"](form).find(selector).filter(":enabled").get();
+    var selector = "[name^=x_],[name^=y_],[name^=z_],[name^=w_],[name=" + ew.TABLE_BASIC_SEARCH + "]",
+        els = $__default.default(form).find(selector).filter(":enabled").get();
 
     for (var i = 0, len = els.length; i < len; i++) {
       var el = els[i];
 
       if (/^(z|w)_/.test(el.name)) {
-        if (/^IS/.test($__default["default"](el).val())) return true;
+        if (/^IS/.test($__default.default(el).val())) return true;
       } else if (el.type == "checkbox" || el.type == "radio") {
         if (el.checked) return true;
       } else if (el.type == "select-one" || el.type == "select-multiple") {
-        if (!!$__default["default"](el).val()) return true;
+        if (!!$__default.default(el).val()) return true;
       } else if (["text", "textarea", "password", "search", "color", "date", "datetime-local", "datetime", "email", "hidden", "month", "number", "range", "tel", "time", "url", "week"].includes(el.type)) {
         if (el.value) return true;
       }
@@ -4455,22 +5029,22 @@
    */
 
   function updateOptions(obj, parentId, async, change) {
-    var _batch$send;
+    var _obj, _batch$send;
 
-    var f = this.$element ? this.$element[0] : this.form ? this.form : null; // Get form/div element from this
+    var f = this.$element ? this.$element[0] : this.form || ((_obj = obj) == null ? void 0 : _obj.form); // Get form/div element from this/obj
 
     if (!f) return;
     var frm = this.htmlForm ? this : forms.get(f.id); // Get Form object
 
     if (!frm) return;
-    if (this.form && $__default["default"].isUndefined(obj)) // Target unspecified
-      obj = forms.get(this).getList(this.name || this.id).childFields.slice(); // Clone
-    else if ($__default["default"].isString(obj)) obj = getElements(obj, f);
+    if (this.form && $__default.default.isUndefined(obj)) // Target unspecified => update child fields
+      obj = forms.get(this).getList(this).childFields.slice(); // Clone
+    else if ($__default.default.isString(obj)) obj = getElements(obj, f);
     if (!obj || Array.isArray(obj) && obj.length == 0) return;
     var self = this,
         batch = new Batch();
 
-    if (Array.isArray(obj) && $__default["default"].isString(obj[0])) {
+    if (Array.isArray(obj) && $__default.default.isString(obj[0])) {
       // Array of id
       var els = [];
 
@@ -4490,8 +5064,8 @@
         els.push(el);
 
         if (ar.length == 2 && Array.isArray(el)) {
-          // Check if id is "tblvar fldvar" and multiple inputs
-          var $el = $__default["default"](el);
+          // Check if id is "tblVar fldVar" and multiple inputs
+          var $el = $__default.default(el);
           $el.each(function () {
             if (!names.includes(this.name)) {
               names.push(this.name);
@@ -4507,7 +5081,7 @@
       }
 
       obj = els;
-      var list = forms.get(self).getList(self.name || self.id);
+      var list = forms.get(self).getList(self);
       if (Array.isArray(list == null ? void 0 : list.autoFillTargetFields) && list.autoFillTargetFields[0]) // AutoFill
         batch.add(autoFill.bind(null, self));
     } else {
@@ -4550,12 +5124,12 @@
         prefix = m ? m[1] : "",
         rowindex = m ? m[2] : "",
         arp = [],
-        list = frmo.getList(id),
-        $obj = $__default["default"](obj).data("updating", true);
+        list = frmo.getList(obj),
+        $obj = $__default.default(obj).data("updating", true);
     if ($obj.data("hidden")) // Skip data-hidden field, e.g. detail key
       return;
 
-    if ($__default["default"].isUndefined(parentId)) {
+    if ($__default.default.isUndefined(parentId)) {
       // Parent IDs not specified, use default
       parentId = list.parentFields.slice(); // Clone
 
@@ -4572,7 +5146,7 @@
       if (Array.isArray(parentId[0])) {
         // Array of array => data
         arp = parentId;
-      } else if ($__default["default"].isString(parentId[0])) {
+      } else if ($__default.default.isString(parentId[0])) {
         // Array of string => Parent IDs
         for (var i = 0, len = parentId.length; i < len; i++) arp.push(getOptionValues(parentId[i], fo));
       }
@@ -4594,7 +5168,8 @@
         $document$1.trigger("addoption", [args]);
         if (args.valid) newOption(obj, result, fo);
       });
-      if (obj.list) obj.render();
+      obj.render == null ? void 0 : obj.render(); // Selection list
+
       selectOption(obj, ar);
 
       if (change !== false) {
@@ -4602,19 +5177,19 @@
       }
     };
 
-    if ($__default["default"].isUndefined(async)) // Async not specified, use default
+    if ($__default.default.isUndefined(async)) // Async not specified, use default
       async = list.ajax;
 
     var _updateSibling = function () {
       // Update the y_* element
-      if (/(s(ea)?rch|summary|crosstab)$/.test(fo.id) && prefix == "x" && !rowindex) {
+      if (/(srch|search|summary|crosstab)$/.test(fo.id) && prefix == "x" && !rowindex) {
         // Search form
         args[0] = id.replace(/^x_/, "y_");
         updateOptions.apply(self, args); // args[0] is string, use updateOptions()
       }
     };
 
-    if (!$__default["default"].isBoolean(async) || Array.isArray(list.lookupOptions) && list.lookupOptions.length > 0) {
+    if (!$__default.default.isBoolean(async) || Array.isArray(list.lookupOptions) && list.lookupOptions.length > 0) {
       // Non-Ajax or Options loaded
       var ds = list.lookupOptions;
       addOpt(ds);
@@ -4636,21 +5211,31 @@
 
       if (isAutoSuggest(obj) && self.htmlForm) // Auto-Suggest (init form or auto-fill)
         data["v0"] = ar[0] || random(); // Filter by the current value
-      else if (obj.options && obj.tagName != "SELECTION-LIST" && !obj.classList.contains("form-select") || // Not <selection-list> or native <select>
+      else if (obj.options && !obj.list && !isNativeSelectOne(obj) || // Not <selection-list> or native <select>
       isModalLookup(obj)) // Lookup
         data["v0"] = ar[0] ? obj.multiple ? ar.join(ew.MULTIPLE_OPTION_SEPARATOR) : ar[0] : random(); // Filter by the current value
 
       for (var i = 0, cnt = arp.length; i < cnt; i++) // Filter by parent fields
       data["v" + (i + 1)] = arp[i].join(ew.MULTIPLE_OPTION_SEPARATOR);
 
-      return $__default["default"].ajax(getApiUrl(ew.API_LOOKUP_ACTION), {
+      obj.showLoading == null ? void 0 : obj.showLoading(); // selection-list
+
+      return $__default.default.ajax(getApiUrl(ew.API_LOOKUP_ACTION), {
         method: "POST",
         dataType: "json",
         data: data,
         async: async,
         processData: false,
         success: result => {
-          var ds = result.records || [];
+          let error = getError(result);
+
+          if (error) {
+            _alert(error);
+
+            return;
+          }
+
+          let ds = result.records || [];
           addOpt(ds);
 
           _updateSibling();
@@ -4661,6 +5246,7 @@
 
           return ds;
         },
+        error: (jqXHR, textStatus, errorThrown) => _alert(errorThrown),
         complete: () => $obj.data("updating", false)
       });
     }
@@ -4669,8 +5255,8 @@
   function getUserParams(id, root) {
     var id = id.replace(/\[\]$/, ""),
         o = {};
-    var root = !$__default["default"].isString(root) ? root : /^#/.test(root) ? root : "#" + root;
-    var $els = root ? $__default["default"](root).find(id) : $__default["default"](id);
+    var root = !$__default.default.isString(root) ? root : /^#/.test(root) ? root : "#" + root;
+    var $els = root ? $__default.default(root).find(id) : $__default.default(id);
     var val = $els.val();
 
     if (val) {
@@ -4681,24 +5267,86 @@
     }
 
     return o;
+  } // Get query builder filter input HTML
+
+  function getQueryBuilderFilterInput() {
+    return function (rule, name) {
+      var _document$getElementB, _document$getElementB2, _span$innerHTML$repla;
+
+      let tblVar = this.status.id.replace(/_query_builder$/, ""),
+          // "this" is QueryBuilder
+      fldVar = rule.filter.id,
+          tmplId = "tpx_" + tblVar + "_" + fldVar,
+          span = (_document$getElementB = document.getElementById(tmplId)) == null ? void 0 : (_document$getElementB2 = _document$getElementB.content) == null ? void 0 : _document$getElementB2.cloneNode(true).querySelector(".ew-search-field"),
+          html = (_span$innerHTML$repla = span == null ? void 0 : span.innerHTML.replace(/\binvalid-feedback\b/, ew.queryBuilderErrorClass).replace(new RegExp('(data-field=")?(\\b|_)x_' + fldVar + '\\b', "g"), ($0, $1, $2) => $1 ? $0 : $2 + name)) != null ? _span$innerHTML$repla : ""; // Keep "data-field" attribute
+
+      return "<div class=\"d-inline-flex position-relative\">" + html + "</div>";
+    };
+  } // Get query builder value setter
+
+  function getQueryBuilderValueSetter() {
+    return function (rule, value) {
+      let select = rule.$el.find(".rule-value-container").find("select, selection-list")[0];
+
+      if (select) {
+        // Selection list
+        select.dataset.field.replace("^x_", "");
+            let form = forms.get(select),
+            values = Array.isArray(value) ? value : $__default.default.isValue(value) ? [value] : [];
+        values.forEach(val => newOption(select, {
+          lf: val
+        }, form));
+        ew.selectOption(select, values);
+        form.updateList(select, undefined, undefined, true); // Update immediately
+      }
+
+      return null;
+    };
+  } // Get query builder filter validation object
+
+  function getQueryBuilderFilterValidation(validators) {
+    return {
+      callback: function (value, rule) {
+        // value not used
+        let $value = rule.$el.find(".rule-value-container"),
+            errors = 0;
+
+        for (let i = 0; i < rule.operator.nb_inputs; i++) {
+          $value.find("[name='" + rule.id + '_value_' + i + "']").each(function () {
+            let $this = $__default.default(this),
+                $invalid = $this.next("." + ew.queryBuilderErrorClass).empty();
+            validators == null ? void 0 : validators.forEach == null ? void 0 : validators.forEach(validator => {
+              let err = validator(this);
+
+              if ($__default.default.isObject(err)) {
+                errors++;
+                $invalid.append("<span>" + Object.values(err)[0] + "</span>");
+              }
+            });
+            if ($invalid.html()) $this.addClass("is-invalid").one("click", () => $this.removeClass("is-invalid"));
+          });
+        }
+
+        return errors ? "" : true; // Return error as empty string (errors already set in $invalid)
+      }
+    };
   } // Apply client side template to a DIV
 
-  function applyTemplate(divId, tmplId, classId, exportType, data) {
-    // Note: classId = fileName
+  function applyTemplate(divId, tmplId, classId, exportType, tblVar, data) {
     let args = {
-      "data": data || {},
-      "id": divId,
-      "template": tmplId,
-      "class": classId,
-      "export": exportType,
-      "enabled": true
+      data: data || {},
+      id: divId,
+      template: tmplId,
+      class: classId,
+      export: exportType,
+      enabled: true
     };
     $document$1.trigger("rendertemplate", [args]);
 
     if (args.enabled) {
-      var _document$getElementB;
+      var _document$getElementB3;
 
-      let template = (_document$getElementB = document.getElementById(tmplId)) == null ? void 0 : _document$getElementB.content,
+      let template = (_document$getElementB3 = document.getElementById(tmplId)) == null ? void 0 : _document$getElementB3.content,
           dlg = document.querySelector("#ew-modal-dialog.show"); // Shown modal dialog
 
       if (!template) return;
@@ -4716,7 +5364,7 @@
         }
       });
 
-      if ($__default["default"].views) {
+      if ($__default.default.views) {
         let textContent = template.textContent,
             hasTag = textContent.includes("{{") && textContent.includes("}}");
 
@@ -4734,7 +5382,7 @@
           div.appendChild(template);
           let html = div.innerHTML.replace(/{{([^}]+)}}/g, m => htmlDecode(m)),
               // HTML-decode comparison operators
-          tmpl = $__default["default"].templates(html);
+          tmpl = $__default.default.templates(html);
           document.getElementById(divId).innerHTML = tmpl.render(args.data, ew.jsRenderHelpers);
           scripts.forEach(item => document.body.appendChild(item)); // Add scripts
         } else {
@@ -4745,60 +5393,29 @@
       }
     }
 
-    if (exportType && exportType != "print") {
-      // Export custom
-      $__default["default"](function () {
-        let $meta = $__default["default"]("meta[http-equiv='Content-Type']"),
-            html = "<html><head>",
-            $div = $__default["default"]("#" + divId);
-        if ($div.children(0).is("div[id^=ct_]")) // Remove first div tag
-          $div = $div.children(0);
-        if ($meta[0]) html += "<meta http-equiv='Content-Type' content='" + $meta.attr("content") + "'>";
+    if (exportType && exportType != "print") // Export custom template with charts
+      exportCustom(divId, exportType, tblVar); // Note: Use classId as fileName
+  } // Export custom
 
-        if (exportType == "pdf") {
-          html += "<link rel='stylesheet' href='" + ew.PDF_STYLESHEET_FILENAME + "'>";
-        } else {
-          html += "<style>" + $__default["default"].ajax({
-            async: false,
-            type: "GET",
-            url: ew.PROJECT_STYLESHEET_FILENAME
-          }).responseText + "</style>";
-        }
+  function exportCustom(divId, exportType, tblVar) {
+    var _div$children$;
 
-        html += "</" + "head><body>";
-        $__default["default"](".ew-chart-top").each(function () {
-          html += $__default["default"](this).html();
-        });
-        html += $div.html();
-        $__default["default"](".ew-chart-bottom").each(function () {
-          html += $__default["default"](this).html();
-        });
-        html += "</body></html>";
-        let url = currentPage(),
-            data = {
-          "customexport": exportType,
-          "data": html,
-          "filename": args.class
-        };
-        data[ew.TOKEN_NAME] = ew.ANTIFORGERY_TOKEN;
-
-        if (exportType == "email") {
-          let str = currentUrl.searchParams.toString() + "&" + $__default["default"].param(data); // Add data
-
-          $__default["default"].post(url, str, function (result) {
-            showMessage(result);
-          });
-        } else {
-          fileDownload(url, data);
-        }
-
-        window.parent.jQuery("body").css("cursor", "default"); // Use window.parent in case in iframe
-      });
-    }
+    let div = document.getElementById(divId);
+    if ((_div$children$ = div.children[0]) != null && _div$children$.matches("div[id^=ct_]")) // Custom template, remove first div tag
+      div = div.children[0];
+    let data = {
+      customexport: exportType,
+      data: div.innerHTML,
+      [ew.TOKEN_NAME_KEY]: ew.TOKEN_NAME,
+      [ew.ANTIFORGERY_TOKEN_KEY]: ew.ANTIFORGERY_TOKEN,
+      ...getchartParams()
+    };
+    if (exportType == "email") exportEmail(tblVar, mergeSearchParams(currentUrl.searchParams, data)); // Merge data with email form data in current URL parameters
+    else fileDownload(getApiUrl([ew.API_EXPORT_ACTION, exportType, tblVar]), data);
   } // Toggle group
 
   function toggleGroup(el) {
-    var $el = $__default["default"](el),
+    var $el = $__default.default(el),
         $tr = $el.closest("tr"),
         selector = "tr",
         level;
@@ -4807,7 +5424,7 @@
       var idx = i == 1 ? "" : "-" + i;
       var data = $tr.data("group" + idx);
 
-      if ($__default["default"].isValue(data)) {
+      if ($__default.default.isValue(data)) {
         level = i;
         if (data != "") selector += "[data-group" + idx + "='" + String(data).replace(/'/g, "\\'") + "']";
       }
@@ -4815,38 +5432,36 @@
 
     if ($el.hasClass("ew-rpt-grp-hide")) {
       // Show
-      $__default["default"](selector).slice(1).removeClass("ew-rpt-grp-hide-" + level);
+      $__default.default(selector).slice(1).removeClass("ew-rpt-grp-hide-" + level);
       $el.removeClass("ew-rpt-grp-hide");
     } else {
       // Hide
-      $__default["default"](selector).slice(1).addClass("ew-rpt-grp-hide-" + level);
+      $__default.default(selector).slice(1).addClass("ew-rpt-grp-hide-" + level);
       $el.addClass("ew-rpt-grp-hide");
     }
   } // Check if boolean value is true
 
   function convertToBool(value) {
-    return value && ["1", "y", "t", "true"].includes(value.toLowerCase());
+    return value && ["1", "y", "t", "true"].includes(String(value).toLowerCase());
   } // Check if element value changed
 
   function valueChanged(fobj, infix, fld, bool) {
-    var nelm = getElements("x" + infix + "_" + fld, fobj);
-    var oelm = getElement("o" + infix + "_" + fld, fobj); // Hidden element
+    let el = getElements("x" + infix + "_" + fld, fobj),
+        oldEl = getElement("o" + infix + "_" + fld, fobj),
+        // Hidden element
+    fnEl = getElement("fn_x" + infix + "_" + fld, fobj); // Hidden element
 
-    var fnelm = getElement("fn_x" + infix + "_" + fld, fobj); // Hidden element
-
-    if ((nelm == null ? void 0 : nelm.type) == "hidden" && !oelm) // For example, detail key
+    if ((el == null ? void 0 : el.type) == "hidden" && !oldEl) // For example, detail key
       return false;
-    if (!oelm && (!nelm || Array.isArray(nelm) && nelm.length == 0)) return false;
+    if (!oldEl && (!el || Array.isArray(el) && el.length == 0)) return false;
 
-    var getValue = obj => getOptionValues(obj).join();
-
-    if (oelm && nelm) {
+    if (oldEl && el) {
       if (bool) {
-        if (convertToBool(getValue(oelm)) === convertToBool(getValue(nelm))) return false;
+        if (convertToBool(getOptionValue(oldEl)) === convertToBool(getOptionValue(el))) return false;
       } else {
-        var oldvalue = getValue(oelm);
-        var newvalue = fnelm ? getValue(fnelm) : getValue(nelm);
-        if (oldvalue == newvalue) return false;
+        let oldValue = getOptionValue(oldEl),
+            newValue = fnEl ? getOptionValue(fnEl) : getOptionValue(el);
+        if (oldValue == newValue) return false;
       }
     }
 
@@ -4854,9 +5469,9 @@
   } // Set language
 
   function setLanguage(el) {
-    var $el = $__default["default"](el),
-        val = $el.val() || $el.data("language");
+    let val = el.value || el.dataset.language;
     if (!val) return false;
+    let currentUrl = new URL(window.location);
     currentUrl.searchParams.set("language", val);
     window.location = sanitizeUrl(currentUrl.toString());
     return false;
@@ -4881,19 +5496,19 @@
   function submitAction(e, args) {
     var _window$msg;
 
-    var el = e.currentTarget,
+    let el = e.currentTarget,
         f = args.f || el.form || el.closest("form"),
-        $f = $__default["default"](f),
+        $f = $__default.default(f),
         key = args.key,
         action = args.action,
         url = args.url || currentPage(),
         msg = args.msg,
         data = args.data,
         success = args.success,
-        isPost = !args.method || sameText(args.method[0], "p"),
+        isPostBack = !args.method || sameText(args.method[0], "p"),
         isMultiple = !args.select && !args.key || args.select && sameText(args.select[0], "m");
 
-    if ((isMultiple || isPost) && !f) {
+    if ((isMultiple || isPostBack) && !f) {
       _alert(ew.language.phrase("NoHtmlForm"));
 
       return false;
@@ -4905,152 +5520,178 @@
       return false;
     }
 
-    var _success = function (result) {
+    let _success = function (result) {
       showMessage(result);
     };
 
-    var _submit = function (value) {
-      if (isPost && f) {
-        // Post back by form
-        if (action) // Action
-          $__default["default"]("<input>").attr({
-            type: "hidden",
-            name: "useraction",
-            value: action
-          }).appendTo($f);
-        if (!$__default["default"].isUndefined(value)) $__default["default"]("<input>").attr({
+    let _append = function (name, value) {
+      let $input = $f.find("input[type=hidden][name='" + name + "']");
+      if ($input[0]) // Hidden tag exists
+        $input.val(value); // Set value
+      else // Hidden tag does not exist, add one
+        $__default.default("<input>").attr({
           type: "hidden",
-          name: "actionvalue",
-          value: value
+          name,
+          value
         }).appendTo($f);
+    };
 
-        if ($__default["default"].isObject(data)) {
+    let _submit = function (value) {
+      if (isPostBack && f) {
+        // Post back by form
+        if (action) {
+          // Action
+          _append("action", action); // Set action
+
+          $f.find("#action").remove(); // Remove action in form
+        }
+
+        if (!$__default.default.isUndefined(value)) _append("actionvalue", value); // Set action value
+
+        if ($__default.default.isObject(data)) {
           // User data
-          for (var k in data) {
-            var $input = $f.find("input[type=hidden][name='" + k + "']");
-            if ($input[0]) $input.val(data[k]);else $__default["default"]("<input>").attr({
-              type: "hidden",
-              name: k,
-              value: data[k]
-            }).appendTo($f);
-          }
+          for (const [name, value] of Object.entries(data)) _append(name, value);
         }
 
-        if (!isMultiple && $__default["default"].isObject(key)) {
+        if (!isMultiple && $__default.default.isObject(key)) {
           // Key
-          for (var k in key) $__default["default"]("<input>").attr({
-            type: "hidden",
-            name: k,
-            value: key[k]
-          }).appendTo($f);
+          for (const [name, value] of Object.entries(key)) _append(name, value);
         }
 
+        if (parseUrl(url).pathname != currentUrl.pathname) // Do not use refresh if post to another page
+          $f.off("submit.ew");
         $f.prop({
           action: url,
           method: "post"
-        }).trigger("submit"); // if (action) // Action
-        //     $f.find("input[type=hidden][name=useraction]").remove(); // Remove the "useraction" element
+        }).trigger("submit");
       } else {
         // Ajax
-        data = $__default["default"].isObject(data) ? $__default["default"].param(data) : $__default["default"].isString(data) ? data : ""; // User data
+        data = new URLSearchParams(data); // User data
 
-        if (action) data += "&useraction=" + action + "&ajax=" + action; // Action
-
-        if (!$__default["default"].isUndefined(value)) data += "&actionvalue=" + encodeURIComponent(value); // User input value
-
-        if (isMultiple) // Multiple records
-          data += "&" + $f.find("input[name='key_m[]']:checked").serialize(); // Keys
-        else if (key) // Single record
-          data += "&" + ($__default["default"].isObject(key) ? $__default["default"].param(key) : key); // Key
-
-        if (success && $__default["default"].isString(success)) success = window[success];
-
-        if (isFunction$2(success)) {
-          $__default["default"].post(url, data, success);
-        } else if ($__default["default"].isObject(success)) {
-          // "success" is Ajax settings
-          success.data = data;
-          success.method = success.method || "POST";
-          success.success = success.success || _success;
-          $__default["default"].ajax(url, success);
-        } else {
-          $__default["default"].post(url, data, _success);
+        if (action) {
+          // Action
+          data.set("action", action);
+          data.set("ajax", action);
+          $f.find("#action").remove(); // Remove action in form
         }
+
+        if (!$__default.default.isUndefined(value)) data.set("actionvalue", value); // User input value
+
+        data = mergeSearchParams(data, $f.serialize()); // Form data including key_m[]
+
+        if (!isMultiple && $__default.default.isObject(key)) // Key
+          data = mergeSearchParams(data, key);
+        if (success && $__default.default.isString(success)) success = window[success];
+        let settings = $__default.default.isObject(success) ? success : {};
+        settings.data = data.toString();
+        settings.method || (settings.method = "POST");
+        settings.success || (settings.success = isFunction$1(success) ? success : _success);
+        $__default.default.ajax(url, settings);
       }
     };
 
-    msg = $__default["default"].isString(msg) ? (_window$msg = window[msg]) != null ? _window$msg : msg : msg; // Get config object if available
+    msg = $__default.default.isString(msg) ? (_window$msg = window[msg]) != null ? _window$msg : msg : msg; // Get config object if available
 
-    if (msg) {
-      _prompt(msg, value => {
-        if (value) _submit(value);
-      });
-    } else {
-      _submit();
-    }
-
+    msg ? _prompt(msg, value => _submit(value)) : _submit();
     return false;
   }
   /**
-   * Export with selected records and/or Custom Template
+   * Get charts parameters as object
    *
-   * @param {MouseEvent|HTMLFormElement} e - Event or HTML form
-   * @param {string} url - Form action
-   * @param {string} type - Export type
-   * @param {boolean} custom - Using Custom Template
-   * @param {boolean} sel - Selected records only
-   * @param {HTMLFormElement} fobj - email form object
+   * @returns string
+   */
+
+  function getchartParams() {
+    let charts = Array.from(Object.entries(window.exportCharts)).map(_ref => {
+      let [id, chart] = _ref;
+      return {
+        chartEngine: "Chart.js",
+        streamType: "base64",
+        stream: chart.toBase64Image(),
+        fileName: id + ".png"
+      };
+    });
+    return charts.length ? {
+      charts: JSON.stringify(charts)
+    } : null;
+  }
+  /**
+   * Export with charts, selected records and/or Custom Template (non-API)
+   *
+   * @param {MouseEvent|HTMLFormElement} args.evt - Event or HTML form
+   * @param {string} args.url - Form action
+   * @param {string} args.export - Export type
+   * @param {boolean} args.custom - Use Custom Template
+   * @param {boolean} args.exportSelected - Selected records only
+   * @param {HTMLFormElement} args.emailForm - email form object
    * @returns false
    */
 
-  function _export(e, url, type, custom, sel, fobj) {
-    var f = e.currentTarget.form;
-    if (!f) return false;
-    var $f = $__default["default"](f),
-        target = $f.attr("target"),
-        action = $f.attr("action"),
-        cb = sel && f.querySelector("input[type=checkbox][name='key_m[]']");
+  async function _export(args) {
+    let {
+      evt,
+      url,
+      export: type,
+      custom,
+      exportSelected,
+      emailForm
+    } = args,
+        f = evt.currentTarget.form;
+    exportSelected && (exportSelected = f && !!f.querySelector("input[type=checkbox][name='key_m[]']"));
 
-    if (cb && !keySelected(f)) {
+    if (exportSelected && !keySelected(f)) {
       _alert(ew.language.phrase("NoRecordSelected"));
 
       return false;
     }
 
-    if (custom) {
-      // Use Custom Template
-      $__default["default"]("iframe.ew-export").remove();
-      if (type == "email" && fobj) url += "&" + $__default["default"](fobj).serialize().replace(/&export=email/, ""); // Remove duplicate export=email
+    let $f = f ? $__default.default(f) : $__default.default('<form class="ew-export-form" method="post"></form>').appendTo($body),
+        target = $f.attr("target"),
+        action = $f.attr("action"),
+        postParams = [[ew.TOKEN_NAME_KEY, ew.TOKEN_NAME], [ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN]]; // Export data
 
-      if (cb) {
-        $__default["default"]("<iframe>").attr("name", "ew-export-frame").addClass("ew-export d-none").appendTo($body);
+    try {
+      if (custom) {
+        var _document$querySelect;
 
-        try {
-          $f.append($__default["default"]("<input type='hidden'>").attr({
-            name: "custom",
-            value: "1"
-          })).attr({
-            action: url,
-            target: "ew-export-frame"
-          }).find("input[name=exporttype]").val(type).end().trigger("submit");
-        } finally {
-          // Reset
-          $f.attr({
-            "target": target || "",
-            "action": action
-          }).find("input[name=custom]").remove();
-        }
+        // Use Custom Template (chart data to be retrieved later in iframe)
+        document.body.style.cursor = "wait";
+        let name = "ew-export-frame";
+        url = setSearchParams(url, {
+          export: type,
+          custom: 1
+        }, $__default.default(emailForm).serialize()); // Make sure parameters include "export=type&custom=1"
+
+        (_document$querySelect = document.querySelector("iframe[name='" + name + "']")) == null ? void 0 : _document$querySelect.remove();
+        let $iframe = $__default.default("<iframe>").attr("name", name).addClass("d-none").appendTo($body);
+        $f.attr({
+          action: url,
+          target: name
+        }); // Pass all data including email form data from URL to the iframe by URL parameters
+
+        postParams.forEach(_ref2 => {
+          let [name, value] = _ref2;
+          return $f.find("input[name=\"" + name + "\"]").val(value)[0] || $__default.default("<input>").attr({
+            type: "hidden",
+            name,
+            value
+          }).appendTo($f);
+        });
+        $iframe.one("load", () => document.body.style.cursor = "default").one("load", () => $f.attr({
+          action,
+          target
+        })); // Reset
+
+        $f.trigger("submit");
       } else {
-        $__default["default"]("<iframe>").attr({
-          name: "ew-export-frame",
-          src: url
-        }).addClass("ew-export d-none").appendTo($body);
+        // No Custom Template
+        url = setSearchParam(url, "export", type); // Make sure URL parameters include "export=type"
+
+        if (type == "print") $f.attr("action", url).trigger("submit"); // Submit the form directly
+        else fileDownload(url, mergeSearchParams($f.serialize(), getchartParams()));
       }
-    } else {
-      // No Custom Template
-      $f.find("input[name=exporttype]").val(type);
-      if (["xml", "print"].includes(type)) $f.trigger("submit"); // Submit the form directly
-      else fileDownload(action, $f.serialize());
+    } finally {
+      f || $f.remove();
     }
 
     return false;
@@ -5071,12 +5712,12 @@
    */
 
   function isHiddenTextArea(el) {
-    var $el = $__default["default"](el);
+    var $el = $__default.default(el);
     return $el.is(":hidden") && $el.data("editor");
   }
   /**
    * Check if modal lookup
-   * @param {HTMLElement|jQuery} el - HTML element or jQuery object
+   * @param {HTMLElement} el - HTML element
    * @returns {boolean}
    */
 
@@ -5087,7 +5728,7 @@
   }
   /**
    * Check if filter
-   * @param {HTMLElement|jQuery} el - HTML element or jQuery object
+   * @param {HTMLElement} el - HTML element
    * @returns {boolean}
    */
 
@@ -5103,18 +5744,44 @@
    */
 
   function isAutoSuggest(el) {
-    var $el = $__default["default"](el);
+    var $el = $__default.default(el);
     return $el.is(":hidden") && $el.data("autosuggest");
   }
   /**
+   * Check if Select2
+   * @param {HTMLElement} el - HTML element
+   * @returns {boolean}
+   */
+
+  function isSelect2(el) {
+    return el == null ? void 0 : el.matches == null ? void 0 : el.matches("select.select2-hidden-accessible");
+  }
+  /**
+   * Check if native selection list (select-one)
+   * @param {HTMLElement} el - HTML element
+   * @returns {boolean}
+   */
+
+  function isNativeSelectOne(el) {
+    return (el == null ? void 0 : el.matches == null ? void 0 : el.matches("select:not(.select2-hidden-accessible)")) && el.type == "select-one";
+  }
+  /**
    * Check if textbox
-   * @param {HTMLElement|jQuery} el - HTML element or jQuery object
+   * @param {HTMLElement} el - HTML element
    * @returns {boolean}
    */
 
   function isTextbox(el) {
-    var $el = $__default["default"](el);
-    return $el.is("input[type!=checkbox][type!=radio]") && !isAutoSuggest($el);
+    return (el == null ? void 0 : el.matches == null ? void 0 : el.matches("input:not([type=checkbox]):not([type=radio])")) && !isAutoSuggest(el);
+  }
+  /**
+   * Check if boolean checkbox
+   * @param {HTMLElement} el - HTML element
+   * @returns {boolean}
+   */
+
+  function isBooleanCheckbox(el) {
+    return el == null ? void 0 : el.matches == null ? void 0 : el.matches("input[type=checkbox][data-boolean]");
   }
   /**
    * Clear error message
@@ -5128,7 +5795,7 @@
       el = typ == "checkbox" || typ == "radio" ? el.get() : el[0];
     }
 
-    $__default["default"](el).closest(fieldContainerSelector).find(".invalid-feedback").html("");
+    $__default.default(el).closest(fieldContainerSelector).find(".invalid-feedback").html("");
   }
   /**
    * Show error message
@@ -5148,7 +5815,7 @@
       el = el.element;
     }
 
-    $__default["default"](el).closest(fieldContainerSelector).find(".invalid-feedback").append("<p>" + msg + "</p>");
+    $__default.default(el).closest(fieldContainerSelector).find(".invalid-feedback").append("<p>" + msg + "</p>");
     if (focus) setFocus(el);
     frm == null ? void 0 : frm.makeVisible(el);
     return false;
@@ -5161,7 +5828,7 @@
 
   function setFocus(obj, options) {
     if (!obj) return;
-    var $obj = $__default["default"](obj);
+    var $obj = $__default.default(obj);
     if (isHidden($obj)) return;
 
     if (isHiddenTextArea(obj)) {
@@ -5184,7 +5851,7 @@
 
   function setInvalid(obj) {
     if (!obj) return;
-    let $obj = $__default["default"](obj);
+    let $obj = $__default.default(obj);
     if (isHidden($obj)) return;
     if (!obj.options && obj.length) // Radio/Checkbox list
       obj = $obj[0];
@@ -5193,19 +5860,20 @@
         reset = () => $p.find(".is-invalid").removeClass("is-invalid");
 
     if (isAutoSuggest(obj)) {
-      $p.find(".ew-auto-suggest").removeClass("is-valid").addClass("is-invalid").one("click keydown", reset);
+      $p.find(".ew-auto-suggest").removeClass("is-valid").addClass("is-invalid").one("click keydown paste", reset);
     } else if (isHiddenTextArea(obj)) {
       $obj.removeClass("is-valid").addClass("is-invalid");
       $obj.data("editor").instance.once("change", reset);
     } else if (isModalLookup(obj)) {
       $obj.removeClass("is-valid").addClass("is-invalid").one("select2:open", reset);
     } else {
-      if (obj.type == "checkbox" || obj.type == "radio") {
+      if (["checkbox", "radio"].includes(obj.type)) {
         $obj.removeClass("is-valid").addClass("is-invalid").one("click keydown", reset);
       } else {
-        $obj.removeClass("is-valid").addClass("is-invalid").parent().one(ew.MOBILE_DETECT.version("Safari") && !ew.MOBILE_DETECT.version("Chrome") ? "change" : "click", reset); // "change" event for Safari
+        let events = ew.MOBILE_DETECT.version("Safari") && !ew.MOBILE_DETECT.version("Chrome") ? "change keydown paste" : "click keydown paste"; // Use "change" event for Safari
 
-        $obj.closest(".input-group").removeClass("is-valid").addClass("is-invalid");
+        $obj.parent().one(events, reset);
+        $obj.add($obj.closest(".input-group")).removeClass("is-valid").addClass("is-invalid");
       }
     }
   }
@@ -5216,232 +5884,564 @@
 
   function setValid(obj) {
     if (!obj) return;
-    var $obj = $__default["default"](obj);
+    let $obj = $__default.default(obj);
     if (isHidden($obj)) return;
     if (!obj.options && obj.length) // Radio/Checkbox list
       obj = $obj[0];
-    var $p = $obj.closest(fieldContainerSelector);
+
+    let $p = $obj.closest(fieldContainerSelector),
+        reset = () => $p.find(".is-valid").removeClass("is-valid");
 
     if (isAutoSuggest(obj)) {
-      $p.find(".ew-auto-suggest").removeClass("is-invalid").addClass("is-valid").one("click keydown", function () {
-        $p.find(".is-valid").removeClass("is-valid");
-      });
+      $p.find(".ew-auto-suggest").removeClass("is-invalid").addClass("is-valid").one("click keydown paste", reset);
+    } else if (isHiddenTextArea(obj)) {
+      $obj.removeClass("is-invalid").addClass("is-valid");
+      $obj.data("editor").instance.once("change", reset);
+    } else if (isModalLookup(obj)) {
+      $obj.removeClass("is-invalid").addClass("is-valid").one("select2:open", reset);
     } else {
-      if (obj.type == "checkbox" || obj.type == "radio") {
-        $obj.removeClass("is-invalid").addClass("is-valid").one("click keydown", function () {
-          $p.find(".is-valid").removeClass("is-valid");
-        });
+      if (["checkbox", "radio"].includes(obj.type)) {
+        $obj.removeClass("is-invalid").addClass("is-valid").one("click keydown", reset);
       } else {
-        $obj.removeClass("is-invalid").addClass("is-valid").parent().one("click keydown", function () {
-          $p.find(".is-valid").removeClass("is-valid");
-        });
-        $obj.closest(".input-group").removeClass("is-invalid").addClass("is-valid");
+        let events = ew.MOBILE_DETECT.version("Safari") && !ew.MOBILE_DETECT.version("Chrome") ? "change keydown paste" : "click keydown paste"; // Use "change" event for Safari
+
+        $obj.parent().one(events, reset);
+        $obj.add($obj.closest(".input-group")).removeClass("is-invalid").addClass("is-valid");
       }
     }
   } // Check if object has value
 
   function hasValue(obj) {
-    return getOptionValues(obj).join("") != "";
+    return getOptionValue(obj) != "";
   } // Check if object value is a masked password
 
   function isMaskedPassword(obj) {
-    var val = $__default["default"](obj).val();
+    var val = $__default.default(obj).val();
     return val == null ? void 0 : val.match(/^\*+$/);
   } // Sort by field
 
-  function sort(e, url, type) {
-    if (e.shiftKey && !e.ctrlKey) url = url.split("?")[0] + "?cmd=resetsort";else if (type == 2 && e.ctrlKey) url += "&ctrl=1";
-    window.location = sanitizeUrl(url);
-    return true;
+  function sort(e, dataset) {
+    let {
+      sortUrl: url,
+      sortType: type,
+      context,
+      ajax
+    } = dataset;
+    if (e.shiftKey && !e.ctrlKey) url = setSearchParams(url, {
+      cmd: "resetsort"
+    });else if (type == 2 && e.ctrlKey) url = setSearchParams(url, {
+      ctrl: "1"
+    });
+    if (convertToBool(ajax)) refresh(fetch(setLayout(url, false)), context);else window.location = sanitizeUrl(url);
+    return false;
   } // Open table header filter by field
 
   function filter(e) {
     let data = e.currentTarget.dataset;
-    $__default["default"]("select[data-select2-id='f" + data.table + "srch_" + data.field + "']").select2("open");
-  } // Confirm Delete Message
+    $__default.default("select[data-select2-id='f" + data.table + "srch_" + data.field + "']").select2("open");
+  }
+  /**
+   * Scroll an element into view
+   */
+
+  function scrollIntoView(el) {
+    var _OverlayScrollbars;
+
+    let container = el == null ? void 0 : el.closest(".os-host"); // Check OverlayScrollbars
+
+    container ? (_OverlayScrollbars = OverlayScrollbars(container)) == null ? void 0 : _OverlayScrollbars.scroll(el) : el == null ? void 0 : el.scrollIntoView();
+  }
+  /**
+   * Inline actions
+   *
+   * @param {Object} args - Arguments
+   * @param {MouseEvent} args.evt - Event
+   * @param {HTMLFormElement} args.f - Form of List page
+   * @param {string} args.url - URL
+   * @param {string} args.ewAction - Inline/Grid action (inline/grid)
+   * @param {string} args.action - Inline/Grid action type (insert/cancel/update/add/edit/copy/delete)
+   * @returns false
+   */
+
+  async function inlineAction(args) {
+    var _args$evt;
+
+    let $el = $__default.default((_args$evt = args.evt) == null ? void 0 : _args$evt.currentTarget),
+        $grid = $el.closest(".ew-grid, .ew-multi-column-grid");
+    $el.tooltip("hide");
+
+    if (!$grid[0] && $el.is(".dropdown-item")) {
+      $el = $__default.default("#" + $el.closest(".dropdown-menu").attr("aria-labelledby"));
+      $grid = $el.closest(".ew-grid, .ew-multi-column-grid");
+    }
+
+    let {
+      url,
+      ewAction,
+      action
+    } = args,
+        $f = $grid.find("form"),
+        f = $f[0],
+        $record = $el.closest("tr[data-rowindex], div[data-rowindex]"),
+        key = $record.data("key"),
+        curindex = $record.data("rowindex"),
+        $detached;
+    if (!$el[0] || !$grid[0] || !f) return; // Fail
+
+    let _fail = function (o) {
+      !o.status || showToast("Server Error " + o.status + ": " + o.statusText);
+    }; // Always
+
+    let _always = function () {
+      document.body.style.cursor = "default";
+    }; // Success handler for delete
+
+    let _deleted = async function (response) {
+      if (!(response instanceof Response)) // Inline actions only
+        return;
+      let ct = response.headers.get("Content-Type");
+
+      if (ct != null && ct.includes("json")) {
+        let result = await response.json();
+
+        if (result != null && result.success) {
+          $record.remove();
+          showToast(ew.language.phrase("DeleteSuccess"), "success");
+        } else {
+          showToast(getError(result) || ew.language.phrase("DeleteFailed"));
+        }
+      } else {
+        _alert(await response.text());
+      }
+    }; // Disable inline buttons
+
+    let _disableInlineButtons = () => $__default.default(".ew-list-options, .ew-list-option-body").find("[data-ew-action='inline'][data-action='add'],[data-ew-action='inline'][data-action='copy'],[data-ew-action='inline'][data-action='edit']").addClass("disabled"); // Enable inline buttons
+
+    let _enableInlineButtons = () => $__default.default(".ew-list-options, .ew-list-option-body").find("[data-ew-action='inline'][data-action='add'],[data-ew-action='inline'][data-action='copy'],[data-ew-action='inline'][data-action='edit']").removeClass("disabled"); // Get table
+
+    let _getTable = () => $grid.find(".ew-grid-middle-panel .ew-table")[0]; // Update row index
+
+    let _updateRowIndexes = tbl => {
+      let j = 0;
+      Array.from(tbl.rows).forEach(row => row.dataset.rowindex = row.dataset.rowindex === "0" ? "0" : String(j++)); // Update row index if not Inline-Add/Copy row
+    }; // Success handler for inline actions
+
+    let _success = async function (response) {
+      if (!(response instanceof Response)) // Inline actions only
+        return;
+      let text = await response.text(),
+          $data = $__default.default("<div>" + text + "</div>"),
+          $row = $data.find("tr[data-rowindex=0], div[data-rowindex=0]" + (key ? ", tr[data-key='" + key + "'], div[data-key='" + key + "']" : "")).filter("[data-rowtype=2], [data-rowtype=3]"),
+          // Find Inline-Add first
+      rowindex = $row.data("rowindex"),
+          $els = $row.add($data.find("script[data-rowindex=" + rowindex + "]")); // Add script for the row
+
+      if (["add", "copy", "edit"].includes(action) && !$els[0]) // Edit row not found => Error
+        return showToast(text);
+
+      if (["add", "copy"].includes(action)) {
+        // Inline-Add/Copy
+        if ($row.is("TR")) {
+          // Table
+          let tbl = _getTable();
+
+          if (tbl.matches(".ew-infinite-scroll-table")) $__default.default(tbl.tBodies).last().append($els);else $__default.default(tbl.tBodies).last().prepend($els);
+
+          _updateRowIndexes(tbl); // Update row index
+
+          setupTable(tbl, true);
+        } else {
+          $grid.find(".ew-multi-column-row").append($els);
+        }
+
+        _disableInlineButtons();
+
+        forms.get(f.id).tryFocus();
+        scrollIntoView($grid.find("[data-rowtype=2]")[0]);
+      } else if (action == "edit") {
+        // Inline-Edit
+        $detached = $record.replaceWith($els); // Replace current row
+
+        $grid.data("detached", $detached); // Save the detached row
+
+        if ($row.is("TR")) // Table
+          setupTable(_getTable(), true);
+
+        _disableInlineButtons();
+
+        forms.get(f.id).tryFocus();
+        scrollIntoView($grid.find("[data-rowtype=3]")[0]);
+      }
+    }; // Submit success handler for inline actions
+
+    let _submitSuccess = async function (response) {
+      if (!(response instanceof Response)) return;
+      let ct = response.headers.get("Content-Type");
+
+      if (ct != null && ct.includes("json")) {
+        let result = await response.json(),
+            error = getError(result);
+
+        if (error) {
+          showToast(error);
+          return;
+        }
+      }
+
+      let text = await response.text(),
+          $data = $__default.default("<div>" + text + "</div>"),
+          $row;
+
+      if (["insert", "update"].includes(action)) {
+        $row = $data.find("tr[data-rowindex][data-rowtype=" + ew.ROWTYPE_VIEW + "], div[data-rowindex][data-rowtype=" + ew.ROWTYPE_VIEW + "]"); // Row(s) with ROWTYPE_VIEW
+
+        if (!$row[0]) return; // Affected row(s) not found
+
+        if (action == "insert") // Inline-Add/Copy
+          $grid.find("tr[data-rowtype=" + ew.ROWTYPE_ADD + "], div[data-rowtype=" + ew.ROWTYPE_ADD + "]").replaceWith($row[0]); // Replace add row
+        else if (action == "update") // Inline-Edit/Update
+          $row.get().forEach(row => $grid.find("tr[data-key='" + row.dataset.key + "'], div[data-key='" + row.dataset.key + "']").replaceWith(row)); // Replace row(s) edited/updated
+      } else if (["add", "edit", "multiedit"].includes(action)) {
+        // Grid-Add/Grid-Edit/Multi-Edit
+        $row = $data.find("tr[data-rowindex][data-rowtype=" + ew.ROWTYPE_VIEW + "], div[data-rowindex][data-rowtype=" + ew.ROWTYPE_VIEW + "]"); // Row(s) with ROWTYPE_VIEW
+
+        if (["edit", "multiedit"].includes(action)) // Grid-Edit/Multi-Edit
+          $row.get().forEach(row => $grid.find("tr[data-key='" + row.dataset.key + "'], div[data-rowtype='" + row.dataset.key + "']").replaceWith(row));else if (action == "add") // Grid-Add
+          $grid.find(".ew-grid-middle-panel .ew-table > tbody:last").append($row); // Append to bottom
+      }
+
+      let tbl = _getTable();
+
+      _updateRowIndexes(tbl); // Update row index
+
+      setupTable(tbl, true);
+      showMessage({
+        target: $data
+      }); // Show message, if any
+    };
+
+    if (ewAction == "inline") {
+      if (action == "cancel") {
+        if (curindex == "0") {
+          // Cancel Inline-Add/Copy
+          $record.remove();
+        } else {
+          var _$grid$data;
+
+          // Cancel Inline-Edit
+          (_$grid$data = $grid.data("detached")) == null ? void 0 : _$grid$data.replaceAll($record);
+        }
+
+        _enableInlineButtons();
+      } else if (f && ["insert", "update"].includes(action)) {
+        // Post form
+        let frm = forms.get(f.id);
+
+        if (await frm.canSubmit(args.evt)) {
+          // Validate
+          document.body.style.cursor = "wait";
+
+          let body = setSearchParams($f.serialize(), {
+            action
+          }),
+              // Set up action
+          p = _fetch(setSearchParams(url, {
+            rnd: random()
+          }), {
+            method: "POST",
+            body
+          }).catch(_fail).finally(() => {
+            frm.enableForm();
+
+            _always();
+          });
+
+          if (frm.submitWithFetch) {
+            let args = {
+              form: f,
+              result: p
+            },
+                evt = $__default.default.Event("aftersubmit", {
+              originalEvent: args.evt
+            });
+            frm.trigger(evt, [args]);
+          } else {
+            p.then(_submitSuccess).finally(_enableInlineButtons);
+          }
+        }
+      } else if (action == "delete") {
+        // Inline-Delete
+        if (!key) {
+          // No key from the clicked row => Multi-Delete
+          $record = $grid.find("input[type=checkbox][name='key_m[]']:checked").closest("tr[data-rowindex], div[data-rowindex]"); // Update $record
+
+          if (!$record[0]) {
+            _alert(ew.language.phrase("NoRecordSelected"));
+
+            return false;
+          }
+        }
+
+        _prompt(ew.language.phrase("DeleteConfirm"), result => {
+          if (result) {
+            document.body.style.cursor = "wait";
+
+            let method = key ? "GET" : "POST",
+                body = deleteSearchParam($f.serialize(), "action"),
+                frm = forms.get(f.id),
+                p = _fetch(setSearchParams(url, {
+              action: "delete",
+              rnd: random()
+            }), {
+              method,
+              body
+            }).catch(_fail).finally(() => {
+              frm.enableForm();
+
+              _always();
+            });
+
+            if (frm.submitWithFetch) {
+              let args = {
+                form: f,
+                result: p
+              },
+                  evt = $__default.default.Event("aftersubmit", {
+                originalEvent: args.evt
+              });
+              frm.trigger(evt, [args]);
+            } else {
+              p.then(_deleted);
+            }
+          }
+        });
+      } else {
+        document.body.style.cursor = "wait";
+
+        _fetch(setSearchParams(url, {
+          rnd: random()
+        })).then(_success).catch(_fail).finally(_always);
+      }
+    } else if (ewAction == "grid" || ewAction == "modal") {
+      // Grid-Add/Edit, Modal-Add/Copy/Edit/Update
+      if ((ewAction == "grid" && action == "edit" || ewAction == "modal" && ["multiedit", "update"].includes(action)) && !keySelected(f)) {
+        // Grid-Edit and Multi-Edit/Update
+        _alert(ew.language.phrase("NoRecordSelected"));
+
+        return false;
+      }
+
+      ew.modalDialogShow({ ...args,
+        callback: _submitSuccess
+      });
+    }
+
+    return false;
+  } // Confirm inline-delete
 
   function confirmDelete(el) {
     clickDelete(el);
 
-    _prompt(ew.language.phrase("DeleteConfirmMsg"), result => {
-      result && el.href ? window.location = sanitizeUrl(el.href) : clearDelete(el);
+    _prompt(ew.language.phrase("DeleteConfirm"), result => {
+      if (result) {
+        if (el.dataset.json && el.href) // Handle JSON response
+          ew.modalDialogShow({
+            url: setSearchParams(el.href, {
+              action: "delete"
+            }),
+            json: true,
+            callback: true
+          });else if (el.href) window.location = sanitizeUrl(setSearchParams(el.href, {
+          action: "delete"
+        }));else clearDelete(el);
+      }
     });
 
     return false;
   } // Check if any key selected // PHP
 
   function keySelected(f) {
-    return $__default["default"](f).find("input[type=checkbox][name='key_m[]']:checked", f).length > 0;
+    return !!(f != null && f.querySelector("input[type=checkbox][name='key_m[]']:checked"));
   } // Select all keys
 
   function selectAllKeys(cb) {
     selectAll(cb);
-    var tbl = $__default["default"](cb).closest(".ew-table")[0];
+    let tbl = cb == null ? void 0 : cb.closest(".ew-table");
     if (!tbl) return;
-    $__default["default"](tbl.tBodies).each(function () {
-      $__default["default"](this.rows).each(function (i, r) {
-        var $r = $__default["default"](r);
+    $__default.default(tbl.tBodies).each(function () {
+      $__default.default(this.rows).each(function () {
+        let $r = $__default.default(this);
         if ($r.is(":not(.ew-template):not(.ew-table-preview-row)")) $r.toggleClass("table-active ew-table-selected-row", cb.checked).triggerHandler("change");
       });
     });
   } // Select all related checkboxes in the form
 
   function selectAll(cb) {
-    if (!cb || !cb.form) return;
-    $__default["default"](cb.form.elements).filter("input[type=checkbox][name^=" + cb.name + "_], [type=checkbox][name=" + cb.name + "]").not(cb).not(":disabled").prop("checked", cb.checked);
+    if (!(cb != null && cb.form)) return;
+    $__default.default(cb.form.elements).filter("input[type=checkbox][name^=" + cb.name + "_], [type=checkbox][name=" + cb.name + "]").not(cb).not(":disabled").prop("checked", cb.checked);
   } // Update selected checkbox
 
   function updateSelected(f) {
-    return $__default["default"](f).find("input[type=checkbox][name^=u_]:checked,input:hidden[name^=u_][value=1]").length > 0;
+    return !!(f != null && f.querySelector("input[type=checkbox][name^=u_]:checked,input[type=hidden][name^=u_][value='1']"));
   } // Clear selected rows color
 
   function clearSelected(tbl) {
-    let rowIndexes = $__default["default"](tbl).find("input[type=checkbox][name='key_m[]']:checked").closest("[data-rowindex]").map((i, r) => r.dataset.rowindex).get();
-    $__default["default"](tbl == null ? void 0 : tbl.rows).filter((i, r) => r.classList.contains("table-active") && !rowIndexes.includes(r.dataset.rowindex)).removeClass("table-active ew-table-selected-row").triggerHandler("change");
+    let rowIndexes = $__default.default(tbl).find("input[type=checkbox][name='key_m[]']:checked").closest("[data-rowindex]").map((i, r) => r.dataset.rowindex).get();
+    $__default.default(tbl == null ? void 0 : tbl.rows).filter((i, r) => r.classList.contains("table-active") && !rowIndexes.includes(r.dataset.rowindex)).removeClass("table-active ew-table-selected-row").triggerHandler("change");
   } // Clear all row delete status
 
   function clearDelete(el) {
-    var $el = $__default["default"](el),
-        tbl = $el.closest(".ew-table")[0];
+    let tbl = el == null ? void 0 : el.closest(".ew-table");
     if (!tbl) return;
-    var $tr = $el.closest(".ew-table > tbody > tr");
+    let $tr = $__default.default(el).closest(".ew-table > tbody > tr");
     $tr.siblings("[data-rowindex='" + $tr.data("rowindex") + "']").addBack().removeClass("table-active").triggerHandler("change");
   } // Click single delete link
 
   function clickDelete(el) {
-    var $el = $__default["default"](el),
-        tbl = $el.closest(".ew-table")[0];
+    let tbl = el == null ? void 0 : el.closest(".ew-table");
     if (!tbl) return;
     clearSelected(tbl);
-    var $tr = $el.closest(".ew-table > tbody > tr");
+    let $tr = $__default.default(el).closest(".ew-table > tbody > tr");
     $tr.siblings("[data-rowindex='" + $tr.data("rowindex") + "']").addBack().addClass("table-active").triggerHandler("change");
   } // Select a row
 
   function selectKey(e) {
-    var cb = e.target,
-        $cb = $__default["default"](cb),
-        tbl = $cb.closest(".ew-table")[0];
+    let chk = e.target,
+        tbl = chk == null ? void 0 : chk.closest(".ew-table");
     if (!tbl) return;
     clearSelected(tbl);
-    var $tr = $cb.closest(".ew-table > tbody > tr");
-    $tr.siblings("[data-rowindex='" + $tr.data("rowindex") + "']").addBack().each(function (i, r) {
-      $__default["default"](r).toggleClass("table-active ew-table-selected-row", cb.checked).triggerHandler("change");
+    let $tr = $__default.default(chk).closest(".ew-table > tbody > tr");
+    $tr.siblings("[data-rowindex='" + $tr.data("rowindex") + "']").addBack().each(function () {
+      $__default.default(this).toggleClass("table-active ew-table-selected-row", chk.checked).triggerHandler("change");
     });
     e.stopPropagation();
-  } // Setup table
+  }
+  /**
+   * Setup table
+   *
+   * @param {number} [index=undefined] Index
+   * @param {HTMLTableElement} tbl HTML table element
+   * @param {boolean} [force=undefined] Force setup
+   * @returns
+   */
 
-  function setupTable(index, tbl, force) {
-    var $tbl = $__default["default"](tbl),
-        $rows = $__default["default"](tbl.rows);
-    if (!tbl || !tbl.rows || !force && $tbl.data("isset") || tbl.tBodies.length == 0) return; // Set selected row color
+  function setupTable() {
+    let tbl, force;
 
-    var click = function (e) {
-      var $this = $__default["default"](this),
-          $tbl = $this.closest(".ew-table"),
-          tbl = $tbl[0],
-          $target = $__default["default"](e.target);
+    if ($__default.default.isNumber(arguments[0])) {
+      tbl = arguments[1];
+    } else if (arguments[0] instanceof HTMLTableElement) {
+      tbl = arguments[0];
+      force = arguments[1];
+    }
+
+    let $tbl = $__default.default(tbl),
+        $rows = $__default.default(tbl.rows);
+    if (!tbl || !tbl.rows || !force && tbl.dataset.isset || tbl.tBodies.length == 0) return; // Set selected row color
+
+    let click = function (e) {
+      let $this = $__default.default(this),
+          tbl = this.closest(".ew-table"),
+          $target = $__default.default(e.target);
       if (!tbl || $target.hasClass("btn") || $target.hasClass("ew-preview-btn") || $target.is(":input")) return;
       clearSelected(tbl); // Clear all other selected rows
 
       $this.siblings("[data-rowindex='" + $this.data("rowindex") + "']").addBack().toggleClass("table-active").triggerHandler("change");
     };
 
-    var n = $rows.filter("[data-rowindex=1]").length || $rows.filter("[data-rowindex=0]").length || 1; // Alternate color every n rows
-
-    var rows = $rows.filter(":not(.ew-template)").each(function () {
-      $__default["default"](this.cells).removeClass("ew-table-last-row").last().addClass("ew-table-last-col"); // Cell of last column
+    let n = $rows.filter("[data-rowindex=1]").length || $rows.filter("[data-rowindex=0]").length || 1,
+        // Alternate color every n rows
+    rows = $rows.filter(":not(.ew-template)").each(function () {
+      $__default.default(this.cells).removeClass("ew-table-last-row").last().addClass("ew-table-last-col"); // Cell of last column
     }).get();
-    var div = $tbl.parentsUntil(".ew-grid", "." + ew.RESPONSIVE_TABLE_CLASS)[0];
 
-    if (rows.length) {
-      for (var i = 1; i <= n; i++) {
-        var r = rows[rows.length - i]; // Last rows
+    if (rows.length >= n) {
+      let div = $tbl.parentsUntil(".ew-grid", "." + ew.RESPONSIVE_TABLE_CLASS)[0];
+      rows[rows.length - 1].classList.add("border-bottom-0"); // Last row
 
-        $__default["default"](r.cells).each(function () {
-          if (this.rowSpan == i) // Cell of last row
-            $__default["default"](this).addClass("ew-table-last-row").toggleClass("ew-table-border-bottom", (div == null ? void 0 : div.clientHeight) > tbl.offsetHeight);
-        });
-      }
+      rows.splice(n * -1).forEach((row, i) => Array.from(row.cells).filter(cell => cell.rowSpan == i + 1) // Cell of last row
+      .forEach(cell => {
+        cell.classList.add("ew-table-last-row");
+        cell.classList.toggle("ew-table-border-bottom", (div == null ? void 0 : div.clientHeight) > tbl.offsetHeight);
+      }));
     }
 
-    var form = $tbl.closest("form")[0];
-    var attach = form && $__default["default"](form.elements).filter("input#action:not([value^=grid])").length > 0;
-    $__default["default"](tbl.tBodies[tbl.tBodies.length - 1].rows) // Use last TBODY (avoid Opera bug)
+    let form = tbl.closest("form"),
+        attach = form && $__default.default(form.elements).filter("input#action:not([value^=grid])").length > 0;
+    $__default.default(tbl.tBodies[tbl.tBodies.length - 1].rows) // Use last TBODY (avoid Opera bug)
     .filter(":not(.ew-template):not(.ew-table-preview-row)").each(function () {
-      var $r = $__default["default"](this);
+      let $r = $__default.default(this);
       if (attach && !$r.data("isset")) $r.on("click", click).data("isset", true);
     });
-    setupGrid(index, $tbl.closest(".ew-grid")[0], force);
-    $tbl.data("isset", true);
+    setupGrid(tbl.closest(".ew-grid"), force);
+    tbl.dataset.isset = "true";
   } // Setup grid
 
-  function setupGrid(index, grid, force) {
-    var $grid = $__default["default"](grid);
-    if (!grid || !force && $grid.data("isset")) return;
-    var rowcnt = $grid.find("table.ew-table > tbody").first().children("tr:not(.ew-table-preview-row, .ew-template)").length;
-    if (rowcnt == 0 && !$grid.find(".ew-grid-upper-panel, .ew-grid-lower-panel")[0]) $grid.hide();
+  function setupGrid(grid, force) {
+    let $grid = $__default.default(grid);
+    if (!grid || !force && grid.dataset.isset) return;
+    let rowcnt = $grid.find("table.ew-table > tbody").first().children("tr:not(.ew-table-preview-row, .ew-template)").length;
+    if (rowcnt == 0 && !grid.querySelector(".ew-grid-upper-panel, .ew-grid-lower-panel")) $grid.hide();
 
-    if ($grid.find(".ew-grid-middle-panel:visible").hasClass(ew.RESPONSIVE_TABLE_CLASS) && $grid.width() > $__default["default"](".content").width()) {
+    if ($grid.find(".ew-grid-middle-panel:visible").hasClass(ew.RESPONSIVE_TABLE_CLASS) && $grid.width() > $__default.default(".content").width()) {
       $grid.addClass("d-flex");
       $grid.closest(".ew-detail-pages").addClass("d-block");
       $grid.closest(".ew-form").addClass("w-100");
-      if (ew.USE_OVERLAY_SCROLLBARS) $grid.find(".ew-grid-middle-panel:not(.ew-preview-middle-panel)").overlayScrollbars(ew.overlayScrollbarsOptions);
     }
 
-    $grid.data("isset", true);
+    grid.dataset.isset = "true";
   } // Add a row to grid
 
   function addGridRow(el) {
     var _bootstrap$Tooltip$ge2;
 
-    var $grid = $__default["default"](el).closest(".ew-grid"),
+    let grid = el == null ? void 0 : el.closest(".ew-grid"),
+        $grid = $__default.default(grid),
         $tbl = $grid.find("table.ew-table").last(),
         $p = $tbl.parent("div"),
         $tpl = $tbl.find("tr.ew-template");
-    if (!el || !$grid[0] || !$tbl[0] || !$tpl[0]) return false;
-    var $lastrow = $__default["default"]($tbl[0].rows).last();
+    if (!el || !grid || !$tbl[0] || !$tpl[0]) return false;
+    let $lastrow = $__default.default($tbl[0].rows).last();
     $tbl.find("td.ew-table-last-row").removeClass("ew-table-last-row");
-    var $row = $tpl.clone(true, true).removeClass("ew-template");
-    var $form = $grid.find("div.ew-form[id^=f][id$=grid]");
-    if (!$form[0]) $form = $grid.find("form.ew-form[id^=f][id$=list]");
-    var suffix = $form.is("div") ? "_" + $form.attr("id") : "";
-    var $elkeycnt = $form.find("#key_count" + suffix);
-    var keycnt = parseInt($elkeycnt.val(), 10) + 1;
+    let $row = $tpl.clone(true, true).removeClass("ew-template"),
+        form = grid.querySelector("div.ew-form[id^=f][id$=grid]") || grid.querySelector("form.ew-form[id^=f][id$=list]") || grid.querySelector("form.ew-form[id^=f][id$=grid]"),
+        $form = $__default.default(form),
+        suffix = $form.is("div") ? "_" + form.id : "",
+        $keycnt = $form.find("#" + ew.FORM_KEY_COUNT_NAME + suffix),
+        keycnt = parseInt($keycnt.val(), 10) + 1,
+        name = ew.FORM_ROW_ACTION_NAME.replace(/^k_/, "k" + keycnt + "_") + suffix,
+        // name="k<n>_action"
+    $els = $tpl.find("script:contains('$rowindex$')"); // Get scripts with rowindex
+
     $row.attr({
       "id": "r" + keycnt + $row.attr("id").substring(2),
       "data-rowindex": keycnt
     });
-    var $els = $tpl.find("script:contains('$rowindex$')"); // Get scripts with rowindex
-
     $row.children("td").each(function () {
-      $__default["default"](this).find("*").each(function () {
-        $__default["default"].each(this.attributes, function (i, attr) {
+      $__default.default(this).find("*").each(function () {
+        $__default.default.each(this.attributes, function (i, attr) {
           attr.value = attr.value.replace(/\$rowindex\$/g, keycnt); // Replace row index
         });
       });
     });
-    var $btn = $row.find(".ew-icon").closest("a, button");
+    let $btn = $row.find(".ew-icon").closest("a, button");
     (_bootstrap$Tooltip$ge2 = bootstrap.Tooltip.getInstance($btn[0])) == null ? void 0 : _bootstrap$Tooltip$ge2.dispose();
-    $btn.tooltip({
+    $btn.tooltip({ ...ew.tooltipOptions,
       container: "body",
-      placement: "bottom",
-      trigger: "hover",
-      sanitizeFn: ew.sanitizeFn
+      trigger: "hover"
     });
-    $elkeycnt.val(keycnt).after($__default["default"]("<input>").attr({
+    $keycnt.val(keycnt).after($__default.default("<input>").attr({
       type: "hidden",
-      id: "k" + keycnt + "_action" + suffix,
-      name: "k" + keycnt + "_action" + suffix,
+      id: name,
+      name: name,
       value: "insert"
     }));
     $lastrow.after($row);
-    $els.each(function () {
-      addScript(this.text.replace(/\$rowindex\$/g, keycnt));
-    });
-    var frm = $form.data("form");
+    $els.get().forEach(el => addScript(el.text.replace(/\$rowindex\$/g, keycnt)));
+    let frm = $form.data("form");
     frm == null ? void 0 : frm.initEditors();
     frm == null ? void 0 : frm.initUpload();
-    setupTable(-1, $tbl[0], true);
+    setupTable($tbl[0], true);
     $p.scrollTop($p[0].scrollHeight);
     return false;
   } // Delete a row from grid
@@ -5450,30 +6450,28 @@
     var _bootstrap$Tooltip$ge3;
 
     (_bootstrap$Tooltip$ge3 = bootstrap.Tooltip.getInstance(el)) == null ? void 0 : _bootstrap$Tooltip$ge3.dispose();
-    var $el = $__default["default"](el),
-        $grid = $el.closest(".ew-grid, .ew-multi-column-grid"),
-        $row = $el.closest("tr, div[data-rowindex]"),
-        $tbl = $row.closest(".ew-table");
-    if (!el || !$grid[0] || !$row[0]) return false;
-    var rowidx = parseInt($row.data("rowindex"), 10);
-    var $form = $grid.find("div.ew-form[id^=f][id$=grid]");
-    if (!$form[0]) $form = $grid.find("form.ew-form[id^=f][id$=list]");
-    var frm = $form.data("form");
-    if (!$form[0] || !frm) return false;
-    var suffix = $form.is("div") ? "_" + $form.attr("id") : "";
-    var keycntname = "#key_count" + suffix;
+    let grid = el.closest(".ew-grid, .ew-multi-column-grid"),
+        row = el.closest("tr, div[data-rowindex]"),
+        tbl = row == null ? void 0 : row.closest(".ew-table"),
+        rowidx = parseInt(row == null ? void 0 : row.dataset.rowindex, 10),
+        form = (grid == null ? void 0 : grid.querySelector("div.ew-form[id^=f][id$=grid]")) || (grid == null ? void 0 : grid.querySelector("form.ew-form[id^=f][id$=list], form.ew-form[id^=f][id$=grid]")),
+        $form = $__default.default(form),
+        frm = $form.data("form");
+    if (!el || !grid || !row || !tbl || !form || !frm) return false;
+    let suffix = $form.is("div") ? "_" + form.id : "",
+        keycnt = "#" + ew.FORM_KEY_COUNT_NAME + suffix;
 
-    var _delete = function () {
-      $row.remove();
-      if ($grid.is(".ew-grid")) setupTable(-1, $tbl[0], true);
+    let _delete = function () {
+      row.remove();
+      if (grid.classList.contains(".ew-grid")) setupTable(tbl, true);
 
       if (rowidx > 0) {
-        var $keyact = $form.find("#k" + rowidx + "_action" + suffix);
+        let $keyact = $form.find("#k" + rowidx + "_action" + suffix);
 
         if ($keyact[0]) {
           $keyact.val($keyact.val() == "insert" ? "insertdelete" : "delete");
         } else {
-          $form.find(keycntname).after($__default["default"]("<input>").attr({
+          $form.find(keycnt).after($__default.default("<input>").attr({
             type: "hidden",
             id: "k" + rowidx + "_action" + suffix,
             name: "k" + rowidx + "_action" + suffix,
@@ -5483,12 +6481,12 @@
       }
     };
 
-    if (isFunction$2(frm.emptyRow) && frm.emptyRow(infix)) {
+    if (isFunction$1(frm.emptyRow) && frm.emptyRow(infix)) {
       // Empty row
       _delete();
     } else {
       // Confirm
-      _prompt(ew.language.phrase("DeleteConfirmMsg"), result => {
+      _prompt(ew.language.phrase("DeleteConfirm"), result => {
         if (result) _delete();
       });
     }
@@ -5497,41 +6495,40 @@
   } // HTML encode text
 
   function htmlEncode(text) {
-    var str = String(text);
-    return str.replace(/&/g, '&amp;').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(text).replace(/&/g, '&amp;').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   } // HTML decode text
 
   function htmlDecode(text) {
-    var str = String(text);
-    return str.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return String(text).replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
   } // Get form element(s) as single element or array of radio/checkbox
 
   function getElements(el, root) {
-    var selector;
+    let selectors = [],
+        getFieldSelector = field => "[data-field='" + field + "']:not(.ew-custom-option):not([name^=y_]):not([data-old])";
 
-    if ($__default["default"].isObject(el) && el.dataset) {
+    if (el instanceof HTMLElement && el.dataset.table && el.dataset.field) {
       // HTML element (e.g. radio/checkbox)
-      selector = "[data-table='" + el.dataset.table + "'][data-field='" + el.dataset.field + "']:not([name^=o]):not([name^='x$'])";
-    } else if ($__default["default"].isString(el)) {
-      selector = "[name='" + el + "']";
-      var ar = el.split(" "); // Check if "#id name"
+      if (isBooleanCheckbox(el)) return el;
+      selectors = ["[data-table='" + el.dataset.table + "']" + getFieldSelector(el.dataset.field)];
+    } else if ($__default.default.isString(el)) {
+      let [s1, s2] = el.split(" "); // Check if "<table> <name>"
 
-      if (ar.length == 2) selector = "[data-table='" + ar[0] + "'][data-field='" + getId(ar[1]) + "']:not([name^=o]):not([name^='x$'])"; // Remove []
+      selectors = s2 ? ["[data-table='" + s1 + "']" + getFieldSelector(getId(s2))] // "<table> <name>", remove []
+      : ["[name='" + el + "']:not(.ew-custom-option):not([data-old])", getFieldSelector(getId(el))]; // "<name>" only
     }
 
-    var root = !$__default["default"].isString(root) ? root : /^#/.test(root) ? root : "#" + root;
-    selector = "input" + selector + ",select" + selector + ",textarea" + selector + ",button" + selector + ",selection-list" + selector;
-    var $els = root ? $__default["default"](root).find(selector) : $__default["default"](selector);
-    if ($els.length == 1 && $els.is(":not([type=checkbox]):not([type=radio])")) return $els[0];
-    if ($els.length == 2 && $els.eq(0).is("selection-list") && $els.eq(1).is("input[type=hidden]")) // Polyfill for the ElementInternals
+    root = !$__default.default.isString(root) ? root : /^#/.test(root) ? root : "#" + root;
+    let selector = ["input", "select", "textarea", "button", "selection-list"].flatMap(tag => selectors.map(sel => tag + sel)).join(),
+        $els = root ? $__default.default(root).find(selector) : $__default.default(selector);
+    if ($els.length == 1 && ($els.is(":not([type=checkbox]):not([type=radio])") || isBooleanCheckbox($els[0])) || $els.length == 2 && $els.eq(0).is("selection-list") && $els.eq(1).is("input[type=hidden]")) // Polyfill for the ElementInternals
       return $els[0];
-    return $els.get();
-  } // Get first element (not necessarily form element)
+    return $els[0] ? $els.get() : null;
+  } // Get first element by id/name (not necessarily form element)
 
   function getElement(name, root) {
-    var root = $__default["default"].isString(root) ? "#" + root : root,
-        selector = "#" + name.replace(/([\$\[\]])/g, "\\$1") + ",[name='" + name + "']";
-    return root ? $__default["default"](root).find(selector)[0] : $__default["default"](selector).first()[0];
+    root = !$__default.default.isString(root) ? root : /^#/.test(root) ? root : "#" + root;
+    let selector = "#" + name.replace(/([\$\[\]])/g, "\\$1") + ",[name='" + name + "']";
+    return root ? $__default.default(root).find(selector)[0] : $__default.default(selector).first()[0];
   } // Get ancestor by function
 
   function getAncestorBy(node, fn) {
@@ -5545,7 +6542,7 @@
   } // Check if an element is hidden
 
   function isHidden(el) {
-    var $el = $__default["default"](el);
+    var $el = $__default.default(el);
     return $el.css("display") == "none" && !$el.is("selection-list") && !$el.closest(".dropdown-menu")[0] && !isModalLookup(el) && !isAutoSuggest(el) && !isHiddenTextArea(el) || getAncestorBy(el, node => node.style.display == "none" && !node.classList.contains("tab-pane") && !node.classList.contains("collapse")) != null;
   } // Check if same text
 
@@ -5555,121 +6552,108 @@
 
   function sameString(o1, o2) {
     return String(o1) == String(o2);
-  } // Get element value
+  } // Check if same path
+
+  function samePath(p1, p2) {
+    p1 = p1 instanceof URL ? p1.pathname : parseUrl(p1).pathname;
+    p2 = p2 instanceof URL ? p2.pathname : parseUrl(p2).pathname;
+
+    if (p1 != p2 && p1.startsWith(ew.PATH_BASE) && p2.startsWith(ew.PATH_BASE)) {
+      p1 = p1.substring(ew.PATH_BASE.length);
+      p2 = p2.substring(ew.PATH_BASE.length);
+      let ar1 = p1.split("/"),
+          ar2 = p2.split("/");
+      if (ar1[0] == ar2[0] && ar1[0].match(/(list|view|edit)$/i) || // *list == *list
+      ar1[0] == ar2[0] && ar1[1] == ar2[1] && [ew.LIST_ACTION, ew.VIEW_ACTION, ew.EDIT_ACTION].includes(ar1[1])) // xxx/list == xxx/list
+        return true;
+    }
+
+    return p1 == p2;
+  } // Get element value as array for select-multiple field or else as string
 
   function getValue(el, form) {
-    if (!el) return "";
-    let obj;
+    let obj = el;
+    if ($__default.default.isString(el)) obj = el.split(" ").length == 2 // Parent field in master table
+    ? getElements(el) : getElements(el, form);else if (["checkbox", "radio"].includes(el.type)) // Single radio/checkbox
+      obj = getElements(el); // Find radio buttons and checkboxes with the same name
 
-    if ($__default["default"].isString(el)) {
-      let ar = el.split(" ");
-
-      if (ar.length == 2) {
-        // Parent field in master table
-        obj = getElements(el);
-      } else {
-        obj = getElements(el, form);
-      }
-    } else if (el.type == "radio" || el.type == "checkbox") {
-      // Single radio/checkbox
-      obj = getElements(el);
-    } else {
-      obj = el;
-    }
+    if (!obj) return undefined;
 
     if (obj.options) {
       // Selection list
-      if (obj.list) {
-        let val = obj.values;
-        return obj.multiple ? val : val[0] || "";
-      } else {
-        let val = Array.prototype.filter.call(obj.options, option => option.selected && option.value !== "").map(option => option.value);
-        return obj.type == "select-multiple" ? val : val[0] || "";
-      }
-    } else if ($__default["default"].isNumber(obj.length)) {
-      // Radio/Checkbox list, or element not found
-      let val = $__default["default"](obj).filter(":checked").map(function () {
-        return this.value;
-      }).get();
-      return obj.length == 1 ? val[0] : val;
+      return obj.list ? obj.type == "select-multiple" ? obj.values : obj.value : $__default.default(obj).val();
+    } else if (Array.isArray(obj)) {
+      // Radio/Checkbox list or element not found
+      return obj.length ? $__default.default(obj).filter(":checked").map((i, el) => el.value).get() : undefined;
+    } else if (isBooleanCheckbox(obj)) {
+      // Single checkbox
+      return obj.checked ? obj.value : undefined;
     } else if (ew.isHiddenTextArea(obj)) {
-      $__default["default"](obj).data("editor").save();
+      $__default.default(obj).data("editor").save();
       return obj.value;
     } else {
       // text/hidden
-      let data = $__default["default"](obj).data();
-      if (data.lookup && data.multiple) // Modal-Lookup
-        return obj.value.split(ew.MULTIPLE_OPTION_SEPARATOR);else return obj.value;
+      return obj.value;
     }
   } // Get existing selected values as an array
 
   function getOptionValues(el, form) {
-    var obj;
+    let obj = el;
+    if ($__default.default.isString(el)) obj = el.split(" ").length == 2 // Parent field in master table
+    ? getElements(el) : getElements(el, form);else if (["checkbox", "radio"].includes(el.type)) // Single radio/checkbox
+      obj = getElements(el); // Find radio buttons and checkboxes with the same name
 
-    if ($__default["default"].isString(el)) {
-      var ar = el.split(" ");
-
-      if (ar.length == 2) {
-        // Parent field in master table
-        obj = getElements(el);
-      } else {
-        obj = getElements(el, form);
-      }
-    } else if (el.type == "radio" || el.type == "checkbox") {
-      // Single radio/checkbox
-      obj = getElements(el);
-    } else {
-      obj = el;
-    }
+    if (!obj) return [];
 
     if (obj.options) {
       // Selection list
-      if (obj.list) return obj.values;else return Array.prototype.filter.call(obj.options, option => option.selected && option.value !== "").map(option => option.value);
-    } else if ($__default["default"].isNumber(obj.length)) {
-      // Radio/Checkbox list, or element not found
-      return $__default["default"](obj).filter(":checked").map(function () {
+      if (obj.list) {
+        return obj.values;
+      } else if (isSelect2(obj)) {
+        let val = $__default.default(obj).val();
+        return Array.isArray(val) ? val : $__default.default.isValue(val) ? [val] : [];
+      } else {
+        return Array.from(obj.options).filter(option => option.selected && option.value !== "").map(option => option.value);
+      }
+    } else if (Array.isArray(obj) || isBooleanCheckbox(obj)) {
+      // Radio/Checkbox list, or single checkbox, or element not found ([])
+      return $__default.default(obj).filter(":checked").map(function () {
         return this.value;
       }).get();
     } else if (ew.isHiddenTextArea(obj)) {
-      $__default["default"](obj).data("editor").save();
+      $__default.default(obj).data("editor").save();
       return [obj.value];
     } else {
       // text/hidden
-      var data = $__default["default"](obj).data();
-      if (data.lookup && data.multiple) // Modal-Lookup
-        return obj.value.split(ew.MULTIPLE_OPTION_SEPARATOR);else return [obj.value];
+      return [obj.value];
     }
+  } // Get existing selected values as string
+
+  function getOptionValue(el, form) {
+    return getOptionValues(el, form).join(ew.MULTIPLE_OPTION_SEPARATOR);
   } // Get existing text of selected values as an array
 
   function getOptionTexts(el, form) {
-    var obj;
+    let obj = el;
+    if ($__default.default.isString(el)) obj = el.split(" ").length == 2 // Parent field in master table
+    ? getElements(el) : getElements(el, form);else if (["checkbox", "radio"].includes(el.type)) // Single radio/checkbox
+      obj = getElements(el); // Find radio buttons and checkboxes with the same name
 
-    if ($__default["default"].isString(el)) {
-      var ar = el.split(" ");
-
-      if (ar.length == 2) {
-        // Parent field in master table
-        obj = getElements(el);
-      } else {
-        obj = getElements(el, form);
-      }
-    } else {
-      obj = el;
-    }
+    if (!obj) return [];
 
     if (isAutoSuggest(obj)) {
       // AutoSuggest (before obj.options)
       return [obj.input.value];
     } else if (obj.options) {
       // Selection list
-      return Array.prototype.filter.call(obj.options, option => option.selected && option.value !== "").map(option => option.text);
-    } else if ($__default["default"].isNumber(obj.length)) {
-      // Radio/Checkbox list, or element not found
-      return $__default["default"](obj).filter(":checked").map(function () {
-        return $__default["default"](this).parent().text();
+      return isSelect2(obj) ? $__default.default(obj).find(":selected").map((i, el) => el.innerHTML).get() : Array.from(obj.options).filter(option => option.selected && option.value !== "").map(option => option.text);
+    } else if (Array.isArray(obj) || isBooleanCheckbox(obj)) {
+      // Radio/Checkbox list, or single checkbox, or element not found ([])
+      return $__default.default(obj).filter(":checked").map(function () {
+        return $__default.default(this).parent().text();
       }).get();
     } else if (ew.isHiddenTextArea(obj)) {
-      $__default["default"](obj).data("editor").save();
+      $__default.default(obj).data("editor").save();
       return [obj.value];
     } else {
       return [obj.value];
@@ -5681,12 +6665,12 @@
       // Selection list
       var lo = obj.type == "select-multiple" || // multiple
       obj.hasAttribute("data-dropdown") || // dropdown
-      convertToBool(obj.getAttribute("data-pleaseselect")) === false || // data-pleaseselect="false"
       obj.length > 0 && obj.options[0].value != "" // non-empty first element
       ? 0 : 1;
 
       if (obj.list) {
         obj.removeAll();
+        obj.render();
       } else {
         for (var i = obj.length - 1; i >= lo; i--) obj.remove(i);
       }
@@ -5706,13 +6690,13 @@
    */
 
   function getId(el, remove) {
-    var id = $__default["default"].isString(el) ? el : $__default["default"](el).attr("name") || $__default["default"](el).attr("id"); // Use name first (id may have suffix)
+    var id = $__default.default.isString(el) ? el : $__default.default(el).attr("name") || $__default.default(el).attr("id"); // Use name first (id may have suffix)
 
     return remove !== false ? id.replace(/\[\]$/, "") : id;
   } // Get display value separator
 
   function valueSeparator(index, obj) {
-    var sep = $__default["default"](obj).data("value-separator");
+    var sep = $__default.default(obj).data("value-separator");
     return Array.isArray(sep) ? sep[index - 1] : sep || ", ";
   }
   /**
@@ -5724,18 +6708,10 @@
    */
 
   function displayValue(opt, obj) {
-    var text = opt.df;
-
-    for (var i = 2; i <= 4; i++) {
-      if (opt["df" + i] && opt["df" + i] != "") {
-        var sep = valueSeparator(i - 1, obj);
-        if ($__default["default"].isUndefined(sep)) break;
-        if ($__default["default"].isValue(text)) text += sep;
-        text += opt["df" + i];
-      }
-    }
-
-    return text;
+    return [opt.df, opt.df2, opt.df3, opt.df4].reduce((text, value, i) => {
+      let sep = i > 0 ? valueSeparator(i - 1, obj) : "";
+      return !$__default.default.isUndefined(sep) && $__default.default.isValue(value) && value != "" ? text + sep + value : text;
+    }, "");
   }
   /**
    * Get HTML for a single option
@@ -5756,137 +6732,118 @@
    */
 
   function optionsHtml(options, max) {
-    if (options.length > (max || ew.MAX_OPTION_COUNT)) {
-      // More than max option count
-      return ew.language.phrase("CountSelected").replace("%s", options.length);
-    } else if (options.length) {
-      // Some options
-      var html = "";
-
-      for (var i = 0; i < options.length; i++) html += optionHtml(options[i]);
-
-      return html;
-    } else {
-      // No options
-      return ew.language.phrase("PleaseSelect");
-    }
+    if (options.length > (max || ew.MAX_OPTION_COUNT)) // More than max option count
+      return ew.language.phrase("CountSelected").replace("%s", options.length);else if (options.length) // Some options
+      return options.reduce((previous, current) => previous + optionHtml(current), "");
+    return ew.language.phrase("PleaseSelect"); // No options
   }
   /**
    * Create new option
    *
    * @param {(HTMLElement|array)} obj - Selection list
-   * @param {Object} opt - Object for the new option
+   * @param {Object} data - Object for the new option
    * @param {form} f - form object of obj
    * @returns
    */
 
-  function newOption(obj, opt, f) {
-    var frm = forms.get(f.id),
+  function newOption(obj, data, f) {
+    let frm = forms.get(f.id),
         id = getId(obj),
-        list = frm.getList(id),
-        value = opt.lf,
-        item = {
-      lf: opt.lf,
-      df: opt.df,
-      df2: opt.df2,
-      df3: opt.df3,
-      df4: opt.df4
-    },
-        text;
-
-    if (list.template && !isAutoSuggest(obj)) {
-      text = list.template.render(item, ew.jsRenderHelpers);
-    } else {
-      text = displayValue(opt, obj) || value;
-    }
-
-    var args = {
-      "data": item,
-      "name": id,
-      "form": f.$element,
-      "value": value,
-      "text": text
-    };
+        list = frm.getList(obj),
+        group = data.gf,
+        value = data.lf,
+        text = list.template && !isAutoSuggest(obj) ? list.template.render(data, ew.jsRenderHelpers) : displayValue(data, obj) || value;
 
     if (obj.options) {
       // Selection list
       let option;
 
       if (obj.list) {
-        option = new SelectionListOption(args.value, args.text);
+        option = new ew.SelectionListOption(text, value);
       } else {
         option = document.createElement("option");
-        option.value = args.value;
-        option.innerHTML = args.text;
+        option.value = value;
+        option.innerHTML = text;
       }
 
-      args = { ...args,
+      let args = {
+        "name": id,
+        "form": f.$element,
+        data,
+        group,
         option
       };
       $document$1.trigger("newoption", [args]); // Fire "newoption" event for selection list
 
       if (obj.list) {
-        obj.add(args.option.value, args.option.text);
+        obj.addOption(args.option);
       } else {
-        obj.add(args.option);
+        if (args.group) {
+          var _obj$querySelector;
+
+          let optGroup = Array.from((_obj$querySelector = obj.querySelector(":scope > optgroup")) != null ? _obj$querySelector : []).find(g => g.label == args.group);
+
+          if (!optGroup) {
+            optGroup = document.createElement("optgroup");
+            optGroup.label = args.group;
+            obj.add(optGroup);
+          }
+
+          optGroup.appendChild(args.option);
+        } else {
+          obj.add(args.option);
+        }
       }
+
+      return args.option.text;
     }
 
-    return args.text;
+    return text;
   } // Select combobox option
 
   function selectOption(obj, values) {
+    var _obj$dataset, _forms$get$getList, _forms$get$getList$pa;
+
     if (!obj || !values) return;
-    var $obj = $__default["default"](obj);
-
-    if (Array.isArray(values)) {
-      if (obj.options) {
-        // Selection list
-        if (obj.list) {
-          obj.value = values;
-        } else {
-          var _obj$options$;
-
-          $obj.val(values);
-          if (obj.type == "select-one" && obj.selectedIndex == -1 && !((_obj$options$ = obj.options[0]) != null && _obj$options$.value)) obj.selectedIndex = 0; // Make sure an option is selected
-        }
-
-        if (isAutoSuggest(obj) && values.length == 1) {
-          let opts = obj.options || [];
-
-          for (let opt of opts) {
-            if (opt.value == values[0]) {
-              obj.value = opt.value;
-              obj.input.value = opt.text;
-              break;
-            }
-          }
-        }
-      } else if (obj.type) {
-        obj.value = values.join(ew.MULTIPLE_OPTION_SEPARATOR);
-      }
-    } // Auto-select if only one option
-
-    function isAutoSelect(el) {
-      if (!$__default["default"](el).data("autoselect")) // data-autoselect="false"
-        return false;
-      var form = getForm(el);
-
-      if (form) {
-        if (/s(ea)?rch$/.test(form.id)) // Search forms
-          return false;
-        var list = forms.get(form.id).getList(el.id);
-        if ((list == null ? void 0 : list.parentFields.length) === 0) // No parent fields
-          return false;
-        return true;
-      }
-
-      return false;
-    }
-
-    if (!isAutoSelect(obj)) return;
+    let $obj = $__default.default(obj);
+    values = Array.isArray(values) ? values : [values];
 
     if (obj.options) {
+      // Selection list
+      if (obj.list) {
+        obj.value = values;
+      } else {
+        var _obj$options$;
+
+        $obj.val(values);
+        if (isSelect2(obj)) $obj.triggerHandler("change");
+        if (obj.type == "select-one" && obj.selectedIndex == -1 && !((_obj$options$ = obj.options[0]) != null && _obj$options$.value)) obj.selectedIndex = 0; // Make sure an option is selected
+      }
+
+      if (isAutoSuggest(obj) && values.length == 1) {
+        let opts = obj.options || [];
+
+        for (let opt of opts) {
+          if (opt.value == values[0]) {
+            obj.value = opt.value;
+            obj.input.value = opt.text;
+            break;
+          }
+        }
+      }
+    } else if (isBooleanCheckbox(obj)) {
+      obj.checked = convertToBool(values.join(ew.MULTIPLE_OPTION_SEPARATOR));
+    } else if (obj.type && obj.type != "file") {
+      $obj.val(values.join(ew.MULTIPLE_OPTION_SEPARATOR));
+      if (isHiddenTextArea($obj)) $obj.data("editor").set();
+    } // Auto-select if only one option
+
+    if (((_obj$dataset = obj.dataset) == null ? void 0 : _obj$dataset.autoselect) === "false") // data-autoselect="false"
+      return;
+    let form = getForm(obj),
+        autoSelect = form && !(form.id.endsWith("search") || form.id.endsWith("srch") || ((_forms$get$getList = forms.get(form.id).getList(obj)) == null ? void 0 : (_forms$get$getList$pa = _forms$get$getList.parentFields) == null ? void 0 : _forms$get$getList$pa.length) === 0); // Not search forms and has parent fields
+
+    if (autoSelect && obj.options) {
       // Selection List
       if (!obj.list && obj.type == "select-one" && obj.options.length == 2 && !obj.options[1].selected) {
         obj.options[1].selected = true;
@@ -5895,8 +6852,6 @@
         obj.options[0].selected = true;
         $obj.trigger("change");
       }
-
-      if (obj.list) obj.render();
 
       if (isAutoSuggest(obj)) {
         let opts = obj.options || [];
@@ -5910,102 +6865,76 @@
   } // Fetch API
 
   function _fetch(url, init) {
-    var _init;
+    var _init, _init$headers, _init$headers$get;
 
     (_init = init) != null ? _init : init = {};
-    let apiUrl = getApiUrl(),
-        isApi = url.startsWith(apiUrl); // Is API request
+    init.headers = new Headers(init.headers || {});
+    let isApi = url.startsWith(getApiUrl()); // Is API request
 
-    if (isApi && ew.API_JWT_TOKEN && !ew.IS_WINDOWS_AUTHENTICATION) {
-      // Do NOT set JWT authorization header if Windows Authentication
-      init.headers = new Headers(init.headers || {});
+    if (isApi && ew.API_JWT_TOKEN && !ew.IS_WINDOWS_AUTHENTICATION) // Do NOT set JWT authorization header if Windows Authentication
       init.headers.set(ew.API_JWT_AUTHORIZATION_HEADER, "Bearer " + ew.API_JWT_TOKEN);
+
+    if (isApi || (_init$headers = init.headers) != null && (_init$headers$get = _init$headers.get("Content-Type")) != null && _init$headers$get.includes("application/json")) {
+      // Add token in headers if sending to API or posting JSON data // PHP
+      init.headers.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Send token name in header // PHP
+
+      init.headers.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Send antiforgery token in header // PHP
     }
 
-    if (!init.method || init.method == "GET") {
+    if (!init.method || sameText(init.method, "GET")) {
       // GET
-      let ar = url.split("?"),
-          params = new URLSearchParams(ar[1]);
-      params.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Add token name // PHP
-
-      params.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Add antiforgery token // PHP
-
-      if (init.body instanceof FormData || $__default["default"].isString(init.body) || $__default["default"].isObject(init.body) || Array.isArray(init.body) && init.body.every(item => Array.isArray(item) && item.length == 2)) {
-        // String, object or array of array
-        let body = new URLSearchParams(init.body);
-        body.forEach((value, key) => params.set(key, value));
-      }
-
-      ar[1] = params.toString();
-      url = ar[0] + (ar[1] ? "?" + ar[1] : "");
-      return fetch(url);
+      url = setSearchParams(url, init.body);
+      delete init.body;
     } else {
       // POST
-      if (init.body instanceof FormData) {
-        // FormData
-        init.body.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Add token name // PHP
-
-        init.body.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Add antiforgery token // PHP
-      } else if ($__default["default"].isString(init.body) || $__default["default"].isObject(init.body) || Array.isArray(init.body) && init.body.every(item => Array.isArray(item) && item.length == 2)) {
-        // String, object or array of array
-        init.body = new URLSearchParams(init.body);
-        init.body.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Add token name // PHP
-
-        init.body.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Add antiforgery token // PHP
-      }
-
-      return fetch(url, init);
+      init.body = mergeSearchParams(init.body, {
+        [ew.TOKEN_NAME_KEY]: ew.TOKEN_NAME,
+        [ew.ANTIFORGERY_TOKEN_KEY]: ew.ANTIFORGERY_TOKEN
+      }); // Add token name and antiforgery token // PHP
     }
+
+    let args = {
+      url,
+      init
+    };
+    $document$1.trigger("fetch", [args]);
+    return fetch(args.url, args.init);
   }
 
   $document$1.ajaxSend(function (event, jqxhr, settings) {
-    var url = settings.url,
-        apiUrl = getApiUrl(),
-        isApi = url.startsWith(apiUrl),
+    let url = settings.url,
+        isApi = url.startsWith(getApiUrl()),
         // Is API request
     allowed = isApi || url.startsWith(ew.PATH_BASE) || url.startsWith(currentPage());
 
     if (!allowed && url.match(/^http/i)) {
-      var objUrl = new URL(url);
+      let objUrl = new URL(url);
       allowed = objUrl.hostname == currentUrl.hostname; // Same host name
     }
 
     if (allowed) {
       if (isApi && ew.API_JWT_TOKEN && !ew.IS_WINDOWS_AUTHENTICATION) // Do NOT set JWT authorization header if Windows Authentication
-        jqxhr.setRequestHeader(ew.API_JWT_AUTHORIZATION_HEADER, "Bearer " + ew.API_JWT_TOKEN);
+        jqxhr.setRequestHeader(ew.API_JWT_AUTHORIZATION_HEADER, "Bearer " + ew.API_JWT_TOKEN); // Note: settings.headers won't work
 
-      if (settings.type == "GET" || settings.contentType == "application/json") {
-        // GET or sending JSON data
-        var ar = settings.url.split("?"),
-            params = new URLSearchParams(ar[1]);
-        params.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Add token name // PHP
-
-        params.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Add antiforgery token // PHP
-
-        ar[1] = params.toString();
-        settings.url = ar[0] + (ar[1] ? "?" + ar[1] : "");
-      } else {
+      if (isApi || $__default.default.isString(settings.contentType) && settings.contentType.includes("application/json")) {
+        // Add token and antiforgery token in headers if sending to API or posting JSON data // PHP
+        jqxhr.setRequestHeader(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME);
+        jqxhr.setRequestHeader(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN);
+      } else if (sameText(settings.type, "POST")) {
         // POST
-        if (settings.data instanceof FormData) {
-          // FormData
-          settings.data.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Add token name // PHP
+        let params = mergeSearchParams(new URLSearchParams(settings.data), {
+          [ew.TOKEN_NAME_KEY]: ew.TOKEN_NAME,
+          [ew.ANTIFORGERY_TOKEN_KEY]: ew.ANTIFORGERY_TOKEN
+        }); // Add token name and antiforgery token // PHP
 
-          settings.data.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Add antiforgery token // PHP
-        } else {
-          var params = new URLSearchParams(settings.data);
-          params.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME); // Add token name // PHP
-
-          params.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN); // Add antiforgery token // PHP
-
-          settings.data = params.toString();
-        }
+        settings.data = params.toString();
       }
     }
   }); // Ajax start
 
   $document$1.ajaxStart(function () {
     $document$1.data("_ajax", true);
-    $__default["default"]("form.ew-form").addClass("ew-wait").each(function () {
+    $__default.default("form.ew-form").addClass("ew-wait").each(function () {
       var frm = forms.get(this.id);
 
       if (frm) {
@@ -6015,7 +6944,7 @@
   }); // Ajax stop (internal)
 
   function _ajaxStop() {
-    $__default["default"]("form.ew-form.ew-wait").removeClass("ew-wait").each(function () {
+    $__default.default("form.ew-form.ew-wait").removeClass("ew-wait").each(function () {
       var frm = forms.get(this.id);
 
       if (frm) {
@@ -6030,89 +6959,164 @@
   $document$1.ajaxStop(_ajaxStop).ajaxError(_ajaxStop); // Execute JavaScript in HTML loaded by Ajax
 
   function executeScript(html, id) {
-    let matches = html.replace(/<head>[\s\S]*<\/head>/, "").matchAll(/<script([^>]*)>([\s\S]*?)<\/script\s*>/ig);
+    let matches = html.replaceAll(/<(head|template)[^>]*>[\s\S]*?<\/\1\s*>/ig, "").matchAll(/<script[^>]*>[\s\S]*?<\/script\s*>/ig); // Do not execute scripts in template tags, use non-greedy [\s\S]*?
+
     Array.from(document.createRange().createContextualFragment(Array.from(matches).map(m => m[0]).join("")).querySelectorAll("script:not([type]), script[type='text/javascript']")).sort((s1, s2) => s2.classList.contains("ew-apply-template") ? 1 : s1.classList.contains("ew-apply-template") ? -1 : 0) // Execute custom template first
     .forEach((s, i) => addScript(s, "scr_" + id + "_" + i));
   } // Strip JavaScript in HTML loaded by Ajax
 
   function stripScript(html) {
-    let matches = html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script\s*>/ig);
+    let matches = html.replaceAll(/<(head|template)[^>]*>[\s\S]*?<\/\1\s*>/ig, "").matchAll(/<script([^>]*)>([\s\S]*?)<\/script\s*>/ig); // Do not strip scripts in template tags, use non-greedy [\s\S]*?
+
     return Array.from(matches).filter(m => document.createRange().createContextualFragment(m[0]).querySelector("script:not([type]), script[type='text/javascript']")).reduce((html, m) => html.replace(m[0], ""), html);
   } // Add SCRIPT tag
 
   function addScript(text, id) {
     let scr = text instanceof HTMLScriptElement ? text : document.createElement("SCRIPT");
-    if ($__default["default"].isString(text)) scr.text = text;
+    if ($__default.default.isString(text)) scr.text = text;
     if (id) scr.id = id;
     return document.body.appendChild(scr); // Do not use jQuery so it can be removed
   } // Remove JavaScript added by Ajax
 
   function removeScript(id) {
-    if (id) $__default["default"]("script[id^='scr_" + id + "_']").remove();
-  } // Clean HTML loaded by Ajax for modal dialog
+    if (id) $__default.default("script[id^='scr_" + id + "_']").remove();
+  }
+  /**
+   * Clean HTML loaded by Ajax for modal dialog
+   *
+   * @param {string} html - HTML string
+   * @param {bool} keepScripts - Keep script tags or not
+   * @returns HTML string
+   */
 
-  function getContent(html) {
-    let body = stripScript(html),
+  function getContent(html, keepScripts) {
+    var _m$;
+
+    html = html.trim().replace(/<head>[\s\S]*<\/head>/, "");
+    let body = keepScripts ? html : stripScript(html),
         m = body.match(/<body[\s\S]*>[\s\S]*<\/body>/i);
-    body = m ? m[0] : body;
-    let $content = $__default["default"](body).find("section.content");
-    return $content[0] ? $content : $__default["default"](body);
+    body = (_m$ = m == null ? void 0 : m[0]) != null ? _m$ : body;
+    let $content = $__default.default(body).find("section.content");
+    return $content[0] ? $content.html() : body;
   } // Get all options of Selection list or Radio/Checkbox list as array
 
   function getOptions(obj) {
-    return obj.options ? Array.prototype.map.call(obj.options, opt => [opt.value, opt.text]) : [];
+    return obj != null && obj.options ? Array.prototype.map.call(obj.options, opt => [opt.value, opt.text]) : [];
   }
   /**
    * Show dialog for enabling two factor authentication
    */
 
   function enable2FA() {
-    let url = ew.getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_SHOW]); // Show QR Code
+    document.body.style.cursor = "wait";
 
-    $body.css("cursor", "wait");
-    $__default["default"].get(url, result => {
-      var _result$error2;
+    if (sameText(ew.TWO_FACTOR_AUTHENTICATION_TYPE, "google")) {
+      // Show QR Code and Verify
+      let url = getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_SHOW]);
+      $__default.default.get(url, result => {
+        var _result$error4;
 
-      if (result != null && result.url) {
-        _prompt({
-          imageUrl: result.url,
-          html: ew.language.phrase("Scan2FAQrCode"),
-          input: "text",
-          confirmButtonText: ew.language.phrase("Verify"),
-          showLoaderOnConfirm: true,
-          allowEscapeKey: false,
-          allowOutsideClick: () => !Swal.isLoading(),
-          willOpen: () => {
-            Swal.showLoading(Swal.getConfirmButton());
-            Swal.disableInput();
+        if (result != null && result.url) {
+          _prompt({
+            imageUrl: result.url,
+            html: ew.language.phrase("Scan2FAQrCode"),
+            input: "text",
+            confirmButtonText: ew.language.phrase("Verify"),
+            showLoaderOnConfirm: true,
+            allowEscapeKey: false,
+            allowOutsideClick: () => !Swal.isLoading(),
+            willOpen: () => {
+              Swal.showLoading(Swal.getConfirmButton());
+              Swal.disableInput();
 
-            Swal.getImage().onload = () => {
-              Swal.enableInput();
-              Swal.hideLoading();
-              Swal.getInput().focus();
-            };
-          },
-          preConfirm: value => {
-            return $__default["default"].get(ew.getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_VERIFY, value])).then(result => {
-              if ((result == null ? void 0 : result.success) !== true) Swal.showValidationMessage(ew.language.phrase("2FAVerificationFailed"));
-              return result;
-            }).catch(error => Swal.showValidationMessage(error));
-          }
-        }, result => {
-          var _result$error;
+              Swal.getImage().onload = () => {
+                Swal.enableInput();
+                Swal.hideLoading();
+                Swal.getInput().focus();
+              };
+            },
+            preConfirm: value => {
+              return $__default.default.get(getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_VERIFY, value])).then(result => {
+                if ((result == null ? void 0 : result.success) !== true) Swal.showValidationMessage(ew.language.phrase("2FAVerificationFailed"));
+                return result;
+              }).catch(error => Swal.showValidationMessage(error));
+            }
+          }, result => {
+            var _result$error3;
 
-          if (result != null && (_result$error = result.error) != null && _result$error.description) {
-            showToast(result.error.description);
-          } else if (result != null && result.success) {
-            showToast(ew.language.phrase("2FAEnabled"), "success");
-            $__default["default"]("#enable-2fa").addClass("d-none");
-            $__default["default"]("#disable-2fa, #backup-codes").removeClass("d-none");
-          }
-        }).catch(err => showToast(err == null ? void 0 : err.message));
-      } else if (result != null && (_result$error2 = result.error) != null && _result$error2.description) {
-        _alert(result.error.description);
-      }
-    }).fail((jqXHR, textStatus, errorThrown) => showToast(errorThrown)).always(() => $body.css("cursor", "default"));
+            if (result != null && (_result$error3 = result.error) != null && _result$error3.description) {
+              showToast(result.error.description);
+            } else if (result != null && result.success) {
+              showToast(ew.language.phrase("2FAEnabled"), "success");
+              $__default.default("#enable-2fa").addClass("d-none");
+              $__default.default("#disable-2fa, #backup-codes").removeClass("d-none");
+            }
+          }).catch(err => showToast(err == null ? void 0 : err.message));
+        } else if (result != null && (_result$error4 = result.error) != null && _result$error4.description) {
+          _alert(result.error.description);
+        }
+      }).fail((jqXHR, textStatus, errorThrown) => showToast(errorThrown)).always(() => document.body.style.cursor = "default");
+    } else {
+      // Send OTP and Verify
+      let url = getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_SHOW]);
+      let html = sameText(ew.TWO_FACTOR_AUTHENTICATION_TYPE, "email") ? ew.language.phrase("EnterOTPEmailAddress") : ew.language.phrase("EnterOTPMobileNumber");
+      $__default.default.get(url, result => {
+        var _result$error7;
+
+        if (result.success) {
+          _prompt({
+            html: html,
+            input: "text",
+            inputValue: result.account,
+            confirmButtonText: ew.language.phrase("SendOTP"),
+            showLoaderOnConfirm: true,
+            allowEscapeKey: false,
+            allowOutsideClick: () => !Swal.isLoading(),
+            preConfirm: value => {
+              return $__default.default.get(getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_SEND_OTP, value])).then(result => {
+                if ((result == null ? void 0 : result.success) !== true) Swal.showValidationMessage(ew.language.phrase("SendOTPFailed"));
+                return result;
+              }).catch(error => Swal.showValidationMessage(error));
+            }
+          }, result => {
+            var _result$error5;
+
+            if (result != null && (_result$error5 = result.error) != null && _result$error5.description) {
+              showToast(result.error.description);
+            } else if (result != null && result.success) {
+              // Verify OTP
+              _prompt({
+                html: ew.language.phrase("EnterSecurityCode"),
+                input: "text",
+                confirmButtonText: ew.language.phrase("Verify"),
+                showLoaderOnConfirm: true,
+                allowEscapeKey: false,
+                allowOutsideClick: () => !Swal.isLoading(),
+                preConfirm: value => {
+                  return $__default.default.get(getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_VERIFY, value])).then(result => {
+                    if ((result == null ? void 0 : result.success) !== true) Swal.showValidationMessage(ew.language.phrase("2FAVerificationFailed"));
+                    return result;
+                  }).catch(error => Swal.showValidationMessage(error));
+                }
+              }, result => {
+                var _result$error6;
+
+                if (result != null && (_result$error6 = result.error) != null && _result$error6.description) {
+                  showToast(result.error.description);
+                } else if (result != null && result.success) {
+                  showToast(ew.language.phrase("2FAEnabled"), "success");
+                  $__default.default("#enable-2fa").addClass("d-none");
+                  $__default.default("#disable-2fa, #backup-codes").removeClass("d-none");
+                }
+              }).catch(err => showToast(err == null ? void 0 : err.message));
+            }
+          }).catch(err => showToast(err == null ? void 0 : err.message));
+        } else if (result != null && (_result$error7 = result.error) != null && _result$error7.description) {
+          _alert(result.error.description);
+        }
+      }).fail((jqXHR, textStatus, errorThrown) => showToast(errorThrown)).always(() => document.body.style.cursor = "default");
+    }
+
     return false;
   }
   /**
@@ -6121,24 +7125,50 @@
 
   function disable2FA() {
     _prompt({
-      html: ew.language.phrase("Disable2FAMsg"),
+      html: ew.language.phrase("Disable2FAConfirm"),
       preConfirm: value => {
-        if (value) return $__default["default"].get(ew.getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_RESET])).then(result => {
-          var _result$error3;
+        if (value) return $__default.default.get(getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_RESET])).then(result => {
+          var _result$error8;
 
-          if (result != null && (_result$error3 = result.error) != null && _result$error3.description) showToast(result.error.description);else if ((result == null ? void 0 : result.success) !== true) showToast(ew.language.phrase("2FAResetFailed"));
+          if (result != null && (_result$error8 = result.error) != null && _result$error8.description) showToast(result.error.description);else if ((result == null ? void 0 : result.success) !== true) showToast(ew.language.phrase("2FAResetFailed"));
           return result;
         }).fail((jqXHR, textStatus, errorThrown) => showToast(errorThrown));
       }
     }, result => {
-      var _result$error4;
+      var _result$error9;
 
-      if (result != null && (_result$error4 = result.error) != null && _result$error4.description) {
+      if (result != null && (_result$error9 = result.error) != null && _result$error9.description) {
         showToast(result.error.description);
       } else if (result != null && result.success) {
         showToast(ew.language.phrase("2FADisabled"), "success");
-        $__default["default"]("#enable-2fa").removeClass("d-none");
-        $__default["default"]("#disable-2fa, #backup-codes").addClass("d-none");
+        $__default.default("#enable-2fa").removeClass("d-none");
+        $__default.default("#disable-2fa, #backup-codes").addClass("d-none");
+      }
+    }).catch(err => showToast(err == null ? void 0 : err.message));
+  }
+  /**
+   * Show dialog for sending one time password
+   */
+
+  function sendOTP(account) {
+    _prompt({
+      html: ew.language.phrase("SendOTPConfirm"),
+      preConfirm: value => {
+        let url = account ? getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_SEND_OTP, account]) : getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_SEND_OTP]);
+        if (value) return $__default.default.get(url).then(result => {
+          var _result$error10;
+
+          if (result != null && (_result$error10 = result.error) != null && _result$error10.description) showToast(result.error.description);else if ((result == null ? void 0 : result.success) !== true) showToast(ew.language.phrase("SendOTPFailed"));
+          return result;
+        }).fail((jqXHR, textStatus, errorThrown) => showToast(errorThrown));
+      }
+    }, result => {
+      var _result$error11;
+
+      if (result != null && (_result$error11 = result.error) != null && _result$error11.description) {
+        showToast(result.error.description);
+      } else if (result != null && result.success) {
+        showToast(ew.language.phrase("SendOTPSuccess"), "success");
       }
     }).catch(err => showToast(err == null ? void 0 : err.message));
   }
@@ -6162,7 +7192,7 @@
       willOpen: () => {
         Swal.showLoading();
         Swal.disableButtons();
-        $__default["default"].get(ew.getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_BACKUP_CODES])).then(result => {
+        $__default.default.get(getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_BACKUP_CODES])).then(result => {
           if (result.success && Array.isArray(result.codes)) {
             Swal.update({
               html: html + "<textarea class=\"form-control ew-backup-codes\" readonly>" + result.codes.join("\n") + "</textarea>"
@@ -6179,7 +7209,7 @@
       },
       preDeny: async () => {
         Swal.showLoading(Swal.getDenyButton());
-        await $__default["default"].get(ew.getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_NEW_BACKUP_CODES])).then(result => {
+        await $__default.default.get(getApiUrl([ew.API_2FA_ACTION, ew.API_2FA_NEW_BACKUP_CODES])).then(result => {
           if (result.success && Array.isArray(result.codes)) {
             Swal.update({
               html: html + "<textarea class=\"form-control ew-backup-codes\" readonly>" + result.codes.join("\n") + "</textarea>"
@@ -6203,9 +7233,9 @@
    */
 
   function addOptionDialogShow(args) {
-    var _args$evt;
+    var _args$evt2;
 
-    args.lnk = args.lnk || ((_args$evt = args.evt) == null ? void 0 : _args$evt.currentTarget); // Hide dialog
+    args.lnk = args.lnk || ((_args$evt2 = args.evt) == null ? void 0 : _args$evt2.currentTarget); // Hide dialog
 
     var _hide = function () {
       removeScript($dlg.data("args").el);
@@ -6216,7 +7246,7 @@
       $dlg.data("showing", false);
     };
 
-    var $dlg = ew.addOptionDialog || $__default["default"]("#ew-add-opt-dialog").on("hidden.bs.modal", _hide);
+    var $dlg = ew.addOptionDialog || $__default.default("#ew-add-opt-dialog").on("hidden.bs.modal", _hide);
 
     if (!$dlg[0]) {
       _alert("DIV #ew-add-opt-dialog not found.");
@@ -6245,7 +7275,7 @@
           index = m ? m[1] : -1,
           name = el.replace(re, "x_"),
           list = frm.getList(el);
-      if ($__default["default"].isString(data)) results = parseJson(data);
+      if ($__default.default.isString(data)) results = parseJson(data);
 
       if ((_results = results) != null && _results.success && results[objName]) {
         // Success
@@ -6302,21 +7332,20 @@
 
                 if (obj.list) {
                   // Radio/Checkbox list
-                  obj.render();
-                  $__default["default"](obj.target).find("input").last().trigger("focus");
+                  $__default.default(obj.target).find("input").last().trigger("focus");
                 }
 
                 if (isAutoSuggest(obj)) {
-                  $__default["default"](obj).val(lfv).trigger("change");
-                  $__default["default"](obj.input).val(txt).trigger("focus");
+                  $__default.default(obj).val(lfv).trigger("change");
+                  $__default.default(obj.input).val(txt).trigger("focus");
                 } else {
-                  $__default["default"](obj).trigger("change").trigger("focus");
+                  $__default.default(obj).trigger("change").trigger("focus");
                 }
               }
 
-              var $form = $__default["default"](form),
-                  suffix = $form.is("div") ? "_" + $form.attr("id") : "";
-              var cnt = $form.find("#key_count" + suffix).val();
+              var $form = $__default.default(form),
+                  suffix = $form.is("div") ? "_" + form.id : "",
+                  cnt = $form.find("#" + ew.FORM_KEY_COUNT_NAME + suffix).val();
 
               if (cnt > 0) {
                 // Grid-Add/Edit, update other rows
@@ -6327,8 +7356,7 @@
                   if (JSON.stringify(ar) != JSON.stringify(ar2)) // Not same options
                     continue;
                   newOption(obj2, row, form);
-                  if (obj2.options && obj.list) // Radio/Checkbox list
-                    obj2.render();
+                  obj2.render == null ? void 0 : obj2.render(); // Selection list
                 }
               }
             }
@@ -6339,12 +7367,11 @@
 
         // Failure
         if ((_results2 = results) != null && _results2.error) {
-          var _results$error;
-
-          if ($__default["default"].isString(results.error)) _alert(results.error);else if ($__default["default"].isString((_results$error = results.error) == null ? void 0 : _results$error.description)) _alert(results.error.description);
+          let error = getError(results);
+          if (error) _alert(error);
         } else {
           var msg,
-              $div = $__default["default"]("<div></div>").html(data).find("div.ew-message-dialog");
+              $div = $__default.default("<div></div>").html(data).find("div.ew-message-dialog");
 
           if ($div[0]) {
             msg = $div.html();
@@ -6370,16 +7397,16 @@
       let $dlg = ew.addOptionDialog,
           form = $dlg.find(".modal-body form")[0],
           frm = forms.get(form.id),
-          btn = e ? e.target : null,
-          $btn = $__default["default"](btn);
+          btn = e == null ? void 0 : e.target,
+          $btn = $__default.default(btn);
 
-      if (await frm.canSubmit()) {
+      if (await frm.canSubmit(e)) {
         $btn.prop("disabled", false).removeClass("disabled");
-        $body.css("cursor", "wait");
-        $__default["default"].post(getApiUrl([ew.API_ADD_ACTION, form.elements[ew.API_OBJECT_NAME].value]), $__default["default"](form).serialize(), _submitSuccess).fail(_fail).always(function () {
+        document.body.style.cursor = "wait";
+        $__default.default.post(getApiUrl([ew.API_ADD_ACTION, form.elements[ew.API_OBJECT_NAME].value]), $__default.default(form).serialize(), _submitSuccess).fail(_fail).always(function () {
           frm.enableForm();
           $btn.prop("disabled", false).removeClass("disabled");
-          $body.css("cursor", "default");
+          document.body.style.cursor = "default";
         });
       }
 
@@ -6404,13 +7431,13 @@
           ar2 = pfs.map(pf => getOptionTexts(pf, form)),
           ffs = list.filterFieldVars.slice(); // Clone
 
-      $dlg.find(".modal-title").html($__default["default"](args.lnk).closest(".ew-add-opt-btn").data("title"));
+      $dlg.find(".modal-title").html($__default.default(args.lnk).closest(".ew-add-opt-btn").data("title"));
       $dlg.find(".modal-body").html(stripScript(data));
       var form = $dlg.find(".modal-body form")[0];
 
       if (form) {
         // Set the filter field value
-        $__default["default"](form).on("keydown", function (e) {
+        $__default.default(form).on("keydown", function (e) {
           if (e.key == "Enter" && e.target.nodeName != "TEXTAREA") return _submit();
         });
         ar.forEach((v, i) => {
@@ -6420,7 +7447,7 @@
             if (obj) {
               if (obj.options || obj.length) {
                 // Selection list
-                $__default["default"](obj).first().one("updated", () => selectOption(obj, v));
+                $__default.default(obj).first().one("updated", () => selectOption(obj, v));
               } else {
                 selectOption(obj, v);
               }
@@ -6452,22 +7479,22 @@
         });
       }
 
-      $dlg.trigger("load.ew");
+      $dlg.trigger("load.ew"); // Trigger load event
     };
 
-    $__default["default"].get(args.url, success).fail(_fail);
+    $__default.default.get(args.url, success).fail(_fail);
     return false;
   } // Hide Modal dialog
 
   function modalDialogHide(e) {
-    var $dlg = $__default["default"](this),
-        args = $dlg.data("args");
+    let $dlg = $__default.default(this),
+        args = $dlg.data("args"),
+        frm = $dlg.removeData("args").find(".modal-body form").data("form");
     removeScript("modal_dialog");
-    var frm = $dlg.removeData("args").find(".modal-body form").data("form");
     frm == null ? void 0 : frm.destroyEditor();
     $dlg.find(".modal-footer .btn-primary").off();
     $dlg.find(".modal-dialog").removeClass((i, className) => {
-      var m = className.match(/table\-\w+/);
+      let m = className.match(/table\-\w+/);
       return m ? m[0] : "";
     });
     $dlg.data({
@@ -6483,65 +7510,71 @@
    * @param {MouseEvent} args.evt - Event
    * @param {HTMLFormElement} args.f - Form of List page
    * @param {HTMLElement} args.lnk - Anchor element
-   * @param {string} args.url - URL of the form
+   * @param {string} args.url - URL of content
+   * @param {string} args.html - HTML content
    * @param {string|null} args.btn - Button phrase ID
    * @param {boolean} args.footer - Show footer (default true)
    * @param {string} args.caption - Caption in dialog header
    * @param {boolean} args.reload - Reload page after hiding dialog or not
    * @param {string} args.size - Class name of modal dialog 'modal-sm'|'modal-md'|modal-lg'|'modal-xl' (default)
+   * @param {Function} args.callback - Callback function (success function after submitting the form)
    * @returns false
    */
 
   function modalDialogShow(args) {
-    var _args$evt2, _bootstrap$Tooltip$ge4, _args$evt3, _args$evt3$currentTar, _args$evt4, _args$evt4$currentTar;
+    var _args$evt3, _bootstrap$Tooltip$ge4, _args$evt4, _args$evt4$currentTar, _args$evt5, _args$evt5$currentTar, _$dlg$data, _$dlg$data2;
 
-    args.lnk = args.lnk || ((_args$evt2 = args.evt) == null ? void 0 : _args$evt2.currentTarget);
+    args.lnk || (args.lnk = (_args$evt3 = args.evt) == null ? void 0 : _args$evt3.currentTarget);
     (_bootstrap$Tooltip$ge4 = bootstrap.Tooltip.getInstance(args.lnk)) == null ? void 0 : _bootstrap$Tooltip$ge4.hide();
-    var f = args.f || ((_args$evt3 = args.evt) == null ? void 0 : (_args$evt3$currentTar = _args$evt3.currentTarget) == null ? void 0 : _args$evt3$currentTar.form);
+    let {
+      ewAction,
+      action
+    } = args,
+        f = args.f || ((_args$evt4 = args.evt) == null ? void 0 : (_args$evt4$currentTar = _args$evt4.currentTarget) == null ? void 0 : _args$evt4$currentTar.form);
 
-    if (f && !keySelected(f)) {
-      _prompt("<p class=\"text-danger\">" + ew.language.phrase("NoRecordSelected") + "</p>");
+    if ((ewAction == "grid" && action == "edit" || ewAction == "modal" && ["multiedit", "update"].includes(action)) && !keySelected(f)) {
+      // Grid-Edit and Multi-Edit/Update
+      _alert(ew.language.phrase("NoRecordSelected"));
 
       return false;
     }
 
-    var url = args.url || ((_args$evt4 = args.evt) == null ? void 0 : (_args$evt4$currentTar = _args$evt4.currentTarget) == null ? void 0 : _args$evt4$currentTar.dataset.url),
-        $dlg = ew.modalDialog || $__default["default"]("#ew-modal-dialog").on("hidden.bs.modal", modalDialogHide); // div#ew-modal-dialog always exists
+    let url = args.url || ((_args$evt5 = args.evt) == null ? void 0 : (_args$evt5$currentTar = _args$evt5.currentTarget) == null ? void 0 : _args$evt5$currentTar.dataset.url),
+        $dlg = ew.modalDialog || $__default.default("#ew-modal-dialog").on("hidden.bs.modal", modalDialogHide); // div#ew-modal-dialog always exists
 
-    if ($dlg.data("showing") && $dlg.data("url") == url) return false;
+    if ($dlg.data("showing") && url && $dlg.data("url") == url) return false;
     $dlg.data({
       showing: true,
       url: url
     });
     args.reload = false; // size
 
-    var size = args.size || "modal-xl";
-    $dlg.find(".modal-dialog").removeClass("modal-sm modal-md modal-lg modal-xl").addClass(size); // caption
+    $dlg.find(".modal-dialog").removeClass("modal-sm modal-md modal-lg modal-xl").addClass(args.size || "modal-xl"); // caption
 
-    var _caption = function () {
-      var args = $dlg.data("args"),
-          $lnk = $__default["default"](args.lnk);
+    let _caption = function () {
+      let args = $dlg.data("args"),
+          $lnk = $__default.default(args.lnk);
       return args.caption || $lnk.data("caption") || $lnk.data("original-title") || "";
     }; // button text
 
-    var _button = function () {
-      var args = $dlg.data("args");
-      if ($__default["default"].isNull(args.btn)) return "";else if (args.btn && args.btn != "") return ew.language.phrase(args.btn);else return _caption();
+    let _button = function () {
+      let args = $dlg.data("args");
+      if (args.btn === null) return "";else if (args.btn && args.btn != "") return ew.language.phrase(args.btn);
+      return _caption();
     }; // fail
 
-    var _fail = function (o) {
+    let _fail = function (o) {
       $dlg.modal("hide");
       if (o.status) _alert("Server Error " + o.status + ": " + o.statusText);
     }; // always
 
-    var _always = function (o) {
-      $body.css("cursor", "default");
+    let _always = function () {
+      document.body.style.cursor = "default";
     }; // check if current page
 
-    var _current = function (url) {
-      var a = $__default["default"]("<a>", {
-        href: url
-      })[0];
+    let _current = function (url) {
+      let a = document.createElement("a");
+      a.href = url;
       return window.location.pathname.endsWith(a.pathname);
     };
     /**
@@ -6560,106 +7593,150 @@
      * @param {boolean} result.view - result.url is View page => No primary button
      * @param {string} result.caption - Caption of modal dialog for result.url
      * @param {boolean} result.reload - Reload current page
+     * @param {boolean} result.success - Result => Call callback if function
      */
 
-    var handleResult = function (result) {
-      var cb = null,
-          url = result.url,
-          reload = result.reload;
+    let handleResult = function (result) {
+      let error = getError(result);
 
-      if (url || reload) {
-        cb = function () {
-          if (url) {
-            if (result.modal && !_current(url)) {
-              var args = $dlg.data("args");
-              args.reload = true;
-              if (result.caption) args.caption = result.caption;
-              args.btn = result.view ? null : "";
-              $dlg.data("args", args);
-              url += (url.split("?").length > 1 ? "&" : "?") + "modal=1&rnd=" + random();
-              $body.css("cursor", "wait");
-              $__default["default"].get(url).done(success).fail(_fail).always(_always);
-            } else {
-              $dlg.modal("hide");
-              window.location = sanitizeUrl(url);
-            }
-          } else if (reload) {
-            $dlg.modal("hide");
-            window.location.reload();
-          }
-        };
-      }
-
-      if ($__default["default"].isString(result.failureMessage)) {
-        _alert(result.failureMessage);
-      } else if ($__default["default"].isString(result.warningMessage)) {
+      if (error) {
+        _alert(error);
+      } else if ($__default.default.isString(result.warningMessage)) {
         _alert(result.warningMessage, cb, "warning");
-      } else if ($__default["default"].isString(result.message)) {
+      } else if ($__default.default.isString(result.message)) {
         _alert(result.message, cb, "body");
-      } else if ($__default["default"].isString(result.successMessage)) {
+      } else if ($__default.default.isString(result.successMessage)) {
         _alert(result.successMessage, cb, "success");
-      } else if (result.error) {
-        var _result$error5, _result$error6;
+      } else if (result.reload) {
+        $dlg.modal("hide");
+        window.location.reload();
+      } else if ($__default.default.isBoolean(result.success) && isFunction$1(args == null ? void 0 : args.callback)) {
+        // If success or failure and callback is function, call the callback
+        $dlg.modal("hide");
+        args.callback(result);
+      } else if (result.url) {
+        let url = result.url;
 
-        if ($__default["default"].isString(result.error)) _alert(result.error);else if ($__default["default"].isString((_result$error5 = result.error) == null ? void 0 : _result$error5.message)) _alert(result.error.message);else if ($__default["default"].isString((_result$error6 = result.error) == null ? void 0 : _result$error6.description)) _alert(result.error.description);
-      } else if (cb) {
-        cb();
+        if (result.modal) {
+          if (_current(url)) {
+            // Return to current page
+            if (!result.error) {
+              $dlg.modal("hide");
+              refresh(fetch(url));
+            }
+          } else {
+            // Return to other page
+            let args = $dlg.data("args");
+            args.reload = true;
+            args.url = url;
+            if (result.caption) args.caption = result.caption;
+            args.btn = result.view ? null : "";
+            $dlg.data({
+              args,
+              url
+            });
+            url = setSearchParams(url, {
+              modal: "1",
+              rnd: random()
+            });
+            document.body.style.cursor = "wait";
+            $__default.default.get(url).done(success).fail(_fail).always(_always);
+          }
+        } else {
+          $dlg.modal("hide");
+          window.location = sanitizeUrl(url);
+        }
+      }
+    }; // create buttons
+
+    let _createButtons = function () {
+      let $footer = $dlg.find(".modal-footer").empty(),
+          // Empty the footer
+      $btn = $dlg.find(".card-body button[type=submit]").first().addClass("ew-submit").on("click", _submit); // Find submit button found in card body
+
+      if (!$btn[0]) {
+        // No submit button found in card body
+        $dlg.find(".modal-body .ew-modal-buttons").contents().clone().find("button").each(function () {
+          // Find buttons in <template>
+          if (this.type == "submit") {
+            this.type = "button"; // Convert to normal button
+
+            this.classList.add("ew-submit");
+            if (this.id == "btn-cancel") this.classList.add("ew-cancel"); // Cancel button with type="submit"
+
+            let $this = $__default.default(this);
+            $this.on("click", function (e) {
+              if (this.dataset.ewAction == "set-action") // Set value first
+                this.form.elements["action"].value = this.dataset.value;
+              $this.data("ajax") === false ? $__default.default(this.form).trigger("submit") : _submit(e);
+            });
+          } else if (this.id == "btn-cancel") {
+            if (this.dataset.href) {
+              if (samePath(this.dataset.href, currentUrl.pathname)) this.setAttribute("data-bs-dismiss", "modal");else $__default.default(this).on("click", () => redirect(this.dataset.href));
+            } else {
+              this.setAttribute("data-bs-dismiss", "modal");
+            }
+          }
+
+          $footer[0].appendChild(this);
+        }); // Clone buttons and append to footer
+
+        if (!$dlg.find(".card-body button[type=submit], .modal-footer .btn")[0]) {
+          // No buttons found
+          let btn = _button();
+
+          if (btn) {
+            $__default.default('<button type="button" class="btn btn-primary ew-btn">' + btn + '</button>').on("click", _submit).appendTo($footer);
+            $footer.append('<button type="button" class="btn btn-default ew-btn" data-bs-dismiss="modal">' + ew.language.phrase("CancelBtn") + '</button>');
+          } else {
+            $footer.append('<button type="button" class="btn btn-default ew-btn" data-bs-dismiss="modal">' + ew.language.phrase("CloseBtn") + '</button>');
+          }
+        }
+
+        $footer.find("button").on("mousedown", e => e.preventDefault()); // Do not focus button by mouse down
+
+        $footer.find(".btn-primary").focus();
       }
     }; // submit success
 
-    var _submitSuccess = function (data) {
-      var result = parseJson(data);
+    let _submitSuccess = async function (response) {
+      let args = $dlg.data("args"); // Get arguments first or it will be removed by modalDialogHide()
 
-      if ($__default["default"].isObject(result)) {
+      if (!(response instanceof Response)) return;
+      let ct = response.headers.get("Content-Type");
+
+      if (ct != null && ct.includes("json")) {
+        let result = await response.json();
+
+        if (isFunction$1(args == null ? void 0 : args.callback)) {
+          // If callback is function, call the callback function then return
+          let error = getError(result);
+          if (error) showToast(error);else $dlg.modal("hide");
+          args.callback(result);
+          return;
+        }
+
         handleResult(result);
       } else {
-        var body = getContent(data);
+        let data = await response.clone().text(),
+            body = getContent(data).trim(); // Make sure no leading/trailing space
 
-        if (body.length) {
-          // Has HTML elements
-          var $bd = $dlg.find(".modal-body").html(body);
-          var footer = "";
-          var cf = $bd.find("#confirm");
-          var ct = $bd.find("#conflict");
+        if (body.startsWith("<") && body.endsWith(">")) {
+          // HTML
+          $dlg.find(".modal-body").html(body);
+          $dlg.find(".modal-body .ew-infinite-scroll-grid .ew-grid-middle-panel").css("height", "auto"); // Do not use infinite scrolling height for Grid-Add/Edit
+          // If callback is function and no modal buttons, call the callback function then return
 
-          if ((ct == null ? void 0 : ct.val()) == "1") {
-            // Conflict page
-            footer += "<button type=\"button\" id=\"btn-overwrite\" class=\"btn btn-primary ew-btn\">" + ew.language.phrase("OverwriteBtn") + "</button>";
-            footer += "<button type=\"button\" id=\"btn-reload\" class=\"btn btn-default ew-btn\">" + ew.language.phrase("ReloadBtn") + "</button>";
-            footer += "<button type=\"button\" class=\"btn btn-default ew-btn\" data-bs-dismiss=\"modal\">" + ew.language.phrase("CancelBtn") + "</button>";
-            $dlg.find(".modal-footer").html(footer);
-            $dlg.find(".modal-footer #btn-overwrite").on('click', {
-              action: 'overwrite'
-            }, _submit);
-            $dlg.find(".modal-footer #btn-reload").on('click', {
-              action: 'show'
-            }, _submit);
-          } else if ((cf == null ? void 0 : cf.val()) == "confirm") {
-            // Confirm page
-            footer += "<button type=\"button\" class=\"btn btn-primary ew-btn\">" + ew.language.phrase("ConfirmBtn") + "</button>";
-            footer += "<button type=\"button\" class=\"btn btn-default ew-btn\">" + ew.language.phrase("CancelBtn") + "</button>";
-            $dlg.find(".modal-footer").html(footer);
-            $dlg.find(".modal-footer .btn-primary").click(_submit).focus();
-            $dlg.find(".modal-footer .btn-default").on("click", {
-              action: "cancel"
-            }, _submit);
-          } else {
-            // Normal page
-            var $btn = $dlg.find(".card-body button[type=submit], .modal-footer .btn-primary") // Find submit button in card body first
-            .first().addClass("ew-submit").click(_submit);
-
-            if (!$btn[0]) {
-              var btn = _button();
-
-              if (btn) footer += "<button type=\"button\" class=\"btn btn-primary ew-btn\">" + btn + "</button>";
-              footer += "<button type=\"button\" class=\"btn btn-default ew-btn\" data-bs-dismiss=\"modal\">" + ew.language.phrase("CancelBtn") + "</button>";
-              $dlg.find(".modal-footer").html(footer);
-              $dlg.find(".modal-footer .btn-primary").addClass("ew-submit").click(_submit).focus();
-            }
+          if (!$dlg.find(".modal-body .ew-modal-buttons").length && isFunction$1(args == null ? void 0 : args.callback)) {
+            $dlg.modal("hide");
+            args.callback(response);
+            return;
           }
 
+          _createButtons();
+
           executeScript(data, "modal_dialog");
-          $dlg.trigger("load.ew"); // Trigger load event for, e.g. Use JavaScript popup message
+          $dlg.trigger("load.ew"); // Trigger load event
         } else if (data) {
           $dlg.modal("hide");
 
@@ -6668,74 +7745,71 @@
       }
     }; // submit
 
-    var _submit = async function (e) {
-      var form = $dlg.find(".modal-body form")[0],
-          $form = $__default["default"](form),
+    let _submit = async function (e) {
+      let form = $dlg.find(".modal-body form")[0],
+          $form = $__default.default(form),
           frm = forms.get(form.id),
-          action = e != null && e.data ? e.data.action : null,
-          btn = e ? e.target : null;
+          btn = e == null ? void 0 : e.target;
+      if (btn.classList.contains("disabled")) return false;
 
-      if (btn) {
-        if (btn.classList.contains("disabled")) return false;
+      if (btn.classList.contains("ew-cancel")) {
+        // Cancel button with type="submit"
+        $__default.default.post($form.attr("action"), $form.serialize(), success).fail(_fail).always(_always);
+      } else if (await frm.canSubmit(e)) {
+        document.body.style.cursor = "wait";
 
-        frm.enableForm = function () {
-          $__default["default"](btn).prop("disabled", false).removeClass("disabled");
-        };
+        let p = _fetch($form.attr("action"), {
+          method: "POST",
+          body: $form.serialize()
+        }).catch(_fail).finally(() => {
+          frm.enableForm();
 
-        frm.disableForm = function () {
-          $__default["default"](btn).prop("disabled", true).addClass("disabled");
-        };
-      }
+          _always();
+        });
 
-      var input = form.elements["action"];
-      if (action && input) input.value = action; // Update action
-
-      if (action == "cancel") {
-        // Cancel
-        $__default["default"].post($form.attr("action"), $form.serialize(), success).fail(_fail).always(_always);
-      } else if (await frm.canSubmit()) {
-        if ($form.hasClass("ew-login-form")) {
-          // Login form
-          frm.submit(); // Submit the form directly
-        } else {
-          // Submit by Ajax
-          $body.css("cursor", "wait");
-          $__default["default"].post($form.attr("action"), $form.serialize(), _submitSuccess).fail(_fail).always(function () {
-            frm.enableForm();
-
-            _always();
+        if (frm.submitWithFetch) {
+          p.then(async response => {
+            // Check error before refresh
+            let resp = response.clone();
+            let ct = resp.headers.get("Content-Type");
+            if (!(ct != null && ct.includes("json")) || !getError(await resp.json())) // HTML or JSON without error
+              $dlg.modal("hide");
+            return response;
           });
+          let args = {
+            form: form,
+            result: p
+          },
+              evt = $__default.default.Event("aftersubmit", {
+            originalEvent: e
+          });
+          frm.trigger(evt, [args]);
+        } else {
+          p.then(_submitSuccess);
         }
       }
 
       return false;
     };
 
-    $dlg.modal("hide");
-    $dlg.data("args", args);
+    let success = function (data) {
+      let result = parseJson(data);
 
-    var success = function (data) {
-      var result = parseJson(data);
-
-      if ($__default["default"].isObject(result)) {
+      if ($__default.default.isObject(result)) {
         handleResult(result);
       } else {
-        var args = $dlg.data("args");
-        var $lnk = $__default["default"](args.lnk);
+        let args = $dlg.data("args"),
+            $lnk = $__default.default(args.lnk),
+            body = getContent(data);
         $dlg.find(".modal-title").html(_caption());
-        var footer = "";
-
-        var btn = _button();
-
-        if (btn) footer += "<button type=\"button\" class=\"btn btn-primary ew-btn\">" + btn + "</button>";
-        if (footer != "") footer += "<button type=\"button\" class=\"btn btn-default ew-btn\" data-bs-dismiss=\"modal\">" + ew.language.phrase("CancelBtn") + "</button>";else footer = "<button type=\"button\" class=\"btn btn-default ew-btn\" data-bs-dismiss=\"modal\">" + ew.language.phrase("CloseBtn") + "</button>";
-        $dlg.find(".modal-footer").html(footer).toggle(args.footer !== false);
-        var body = getContent(data);
         $dlg.find(".modal-body").html(body);
-        var table = $lnk.data("table");
+        $dlg.find(".modal-body .ew-infinite-scroll-grid .ew-grid-middle-panel").css("height", "auto"); // Do not use infinite scrolling height for Grid-Add/Edit
+
+        _createButtons();
+
+        $dlg.find(".modal-footer").toggle(args.footer !== false);
+        let table = $lnk.data("table");
         if (table) $dlg.find(".modal-dialog").addClass("table-" + table);
-        var $btn = $dlg.find(".card-body button[type=submit], .modal-footer .btn-primary") // Find submit button in card body first
-        .first().addClass("ew-submit").click(_submit);
         $dlg.find(".modal-body form").on("keydown", function (e) {
           if (e.key == "Enter" && e.target.nodeName != "TEXTAREA") {
             $btn.click();
@@ -6761,26 +7835,49 @@
           };
         }
 
-        $dlg.trigger("load.ew"); // Trigger load event for, e.g. YouTube videos, ReCAPTCHA and Google maps
-
-        $btn.focus();
+        $dlg.trigger("load.ew"); // Trigger load event
       }
     };
 
-    $body.css("cursor", "wait");
+    let show = function (html) {
+      let args = $dlg.data("args");
+      $dlg.find(".modal-title").html(_caption());
+      $dlg.find(".modal-body").html(html);
 
-    if (f) {
-      // Post form
-      var $f = $__default["default"](f);
-      if (!f.elements.modal) $__default["default"]("<input>").attr({
-        type: "hidden",
-        name: "modal",
-        value: "1"
-      }).appendTo($f);
-      $__default["default"].post(url, $f.serialize(), success).fail(_fail).always(_always);
-    } else {
-      url += (url.split("?").length > 1 ? "&" : "?") + "modal=1&rnd=" + random();
-      $__default["default"].get(url, success).fail(_fail).always(_always);
+      _createButtons();
+
+      $dlg.find(".modal-footer").toggle(args.footer !== false);
+      ew.modalDialog = $dlg.modal("show");
+    }; // Restore previous callback
+
+    if (args.callback === true && (_$dlg$data = $dlg.data("args")) != null && _$dlg$data.callback) args.callback = $dlg.data("args").callback;
+
+    if (url && (_$dlg$data2 = $dlg.data("args")) != null && _$dlg$data2.reload) {
+      // About to load URL but previous result required reload
+      args.reload = true; // Carry the reload state to current args
+
+      $dlg.data("args").reload = false; // Remove reload so "hidden" event will not reload
+    }
+
+    $dlg.modal("hide");
+    $dlg.data("args", args);
+
+    if (url) {
+      document.body.style.cursor = "wait";
+      let params = ew.getSearchParams(url);
+      params.set("rnd", random());
+      if (params.get("action") != "delete") params.set("modal", "1");
+      $__default.default.ajax({
+        url: setSearchParams(url, params),
+        method: f ? "POST" : "GET",
+        data: f ? $__default.default(f).serialize() : "",
+        headers: args.json ? {
+          Accept: "application/json, */*; q=0.01"
+        } : {} // JSON response
+
+      }).done(success).fail(_fail).always(_always);
+    } else if (args.html) {
+      show(args.html);
     }
 
     return false;
@@ -6795,11 +7892,11 @@
    */
 
   function importDialogShow(args) {
-    var _args$evt5, _bootstrap$Tooltip$ge5;
+    var _args$evt6, _bootstrap$Tooltip$ge5;
 
-    args.lnk = args.lnk || ((_args$evt5 = args.evt) == null ? void 0 : _args$evt5.currentTarget);
+    args.lnk = args.lnk || ((_args$evt6 = args.evt) == null ? void 0 : _args$evt6.currentTarget);
     (_bootstrap$Tooltip$ge5 = bootstrap.Tooltip.getInstance(args.lnk)) == null ? void 0 : _bootstrap$Tooltip$ge5.hide();
-    var $dlg = ew.importDialog || $__default["default"]("#ew-import-dialog");
+    let $dlg = ew.importDialog || $__default.default("#ew-import-dialog");
 
     if (!$dlg[0]) {
       _alert("DIV #ew-import-dialog not found.");
@@ -6807,154 +7904,202 @@
       return false;
     }
 
-    var $input = $dlg.find("#importfiles"),
+    let $input = $dlg.find("#importfiles"),
         $dropzone = $input.closest(".ew-file-drop-zone"),
         $bd = $dlg.find(".modal-body"),
         $data = $bd.find(":input[id!=importfiles]"),
         $message = $bd.find(".message"),
         $progress = $bd.find(".progress"),
-        timer; // Disable buttons
+        table,
+        sse; // Add row to table
 
-    var enableButtons = function () {
-      $dlg.find(".modal-footer .btn").prop("disabled", false);
-    }; // Show message
+    let addRow = function (result) {
+      let {
+        row,
+        success,
+        error,
+        count
+      } = result,
+          callback = () => {
+        table.addRow(row).then(r => r.getElement().classList.toggle("text-danger", error));
+        if (error) console.log(ew.language.phrase("ImportRowError").replace("%i", count + " " + JSON.stringify(row)).replace("%e", error));
+      };
 
-    var showMessage = function (msg, classname) {
-      var $msg = $__default["default"]("<div>" + msg + "</div>");
+      row = {
+        "_index": count,
+        "_success": success,
+        "_error": error,
+        ...row
+      };
+
+      if (!table) {
+        table = new Tabulator("#ew-import-dialog .result", $__default.default.extend({
+          data: [row],
+          index: "_index",
+          autoColumns: true,
+          autoColumnsDefinitions: definitions => {
+            definitions.forEach(column => {
+              column.headerSort = false;
+              column.resizable = false;
+
+              if (["_index", "_error"].includes(column.field)) {
+                column.visible = false;
+              } else if (column.field == "_success") {
+                column.title = "#";
+                column.headerSort = true;
+                column.headerSortTristate = true;
+
+                column.formatter = cell => {
+                  cell.getElement().style.textOverflow = "clip";
+                  let row = cell.getRow(),
+                      data = row.getData();
+                  if (data._error) new bootstrap.Tooltip(row.getElement(), {
+                    placement: "bottom",
+                    title: data._error,
+                    container: "#ew-import-dialog .result"
+                  });
+                  return (data._success ? '<i class="fa-solid fa-check text-success"></i>' : '<i class="fa-solid fa-xmark text-danger"></i>') + " #" + data._index;
+                };
+              }
+            });
+            return definitions;
+          }
+        }, ew.importTabulatorOptions));
+        table.on("tableBuilt", () => table.element.querySelector(".tabulator-row").classList.toggle("text-danger", error));
+      } else {
+        table.initialized ? callback() : table.on("tableBuilt", callback);
+      }
+    }; // Enable buttons
+
+    let enableButtons = enabled => $dlg.find(".modal-footer .btn").prop("disabled", !enabled); // Show message
+
+    let showMessage = function (msg, classname) {
+      let $msg = $__default.default("<div>" + msg + "</div>");
       if (classname) $msg.addClass(classname);
       $message.removeClass("d-none").html($msg);
-      if (classname == "text-danger") enableButtons();
+      if (classname == "text-danger") enableButtons(true);
     }; // Hide message
 
-    var hideMessage = function () {
-      $message.addClass("d-none").html("");
-    }; // Show progress
+    let hideMessage = () => $message.addClass("d-none").html(""); // Show progress
 
-    var showProgress = function (pc, classname) {
-      $progress.removeClass("d-none").find(".progress-bar").removeClass("bg-success bg-info").addClass(classname || "bg-success").attr("aria-valuenow", pc).css("width", pc + "%").html(pc + "%");
-    }; // Hide progress
+    let showProgress = (pc, classname) => $progress.removeClass("d-none").find(".progress-bar").removeClass("bg-success bg-info").addClass(classname || "bg-success").attr("aria-valuenow", pc).css("width", pc + "%").html(pc + "%"); // Hide progress
 
-    var hideProgress = function () {
-      $progress.addClass("d-none").find(".progress-bar").attr("aria-valuenow", 0).css("width", "0%").html("0%");
-    }; // Upload progress
+    let hideProgress = () => $progress.addClass("d-none").find(".progress-bar").attr("aria-valuenow", 0).css("width", "0%").html("0%"); // Upload progress
 
-    var uploadProgress = function (data) {
-      var pc = parseInt(100 * data.loaded / data.total);
+    let uploadProgress = function (data) {
+      const pc = parseInt(100 * data.loaded / data.total, 10);
       showProgress(pc, "bg-primary");
+      if (pc === 100) showMessage(ew.language.phrase("ImportUploadComplete"), "text-primary");else showMessage(ew.language.phrase("ImportUploadProgress").replace("%p", pc), "text-primary");
+    }; // Update import progress
 
-      if (pc === 100) {
-        showMessage(ew.language.phrase("ImportMessageUploadComplete"), "text-primary");
-      } else {
-        showMessage(ew.language.phrase("ImportMessageUploadProgress").replace("%p", pc), "text-primary");
-      }
-    }; // Update progress (import)
+    let updateProgress = function (e) {
+      const result = parseJson(e.data) || {};
 
-    var updateProgress = function (result) {
       try {
-        var cnt = parseInt(result.count),
-            tcnt = parseInt(result.totalCount),
+        let tcnt = result.totalCount || 0,
+            cnt = result.count || 0,
+            scnt = result.successCount || 0,
+            fcnt = result.failCount || 0,
             filename = result.file;
 
         if (tcnt > 0 && $dlg.find(".modal-footer .ew-close-btn").data("import-progress")) {
           // Show progress
-          var pc = parseInt(100 * cnt / tcnt);
+          if (result.row) addRow(result);
+          let pc = parseInt(100 * cnt / tcnt, 10);
           showProgress(pc);
-          showMessage(ew.language.phrase("ImportMessageProgress").replace("%t", tcnt).replace("%c", cnt).replace("%f", filename), "text-primary");
+          showMessage(ew.language.phrase("ImportResult").replace("%t", tcnt).replace("%c", cnt).replace("%f", filename).replace("%s", scnt).replace("%e", fcnt), fcnt > 0 ? "text-danger" : "text-primary");
         }
       } catch (e) {}
-    }; // Import progress
-
-    var importProgress = function () {
-      var url = getApiUrl(ew.API_PROGRESS_ACTION),
-          data = {
-        "rnd": random()
-      };
-      data[ew.API_FILE_TOKEN_NAME] = $input.data(ew.API_FILE_TOKEN_NAME);
-      $__default["default"].get(url, data, updateProgress, "json");
     }; // Import complete
 
-    var importComplete = function (result) {
-      var maxErrorCount = 5;
-      var msg = "";
+    let importComplete = function (e) {
+      var _sse;
+
+      let msg = [],
+          result = parseJson(e.data) || {},
+          fileResults = result.files;
       showProgress(100);
-      var fileResults = result.files;
       $dlg.find(".modal-footer .ew-close-btn").data("import-progress", false); // Stop import progress
 
       if (Array.isArray(fileResults)) {
-        for (var i = 0, len = fileResults.length; i < len; i++) {
-          var fileResult = fileResults[i],
-              tcnt = fileResult.totalCount || 0,
+        fileResults.forEach(fileResult => {
+          let tcnt = fileResult.totalCount || 0,
               cnt = fileResult.count || 0,
               scnt = fileResult.successCount || 0,
               fcnt = fileResult.failCount || 0;
-          if (msg != "") msg += "<br>";
-
-          if (fileResult.success) {
-            msg += ew.language.phrase("ImportMessageSuccess").replace("%t", tcnt).replace("%c", cnt).replace("%f", fileResult.file);
-          } else {
-            msg += ew.language.phrase("ImportMessageError1").replace("%t", tcnt).replace("%c", cnt).replace("%f", fileResult.file).replace("%s", scnt).replace("%e", fcnt);
-            if (fileResult.error) msg += ew.language.phrase("ImportMessageError2").replace("%e", fileResult.error);
-            var showLog = true;
-
-            if (fileResult.failList) {
-              var ecnt = 0;
-
-              for (var i = 1; i <= cnt; i++) {
-                if (fileResult.failList["row" + i]) {
-                  ecnt += 1;
-                  msg += "<br>" + ew.language.phrase("ImportMessageError3").replace("%i", i).replace("%d", fileResult.failList["row" + i]);
-                }
-
-                if (ecnt >= maxErrorCount) break;
-              }
-
-              if (fcnt > maxErrorCount) msg += "<br>" + ew.language.phrase("ImportMessageMore").replace("%s", fcnt - maxErrorCount);else showLog = false;
-            }
-
-            if (fileResult.log && showLog) msg += "<br>" + ew.language.phrase("ImportMessageError4").replace("%l", fileResult.log);
-            showMessage(msg, "text-danger"); // Show error message
-          }
-        }
+          msg.push(ew.language.phrase("ImportResult").replace("%t", tcnt).replace("%c", cnt).replace("%f", fileResult.file).replace("%s", scnt).replace("%e", fcnt));
+        });
       }
 
       if (result.success) {
-        showMessage(msg, "text-success");
+        if (result.rollbacked) msg.push(ew.language.phrase("ImportSave"));
+        showMessage(msg.join("<br>"), "text-success");
         $dlg.find(".modal-footer .ew-close-btn").data("imported", true);
       } else {
-        if (result.error) msg = result.error;
-        showMessage(msg, "text-danger"); // Show error message
-      }
+        if (ew.IMPORT_MAX_FAILURES > 0 && result.failCount >= ew.IMPORT_MAX_FAILURES) msg.push(ew.language.phrase("ImportMaxFailuresExceeded"));
+        showMessage(msg.join("<br>"), "text-danger"); // Show error message
+      } // hideProgress();
 
-      hideProgress();
+      document.body.style.cursor = "default";
+      $dlg.find(".modal-footer .ew-close-btn").prop("disabled", false); // Enable the close button
+
+      let $btn = $dlg.find(".modal-footer .ew-import-btn").toggleClass("d-none", !result.rollbacked || !result.success); // Show/Hide the import button
+
+      if (result.rollbacked) $btn.off("click").one("click", saveImport);
+      console.log("Closing EventSource...");
+      (_sse = sse) == null ? void 0 : _sse.close();
     }; // Import fail
 
-    var importFail = function (o) {
+    let importFail = function (e) {
+      var _sse2;
+
+      document.body.style.cursor = "default";
       $dlg.find(".modal-footer .ew-close-btn").data("import-progress", false); // Stop import progress
 
-      showMessage(ew.language.phrase("ImportMessageServerError").replace("%s", o.status).replace("%t", o.statusText), "text-danger");
+      let result = parseJson(e.data) || {};
+      if (result.error) showMessage(result.error, "text-danger");
+      console.log("Closing EventSource...");
+      (_sse2 = sse) == null ? void 0 : _sse2.close();
     }; // Import file
 
-    var importFiles = function (filetoken) {
-      $body.css("cursor", "wait");
+    let importFiles = function (filetoken) {
+      var _table;
+
+      document.body.style.cursor = "wait";
+      showProgress(0);
+      (_table = table) == null ? void 0 : _table.clearData();
       $input.data(ew.API_FILE_TOKEN_NAME, filetoken);
       $dlg.find(".modal-footer .ew-close-btn").data("import-progress", true); // Show import progress
 
-      var data = ew.API_ACTION_NAME + "=import&" + ew.API_FILE_TOKEN_NAME + "=" + encodeURIComponent(filetoken);
-      if ($data.length) data += "&" + $data.serialize();
-      $__default["default"].ajax(currentPage(), {
-        "data": data,
-        "method": "POST",
-        "dataType": "json",
-        "beforeSend": function (xhr, settings) {
-          timer = $__default["default"].later(100, null, importProgress, null, true); // Use time to show progress periodically
-        }
-      }).done(importComplete).fail(importFail).always(function () {
-        $body.css("cursor", "default");
-        if (timer) timer.cancel(); // Clear timer
-      });
+      let params = new URLSearchParams($data.serialize());
+      params.set(ew.API_ACTION_NAME, ew.API_IMPORT_ACTION);
+      params.set(ew.API_FILE_TOKEN_NAME, filetoken);
+      params.set("rollback", "1");
+      sse = new EventSource(currentPage() + "?" + params.toString());
+      sse.addEventListener("message", updateProgress);
+      sse.addEventListener("error", importFail);
+      sse.addEventListener("complete", importComplete);
+    }; // Save import
+
+    let saveImport = function (e) {
+      var _table2;
+
+      document.body.style.cursor = "wait";
+      showProgress(0);
+      (_table2 = table) == null ? void 0 : _table2.clearData();
+      $dlg.find(".modal-footer .ew-close-btn").data("import-progress", true); // Show import progress
+
+      let params = new URLSearchParams($data.serialize());
+      params.set(ew.API_ACTION_NAME, ew.API_IMPORT_ACTION);
+      params.set(ew.API_FILE_TOKEN_NAME, $input.data(ew.API_FILE_TOKEN_NAME));
+      params.set("rollback", "0");
+      sse = new EventSource(currentPage() + "?" + params.toString());
+      sse.addEventListener("message", updateProgress);
+      sse.addEventListener("error", importFail);
+      sse.addEventListener("complete", importComplete);
     };
 
-    var options = ew.importUploadOptions;
+    let options = ew.importUploadOptions;
     if (!options.acceptFileTypes) options.acceptFileTypes = new RegExp('\\.(' + ew.IMPORT_FILE_ALLOWED_EXTENSIONS.replace(/,/g, '|') + ')$', 'i');
 
     if (!$input.data("blueimpFileupload")) {
@@ -6965,10 +8110,10 @@
         singleFileUploads: false,
         dropZone: $dropzone,
         messages: {
-          acceptFileTypes: ew.language.phrase("UploadErrMsgAcceptFileTypes"),
-          maxFileSize: ew.language.phrase("UploadErrMsgMaxFileSize"),
-          maxNumberOfFiles: ew.language.phrase("UploadErrMsgMaxNumberOfFiles"),
-          minFileSize: ew.language.phrase("UploadErrMsgMinFileSize")
+          acceptFileTypes: ew.language.phrase("UploadErrorAcceptFileTypes"),
+          maxFileSize: ew.language.phrase("UploadErrorMaxFileSize"),
+          maxNumberOfFiles: ew.language.phrase("UploadErrorMaxNumberOfFiles"),
+          minFileSize: ew.language.phrase("UploadErrorMinFileSize")
         },
         beforeSend: function (jqxhr, settings) {
           settings.data.set("session", ew.SESSION_ID);
@@ -6983,10 +8128,10 @@
           var _data$result, _data$result$files;
 
           if (Array.isArray(data == null ? void 0 : (_data$result = data.result) == null ? void 0 : (_data$result$files = _data$result.files) == null ? void 0 : _data$result$files.importfiles)) {
-            var ok = true;
+            let ok = true;
             data.result.files.importfiles.forEach(function (file, index) {
               if (file.error) {
-                showMessage(ew.language.phrase("ImportMessageUploadError").replace("%f", file.name).replace("%s", file.error), "text-danger");
+                showMessage(ew.language.phrase("ImportUploadError").replace("%f", file.name).replace("%s", file.error), "text-danger");
                 ok = false;
               }
             }); // Show upload errors for each file
@@ -6999,11 +8144,11 @@
         },
         processfail: function (e, data) {
           data.files.forEach(function (file, index) {
-            if (file.error) showMessage(ew.language.phrase("ImportMessageUploadError").replace("%f", file.name).replace("%s", file.error), "text-danger");
+            if (file.error) showMessage(ew.language.phrase("ImportUploadError").replace("%f", file.name).replace("%s", file.error), "text-danger");
           }); // Show process errors for each file
         },
         fail: function (e, data) {
-          showMessage(ew.language.phrase("ImportMessageServerError").replace("%s", data.textStatus).replace("%t", data.errorThrown), "text-danger");
+          showMessage(ew.language.phrase("ImportServerError").replace("%s", data.textStatus).replace("%t", data.errorThrown), "text-danger");
         },
         progressall: function (e, data) {
           uploadProgress(data);
@@ -7013,7 +8158,7 @@
 
     $dlg.modal("hide").find(".modal-title").html(args.hdr);
     $dlg.find(".modal-footer .ew-close-btn").off("click.ew").on("click.ew", function () {
-      var $this = $__default["default"](this);
+      let $this = $__default.default(this);
 
       if ($this.data("imported")) {
         $this.data("imported", false);
@@ -7021,21 +8166,29 @@
       }
     });
     hideMessage();
-    ew.importDialog = $dlg.modal("show");
+    ew.importDialog = $dlg.on("show.bs.modal", function () {
+      var _this$querySelector, _table3, _table4;
+
+      hideProgress();
+      (_this$querySelector = this.querySelector(".modal-footer .ew-import-btn")) == null ? void 0 : _this$querySelector.classList.add("d-none");
+      (_table3 = table) == null ? void 0 : _table3.element.removeAttribute("style");
+      (_table4 = table) == null ? void 0 : _table4.destroy();
+      table = null;
+    }).modal("show");
     return false;
   } // Auto-fill
 
   function autoFill(el) {
-    var f = forms.get(el).$element[0];
+    let f = forms.get(el).$element[0];
     if (!f) return;
-    var ar = getOptionValues(el),
+    let ar = getOptionValues(el),
         id = getId(el),
         m = id.match(/^([xy])(\d*)_/),
         rowindex = m ? m[2] : "",
         list = forms.get(el).getList(id),
         dest_array = list.autoFillTargetFields;
 
-    var success = function (data) {
+    let success = function (data) {
       let results = data == null ? void 0 : data.records,
           result = Array.isArray(results) && results.length > 0 ? results[0] : [];
 
@@ -7043,7 +8196,7 @@
         let destEl = getElements(dest_array[j].replace(/^x_/, "x" + rowindex + "_"), f);
 
         if (destEl) {
-          let val = $__default["default"].isValue(result["af" + j]) ? String(result["af" + j]) : "",
+          let val = $__default.default.isValue(result["af" + j]) ? String(result["af" + j]) : "",
               args = {
             results,
             result,
@@ -7054,7 +8207,7 @@
             cancel: false,
             trigger: true
           };
-          $__default["default"](el).trigger("autofill", [args]); // Fire event
+          $__default.default(el).trigger("autofill", [args]); // Fire event
 
           if (args.cancel) continue;
           val = args.data; // Process the value
@@ -7071,7 +8224,7 @@
           } else if (isHiddenTextArea(destEl)) {
             // HTML editor
             destEl.value = val;
-            $__default["default"](destEl).data("editor").set();
+            $__default.default(destEl).data("editor").set();
           } else if (destEl.type == "checkbox") {
             // Boolean checkbox
             destEl.checked = convertToBool(val);
@@ -7079,7 +8232,7 @@
             destEl.value = val;
           }
 
-          if (args.trigger) $__default["default"](destEl).trigger("change");
+          if (args.trigger) $__default.default(destEl).trigger("change");
         }
       }
 
@@ -7087,7 +8240,7 @@
     };
 
     if (ar.length > 0 && ar[0] != "") {
-      var data = Object.assign({
+      let data = Object.assign({
         page: list.page,
         field: list.field,
         ajax: "autofill",
@@ -7095,50 +8248,68 @@
         language: ew.LANGUAGE_ID
       }, getUserParams('#p_' + id, f)); // Add parent field values
 
-      var parentId = list.parentFields.slice(); // Clone
+      let parentId = list.parentFields.slice(); // Clone
 
       if (rowindex != "") {
-        for (var i = 0, len = parentId.length; i < len; i++) {
-          var ar = parentId[i].split(" ");
+        for (let i = 0, len = parentId.length; i < len; i++) {
+          let ar = parentId[i].split(" ");
           if (ar.length == 1) // Parent field in the same table, add row index
             parentId[i] = parentId[i].replace(/^x_/, "x" + rowindex + "_");
         }
       }
 
-      var arp = parentId.map(function (pid) {
-        return getOptionValues(pid, f);
-      });
+      let arp = parentId.map(pid => getOptionValue(pid, f)); // Get parent field values
 
-      for (var i = 0, cnt = arp.length; i < cnt; i++) // Filter by parent fields
-      data["v" + (i + 1)] = arp[i].join(ew.MULTIPLE_OPTION_SEPARATOR);
+      arp.forEach((p, i) => data["v" + (i + 1)] = p); // Filter by parent fields
 
-      return $__default["default"].post(getApiUrl(ew.API_LOOKUP_ACTION), data, success, "json");
+      return $__default.default.post(getApiUrl(ew.API_LOOKUP_ACTION), data, success, "json");
     }
 
     return success();
-  } // Setup tooltip links
+  } // Set up tooltip links as popovers
 
   function tooltip(i, el) {
-    var $this = $__default["default"](el),
-        $tt = $__default["default"]("#" + $this.data("tooltip-id")),
+    var $this = $__default.default(el),
+        $tt = $__default.default("#" + $this.data("tooltip-id")),
         trig = $this.data("trigger") || "hover",
         dir = $this.data("placement") || "auto";
     if (!$tt[0] || $tt.text().trim() == "" && !$tt.find("img[src!='']")[0]) return;
 
     if (!bootstrap.Popover.getInstance(el)) {
-      $this.popover({
-        html: true,
+      $this.popover({ ...ew.popoverOptions,
         placement: dir,
         trigger: trig,
         delay: 100,
         container: document.getElementById("ew-tooltip"),
-        content: $tt.html(),
-        sanitizeFn: ew.sanitizeFn
-      }).on("show.bs.popover", function (e) {
+        content: $tt.html()
+      }).on("show.bs.popover", function () {
         var wd = $this.data("tooltip-width");
         if (wd) // Set width before show
-          $__default["default"](bootstrap.Popover.getInstance(el).getTipElement()).css("max-width", parseInt(wd, 10) + "px");
+          $__default.default(bootstrap.Popover.getInstance(this)._getTipElement()).css("max-width", parseInt(wd, 10) + "px");
       });
+    }
+  }
+  /**
+   * Init search filters
+   */
+
+  function initSearchFilters(e) {
+    var _e$target11;
+
+    let el = (_e$target11 = e == null ? void 0 : e.target) != null ? _e$target11 : document,
+        btn = el == null ? void 0 : el.querySelector(".ew-filter-option");
+
+    if (ew.CLIENT_SEARCH_FILTER || ew.SERVER_SEARCH_FILTER && ew.IS_LOGGEDIN && !ew.IS_SYS_ADMIN && ew.CURRENT_USER_NAME != "") {
+      $__default.default(btn).removeClass("d-none").find(".ew-btn-dropdown").on("show.bs.dropdown", function (e) {
+        var _frm$filterList$filte, _frm$filterList;
+
+        let formId = $__default.default(this).find(".ew-save-filter[data-form], .ew-delete-filter[data-form]").data("form"),
+            frm = ew.forms.get(formId),
+            filters = ew.CLIENT_SEARCH_FILTER ? ew.parseJson(localStorage.getItem(ew.PROJECT_NAME + "_" + frm.id + "_filters") || "[]") || [] : (_frm$filterList$filte = frm == null ? void 0 : (_frm$filterList = frm.filterList) == null ? void 0 : _frm$filterList.filters) != null ? _frm$filterList$filte : [];
+        frm.setupFilters(e, filters.filter(val => Array.isArray(val) && val.length == 2));
+      });
+    } else {
+      btn == null ? void 0 : btn.classList.add("d-none");
     }
   }
   /**
@@ -7148,14 +8319,14 @@
    * @param {MouseEvent} args.evt - Event
    * @param {string} args.hdr - Dialog header
    * @param {Object} args.key - Key as object
-   * @param {boolean} args.sel - Exported selected only
+   * @param {boolean} args.exportSelected - Exported selected only
    * @param {string} args.url - URL of content (for Custom Template)
-   * @param {string} args.exportid - Export ID (for Custom Template)
+   * @param {string} args.exportId - Export ID (for Custom Template)
    * @returns false
    */
 
   function emailDialogShow(args) {
-    var $dlg = ew.emailDialog || $__default["default"]("#ew-email-dialog").on("shown.bs.modal", e => setTimeout(() => {
+    let $dlg = ew.emailDialog || $__default.default("#ew-email-dialog").on("shown.bs.modal", e => setTimeout(() => {
       var _e$target$querySelect;
 
       return (_e$target$querySelect = e.target.querySelector(".modal-body .form-control")) == null ? void 0 : _e$target$querySelect.focus();
@@ -7163,7 +8334,7 @@
       var _$$closest$find$data;
 
       e.preventDefault();
-      if ((_$$closest$find$data = $__default["default"](this).closest(".modal").find(".modal-body form").data("form")) != null && _$$closest$find$data.submit()) $dlg.modal("hide");
+      if ((_$$closest$find$data = $__default.default(this).closest(".modal").find(".modal-body form").data("form")) != null && _$$closest$find$data.submit()) $dlg.modal("hide");
     });
 
     if (!$dlg[0]) {
@@ -7172,61 +8343,121 @@
       return false;
     }
 
-    var form = args.evt.currentTarget.form;
+    let form = args.evt.currentTarget.form;
 
-    if (args.sel && !keySelected(form)) {
+    if (args.exportSelected && !keySelected(form)) {
       _alert(ew.language.phrase("NoRecordSelected"));
 
       return false;
     }
 
-    var $f = $dlg.find(".modal-body form"),
+    let $f = $dlg.find(".modal-body form"),
         frm = $f.data("form");
 
     if (!frm) {
-      frm = new Form($f.attr("id"));
-      frm.addFields([["sender", [ew.Validators.required(ew.language.phrase("Sender")), ew.Validators.email]], ["recipient", [ew.Validators.required(ew.language.phrase("Recipient")), ew.Validators.emails(ew.MAX_EMAIL_RECIPIENT, ew.language.phrase("EnterProperRecipientEmail"))]], ["cc", ew.Validators.emails(ew.MAX_EMAIL_RECIPIENT, ew.language.phrase("EnterProperCcEmail"))], ["bcc", ew.Validators.emails(ew.MAX_EMAIL_RECIPIENT, ew.language.phrase("EnterProperBccEmail"))], ["subject", ew.Validators.required(ew.language.phrase("Subject"))]]);
-
-      frm.validate = function () {
+      frm = new FormBuilder().setId($f.attr("id")).addFields([["sender", [ew.Validators.required(ew.language.phrase("Sender")), ew.Validators.email]], ["recipient", [ew.Validators.required(ew.language.phrase("Recipient")), ew.Validators.emails(ew.MAX_EMAIL_RECIPIENT, ew.language.phrase("EnterProperRecipientEmail"))]], ["cc", ew.Validators.emails(ew.MAX_EMAIL_RECIPIENT, ew.language.phrase("EnterProperCcEmail"))], ["bcc", ew.Validators.emails(ew.MAX_EMAIL_RECIPIENT, ew.language.phrase("EnterProperBccEmail"))], ["subject", ew.Validators.required(ew.language.phrase("Subject"))]]).setValidate(function () {
         return this.validateFields();
-      };
-
-      frm.submit = function () {
+      }).setSubmit(function () {
         if (!this.validate()) return false;
-        var data = [$f.serialize()];
-        if (form && args.sel) // Export selected
-          data.push($__default["default"](form).find("input[type=checkbox][name='key_m[]']:checked").serialize());
-        if (args.key) data.push($__default["default"].param(args.key));
-        var fobj = this.getForm();
+        let data = mergeSearchParams($f.serialize(), args.key, getchartParams(), form && args.exportSelected ? $__default.default(form).find("input[type=checkbox][name='key_m[]']:checked").serialize() : null); // Export selected
 
-        if (args.url) {
-          // Custom Template
-          $dlg.modal("hide");
-          if (args.exportid) ew.exportWithCharts(args.url, args.exportid, fobj);else _export(args.evt, args.url, "email", true, args.sel, fobj);
-        } else {
-          $__default["default"].post(form.getAttribute("action"), data.join("&"), result => showMessage(result)); // Do not use form.action
-        }
-
-        return true;
-      };
-
+        $dlg.modal("hide");
+        args.custom // Custom Template
+        ? _export({ ...args,
+          ...{
+            export: "email",
+            custom: true,
+            emailForm: $f[0]
+          }
+        }) : exportEmail($f.find("#tblvar").val(), data);
+        return false;
+      }).build();
       $f.data("form", frm);
     }
 
     ew.emailDialog = $dlg.modal("hide").find(".modal-title").html(args.hdr).end().modal("show");
     return false;
+  } // Export to email
+
+  function exportEmail(tblVar, data) {
+    let swal = window.parent.Swal; // Use window.parent.Swal in case in iframe
+
+    return swal.fire({ ...ew.sweetAlertSettings,
+      showConfirmButton: false,
+      html: "<p>" + ew.language.phrase("Exporting") + "</p>",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      willOpen: () => {
+        swal.showLoading();
+
+        _fetch(getApiUrl([ew.API_EXPORT_ACTION, "email", tblVar]) + "?rnd=" + random(), {
+          // Post to Export API
+          method: "POST",
+          body: data
+        }).then(async response => {
+          swal.hideLoading();
+          let result = await response.json();
+
+          if (result != null && result.success) {
+            swal.update({
+              html: "<div class='text-success'>" + result.message + "</div>"
+            });
+            $document$1.trigger("export", [{
+              type: "done",
+              tblVar,
+              data,
+              result
+            }]);
+          } else {
+            var _ref3;
+
+            swal.update({
+              html: (_ref3 = "<div class='text-danger'>" + getError(result)) != null ? _ref3 : ew.language.phrase("FailedToExport") + "</div>"
+            });
+            $document$1.trigger("export", [{
+              type: "fail",
+              tblVar,
+              data,
+              result
+            }]);
+          }
+        }).catch(error => {
+          var _ref4;
+
+          swal.hideLoading();
+          swal.update({
+            html: (_ref4 = "<div class='text-danger'>" + error) != null ? _ref4 : ew.language.phrase("FailedToExport") + "</div>"
+          });
+          $document$1.trigger("export", [{
+            type: "fail",
+            tblVar,
+            data,
+            error
+          }]);
+        }).finally(() => {
+          swal.update({
+            showConfirmButton: true
+          });
+          $document$1.trigger("export", [{
+            type: "always",
+            tblVar,
+            data
+          }]);
+        });
+      }
+    });
   } // Show drill down
 
   function showDrillDown(e, obj, url, id, hdr) {
     if (e != null && e.ctrlKey) {
-      var arUrl = url.split("?"),
-          params = new URLSearchParams(arUrl[1]);
-      params.set("d", "2"); // Change d parameter to 2
+      let newUrl = setSearchParams(url, {
+        d: "2"
+      }); // Change "d" parameter to 2
 
-      return redirect(arUrl[0] + "?" + params.toString());
+      return redirect(newUrl);
     }
 
-    var $obj = $__default["default"](obj);
+    var $obj = $__default.default(obj);
     var pos = $obj.data("drilldown-placement") || "auto";
     var args = {
       obj: $obj[0],
@@ -7241,30 +8472,28 @@
     args.data = ar[1] || "";
 
     if (!bootstrap.Popover.getInstance(obj)) {
-      $obj.popover({
-        html: true,
+      $obj.popover({ ...ew.popoverOptions,
         placement: args.placement,
         trigger: "manual",
         title: args.hdr,
         template: '<div class="popover" role="tooltip"><h3 class="popover-header d-none" style="cursor: move;"></h3><div class="popover-body"></div></div>',
         // No .popover-arrow
-        content: '<div class="' + ew.spinnerClass + ' m-3 ew-loading" role="status"><span class="visually-hidden">' + ew.language.phrase("Loading") + '</span></div>',
-        container: $__default["default"]("#ew-drilldown-panel").draggable(ew.draggableOptions),
-        sanitizeFn: ew.sanitizeFn,
+        content: ew.spinnerTemplate(),
+        container: $__default.default("#ew-drilldown-panel").draggable(ew.draggableOptions),
         boundary: "viewport"
       }).on("show.bs.popover", function (e) {
         $obj.attr("data-original-title", "");
       }).on("shown.bs.popover", function (e) {
         if (!$obj.data("args")) return;
         var data = $obj.data("args").data;
-        $__default["default"].ajax({
+        $__default.default.ajax({
           cache: false,
           dataType: "html",
           type: "POST",
           data: data,
           url: $obj.data("args").file,
           success: function (data) {
-            var $tip = $__default["default"](bootstrap.Popover.getInstance(obj).getTipElement());
+            var $tip = $__default.default(bootstrap.Popover.getInstance(obj)._getTipElement());
             if (args.hdr) $tip.find(".popover-header").empty().removeClass("d-none").append('<button type="button" class="btn-close" aria-label="' + ew.language.phrase("CloseBtn") + '"></button>' + args.hdr).find(".btn-close").on("click", function () {
               $obj.popover("hide");
             });
@@ -7272,20 +8501,22 @@
 
             data = m ? m[0] : data;
             var html = ew.stripScript(data);
-            $tip.find(".popover-body").html($__default["default"]("<div></div>").html(html).find("#ew-report")) // Insert the container table only
+            $tip.find(".popover-body").html($__default.default("<div></div>").html(html).find("#ew-report")) // Insert the container table only
             .find(".ew-table").each(ew.setupTable);
             ew.executeScript(data, id);
             $obj.popover("update");
           },
           error: function (o) {
             if (o.responseText) {
-              if ($__default["default"].isString(o.responseText) && o.responseText.startsWith("{") && o.responseText.endsWith("}")) {
-                var _result$error7, _result$error8;
+              let popover = bootstrap.Popover.getInstance(obj);
+
+              if ($__default.default.isString(o.responseText) && o.responseText.startsWith("{") && o.responseText.endsWith("}")) {
+                var _result$error12, _result$error13;
 
                 var result = parseJson(o.responseText);
 
-                if (result != null && (_result$error7 = result.error) != null && _result$error7.type && result != null && (_result$error8 = result.error) != null && _result$error8.description) {
-                  bootstrap.Popover.getInstance(obj).hide();
+                if (result != null && (_result$error12 = result.error) != null && _result$error12.type && result != null && (_result$error13 = result.error) != null && _result$error13.description) {
+                  popover == null ? void 0 : popover.hide();
                   return _alert({
                     title: result.error.type,
                     html: result.error.description,
@@ -7297,8 +8528,9 @@
                 }
               }
 
-              var $tip = $__default["default"](bootstrap.Popover.getInstance(obj).getTipElement());
-              $tip.find(".popover-body").empty().append('<p class="text-danger">' + o.responseText + '</p>');
+              popover == null ? void 0 : popover.setContent({
+                ".popover-body": '<p class="text-danger">' + o.responseText + '</p>'
+              });
             }
           }
         });
@@ -7317,7 +8549,7 @@
    */
 
   function ajax(data, callback) {
-    if (!$__default["default"].isObject(data) || !data.url && !data.action) return undefined;
+    if (!$__default.default.isObject(data) || !data.url && !data.action) return undefined;
     var action;
 
     if (data.url) {
@@ -7330,7 +8562,7 @@
     var obj = Object.assign({}, data);
 
     var _convert = response => {
-      if ($__default["default"].isObject(response) && response.result == "OK") {
+      if ($__default.default.isObject(response) && response.result == "OK") {
         var results = response.records;
 
         if (Array.isArray(results) && results.length == 1) {
@@ -7354,9 +8586,9 @@
     delete obj.type;
     obj.dataType = "json";
 
-    if (isFunction$2(callback)) {
+    if (isFunction$1(callback)) {
       // Async
-      $__default["default"].ajax({
+      $__default.default.ajax({
         url: url,
         type: type,
         data: obj,
@@ -7366,7 +8598,7 @@
       });
     } else {
       // Sync
-      var response = $__default["default"].ajax({
+      var response = $__default.default.ajax({
         url: url,
         async: false,
         type: type,
@@ -7390,31 +8622,20 @@
     var _bootstrap$Tooltip$ge6;
 
     (_bootstrap$Tooltip$ge6 = bootstrap.Tooltip.getInstance(el)) == null ? void 0 : _bootstrap$Tooltip$ge6.hide();
-    $body.css("cursor", "wait");
-    let layout = el.dataset.layout,
-        grid = document.querySelector(".ew-multi-column-grid"),
-        $grid = $__default["default"](grid);
-    $grid.load(sanitizeUrl(el.dataset.url + ew.PAGE_LAYOUT + "=" + layout) + " .ew-multi-column-grid", (response, status, xhr) => {
-      if (status == "error") {
-        _alert(xhr.status + " " + xhr.statusText);
-      } else {
-        var _document$createRange, _document$createRange2;
-
-        removeScript(layout);
-        executeScript((_document$createRange = (_document$createRange2 = document.createRange().createContextualFragment(response).querySelector(".ew-multi-column-grid")) == null ? void 0 : _document$createRange2.innerHTML) != null ? _document$createRange : "", layout);
-        ew.initPage({
-          target: grid
-        });
-        $body.css("cursor", "default");
-        $grid.trigger("layout");
-      }
-    });
+    document.body.style.cursor = "wait";
+    fetch(sanitizeUrl(setLayout(el.dataset.url, el.dataset.layout))).then(response => response.text()).then(html => {
+      let $grid = $__default.default(".ew-multi-column-grid").html($__default.default("<div>" + html + "</div>").find(".ew-multi-column-grid").html());
+      ew.initPage({
+        target: $grid[0]
+      });
+      $grid.trigger("load.ew");
+    }).catch(error => _alert(error)).finally(() => document.body.style.cursor = "default");
   } // Copy inner text to clipboard
 
   function copyToClipboard(source) {
     var _source, _source2;
 
-    source = $__default["default"].isString(source) ? document.querySelector(source) : source;
+    source = $__default.default.isString(source) ? document.querySelector(source) : source;
     const str = ((_source = source) == null ? void 0 : _source.value) || ((_source2 = source) == null ? void 0 : _source2.innerText);
 
     if (str) {
@@ -7458,13 +8679,13 @@
   function checkRange(object_value, min_value, max_value) {
     if (!object_value || object_value.length == 0) return true;
 
-    if ($__default["default"].isNumber(min_value) || $__default["default"].isNumber(max_value)) {
+    if ($__default.default.isNumber(min_value) || $__default.default.isNumber(max_value)) {
       // Number
       if (checkNumber(object_value)) object_value = ew.parseNumber(object_value);
     }
 
-    if (!$__default["default"].isNull(min_value) && object_value < min_value) return false;
-    if (!$__default["default"].isNull(max_value) && object_value > max_value) return false;
+    if (min_value !== null && object_value < min_value) return false;
+    if (max_value !== null && object_value > max_value) return false;
     return true;
   } // Check phone
 
@@ -7559,26 +8780,23 @@
     let doc, swal;
 
     try {
-      let win = window.parent; // Note: If a window does not have a parent, its parent property is a reference to itself.
-
-      doc = win.document;
-      swal = win.Swal;
+      // Note: If a window does not have a parent, its parent property is a reference to itself.
+      [doc, swal] = [window.parent.document, window.parent.Swal];
     } catch (e) {
-      // In case win.document cannot be accessed
-      doc = window.document;
-      swal = window.Swal;
+      // In case window.parent.document cannot be accessed
+      [doc, swal] = [window.document, window.Swal];
     }
 
     let p = (_arg$target = arg == null ? void 0 : arg.target) != null ? _arg$target : doc,
-        $div = $__default["default"](p).find("div.ew-message-dialog:hidden").first(),
+        $div = $__default.default(p).find("div.ew-message-dialog.d-none").first(),
         msg = $div.length ? $div.text() : ""; // Text only
 
-    if ($__default["default"].isString(arg)) msg = $__default["default"]("<div>" + arg.trim() + "</div>").text();
+    if ($__default.default.isString(arg)) msg = $__default.default("<div>" + arg.trim() + "</div>").text();
     if (msg.trim() == "") return;
 
     if ($div.length) {
-      ["success", "info", "warning", "danger"].forEach(function (value, index) {
-        let $alert = $div.find(".alert-" + value).toggleClass("alert-" + value),
+      ["success", "info", "warning", "danger"].forEach(function (type) {
+        let $alert = $div.find(".alert-" + type).toggleClass("alert-" + type),
             $heading = $alert.find(".alert-heading").detach(),
             $content = $alert.children(":not(.icon)");
         $alert.find(".icon").remove();
@@ -7587,14 +8805,7 @@
           let w = parseInt($content.css("width"), 10); // Width specified
 
           if (w > 0) $content.first().css("width", "auto");
-          let $toast = toast({
-            class: "ew-toast bg-" + value,
-            title: $heading[0] ? $heading.html() : ew.language.phrase(value),
-            body: $alert.html(),
-            autohide: value == "success" ? ew.autoHideSuccessMessage : false,
-            // Autohide for success message
-            delay: value == "success" ? ew.autoHideSuccessMessageDelay : 500
-          });
+          let $toast = showToast($alert.html(), type, $heading.html());
           if (w > 0) $toast.css("max-width", w); // Override bootstrap .toast max-width
 
           return;
@@ -7602,7 +8813,7 @@
       });
     }
 
-    if ($__default["default"].isString(arg)) {
+    if ($__default.default.isString(arg)) {
       return swal.fire({ ...ew.sweetAlertSettings,
         html: arg
       });
@@ -7614,29 +8825,24 @@
   } // File upload
 
   function upload(input) {
-    var $input = $__default["default"](input);
+    let $input = $__default.default(input);
     if ($input.data("blueimpFileupload")) return;
-    var id = $input.attr("name"),
+    let id = $input.attr("name"),
         nid = id.replace(/\$/g, "\\$"),
         tbl = $input.data("table"),
         multiple = $input.is("[multiple]"),
         $dropzone = $input.closest(".ew-file-drop-zone"),
         $p = $input.closest(fieldContainerSelector),
-        readonly = $input.prop("disabled") || $input.closest("form").find("#confirm").val() == "confirm",
         $ft = $p.find("#ft_" + nid),
         $fn = $p.find("#fn_" + nid),
         $fa = $p.find("#fa_" + nid),
-        $fs = $p.find("#fs_" + nid),
-        $exts = $p.find("#fx_" + nid),
-        $maxsize = $p.find("#fm_" + nid),
-        $maxfilecount = $p.find("#fc_" + nid),
         $label = $p.find(".ew-file-label"),
         label = $label.html();
 
-    var _done = function (e, data) {
+    let _done = function (e, data) {
       if (data.result.files[0].error) return;
-      var name = data.result.files[0].name;
-      var ar = multiple ? $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [] : [];
+      let name = data.result.files[0].name,
+          ar = multiple ? $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [] : [];
       ar.push(name);
       $fn.val(ar.join(ew.MULTIPLE_UPLOAD_SEPARATOR));
       $fa.val("0");
@@ -7644,47 +8850,45 @@
         $ft.find("tbody > tr:not(:last-child)").remove();
     };
 
-    var _deleted = function (e, data) {
-      var url = $__default["default"](e.originalEvent.target).data("url"),
-          param = new URLSearchParams(url.split("?")[1]),
-          fid = param.get("id"),
-          name = param.get(fid);
+    let _deleted = function (e, data) {
+      let url = e.originalEvent.target.dataset.url,
+          params = getSearchParams(url),
+          fid = params.get("id"),
+          name = params.get(fid);
 
       if (name) {
-        var ar = $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [];
-        var index = ar.indexOf(name);
+        let ar = $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [],
+            index = ar.indexOf(name);
         if (index > -1) ar.splice(index, 1);
         $fn.val(ar.join(ew.MULTIPLE_UPLOAD_SEPARATOR));
         $fa.val("0");
       }
     };
 
-    var _change = function (e, data) {
+    let _change = function (e, data) {
       var _data$files;
 
       $ft.toggleClass("ew-has-rows", ((_data$files = data.files) == null ? void 0 : _data$files.length) > 0);
-      var ar = $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [];
+      let ar = $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [];
+      data.files.forEach(file => ar.push(file.name));
+      let cnt = $input.data("maxCount");
 
-      for (var i = 0; i < data.files.length; i++) ar.push(data.files[i].name);
-
-      var cnt = parseInt($maxfilecount.val(), 10);
-
-      if ($__default["default"].isNumber(cnt) && cnt > 0 && ar.length > cnt) {
-        _alert(ew.language.phrase("UploadErrMsgMaxNumberOfFiles"));
+      if ($__default.default.isNumber(cnt) && cnt > 0 && ar.length > cnt) {
+        _alert(ew.language.phrase("UploadErrorMaxNumberOfFiles"));
 
         return false;
       }
 
-      var l = parseInt($fs.val(), 10);
+      let l = $input.data("size");
 
-      if ($__default["default"].isNumber(l) && l > 0 && ar.join(ew.MULTIPLE_UPLOAD_SEPARATOR).length > l) {
-        _alert(ew.language.phrase("UploadErrMsgMaxFileLength"));
+      if ($__default.default.isNumber(l) && l > 0 && ar.join(ew.MULTIPLE_UPLOAD_SEPARATOR).length > l) {
+        _alert(ew.language.phrase("UploadErrorMaxFileLength"));
 
         return false;
       }
     };
 
-    var _confirmDelete = function (e) {
+    let _confirmDelete = function (e) {
       if (!multiple && $fn.val()) {
         if (!confirm(ew.language.phrase("UploadOverwrite"))) {
           e.preventDefault();
@@ -7693,71 +8897,67 @@
       }
     };
 
-    var _changed = function (e, data) {
+    let _changed = function (e, data) {
       var _data$files2, _data$result2, _data$result2$files;
 
       $ft.toggleClass("ew-has-rows", ((_data$files2 = data.files) == null ? void 0 : _data$files2.length) > 0 || ((_data$result2 = data.result) == null ? void 0 : (_data$result2$files = _data$result2.files) == null ? void 0 : _data$result2$files.length) > 0);
-      var ar = $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [];
+      let ar = $fn.val() ? $fn.val().split(ew.MULTIPLE_UPLOAD_SEPARATOR) : [];
       $label.html(ar.join(", ") || label);
-    }; // var _clicked = function() {
-    //     $input.closest("span.fileinput-button").tooltip("hide");
-    // };
-    // var _process = function(e, data) {
-    //     $ft.toggleClass("ew-has-rows", data.files?.length > 0);
-    // };
+    };
 
-    var _downloadTemplate = $__default["default"].templates("#template-download"),
-        _uploadTemplate = $__default["default"].templates("#template-upload");
-
-    var _completed = function (e, data) {
+    let _completed = function (e, data) {
       // After download template rendered
-      var e = {
+      let evt = {
         target: data.context
       };
-      initLightboxes(e);
-      initPdfObjects(e);
+      initLightboxes(evt);
+      initPdfObjects(evt);
       ew.updateDropdownPosition();
       data.context.find("img").on("load", ew.updateDropdownPosition);
     };
 
-    var _added = function (e, data) {
+    let _added = function (e, data) {
       var _data$files3;
 
       // After upload template rendered
       $ft.toggleClass("ew-has-rows", ((_data$files3 = data.files) == null ? void 0 : _data$files3.length) > 0);
       data.context.find(".start").click(_confirmDelete);
-    }; // Hide input button if readonly
+    }; // let _send = function(e, data) { // Before each file upload request
+    //     console.log(data);
+    // };
 
-    var form = getForm(input),
-        $form = $__default["default"](form),
-        readonly = $form.find("#confirm").val() == "confirm" || $input.attr("readonly");
-    if (readonly) $input.prop("disabled", true); // $form.find("span.fileinput-button").hide();
+    let uploadUrl = getApiUrl(ew.API_JQUERY_UPLOAD_ACTION),
+        _downloadTemplate = $__default.default.templates("#template-download"),
+        _uploadTemplate = $__default.default.templates("#template-upload"),
+        form = getForm(input),
+        $form = $__default.default(form),
+        readonly = $form.find("#confirm").val() == "confirm" || $input.attr("readonly") || $input.prop("disabled");
 
-    var cnt = parseInt($maxfilecount.val(), 10);
-    var uploadUrl = getApiUrl(ew.API_JQUERY_UPLOAD_ACTION);
-    var formData = {
+    if (readonly && !$input.prop("disabled")) $input.prop("disabled", true); // Disable input button if readonly
+
+    const {
+      acceptFileTypes,
+      maxFileSize,
+      maxNumberOfFiles
+    } = $input.data();
+    const formData = {
       id: id,
       table: tbl,
       session: ew.SESSION_ID,
       replace: multiple ? "0" : "1",
-      exts: $exts.val(),
-      maxsize: $maxsize.val(),
-      maxfilecount: $maxfilecount.val()
+      acceptFileTypes,
+      maxFileSize,
+      maxNumberOfFiles
     };
-    $input.fileupload(Object.assign({
+    $input.fileupload(ew.deepAssign({
       url: uploadUrl,
       type: "POST",
       multipart: true,
       autoUpload: true,
-      // Comment out to disable auto upload
       loadImageFileTypes: /^image\/(gif|jpe?g|png)$/i,
       loadVideoFileTypes: /^video\/mp4$/i,
       loadAudioFileTypes: /^audio\/(mpeg|mp3)$/i,
-      acceptFileTypes: $exts.val() ? new RegExp('\\.(' + $exts.val().replace(/,/g, '|') + ')$', 'i') : null,
-      maxFileSize: parseInt($maxsize.val(), 10),
-      maxNumberOfFiles: cnt > 1 ? cnt : null,
       filesContainer: $ft,
-      formData: formData,
       uploadTemplateId: null,
       downloadTemplateId: null,
       uploadTemplate: _uploadTemplate.render.bind(_uploadTemplate),
@@ -7766,18 +8966,19 @@
       previewMaxHeight: ew.UPLOAD_THUMBNAIL_HEIGHT,
       dropZone: $dropzone,
       messages: {
-        acceptFileTypes: ew.language.phrase("UploadErrMsgAcceptFileTypes"),
-        maxFileSize: ew.language.phrase("UploadErrMsgMaxFileSize"),
-        maxNumberOfFiles: ew.language.phrase("UploadErrMsgMaxNumberOfFiles"),
-        minFileSize: ew.language.phrase("UploadErrMsgMinFileSize")
+        acceptFileTypes: ew.language.phrase("UploadErrorAcceptFileTypes"),
+        maxNumberOfFiles: ew.language.phrase("UploadErrorMaxNumberOfFiles"),
+        maxFileSize: ew.language.phrase("UploadErrorMaxFileSize"),
+        minFileSize: ew.language.phrase("UploadErrorMinFileSize")
       },
-      readonly: readonly // Custom
+      formData,
+      readonly // Custom
 
-    }, ew.uploadOptions)).on("fileuploaddone", _done).on("fileuploaddestroy", _deleted).on("fileuploadchange", _change).on("fileuploadadded fileuploadfinished fileuploaddestroyed", _changed) //.on("fileuploadprocess", _process)
-    .on('fileuploadadded', _added).on('fileuploadcompleted', _completed); // .click(_clicked);
+    }, ew.uploadOptions)) // .on("fileuploadsend", _send)
+    .on("fileuploaddone", _done).on("fileuploaddestroy", _deleted).on("fileuploadchange", _change).on("fileuploadadded fileuploadfinished fileuploaddestroyed", _changed).on('fileuploadadded', _added).on('fileuploadcompleted', _completed);
 
     if ($fn.val()) {
-      $__default["default"].ajax({
+      $__default.default.ajax({
         url: uploadUrl,
         data: {
           id: id,
@@ -7788,8 +8989,8 @@
         context: this,
         success: function (result) {
           if (result != null && result[id]) {
-            var done = $input.fileupload("option", "done");
-            if (done) done.call(input, $__default["default"].Event(), {
+            let done = $input.fileupload("option", "done");
+            if (done) done.call(input, $__default.default.Event(), {
               result: {
                 files: result[id]
               }
@@ -7825,31 +9026,82 @@
   function getNumberingSystem() {
     return ew.NUMBERING_SYSTEM || new Intl.NumberFormat(ew.LANGUAGE_ID).resolvedOptions().numberingSystem;
   }
-  let DateTime = luxon__default["default"].DateTime;
+  let DateTime = luxon__default.default.DateTime,
+      Interval = luxon__default.default.Interval;
   /**
    * Format data by DateTime (see https://moment.github.io/luxon/docs/class/src/datetime.js~DateTime.html)
    *
-   * @param {string|Number|Date} data - JS Date object
+   * @param {string|Number|Date} data - Date
    * @param {string|Array} format - Date format (see https://moment.github.io/luxon/docs/manual/formatting.html#toformat)
    * @returns {string}
    */
 
   function formatDateTime(data, format) {
     let dt;
-    if ($__default["default"].isString(data)) // SQL dates, times, and datetimes
-      dt = DateTime.fromSQL(data);else if ($__default["default"].isNumber(data)) // Unix timestamps
-      dt = DateTime.fromSeconds(data);else if (data instanceof Date) // JS Date Object
-      dt = DateTime.fromJSDate(data);
+    if ($__default.default.isString(data)) // SQL dates, times, and datetimes
+      dt = DateTime.fromSQL(data, {
+        zone: "utc"
+      }); // Do not change the time zone
+    else if ($__default.default.isNumber(data)) // Unix timestamps
+      dt = DateTime.fromSeconds(data, {
+        zone: "utc"
+      });else if (data instanceof Date) // JS Date Object
+      dt = DateTime.fromJSDate(data, {
+        zone: "utc"
+      });else if (data instanceof DateTime) // DateTime Object
+      dt = data;
     return dt.toFormat(format, {
       locale: ew.LANGUAGE_ID,
       numberingSystem: ew.getNumberingSystem()
     });
   }
   /**
-   * Parse data to DateTime (see https://moment.github.io/luxon/docs/class/src/datetime.js~DateTime.html)
+   * Format time span
+   *
+   * @param {Date} start - JS start date/time
+   * @param {Date} end - JS end date/time
+   * @param {bool} allDay - Whether event is all day
+   * @returns {string}
+   */
+
+  function formatTimeSpan(start, end, allDay) {
+    let from = DateTime.fromJSDate(start, {
+      zone: "utc"
+    }),
+        to = DateTime.fromJSDate(end, {
+      zone: "utc"
+    });
+    if (to.isValid && to.equals(to.startOf("day"))) // 12:00AM
+      to = to.minus(1); // Minus one millisecond => back to previous day
+
+    let interval = new Interval({
+      start: from,
+      end: to
+    });
+
+    if (interval.isValid) {
+      // Check if all day
+      let days = interval.count() / (24 * 60 * 60 * 1000);
+      allDay || (allDay = Number.isInteger(days) && days >= 1);
+    }
+
+    if (allDay) {
+      // All day => Show date only
+      if (interval.isValid && interval.count("days") > 1 || from.isValid && to.isValid && from.startOf("day") < to.startOf("day")) return formatDateTime(from, ew.DATE_FORMAT) + " - " + formatDateTime(to, ew.DATE_FORMAT);else if (from.isValid && !end) // No end date
+        return formatDateTime(from, ew.DATE_FORMAT);
+      return "";
+    } else {
+      // Not all day => Show date/time
+      if (from.isValid && to.isValid) return from.startOf("day") < to.startOf("day") ? formatDateTime(from, ew.DATE_FORMAT + " " + ew.TIME_FORMAT) + " - " + formatDateTime(to, ew.DATE_FORMAT + " " + ew.TIME_FORMAT) : formatDateTime(from, ew.TIME_FORMAT) + " - " + formatDateTime(to, ew.TIME_FORMAT);else if (from.isValid) return formatDateTime(from, ew.TIME_FORMAT);
+    }
+
+    return "";
+  }
+  /**
+   * Parse data to DateTime (see https://moment.github.io/luxon/api-docs/index.html#datetime)
    *
    * @param {string} data - Date/Time string supported by DateTime
-   * @param {string|Array} format - Date format (see https://moment.github.io/luxon/docs/manual/formatting.html#toformat)
+   * @param {string|Array} format - Date format (see https://moment.github.io/luxon/#/formatting?id=table-of-tokens)
    * @returns {DateTime}
    */
 
@@ -7860,10 +9112,10 @@
     });
   } // Parse date/time (alias of parseDateTime)
   /**
-   * Check if data can be parsed to DateTime (see https://moment.github.io/luxon/docs/class/src/datetime.js~DateTime.html)
+   * Check if data can be parsed to DateTime (see https://moment.github.io/luxon/api-docs/index.html#datetime)
    *
    * @param {string} data - Date string supported by DateTime
-   * @param {string|Array} format - Date format (see https://moment.github.io/luxon/docs/manual/formatting.html#toformat)
+   * @param {string|Array} format - Date format (see https://moment.github.io/luxon/#/formatting?id=table-of-tokens)
    * @returns {boolean}
    */
 
@@ -7940,10 +9192,10 @@
    */
 
   function initPage(e) {
-    var _e$target11;
+    var _e$target12;
 
-    var el = (_e$target11 = e == null ? void 0 : e.target) != null ? _e$target11 : document,
-        $el = $__default["default"](el),
+    var el = (_e$target12 = e == null ? void 0 : e.target) != null ? _e$target12 : document,
+        $el = $__default.default(el),
         $tables = $el.find("table.ew-table:not(.ew-export-table)");
     ew.initPanels(el); // Init grid panels
 
@@ -7953,30 +9205,23 @@
     initTooltips(e);
     initPasswordOptions(e);
     initIcons(e);
+    initSearchFilters(e);
     initLightboxes(e);
     initPdfObjects(e);
-    $el.find("[data-widget='treeview']").each(function () {
-      adminlte.Treeview._jQueryInterface.call($__default["default"](this), "init");
-    });
     $tables.each(setupTable); // Init tables
 
-    $el.find(".ew-table-header-caption[data-sort-url]").each(function () {
-      // Table captions for sorting
-      let $this = $__default["default"](this);
-      $this.on("click", e => ew.sort(e, $this.data("sortUrl"), $this.data("sortType")));
-    });
     $el.find(".ew-column-dropdown").each(function () {
       var _localStorage$getItem;
 
       let table = this.dataset.table;
-      (_localStorage$getItem = localStorage.getItem(ew.PROJECT_NAME + "_" + table + "_invisible_fields")) == null ? void 0 : _localStorage$getItem.split(",").forEach(field => $__default["default"]("#tbl_" + table + "list").find("th[data-name='" + field + "'],td[data-name='" + field + "']").toggleClass("d-none", true));
-      $__default["default"](this).find(".ew-dropdown-checkbox").on("click", function (e) {
+      (_localStorage$getItem = localStorage.getItem(ew.PROJECT_NAME + "_" + table + "_invisible_fields")) == null ? void 0 : _localStorage$getItem.split(",").forEach(field => $__default.default("#tbl_" + table + "list").find("th[data-name='" + field + "'],td[data-name='" + field + "']").toggleClass("d-none", true));
+      $__default.default(this).find(".ew-dropdown-checkbox").on("click", function (e) {
         let input = this.querySelector(".ew-dropdown-check-input[data-field]"),
             field = input == null ? void 0 : input.dataset.field;
 
         if (table && field) {
           input.classList.toggle("ew-checked");
-          $__default["default"]("#tbl_" + table + "list").find("th[data-name='" + field + "'],td[data-name='" + field + "']").toggleClass("d-none", !input.classList.contains("ew-checked"));
+          $__default.default("#tbl_" + table + "list").find("th[data-name='" + field + "'],td[data-name='" + field + "']").toggleClass("d-none", !input.classList.contains("ew-checked"));
         }
 
         localStorage.setItem(ew.PROJECT_NAME + "_" + table + "_invisible_fields", Array.from(e.currentTarget.closest(".dropdown-menu").querySelectorAll(".ew-dropdown-check-input[data-field]:not(.ew-checked)"), el => el.dataset.field));
@@ -7987,30 +9232,9 @@
 
       for (let input of inputs) {
         let field = input.dataset.field;
-        input.classList.toggle("ew-checked", !!$__default["default"]("#tbl_" + table + "list").find("th[data-name='" + field + "']:not(.d-none)")[0]);
+        input.classList.toggle("ew-checked", !!$__default.default("#tbl_" + table + "list").find("th[data-name='" + field + "']:not(.d-none)")[0]);
       }
     });
-    $el.find("input.ew-page-no").on("keydown", function (e) {
-      if (e.key == "Enter") {
-        currentUrl.searchParams.set(this.name, ew.parseNumber(this.value));
-        window.location = sanitizeUrl(currentUrl.toString());
-        return false;
-      }
-    });
-
-    if (!ew.IS_SCREEN_SM_MIN) {
-      $el.find("." + ew.RESPONSIVE_TABLE_CLASS + " [data-bs-toggle='dropdown']").parent().on("shown.bs.dropdown", function () {
-        var $this = $__default["default"](this),
-            $menu = $this.find(".dropdown-menu"),
-            div = $this.closest("." + ew.RESPONSIVE_TABLE_CLASS)[0];
-
-        if (div.scrollHeight - div.clientHeight) {
-          var d = $menu.offset().top + $menu.outerHeight() - $__default["default"](div).offset().top - div.clientHeight;
-          if (d > 0) $menu.css(ew.IS_RTL ? "right" : "left", "100%").css("top", parseFloat($menu.css("top")) - d);
-        }
-      });
-    }
-
     initExportLinks(e);
     initMultiSelectCheckboxes(e); // Report
 
@@ -8019,14 +9243,14 @@
     if ($rpt[0]) {
       $rpt.find(".card").on("collapsed.lte.widget", function () {
         // Fix min-height when .lte.widget is collapsed
-        var $card = $__default["default"](this),
+        var $card = $__default.default(this),
             $div = $card.closest("[class^='col-']"),
             mh = $div.css("min-height");
         if (mh) $div.data("min-height", mh);
         $div.css("min-height", 0);
       }).on("expanded.lte.widget", function () {
         // Fix min-height when .lte.widget is expanded
-        var $card = $__default["default"](this),
+        var $card = $__default.default(this),
             $div = $card.closest("[class^='col-']"),
             mh = $div.css("min-height");
         if (mh) $div.css("min-height", mh); // Restore min-height
@@ -8040,7 +9264,7 @@
     if (typeof ew.USE_JAVASCRIPT_MESSAGE != "undefined" && ew.USE_JAVASCRIPT_MESSAGE) showMessage(e);
   } // Redirect by HTTP GET or POST
 
-  function redirect(url, f, method) {
+  function redirect(url, f, method, data) {
     var _ew$vars;
 
     let urls = (_ew$vars = ew.vars) != null && _ew$vars.login ? Array.from(Object.entries(ew.vars.login)).filter(entry => entry[0].endsWith("Url")).map(entry => entry[1]) : [];
@@ -8064,23 +9288,24 @@
     }
 
     let params = newUrl.searchParams;
-    params.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME);
-    params.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN);
+    if (data) params = mergeSearchParams(params, data);
 
     if (sameText(method, "post")) {
       // POST
-      let $form = f ? $__default["default"](f) : $__default["default"]("<form></form>").appendTo("body");
-      $form.attr({
-        action: url.split("?")[0],
-        method: "post"
+      const form = f || document.createElement("form");
+      form.method = "post";
+      form.action = url.split("?")[0];
+      document.body.appendChild(form);
+      params.set(ew.TOKEN_NAME_KEY, ew.TOKEN_NAME);
+      params.set(ew.ANTIFORGERY_TOKEN_KEY, ew.ANTIFORGERY_TOKEN);
+      params.forEach((value, key) => {
+        const el = document.createElement("input");
+        el.type = "hidden";
+        el.name = key;
+        el.value = ew.sanitize(value);
+        form.appendChild(el);
       });
-      params.forEach(function (value, key) {
-        $__default["default"]('<input type="hidden">').attr({
-          name: key,
-          value: ew.sanitize(value)
-        }).appendTo($form);
-      });
-      $form.trigger("submit");
+      form.submit();
     } else {
       // GET
       window.location = sanitizeUrl(newUrl.toString());
@@ -8090,7 +9315,7 @@
   } // Show/Hide password
 
   function togglePassword(e) {
-    var $btn = $__default["default"](e.currentTarget),
+    let $btn = $__default.default(e.currentTarget),
         $input = $btn.closest(".input-group").find("input"),
         $i = $btn.find("i");
 
@@ -8101,83 +9326,155 @@
       $input.attr("type", "text");
       $i.toggleClass("fa-eye-slash fa-eye");
     }
-  } // Export with charts
+  } // Re-order chart
 
-  function exportWithCharts(url, exportId, f) {
-    let exportUrl = new URL(window.location.href),
-        ar = url.split("?"),
-        method = f ? "post" : "get";
-    exportId += "_" + Date.now();
-    exportUrl.pathname = ar[0];
-    exportUrl.search = ar[1];
-    exportUrl.searchParams.set("exportid", exportId);
+  function updateChart(el) {
+    let url = new URL(el.form.action),
+        $container = $__default.default(el).closest(".ew-chart-top, .ew-chart-bottom"),
+        $overlay = $__default.default(ew.overlayTemplate());
+    url.search = $__default.default(el.form).serialize();
+    $container.addClass("ew-loading").append($overlay);
+    fetch(url.toString()).then(async response => {
+      let $html = $__default.default("<div>" + (await response.text()) + "</div>"),
+          $new = $html.find(".ew-chart-top, .ew-chart-bottom").filter("[data-chart='" + $container.data("chart") + "']"),
+          $debug = $html.find(".ew-debug");
+      if ($new[0]) $container.replaceWith($new);
+      if ($debug[0]) $new.next(".ew-debug").replaceWith($debug);
+    }).finally(() => $container.removeClass("ew-loading").find($overlay).remove());
+  } // Check if larger than mediumn screen width (not mobile)
 
-    let _export = function () {
-      let params = exportUrl.searchParams,
-          custom = params.get("custom") == "1";
+  function isMediumScreen() {
+    return window.matchMedia(ew.screenMediaQuery).matches;
+  } // Check if mobile
 
-      if (f && !custom) {
-        // Not custom
-        let data = $__default["default"](f).serialize(); // Add token
+  function isMobile() {
+    return ew.IS_MOBILE || !isMediumScreen();
+  }
+  /**
+   * Refresh page
+   *
+   * @param {Promise} promise Promise returned by fetch()
+   * @param {string} context CSS class name of context
+   * @returns {Promise}
+   */
 
-        $__default["default"].post(exportUrl, data, function (result) {
-          showMessage(result);
-        });
-      } else {
-        // Custom
-        let exportType = params.get("export");
+  function refresh(promise, context) {
+    context = context && !context.startsWith(".") ? "." + context : ".ew-card.ew-grid";
+    let target = document.querySelector(context + ", .ew-multi-column-grid, .ew-view-form, .ew-edit-form, main.ew-no-record");
+    if (!target) return;
+    let $overlay = $__default.default(ew.overlayTemplate()),
+        $target = $__default.default(target).addClass("ew-loading").toggleClass("overlay-wrapper", !target.classList.contains("card")).append($overlay);
+    return promise.then(async response => {
+      if (!(response instanceof Response)) return response;
+      let ct = response.headers.get("Content-Type"); // Handle JSON
 
-        if (custom && ["word", "excel", "pdf", "email"].includes(exportType)) {
-          if (exportType == "email") {
-            params.delete("export"); // Remove duplicate export=email (exists in form)
+      if (ct != null && ct.includes("json")) {
+        let result = await response.json(),
+            error = getError(result);
+        if (error) showToast(error);else if ($__default.default.isString(result.warningMessage)) showToast(result.warningMessage, "warning");else if ($__default.default.isString(result.message)) showToast(result.message, "body");else if ($__default.default.isString(result.successMessage)) showToast(result.successMessage, "success");
+        return false; // Return false
+      } // Handle HTML
 
-            exportUrl.search = params.toString() + "&" + $__default["default"](f).serialize();
-          }
+      let html = await response.text(),
+          url = new URL(response.url),
+          selectors = [".ew-message-dialog", ".ew-chart-top", ".ew-chart-bottom", ".ew-debug .card-body", ".ew-timer"];
 
-          $__default["default"]("iframe.ew-export").remove();
-          $__default["default"]("<iframe></iframe>").addClass("ew-export d-none").attr("src", exportUrl.toString()).appendTo($body.css("cursor", "wait"));
-          setTimeout(() => $body.css("cursor", "default"), 5000);
-        } else if (exportType == "print") {
-          redirect(exportUrl.toString(), f, method);
-        } else {
-          fileDownload(exportUrl.toString(), null);
-        }
+      if (url.searchParams.get("layout") == "false") {
+        html = "<div>" + html + "</div>";
+        url.searchParams.delete("layout");
       }
 
-      return false;
-    };
+      url.searchParams.delete("rnd");
+      html = getContent(html, true); // Keep scripts
 
-    let keys = Object.keys(window.exportCharts);
-    if (keys.length == 0) // No charts, just submit the form
-      return _export(); // Export charts
+      let $html = $__default.default("<div>" + html + "</div>"); // New HTML
 
-    $body.css("cursor", "wait");
-    let charts = [];
+      if (!target.closest(".ew-dashboard")) {
+        // Not dashboard
+        selectors.unshift(".ew-toolbar"); // Update toolbar also
 
-    for (const [id, chart] of Object.entries(window.exportCharts)) {
-      let params = "exportfilename=" + exportId + "_" + id + ".png|exportformat=png|exportaction=download|exportparameters=undefined";
-      if (chart != null && chart.toBase64Image) // Chart.js chart
-        charts.push({
-          chartEngine: "Chart.js",
-          streamType: "base64",
-          stream: chart.toBase64Image(),
-          parameters: params
-        });
-    }
+        if (samePath(url, currentUrl) && currentUrl.toString() != url.toString()) // Only update browser URL if same page or view/edit page
+          window.history.pushState(null, "", url.toString()); // Update browser URL
+      }
 
-    $__default["default"].ajax({
-      "url": getApiUrl(ew.API_EXPORT_CHART_ACTION),
-      "data": {
-        "charts": JSON.stringify(charts)
-      },
-      "cache": false,
-      "type": "POST"
-    }).done(result => {
-      result = $__default["default"].isString(result) ? parseJson(result) : result;
-      result.success ? _export() : _alert(result.error);
-    }).fail((xhr, status, error) => _alert(error + ": " + xhr.responseText)) // Show detailed export error message
-    .always(() => $body.css("cursor", "default"));
-    return false;
+      if ($html.find("main.ew-no-record")[0] || $target.is("main.ew-no-record")) {
+        // New or old HTML contains no records => update <main> element
+        selectors = [".ew-ext-search-form", "main", ...selectors];
+      } else if ($target.hasClass("ew-view-form")) {
+        // View page
+        selectors = [".ew-view-form", ".ew-pager", ...selectors];
+      } else if ($target.hasClass("ew-edit-form")) {
+        // Edit page
+        selectors = [".ew-edit-form", ".ew-pager", ...selectors];
+      } else if ($target.hasClass("ew-multi-column-grid")) {
+        // Multi-column page
+        selectors = [".ew-ext-search-form", ".ew-multi-column-grid", ...selectors];
+      } else {
+        // List/Report page
+        selectors = ["#ew-filter-list", ".ew-ext-search-form", context + " .card-header", context + " .card-body", context + " .card-footer", ...selectors];
+      }
+
+      selectors.forEach(selector => $__default.default(selector).each((i, el) => {
+        let $old = $__default.default(el),
+            $new = $html.find(selector).eq(i);
+
+        if ($old[0] && $new[0]) {
+          delete el.dataset.isset; // Reset
+
+          $old.html($new.html()); // Replace inner HTML
+
+          $old.attr("class", $new.attr("class")); // Update class name
+        }
+
+        if (selector == ".ew-toolbar") {
+          let e = {
+            target: el
+          };
+          initIcons(e);
+          initSearchFilters(e);
+        } else if (selector == ".ew-ext-search-form") {
+          let $tmpl = $new.find("#navbar-basic-search");
+
+          if ($tmpl[0]) {
+            let html = $tmpl.render(null, ew.jsRenderHelpers),
+                $html = $__default.default(html),
+                $search = $html.find("#" + ew.TABLE_BASIC_SEARCH),
+                $searchType = $html.find("#" + ew.TABLE_BASIC_SEARCH_TYPE);
+            if ($search.val() != $__default.default("#" + ew.TABLE_BASIC_SEARCH).val() || $searchType.val() != $__default.default("#" + ew.TABLE_BASIC_SEARCH_TYPE).val()) $__default.default(".nav-item.navbar-basic-search").replaceWith($html);
+          }
+
+          $old.find(".ew-search-operator .form-select.ew-operator-select").each((i, el) => searchOperatorChange(el));
+        } else if (selector == ".ew-message-dialog") {
+          if (!$new.hasClass("d-none")) $old.html($new.html()); // Replace inline html
+        }
+      }));
+      selectors.filter(selector => selector != ".ew-message-dialog").forEach(selector => $html.find(selector).remove()); // Remove HTML used (except message)
+
+      removeScript("refresh"); // Remove old scripts
+
+      executeScript($html.html(), "refresh"); // Execute scripts, e.g. custom template
+
+      let e = $__default.default.Event({
+        type: "load.ew",
+        target
+      });
+      ew.initPage(e);
+      $__default.default(".toast.show").toast("dispose"); // Hide toasts
+
+      showMessage({
+        target: $html
+      }); // Show message, if any
+
+      $document$1.trigger(e);
+      $document$1.trigger($__default.default.Event({
+        type: "refresh.ew",
+        target
+      }));
+    }).finally(() => $target.removeClass("ew-loading").find($overlay).remove());
+  } // Check if dark mode
+
+  function isDark() {
+    return document.body.classList.contains("dark-mode");
   } // Layout
 
   var _fixLayoutHeightTimer; // Fix layout height
@@ -8185,7 +9482,7 @@
   function fixLayoutHeight() {
     if (_fixLayoutHeightTimer) _fixLayoutHeightTimer.cancel(); // Clear timer
 
-    _fixLayoutHeightTimer = $__default["default"].later(50, null, function () {
+    _fixLayoutHeightTimer = $__default.default.later(50, null, function () {
       var layout = $body.data("lte.layout");
       if (layout) layout.fixLayoutHeight();
     });
@@ -8195,167 +9492,553 @@
     let fields = ew.events[tblVar];
 
     if (fields) {
-      for (var [fldVar, events] of Object.entries(fields)) $__default["default"]('[data-table=' + tblVar + '][data-field=' + fldVar + ']').on(events);
+      for (const [fldVar, events] of Object.entries(fields)) $__default.default('[data-table=' + tblVar + '][data-field=' + fldVar + ']').on(events);
     }
   }
 
   var functions = {
     __proto__: null,
-    currentUrl: currentUrl,
-    forms: forms,
-    AjaxLookup: AjaxLookup,
-    AutoSuggest: AutoSuggest,
-    Form: Form,
-    SelectionListOption: SelectionListOption,
+    currentUrl,
+    forms,
+    AjaxLookup,
+    AutoSuggest,
+    Form,
+    Field,
     Select2Utils: Utils,
     Select2Defaults: Defaults,
-    fieldContainerSelector: fieldContainerSelector,
-    createSelect: createSelect,
-    createModalLookup: createModalLookup,
-    createFilter: createFilter,
-    initIcons: initIcons,
-    initPasswordOptions: initPasswordOptions,
-    getApiUrl: getApiUrl,
-    sanitizeUrl: sanitizeUrl,
-    setSessionTimer: setSessionTimer,
-    initExportLinks: initExportLinks,
-    initMultiSelectCheckboxes: initMultiSelectCheckboxes,
-    fileDownload: fileDownload,
-    lazyLoad: lazyLoad,
-    updateDropdownPosition: updateDropdownPosition,
-    initLightboxes: initLightboxes,
-    initPdfObjects: initPdfObjects,
-    initTooltips: initTooltips,
-    parseJson: parseJson,
-    searchOperatorChanged: searchOperatorChanged,
-    initForms: initForms,
-    isFunction: isFunction$2,
+    fieldContainerSelector,
+    createSelect,
+    createModalLookup,
+    createFilter,
+    initIcons,
+    initPasswordOptions,
+    getApiUrl,
+    parseUrl,
+    createSearchParams,
+    getSearchParams,
+    getSearchParam,
+    setSearchParams,
+    mergeSearchParams,
+    setSearchParam,
+    deleteSearchParam,
+    buildUrl,
+    setLayout,
+    sanitizeUrl,
+    setSessionTimer,
+    initExportLinks,
+    initMultiSelectCheckboxes,
+    getError,
+    fileDownload,
+    lazyLoad,
+    updateDropdownPosition,
+    initLightboxes,
+    initPdfObjects,
+    initTooltips,
+    parseJson,
+    searchOperatorChange,
+    initForms,
+    isFunction: isFunction$1,
     alert: _alert,
     prompt: _prompt,
-    toast: toast,
-    showToast: showToast,
-    getForm: getForm,
-    hasFormData: hasFormData,
-    setSearchType: setSearchType,
-    updateOptions: updateOptions,
-    getUserParams: getUserParams,
-    applyTemplate: applyTemplate,
-    toggleGroup: toggleGroup,
-    convertToBool: convertToBool,
-    valueChanged: valueChanged,
-    setLanguage: setLanguage,
-    submitAction: submitAction,
-    'export': _export,
-    removeSpaces: removeSpaces,
-    isHiddenTextArea: isHiddenTextArea,
-    isModalLookup: isModalLookup,
-    isFilter: isFilter,
-    isAutoSuggest: isAutoSuggest,
-    isTextbox: isTextbox,
-    clearError: clearError,
-    onError: onError,
-    setFocus: setFocus,
-    setInvalid: setInvalid,
-    setValid: setValid,
-    hasValue: hasValue,
-    isMaskedPassword: isMaskedPassword,
-    sort: sort,
-    filter: filter,
-    confirmDelete: confirmDelete,
-    keySelected: keySelected,
-    selectAllKeys: selectAllKeys,
-    selectAll: selectAll,
-    updateSelected: updateSelected,
-    clearSelected: clearSelected,
-    clearDelete: clearDelete,
-    clickDelete: clickDelete,
-    selectKey: selectKey,
-    setupTable: setupTable,
-    setupGrid: setupGrid,
-    addGridRow: addGridRow,
-    deleteGridRow: deleteGridRow,
-    htmlEncode: htmlEncode,
-    htmlDecode: htmlDecode,
-    getElements: getElements,
-    getElement: getElement,
-    getAncestorBy: getAncestorBy,
-    isHidden: isHidden,
-    sameText: sameText,
-    sameString: sameString,
-    getValue: getValue,
-    getOptionValues: getOptionValues,
-    getOptionTexts: getOptionTexts,
-    clearOptions: clearOptions,
-    getId: getId,
-    valueSeparator: valueSeparator,
-    displayValue: displayValue,
-    optionHtml: optionHtml,
-    optionsHtml: optionsHtml,
-    newOption: newOption,
-    selectOption: selectOption,
+    toast,
+    showToast,
+    getForm,
+    hasFormData,
+    setSearchType,
+    updateOptions,
+    getUserParams,
+    getQueryBuilderFilterInput,
+    getQueryBuilderValueSetter,
+    getQueryBuilderFilterValidation,
+    applyTemplate,
+    exportCustom,
+    toggleGroup,
+    convertToBool,
+    valueChanged,
+    setLanguage,
+    submitAction,
+    getchartParams,
+    _export,
+    export: _export,
+    removeSpaces,
+    isHiddenTextArea,
+    isModalLookup,
+    isFilter,
+    isAutoSuggest,
+    isSelect2,
+    isNativeSelectOne,
+    isTextbox,
+    isBooleanCheckbox,
+    clearError,
+    onError,
+    setFocus,
+    setInvalid,
+    setValid,
+    hasValue,
+    isMaskedPassword,
+    sort,
+    filter,
+    scrollIntoView,
+    inlineAction,
+    confirmDelete,
+    keySelected,
+    selectAllKeys,
+    selectAll,
+    updateSelected,
+    clearSelected,
+    clearDelete,
+    clickDelete,
+    selectKey,
+    setupTable,
+    setupGrid,
+    addGridRow,
+    deleteGridRow,
+    htmlEncode,
+    htmlDecode,
+    getElements,
+    getElement,
+    getAncestorBy,
+    isHidden,
+    sameText,
+    sameString,
+    samePath,
+    getValue,
+    getOptionValues,
+    getOptionValue,
+    getOptionTexts,
+    clearOptions,
+    getId,
+    valueSeparator,
+    displayValue,
+    optionHtml,
+    optionsHtml,
+    newOption,
+    selectOption,
     fetch: _fetch,
-    executeScript: executeScript,
-    stripScript: stripScript,
-    addScript: addScript,
-    removeScript: removeScript,
-    getContent: getContent,
-    getOptions: getOptions,
-    enable2FA: enable2FA,
-    disable2FA: disable2FA,
-    showBackupCodes: showBackupCodes,
-    addOptionDialogShow: addOptionDialogShow,
-    modalDialogHide: modalDialogHide,
-    modalDialogShow: modalDialogShow,
-    importDialogShow: importDialogShow,
-    autoFill: autoFill,
-    tooltip: tooltip,
-    emailDialogShow: emailDialogShow,
-    showDrillDown: showDrillDown,
-    ajax: ajax,
-    currentPage: currentPage,
-    toggleSearchOperator: toggleSearchOperator,
-    toggleLayout: toggleLayout,
-    copyToClipboard: copyToClipboard,
-    checkInteger: checkInteger,
-    checkNumber: checkNumber,
-    escapeRegExChars: escapeRegExChars,
-    checkRange: checkRange,
-    checkPhone: checkPhone,
-    checkZip: checkZip,
-    checkCreditCard: checkCreditCard,
-    checkSsn: checkSsn,
-    checkEmails: checkEmails,
-    checkEmail: checkEmail,
-    checkGuid: checkGuid,
-    checkUrl: checkUrl,
-    checkByRegEx: checkByRegEx,
-    showMessage: showMessage,
-    random: random,
-    upload: upload,
-    parseNumber: parseNumber,
-    getNumberingSystem: getNumberingSystem,
-    formatDateTime: formatDateTime,
-    parseDateTime: parseDateTime,
+    executeScript,
+    stripScript,
+    addScript,
+    removeScript,
+    getContent,
+    getOptions,
+    enable2FA,
+    disable2FA,
+    sendOTP,
+    showBackupCodes,
+    addOptionDialogShow,
+    modalDialogHide,
+    modalDialogShow,
+    importDialogShow,
+    autoFill,
+    tooltip,
+    initSearchFilters,
+    emailDialogShow,
+    exportEmail,
+    showDrillDown,
+    ajax,
+    currentPage,
+    toggleSearchOperator,
+    toggleLayout,
+    copyToClipboard,
+    checkInteger,
+    checkNumber,
+    escapeRegExChars,
+    checkRange,
+    checkPhone,
+    checkZip,
+    checkCreditCard,
+    checkSsn,
+    checkEmails,
+    checkEmail,
+    checkGuid,
+    checkUrl,
+    checkByRegEx,
+    showMessage,
+    random,
+    upload,
+    parseNumber,
+    getNumberingSystem,
+    formatDateTime,
+    formatTimeSpan,
+    parseDateTime,
     parseDate: parseDateTime,
     parseTime: parseDateTime,
-    checkDate: checkDate,
-    checkTime: checkTime,
-    formatCurrency: formatCurrency,
-    formatNumber: formatNumber,
-    formatPercent: formatPercent,
-    initPage: initPage,
-    redirect: redirect,
-    togglePassword: togglePassword,
-    exportWithCharts: exportWithCharts,
-    fixLayoutHeight: fixLayoutHeight,
-    addEventHandlers: addEventHandlers
+    checkDate,
+    checkTime,
+    formatCurrency,
+    formatNumber,
+    formatPercent,
+    initPage,
+    redirect,
+    togglePassword,
+    updateChart,
+    isMediumScreen,
+    isMobile,
+    refresh,
+    isDark,
+    fixLayoutHeight,
+    addEventHandlers
+  };
+
+  /**
+   * Create FullCalendar object
+   *
+   * @param {HTMLElement} el - HTML element
+   * @param {Object} options - Calendar options
+   * @param {Object} options.fullCalendarOptions - FullCalendar options
+   * @param {Object} options.eventPopoverOptions - Event popover options
+   * @param {HTMLElement} dropdown - HTML element
+   * @returns calendar object
+   */
+
+  function fullCalendar(el, options, dropdown) {
+    let {
+      updateTable,
+      eventFields,
+      addUrl,
+      viewUrl,
+      editUrl,
+      deleteUrl,
+      fullCalendarOptions,
+      eventPopoverOptions
+    } = options,
+        calendar; // Update event from server side JSON response
+
+    let processJson = data => {
+      //console.log(result);
+      let convertValue = (key, value) => {
+        let match;
+        if (typeof value == "string" && (match = value.match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})/))) // Make sure ISO date
+          return match[1] + "T" + match[2];
+        if (key == "allDay") // Make sure Boolean
+          return ew.convertToBool(value);else if (key == "url" && !value) return ""; // Make sure not null
+        else if (key == "display" && !value) return "auto"; // Make sure not null
+        else if (key == "classNames" && value && $__default.default.isString(value)) // Make sure return as array
+          return value.replace(/\s+/g, " ").split(" ");else if (key == "description" && !value) return ""; // Make sure not null
+        else return value;
+      };
+
+      if (data.success) {
+        let action = data.action,
+            events = data[updateTable];
+        if (!Array.isArray(events)) events = [events];
+
+        for (let event of events) {
+          let curEvent = calendar.getEventById(event.id);
+
+          if (action == ew.API_DELETE_ACTION) {
+            // Remove deleted event
+            curEvent.remove();
+          } else if (action == ew.API_ADD_ACTION) {
+            // Add/Copy event
+            for (let name in event) {
+              // Check new properties
+              let keys = Object.keys(eventFields),
+                  key = keys.find(key => eventFields[key] === name) || (keys.includes(name) ? name : null),
+                  value = event[name];
+              if (key && value !== undefined) // Value can be null
+                event[key] = convertValue(key, value); // Convert value
+            }
+
+            calendar.addEvent(event);
+          } else {
+            // Update event
+            for (let name in event) {
+              // Update properties
+              let key = Object.keys(eventFields).find(key => eventFields[key] === name),
+                  value = event[name];
+
+              if (key && value !== undefined) {
+                // Value can be null
+                value = convertValue(key, value); // Convert value
+
+                if (key == "start") curEvent.setStart(value);else if (key == "end") curEvent.setEnd(value);else if (key == "allDay") curEvent.setAllDay(value);else curEvent.setProp(key, value);
+              }
+
+              if (value) curEvent.setExtendedProp(name, value);
+              if (key == "description") curEvent.setExtendedProp(key, value);
+            }
+          }
+        }
+      }
+    }; // Process event
+
+    let processEvent = info => {
+      let event = info.event,
+          events = [event, ...info.relatedEvents];
+      apiAction = event.id ? ew.API_EDIT_ACTION : ew.API_ADD_ACTION;
+      events.forEach(event => processRequest(event, apiAction).then(data => {
+        if (!data.success) {
+          // Revert if not success
+          info.revert();
+        } else {
+          // Update event
+          processJson(data);
+        }
+      }).catch(err => {
+        // Revert if error
+        console.log(err);
+        info.revert();
+      }));
+    }; // Process request
+
+    let processRequest = (event, apiAction) => new Promise((resolve, reject) => {
+      // Set up post data
+      let obj = event.toPlainObject({
+        collapseExtendedProps: true
+      }),
+          data = {}; // Event fields
+
+      for (let [key, name] of Object.entries(eventFields)) {
+        if (key in obj) {
+          let val = obj[key];
+          name || (name = key);
+          if (val instanceof Date) // Handle date field, need to convert to ISO string
+            val = val.toISOString().slice(0, -5).replace(/T/, " "); // Assume UTC
+          else if (typeof val == "string" && val.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) val = val.substring(0, 19).replace(/T/, " ");else if (typeof val === "boolean") // Handle boolean field
+            val = val ? "1" : "0";else if (key == "classNames") val = Array.isArray(val) ? val.join(" ") : val; // Convert array to string
+
+          data[name] = val;
+          delete obj[key];
+        }
+      }
+
+      data = { ...data,
+        ...obj
+      }; // Post to Event Table add/edit/delete API
+
+      let apiUrl = apiAction == ew.API_ADD_ACTION ? ew.getApiUrl([apiAction, updateTable]) : ew.getApiUrl([apiAction, updateTable, event.id]);
+      $__default.default.post(apiUrl, data, data => resolve(data)).fail(err => reject(err));
+    }); // Get field parameter
+
+    let getFldParm = name => Object.keys(currentTable.fields).find(key => currentTable.fields[key].name == name); // Add menu ID to URL
+
+    let urlAddId = (url, id) => {
+      let ar = url.split("?");
+      ar[0] += id ? (!ar[0].endsWith("/") ? "/" : "") + id : "";
+      return ar.join("?");
+    }; // Add/Copy event
+
+    let addEventDialogShow = data => {
+      let url = addUrl,
+          params = new URLSearchParams();
+
+      if ($__default.default.isObject(data) && (data.startStr || data.endStr || data.allDay)) {
+        let startFld = getFldParm(eventFields["start"]),
+            endFld = getFldParm(eventFields["end"]),
+            allDayFld = getFldParm(eventFields["allDay"]);
+        if (startFld && data.startStr) params.set(startFld, data.startStr);
+        if (endFld && data.endStr) params.set(endFld, data.endStr);
+        if (allDayFld && data.allDay) params.set(allDayFld, "1");
+      }
+
+      if ($__default.default.isString(data) && data.match(/^\d+$/)) // Copy
+        url = urlAddId(url, data);
+      let qs = params.toString();
+      url += qs ? "?" + qs : "";
+      ew.modalDialogShow({
+        url: url,
+        callback: processJson,
+        json: true,
+        btn: ew.language.phrase("AddBtn"),
+        caption: ew.language.phrase("AddLink")
+      });
+    }; // View event
+
+    let viewEventDialogShow = id => ew.modalDialogShow({
+      url: urlAddId(viewUrl, id),
+      callback: processJson,
+      json: true,
+      btn: null,
+      caption: ew.language.phrase("ViewLink")
+    }); // Edit event
+
+    let editEventDialogShow = id => ew.modalDialogShow({
+      url: urlAddId(editUrl, id),
+      callback: processJson,
+      json: true,
+      btn: null,
+      caption: ew.language.phrase("EditLink")
+    }); // Delete event
+
+    let deleteEvent = id => ew.prompt(ew.language.phrase("DeleteEventConfirm"), result => {
+      if (result) ew.modalDialogShow({
+        url: ew.setSearchParams(urlAddId(deleteUrl, id), {
+          action: "delete"
+        }),
+        callback: processJson,
+        json: true
+      });
+    }); // Add custom add button
+
+    if (addUrl) {
+      fullCalendarOptions.customButtons = {
+        add: {
+          text: ew.language.phrase("AddEvent"),
+          click: addEventDialogShow
+        }
+      };
+      fullCalendarOptions.headerToolbar.left += " add";
+    } // Get or create popover
+
+    let getOrCreatePopover = info => {
+      let config = { ...bootstrap.Popover.Default,
+        ...eventPopoverOptions,
+        trigger: "manual" // Set trigger to "manual"
+
+      };
+      let popover = bootstrap.Popover.getOrCreateInstance(info.el, config),
+          tmpl = $__default.default.templates(document.querySelector("script[data-name='event-popover']").text);
+      info.event.setExtendedProp("timeSpan", ew.formatTimeSpan(info.event.start, info.event.end, info.event.allDay)); // Add extended property "timeSpan"
+
+      let content = tmpl.render(info.event, ew.jsRenderHelpers).trim();
+
+      if (content) {
+        var _Array$from$find$repl, _Array$from$find;
+
+        let popoverClass = (_Array$from$find$repl = (_Array$from$find = Array.from(info.el.classList.values()).find(name => name.match(/^event-([\w+]+)\b/))) == null ? void 0 : _Array$from$find.replace(/^event-/, "popover-")) != null ? _Array$from$find$repl : "popover-default";
+        popover._templateFactory = null; // Make sure popover create tip again from _config
+
+        popover._config.title = info.event.title;
+        popover._config.content = content;
+        popover._config.customClass += (popover._config.customClass ? " " : "") + "ew-event-popover " + popoverClass;
+        return popover;
+      }
+
+      return null;
+    }; // Context menu
+
+    let generateGetBoundingClientRect = info => {
+      let x = 0,
+          y = 0;
+
+      if (info) {
+        let rect = info.el.getBoundingClientRect(),
+            evt = info.jsEvent;
+        x = rect.left + evt.offsetX, y = rect.top + evt.offsetY;
+      }
+
+      return () => ({
+        width: 0,
+        height: 0,
+        top: y,
+        right: x,
+        bottom: y,
+        left: x
+      });
+    },
+        virtualElement = {
+      getBoundingClientRect: generateGetBoundingClientRect()
+    },
+        bsDropdown;
+
+    if (dropdown && options.useContextMenu && (viewUrl || editUrl || addUrl || deleteUrl)) {
+      dropdown.dataset.bsToggle = "dropdown"; // For clearing dropdown menu
+
+      document.addEventListener("keydown", event => event.key !== "Escape" || bootstrap.Dropdown.clearMenus());
+      bsDropdown = bootstrap.Dropdown.getOrCreateInstance(dropdown, {
+        reference: virtualElement
+      });
+
+      bsDropdown._menu.querySelectorAll(".dropdown-item").forEach(item => item.addEventListener("click", e => {
+        let dataset = e.currentTarget.dataset,
+            action = dataset.action,
+            id = dataset.eventId;
+
+        if (action && id) {
+          if (action == "view" && viewUrl) viewEventDialogShow(id);else if (action == "edit" && editUrl) editEventDialogShow(id);else if (action == "add" && addUrl) // Copy
+            addEventDialogShow(id);else if (action == "delete" && deleteUrl) deleteEvent(id);
+        }
+      }));
+    } // Options
+
+    let opts = ew.deepAssign(fullCalendarOptions, {
+      // events
+      //eventDragStart: info => console.log(info),
+      //eventDragStop: info => console.log(info),
+      drop: function (info) {
+        // Remove element
+        let checkbox = document.getElementById("remove-event");
+        if (checkbox.checked) info.draggedEl.parentNode.removeChild(info.draggedEl);
+      },
+      select: event => addEventDialogShow(event),
+      eventReceive: processEvent,
+      // Event created
+      eventDrop: processEvent,
+      // Event changed (Drag / Drop)
+      eventResize: processEvent,
+      // Event changed (Resize)
+      eventClick: info => {
+        // Event click
+        info.jsEvent.preventDefault();
+
+        if (info.event.url) {
+          window.open(info.event.url);
+        } else if (info.jsEvent.button == 2) {
+          // Right click
+          if (bsDropdown) {
+            var _bootstrap$Popover$ge;
+
+            (_bootstrap$Popover$ge = bootstrap.Popover.getInstance(info.el)) == null ? void 0 : _bootstrap$Popover$ge.hide();
+            bsDropdown.hide();
+
+            bsDropdown._menu.querySelectorAll(".dropdown-item").forEach(item => {
+              item.dataset.eventId = info.event.id;
+              item.classList.toggle("d-none", !options[item.dataset.action + "Url"]);
+            });
+
+            if (bsDropdown._menu.querySelectorAll(".dropdown-item:not(.d-done)").length) {
+              virtualElement.getBoundingClientRect = generateGetBoundingClientRect(info);
+              bsDropdown.show();
+            }
+          }
+        } else if (options.usePopover && eventPopoverOptions.trigger.match(/\bclick\b/)) {
+          var _getOrCreatePopover;
+
+          (_getOrCreatePopover = getOrCreatePopover(info)) == null ? void 0 : _getOrCreatePopover.toggle();
+        } else if (options.showViewPageOnEventClick) {
+          viewEventDialogShow(info);
+        }
+      },
+      eventMouseEnter: info => {
+        var _bsDropdown, _getOrCreatePopover2;
+
+        if ((_bsDropdown = bsDropdown) != null && _bsDropdown._isShown(bsDropdown._menu)
+        /* && bsDropdown._element.dataset.eventId == info.event.id*/
+        ) return;
+        if (info.view.type == "dayGridMonth" && options.usePopover && eventPopoverOptions.trigger.match(/\bhover\b/)) (_getOrCreatePopover2 = getOrCreatePopover(info)) == null ? void 0 : _getOrCreatePopover2.show();
+      },
+      eventMouseLeave: info => {
+        var _bsDropdown2, _bootstrap$Popover$ge2;
+
+        if ((_bsDropdown2 = bsDropdown) != null && _bsDropdown2._isShown(bsDropdown._menu)
+        /* && bsDropdown._element.dataset.eventId == info.event.id*/
+        ) return;
+        if (info.view.type == "dayGridMonth" && options.usePopover && eventPopoverOptions.trigger.match(/\bhover\b/)) (_bootstrap$Popover$ge2 = bootstrap.Popover.getInstance(info.el)) == null ? void 0 : _bootstrap$Popover$ge2.hide();
+      }
+    }); // Trigger "calendar" event
+
+    let args = {
+      element: el,
+      options: opts
+    };
+    $__default.default(document).trigger("calendar", [args]); // Create calendar
+
+    calendar = new window.FullCalendar.Calendar(el, args.options); // Return calendar
+
+    return calendar;
+  }
+
+  var fullCalendar$1 = {
+    __proto__: null,
+    fullCalendar
   };
 
   /**
    * Service worker
    */
 
-  ew__default["default"].SERVICE_WORKER = "sw.js";
+  ew__default.default.SERVICE_WORKER = "sw.js";
   /**
    * Show dialog for push notification
    *
@@ -8367,7 +10050,7 @@
    */
 
   async function pushNotificationDialogShow(args) {
-    let $dlg = ew__default["default"].pushDialog || $__default["default"]("#ew-push-notification-dialog").on("shown.bs.modal", e => setTimeout(() => {
+    let $dlg = ew__default.default.pushDialog || $__default.default("#ew-push-notification-dialog").on("shown.bs.modal", e => setTimeout(() => {
       var _e$target$querySelect;
 
       return (_e$target$querySelect = e.target.querySelector(".modal-body .form-control")) == null ? void 0 : _e$target$querySelect.focus();
@@ -8375,7 +10058,7 @@
       var _$$closest$find$data;
 
       e.preventDefault();
-      if ((_$$closest$find$data = $__default["default"](this).closest(".modal").find(".modal-body form").data("form")) != null && _$$closest$find$data.submit()) $dlg.modal("hide");
+      if ((_$$closest$find$data = $__default.default(this).closest(".modal").find(".modal-body form").data("form")) != null && _$$closest$find$data.submit()) $dlg.modal("hide");
     });
 
     if (!$dlg[0]) {
@@ -8391,14 +10074,14 @@
 
     let target = args.evt.currentTarget,
         // Button
-    $form = $__default["default"](target.form),
+    $form = $__default.default(target.form),
         $f = $dlg.find(".modal-body form"),
         frm = $f.data("form");
     $f.data("all", false); // Reset
 
     if (!$form.find("input[name='key_m[]']:checked")[0]) {
       // No keys selected
-      let result = await ew__default["default"].prompt(ew__default["default"].language.phrase("SendPushNotificationsToAll"), bool => bool); // Callback returns result as boolean
+      let result = await ew__default.default.prompt(ew__default.default.language.phrase("SendPushNotificationsToAll"), bool => bool); // Callback returns result as boolean
 
       $f.data("all", result);
       if (!result) // Cancelled
@@ -8406,34 +10089,28 @@
     }
 
     if (!frm) {
-      frm = new ew__default["default"].Form($f.attr("id"));
-      frm.addFields([["title", ew__default["default"].Validators.required(ew__default["default"].language.phrase("PushNotificationFormTitle"))], ["body", ew__default["default"].Validators.required(ew__default["default"].language.phrase("PushNotificationFormBody"))]]);
-
-      frm.validate = function () {
+      frm = new ew__default.default.FormBuilder().setId($f.attr("id")).addFields([["title", ew__default.default.Validators.required(ew__default.default.language.phrase("PushNotificationFormTitle"))], ["body", ew__default.default.Validators.required(ew__default.default.language.phrase("PushNotificationFormBody"))]]).setValidate(function () {
         return this.validateFields();
-      };
-
-      frm.submit = function () {
+      }).setSubmit(function () {
         if (!this.validate()) return false;
         let data = [$f.serialize(), $f.data("all") ? "" : $form.find("input[name='key_m[]']:checked").serialize()].join("&");
-        $__default["default"].post(args.url, data, result => {
+        $__default.default.post(args.url, data, result => {
           var _result$error;
 
           if (Array.isArray(result)) {
             let successes = result.reduce((acc, cur) => acc + (cur.success ? 1 : 0), 0),
                 failures = result.length - successes;
-            if (successes > 0 && failures == 0) ew__default["default"].alert(ew__default["default"].language.phrase("PushNotificationSuccess").replace("%s", successes), "success");else if (successes == 0 && failures > 0) ew__default["default"].alert(ew__default["default"].language.phrase("PushNotificationFailure").replace("%f", failures));else if (successes == 0 && failures == 0) ew__default["default"].alert(ew__default["default"].language.phrase("NoSubscriptions").replace("%f", failures), "primary");else ew__default["default"].alert(ew__default["default"].language.phrase("PushNotificationSent").replace("%s", successes).replace("%f", failures), "primary");
+            if (successes > 0 && failures == 0) ew__default.default.alert(ew__default.default.language.phrase("PushNotificationSuccess").replace("%s", successes), "success");else if (successes == 0 && failures > 0) ew__default.default.alert(ew__default.default.language.phrase("PushNotificationFailure").replace("%f", failures));else if (successes == 0 && failures == 0) ew__default.default.alert(ew__default.default.language.phrase("NoSubscriptions").replace("%f", failures), "primary");else ew__default.default.alert(ew__default.default.language.phrase("PushNotificationSent").replace("%s", successes).replace("%f", failures), "primary");
           } else if (result != null && (_result$error = result.error) != null && _result$error.description) {
-            ew__default["default"].alert(result.error.description);
+            ew__default.default.alert(result.error.description);
           }
         });
         return true;
-      };
-
+      }).build();
       $f.data("form", frm);
     }
 
-    ew__default["default"].pushDialog = $dlg.modal("hide").find(".modal-title").html(args.hdr || target.dataset.caption).end().modal("show");
+    ew__default.default.pushDialog = $dlg.modal("hide").find(".modal-title").html(args.hdr || target.dataset.caption).end().modal("show");
     return false;
   }
   /**
@@ -8470,7 +10147,7 @@
     formData.set("publicKey", key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : null);
     formData.set("authToken", token ? btoa(String.fromCharCode.apply(null, new Uint8Array(token))) : null);
     formData.set("contentEncoding", contentEncoding);
-    let response = await ew__default["default"].fetch(url, {
+    let response = await ew__default.default.fetch(url, {
       method: "POST",
       body: formData
     });
@@ -8484,14 +10161,14 @@
   async function createSubscription() {
     var _result$error2;
 
-    let url = ew__default["default"].getApiUrl([ew__default["default"].API_PUSH_NOTIFICATION_ACTION, ew__default["default"].API_PUSH_NOTIFICATION_SUBSCRIBE]),
+    let url = ew__default.default.getApiUrl([ew__default.default.API_PUSH_NOTIFICATION_ACTION, ew__default.default.API_PUSH_NOTIFICATION_SUBSCRIBE]),
         serviceWorkerReg = await navigator.serviceWorker.ready,
         subscription = await serviceWorkerReg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(ew__default["default"].PUSH_SERVER_PUBLIC_KEY)
+      applicationServerKey: urlBase64ToUint8Array(ew__default.default.PUSH_SERVER_PUBLIC_KEY)
     }),
         result = await sendSubscriptionToServer(subscription, url);
-    if (result != null && (_result$error2 = result.error) != null && _result$error2.description) ew__default["default"].alert(result.error.description);
+    if (result != null && (_result$error2 = result.error) != null && _result$error2.description) ew__default.default.alert(result.error.description);
     return result.success ? subscription : null;
   }
   /**
@@ -8508,10 +10185,10 @@
    */
 
   function setSubscription(subscription) {
-    let $btn = $__default["default"]("#subscribe-notification").toggleClass("ew-enable-notification", !subscription).attr("data-bs-original-title", ew__default["default"].language.phrase(subscription ? "DisableNotifications" : "EnableNotifications")).removeClass("disabled");
+    let $btn = $__default.default("#subscribe-notification").toggleClass("ew-enable-notification", !subscription).removeClass("disabled");
     $btn.find("i").toggleClass("fa-bell", !subscription).toggleClass("fa-bell-slash", !!subscription);
     let inst = bootstrap.Tooltip.getInstance($btn[0]);
-    if (inst != null && inst.tip) inst.setContent(inst.tip);
+    if (inst) inst._config.title = ew__default.default.language.phrase(subscription ? "DisableNotifications" : "EnableNotifications");
   }
   /**
    * Subscribe notifications
@@ -8520,26 +10197,26 @@
    */
 
   async function subscribeNotification() {
-    if (Notification.permission !== "denied" && !ew__default["default"].IS_SYS_ADMIN) {
+    if (Notification.permission !== "denied" && !ew__default.default.IS_SYS_ADMIN) {
       // Support non system administrator
-      let $body = $__default["default"]("body").css("cursor", "wait");
+      document.body.style.cursor = "wait";
 
       try {
         if (Notification.permission === "granted") {
           var _await$getSubscriptio, _document$getElementB;
 
           setSubscription((_await$getSubscriptio = await getSubscription()) != null ? _await$getSubscriptio : await createSubscription());
-          if (!((_document$getElementB = document.getElementById("subscribe-notification")) != null && _document$getElementB.classList.contains("ew-enable-notification"))) ew__default["default"].showToast(ew__default["default"].language.phrase("NotificationsEnabled"), "success");
+          if (!((_document$getElementB = document.getElementById("subscribe-notification")) != null && _document$getElementB.classList.contains("ew-enable-notification"))) ew__default.default.showToast(ew__default.default.language.phrase("NotificationsEnabled"), "success");
         } else if (Notification.permission === "default" && (await Notification.requestPermission()) == "granted") {
           var _document$getElementB2;
 
           setSubscription(await createSubscription());
-          if (!((_document$getElementB2 = document.getElementById("subscribe-notification")) != null && _document$getElementB2.classList.contains("ew-enable-notification"))) ew__default["default"].showToast(ew__default["default"].language.phrase("NotificationsEnabled"), "success");
+          if (!((_document$getElementB2 = document.getElementById("subscribe-notification")) != null && _document$getElementB2.classList.contains("ew-enable-notification"))) ew__default.default.showToast(ew__default.default.language.phrase("NotificationsEnabled"), "success");
         }
       } catch (e) {
-        ew__default["default"].alert(e);
+        ew__default.default.alert(e);
       } finally {
-        $body.css("cursor", "default");
+        document.body.style.cursor = "default";
       }
     }
 
@@ -8552,7 +10229,7 @@
    */
 
   async function checkSubscription() {
-    $__default["default"]("#subscribe-notification").tooltip();
+    $__default.default("#subscribe-notification").tooltip();
     if (Notification.permission == "granted") setSubscription(await getSubscription());else setSubscription(null);
     return true;
   }
@@ -8563,34 +10240,34 @@
    */
 
   async function unsubscribeNotification() {
-    ew__default["default"].prompt({
-      html: ew__default["default"].language.phrase("DisableNotificationsMsg")
+    ew__default.default.prompt({
+      html: ew__default.default.language.phrase("DisableNotificationsConfirm")
     }, async res => {
       if (!res) return;
-      let $body = $__default["default"]("body").css("cursor", "wait");
+      document.body.style.cursor = "wait";
 
       try {
         var _result$error3;
 
         let subscription = await getSubscription();
         await subscription.unsubscribe();
-        let url = ew__default["default"].getApiUrl([ew__default["default"].API_PUSH_NOTIFICATION_ACTION, ew__default["default"].API_PUSH_NOTIFICATION_DELETE]),
+        let url = ew__default.default.getApiUrl([ew__default.default.API_PUSH_NOTIFICATION_ACTION, ew__default.default.API_PUSH_NOTIFICATION_DELETE]),
             result = await sendSubscriptionToServer(subscription, url); // Delete subscription
 
         if (result != null && (_result$error3 = result.error) != null && _result$error3.description) {
-          ew__default["default"].alert(result.error.description);
+          ew__default.default.alert(result.error.description);
           return false;
         }
 
         if (result.success) {
           // No subscription or deleted successfully
           setSubscription(null);
-          ew__default["default"].showToast(ew__default["default"].language.phrase("NotificationsDisabled"), "success");
+          ew__default.default.showToast(ew__default.default.language.phrase("NotificationsDisabled"), "success");
         }
       } catch (e) {
-        ew__default["default"].alert(e);
+        ew__default.default.alert(e);
       } finally {
-        $body.css("cursor", "default");
+        document.body.style.cursor = "default";
       }
     });
     return false;
@@ -8600,27 +10277,27 @@
    */
 
   loadjs.ready("foot", () => {
-    if (ew__default["default"].PUSH_SERVER_PUBLIC_KEY && isPushNotificationSupported()) {
-      navigator.serviceWorker.register(ew__default["default"].PATH_BASE + ew__default["default"].SERVICE_WORKER, {
-        scope: ew__default["default"].PATH_BASE
+    if (ew__default.default.PUSH_SERVER_PUBLIC_KEY && isPushNotificationSupported()) {
+      navigator.serviceWorker.register(ew__default.default.PATH_BASE + ew__default.default.SERVICE_WORKER, {
+        scope: ew__default.default.PATH_BASE
       }).then(() => {
         checkSubscription();
-        $__default["default"]("#subscribe-notification").on("click", function () {
+        $__default.default("#subscribe-notification").on("click", function () {
           this.classList.contains("ew-enable-notification") ? subscribeNotification() : unsubscribeNotification();
         });
       }).catch(e => console.log(e));
     } else {
-      $__default["default"]("#subscribe-notification").addClass("d-none");
+      $__default.default("#subscribe-notification").addClass("d-none");
     }
   });
 
   var webpush = {
     __proto__: null,
-    pushNotificationDialogShow: pushNotificationDialogShow,
-    isPushNotificationSupported: isPushNotificationSupported,
-    subscribeNotification: subscribeNotification,
-    checkSubscription: checkSubscription,
-    unsubscribeNotification: unsubscribeNotification
+    pushNotificationDialogShow,
+    isPushNotificationSupported,
+    subscribeNotification,
+    checkSubscription,
+    unsubscribeNotification
   };
 
   /**
@@ -8635,7 +10312,7 @@
     if (data.inited) // Already initiated
       return true;
     let latlng = data.latlng,
-        $div = $__default["default"]("#" + data.id),
+        $div = $__default.default("#" + data.id),
         useSingleMap = data.useSingleMap,
         showAllMarkers = data.showAllMarkers,
         useMarkerClusterer = data.useMarkerClusterer,
@@ -8645,13 +10322,13 @@
       // Use single map
       let id = data.id.replace(/^mp\d*_/, "mp_"); // Remove index from "m<n>_" prefix
 
-      $div = $__default["default"]("#" + id);
+      $div = $__default.default("#" + id);
 
       if (!$div[0]) {
-        $div = $__default["default"]("<div></div>").attr("id", id).addClass("ew-single-map").height(data.singleMapHeight); // Create new $div for single map
+        $div = $__default.default("<div></div>").attr("id", id).addClass("ew-single-map").height(data.singleMapHeight); // Create new $div for single map
 
         if (data.singleMapWidth) $div.width(data.singleMapWidth);
-        $__default["default"](".ew-grid, .ew-multi-column-grid").first()[data.showMapOnTop ? "before" : "after"]($div); // Insert before/after table
+        $__default.default(".ew-grid, .ew-multi-column-grid").first()[data.showMapOnTop ? "before" : "after"]($div); // Insert before/after table
 
         data.map = ext.createMap($div[0], data);
         $div.data("map", data.map);
@@ -8677,7 +10354,7 @@
 
     data.inited = true; // Initiated
 
-    $__default["default"](document).trigger("map", [data]);
+    $__default.default(document).trigger("map", [data]);
     return true;
   }
   /**
@@ -8685,11 +10362,11 @@
    */
 
   function done() {
-    $__default["default"](".ew-single-map").each(function () {
-      let data = $__default["default"](this).data();
+    $__default.default(".ew-single-map").each(function () {
+      let data = $__default.default(this).data();
       ew.maps[data.ext].fitBounds(data); // Fit bounds
     });
-    $__default["default"](document).trigger("maps");
+    $__default.default(document).trigger("maps");
   }
   /**
    * Init maps
@@ -8698,10 +10375,10 @@
    */
 
   function init(ext) {
-    let promises = $__default["default"](".ew-map").filter(function () {
-      return !ext || $__default["default"](this).data("ext") == ext;
+    let promises = $__default.default(".ew-map").filter(function () {
+      return !ext || $__default.default(this).data("ext") == ext;
     }).map(function (i) {
-      let data = $__default["default"](this).data();
+      let data = $__default.default(this).data();
       if (data.inited) // Already initiated
         return show(data);
       data.id = this.id; // Get ID
@@ -8711,7 +10388,7 @@
       if (data.address) {
         let geocodingDelay = data.geocodingDelay;
         return new Promise(resolve => {
-          $__default["default"].later(i * geocodingDelay, null, () => {
+          $__default.default.later(i * geocodingDelay, null, () => {
             // Set a timer for better performance
             resolve(ew.maps[data.ext].geocode(data).then(latlng => {
               data.latlng = latlng;
@@ -8733,19 +10410,17 @@
    * Init
    */
 
-  $__default["default"](function () {
-    $__default["default"]("#ew-modal-dialog").on("load.ew", init);
-    $__default["default"](document).on("preview", init);
+  $__default.default(function () {
+    $__default.default("#ew-modal-dialog").on("load.ew", init);
+    $__default.default(document).on("preview.ew", init);
   });
 
   var maps = {
     __proto__: null,
-    show: show,
-    done: done,
-    init: init
+    show,
+    done,
+    init
   };
-
-  ew.IS_SCREEN_SM_MIN = window.matchMedia("(min-width: 768px)").matches; // Should matches $screen-sm-min
 
   ew.MOBILE_DETECT = new MobileDetect(window.navigator.userAgent);
   ew.IS_MOBILE = !!ew.MOBILE_DETECT.mobile(); // Charts
@@ -8756,45 +10431,46 @@
   Object.assign(ew, {
     MultiPage,
     Form,
+    FormBuilder,
     Validators,
     maps
-  }, functions, webpush);
-  var $document = $__default["default"](document); // Init document
+  }, functions, webpush, fullCalendar$1);
+  var $document = $__default.default(document); // Init document
 
   loadjs.ready("load", function () {
-    $__default["default"].views.settings.debugMode(ew.DEBUG);
+    $__default.default.views.settings.debugMode(ew.DEBUG);
     ew.setSessionTimer();
     ew.initPage();
-    $__default["default"]("#ew-modal-dialog").on("load.ew", ew.initPage);
-    $__default["default"]("#ew-add-opt-dialog").on("load.ew", ew.initPage);
+    $__default.default("#ew-modal-dialog").on("load.ew", ew.initPage);
+    $__default.default("#ew-add-opt-dialog").on("load.ew", ew.initPage);
     var hash = ew.currentUrl.searchParams.get("hash");
-    if (hash) $__default["default"]("html, body").animate({
-      scrollTop: $__default["default"]("#" + hash).offset().top
+    if (hash) $__default.default("html, body").animate({
+      scrollTop: $__default.default("#" + hash).offset().top
     }, 800);
-    $document.trigger("load");
+    $document.trigger("load.ew");
   }); // Default "addoption" event (fired before adding new option to selection list)
 
   $document.on("addoption", function (e, args) {
-    var row = args.data; // New row to be validated
+    let row = args.data,
+        // New row to be validated
+    arp = args.parents; // Parent field values
 
-    var arp = args.parents; // Parent field values
-
-    for (var i = 0, cnt = arp.length; i < cnt; i++) {
+    for (let i = 0, cnt = arp.length; i < cnt; i++) {
       // Iterate parent values
-      var p = arp[i];
+      let p = arp[i];
       if (!p.length) // Empty parent
         //continue; // Allow
         return args.valid = false; // Disallow
 
-      var val = row["ff" + (i > 0 ? i + 1 : "")]; // Filter fields start from the 6th field
+      let val = row["ff" + (i > 0 ? i + 1 : "")]; // Filter fields start from the 6th field
 
-      if (!$__default["default"].isUndefined(val) && !p.includes(String(val))) // Filter field value not in parent field values
+      if (!$__default.default.isUndefined(val) && !p.includes(String(val))) // Filter field value not in parent field values
         return args.valid = false; // Returns false if invalid
     }
   }); // Click handler for buttons
 
   $document.on("click", "[data-ew-action]:not([data-ew-action=''])", function (e) {
-    let data = Object.assign({}, $__default["default"](this).data()),
+    let data = Object.assign({}, $__default.default(this).data()),
         action = data.ewAction;
 
     if (!action) {
@@ -8810,19 +10486,37 @@
       delete data.ewAction;
       return ew.submitAction(e, data);
     } else if (action == "modal") {
-      delete data.ewAction;
-      return ew.modalDialogShow({
+      e.preventDefault();
+      return data.ajax ? ew.inlineAction({
+        evt: e,
+        ...data
+      }) : ew.modalDialogShow({
+        evt: e,
+        ...data
+      });
+    } else if (action == "inline" || action == "grid") {
+      e.preventDefault();
+      return ew.inlineAction({
         evt: e,
         ...data
       });
     } else if (action == "export") {
-      return ew.export(e, data.url, data.export, data.custom, data.exportSelected);
+      return ew.export({
+        evt: e,
+        ...data
+      });
     } else if (action == "layout") {
       return ew.toggleLayout(this);
     } else if (action == "language") {
       return ew.setLanguage(this);
     } else if (action == "filter") {
       return ew.filter(e);
+    } else if (action == "sort") {
+      return ew.sort(e, this.dataset);
+    } else if (action == "refresh") {
+      let url = ew.setLayout(this.dataset.url, false);
+      if (url && url != "#") ew.refresh(fetch(url), this.dataset.context);
+      return false;
     } else if (action == "email") {
       delete data.ewAction;
       return ew.emailDialogShow({
@@ -8833,8 +10527,6 @@
       this.form.elements["action"].value = data.value;
     } else if (action == "drilldown") {
       return ew.showDrillDown(e, this, data.url, data.id, data.hdr);
-    } else if (action == "export-charts") {
-      return ew.exportWithCharts(data.url, data.exportid);
     } else if (action == "add-option") {
       delete data.ewAction;
       return ew.addOptionDialogShow({
@@ -8846,9 +10538,15 @@
     } else if (action == "search-operator") {
       ew.toggleSearchOperator(e, data.target, data.value);
     } else if (action == "search-toggle") {
-      $__default["default"]("#" + this.dataset.form + "_search_panel").collapse("toggle");
+      let panel = document.getElementById(this.dataset.form + "_search_panel");
+
+      if (panel) {
+        bootstrap.Collapse.getOrCreateInstance(panel).toggle();
+        this.classList.toggle("active");
+      }
     } else if (action == "highlight") {
-      $__default["default"]("mark." + this.dataset.name).toggleClass("mark");
+      $__default.default("mark." + this.dataset.name).toggleClass("mark");
+      this.classList.toggle("active");
     } else if (action == "inline-delete") {
       return ew.confirmDelete(this);
     } else if (action == "add-grid-row") {
@@ -8877,34 +10575,147 @@
       return ew.enable2FA();
     } else if (action == "disable-2fa") {
       return ew.disable2FA();
+    } else if (action == "send-otp") {
+      var _document$getElementB;
+
+      return ew.sendOTP((_document$getElementB = document.getElementById(data.account)) == null ? void 0 : _document$getElementB.value);
     } else if (action == "backup-codes") {
       return ew.showBackupCodes();
     } else if (action == "scroll-top") {
-      $__default["default"](document).scrollTop($__default["default"]('#top').offset().top);
+      $__default.default(document).scrollTop($__default.default('#top').offset().top);
       return false;
+    }
+  }) // Change handler for selects
+  .on("change", "[data-ew-action]:not([data-ew-action=''])", function (e) {
+    let data = Object.assign({}, $__default.default(this).data());
+    if (!data.ewAction) return true;
+    let actions = data.ewAction.split(" ").filter(action => !!action);
+
+    for (let action of actions) {
+      if (action == "submit-form") {
+        var _this$form;
+
+        (_this$form = this.form) == null ? void 0 : _this$form.submit();
+      } else if (action == "change-page-size") {
+        if (ew.convertToBool(data.ajax)) {
+          let url = ew.setLayout(this.dataset.url, false) + "&" + this.name + "=" + ew.parseNumber(this.value);
+          ew.refresh(fetch(url), this.dataset.context);
+        } else {
+          let url = ew.setSearchParam(this.dataset.url, this.name, ew.parseNumber(this.value));
+          ew.redirect(url);
+        }
+
+        return false;
+      } else if (action == "update-options") {
+        ew.updateOptions.call(this);
+      } else if (action == "autofill") {
+        ew.autoFill(this);
+      } else if (action == "search-operator") {
+        return ew.searchOperatorChange(this);
+      } else if (action == "language") {
+        ew.setLanguage(this);
+      } else if (action == "chart-order") {
+        ew.updateChart(this);
+      }
+    }
+  }).on("keydown", "[data-ew-action]:not([data-ew-action=''])", function (e) {
+    let data = Object.assign({}, $__default.default(this).data()),
+        action = data.ewAction;
+
+    if (action == "change-page") {
+      // ew-page-number
+      if (e.key == "Enter") {
+        if (ew.convertToBool(data.ajax)) {
+          let url = ew.setLayout(this.dataset.url, false) + "&" + this.name + "=" + ew.parseNumber(this.value);
+          ew.refresh(fetch(url), this.dataset.context);
+        } else {
+          ew.currentUrl.searchParams.set(this.name, ew.parseNumber(this.value));
+          window.location = ew.sanitizeUrl(ew.currentUrl.toString());
+        }
+
+        return false;
+      }
     }
   }); // Click handler for row links
 
   $document.on("click", ".ew-row-link", e => e.stopPropagation()); // Fix z-index of multiple modals
 
   $document.on("show.bs.modal", ".modal", function () {
-    var zIndex = 1050 + $__default["default"](".modal:visible").length;
-    $__default["default"](this).css("z-index", zIndex);
+    var zIndex = 1050 + $__default.default(".modal:visible").length;
+    $__default.default(this).css("z-index", zIndex);
     setTimeout(function () {
-      $__default["default"](".modal-backdrop").not(".modal-stack").css("z-index", zIndex - 1).addClass("modal-stack");
+      $__default.default(".modal-backdrop").not(".modal-stack").css("z-index", zIndex - 1).addClass("modal-stack");
     }, 0);
   }); // Fix scrolling of multiple modals
 
   $document.on("hidden.bs.modal", ".modal", function () {
-    $__default["default"](".modal:visible").length && $__default["default"]("body").addClass("modal-open");
+    $__default.default(".modal:visible").length && $__default.default("body").addClass("modal-open");
+  }); // Crop action for jQuery File Upload
+
+  $__default.default.blueimp.fileupload.prototype.options.processQueue.unshift({
+    action: "cropImage",
+    // Action name
+    fileTypes: "@loadImageFileTypes",
+    // Reuse loadImageFileTypes
+    maxFileSize: "@loadImageMaxFileSize",
+    // Reuse loadImageMaxFileSize
+    cropperOptions: "@",
+    // Use global settings in ewcore.js, see https://github.com/fengyuanchen/cropperjs/blob/e969348d313dafe3416926125b21388cc67cefb1/README.md#options
+    cropperCanvasOptions: "@",
+    // Use global settings in ewcore.js, see https://github.com/fengyuanchen/cropperjs/blob/e969348d313dafe3416926125b21388cc67cefb1/README.md#getcroppedcanvasoptions
+    disabled: "@disableImageCrop" // Use data-disable-image-crop attribute to enable/disable
+
+  });
+  $__default.default.widget("blueimp.fileupload", $__default.default.blueimp.fileupload, {
+    processActions: {
+      cropImage: function (data, options) {
+        let file = data.files[data.index];
+        if (options.disabled || $__default.default.isNumber(options.maxFileSize) && file.size > options.maxFileSize || options.fileTypes && !options.fileTypes.test(file.type)) return data;
+        let url = URL.createObjectURL(file),
+            dfd = $__default.default.Deferred(),
+            that = this;
+        let $dlg = ew.cropperDialog || $__default.default("#ew-cropper-dialog").on("shown.bs.modal", function () {
+          $dlg.data("cropper", new Cropper(this.querySelector("#ew-crop-image"), options.cropperOptions));
+        }).on("hidden.bs.modal", function () {
+          var _$dlg$data;
+
+          (_$dlg$data = $dlg.data("cropper")) == null ? void 0 : _$dlg$data.destroy();
+          $dlg.removeData("cropper");
+          $dlg.find("#ew-crop-image").attr("src", "data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
+        });
+        ew.cropperDialog = $dlg;
+        $dlg.find("#ew-crop-image").attr("src", url);
+        $dlg.find(".ew-crop-btn").off("click").on("click", function () {
+          if ($dlg.data("cropper")) {
+            try {
+              let canvas = $dlg.data("cropper").getCroppedCanvas(options.cropperCanvasOptions);
+              canvas.toBlob(blob => {
+                data.files[data.index] = new File([blob], file.name, {
+                  type: file.type
+                });
+                dfd.resolveWith(that, [data]);
+              }, file.type);
+            } catch (error) {
+              ew.alert(error);
+              dfd.rejectWith(that, [data]);
+            } finally {
+              $dlg.modal("hide");
+            }
+          }
+        });
+        $dlg.find(".ew-skip-btn").off("click").on("click", function () {
+          dfd.resolveWith(that, [data]);
+          $dlg.modal("hide");
+        });
+        $dlg.modal("show");
+        return dfd.promise();
+      }
+    }
   });
 
-  $__default["default"].extend({
+  $__default.default.extend({
     isBoolean: function (o) {
       return typeof o === 'boolean';
-    },
-    isNull: function (o) {
-      return o === null;
     },
     isNumber: function (o) {
       return typeof o === 'number' && isFinite(o);
@@ -8962,9 +10773,9 @@
    * @returns jQuery object
    */
 
-  $__default["default"].fn.fields = function (fldvar) {
+  $__default.default.fn.fields = function (fldvar) {
     // Note: fldvar has NO "x_" prefix
-    var rec = {},
+    let rec = {},
         id = this.attr("id"),
         obj = this[0],
         m = id.match(/^[xy](\d*)_/),
@@ -8988,28 +10799,28 @@
       infix = obj.htmlForm.dataset.rowindex; // row index
     }
 
-    var selector = "[data-table" + (tbl ? "=" + tbl : "") + "][data-field" + (fldvar ? "=x_" + fldvar : "") + "]";
-    if ($__default["default"].isValue(infix)) selector += "[name^=x" + infix + "_]";
+    let selector = "[data-table" + (tbl ? "=" + tbl : "") + "][data-field" + (fldvar ? "=x_" + fldvar : "") + "]" + ($__default.default.isValue(infix) ? "[name^=x" + infix + "]" : "") + ":not(.ew-custom-option)";
 
     if (f && selector) {
-      $__default["default"](f).find(selector).each(function () {
-        var key = this.getAttribute("data-field").substr(2),
-            name = this.getAttribute("name");
+      $__default.default(f).find(selector).each(function () {
+        let key = this.dataset.field.substring(2),
+            // "data-field"
+        name = this.getAttribute("name");
         key = /^y_/.test(name) ? "y_" + key : key; // Use "y_fldvar" as key for 2nd search input
 
-        rec[key] = rec[key] ? rec[key].add(this) : $__default["default"](this); // Create jQuery object for each field
+        rec[key] = rec[key] ? rec[key].add(this) : $__default.default(this); // Create jQuery object for each field
       });
     }
 
     return fldvar ? rec[fldvar] : rec;
   };
 
-  $__default["default"].fn.extend({
+  $__default.default.fn.extend({
     // Get jQuery object of the row (<div> or <tr>)
     row: function () {
       var _this$data;
 
-      var $row = this.closest("#r_" + ((_this$data = this.data("field")) == null ? void 0 : _this$data.substr(2)));
+      let $row = this.closest("#r_" + ((_this$data = this.data("field")) == null ? void 0 : _this$data.substring(2)));
       if (!$row[0]) $row = this.closest(".ew-table > tbody > tr"); // Grid page
 
       return $row;
@@ -9018,7 +10829,7 @@
     visible: function (v) {
       var _this$data2;
 
-      var $p = this.closest("#r_" + ((_this$data2 = this.data("field")) == null ? void 0 : _this$data2.substr(2))); // Find the row
+      let $p = this.closest("#r_" + ((_this$data2 = this.data("field")) == null ? void 0 : _this$data2.substring(2))); // Find the row
 
       if (!$p[0]) $p = this.closest("[id^=el]"); // Find the span
 
@@ -9052,37 +10863,11 @@
     // Get/Set field value(s)
     // Note: Return array if select-multiple
     value: function (v) {
-      var type = this.attr("type");
-
       if (typeof v != "undefined") {
-        if (!Array.isArray(v)) v = [v];
-        var type = this.attr("type");
-        var el = type == "radio" || type == "checkbox" ? this.get() : this[0];
-
-        if (ew.isHiddenTextArea(this)) {
-          this.val(v).data("editor").save();
-        } else {
-          ew.selectOption(el, v);
-
-          if (this.hasClass("select2-hidden-accessible")) {
-            // Select2
-            this.trigger("change");
-          }
-        }
-
+        ew.selectOption(this[0], v);
         return this;
       } else {
-        if (type == "checkbox") {
-          var val = ew.getOptionValues(this.get());
-          return this.length == 1 ? val.join() : val;
-        } else if (type == "radio") {
-          return ew.getOptionValues(this.get()).join();
-        } else if (ew.isHiddenTextArea(this)) {
-          this.data("editor").save();
-          return this.val();
-        } else {
-          return this.val();
-        }
+        return ew.getValue(this[0]);
       }
     },
     // Get field value as number
@@ -9105,103 +10890,67 @@
     }
   });
 
-  bootstrap.Dropdown.prototype._getMenuElement = function () {
-    if (this._element.closest("[data-widget]")) $__default["default"](this._element).on("click.bs.dropdown", e => e.stopPropagation());
+  bootstrap.Dropdown.prototype.toggle = function () {
+    if (!this._element.classList.contains("ew-dropdown-toggle")) {
+      if (this._element.closest("[data-widget]")) $__default.default(this._element).on("click.ew.dropdown", e => {
+        bootstrap.Dropdown.clearMenus(e.originalEvent); // Clear menus first because this click event will not propagate to the document
 
-    if (!this._menu) {
-      const parent = bootstrap.Dropdown.getParentFromElement(this._element);
+        e.stopPropagation(); // Stop propagate or the event will toggle row of expandable-table
+      }); // Move the menu to document body if menu inside responsive table
 
-      if (parent) {
-        this._menu = parent.querySelector('.dropdown-menu'); // Move the menu to document body if menu inside responsive table
+      if (this._menu.closest(".table-responsive")) {
+        let container = this._menu.closest(".popover-body, .modal-body, .offcanvas-body, body");
 
-        if (this._menu.closest('.table-responsive')) {
-          let container = this._menu.closest('.popover-body, .modal-body, body');
+        container.appendChild(this._menu);
+        let menu = this._menu;
+        if (!this._element.id) this._element.id = "dropdownbtn" + ew.random();
+        menu.setAttribute('aria-labelledby', this._element.id);
 
-          container.appendChild(this._menu);
-          let menu = this._menu;
-          if (!this._element.id) this._element.id = "dropdownbtn" + ew.random();
-          menu.setAttribute('aria-labelledby', this._element.id);
-
-          function callback(mutationList) {
-            mutationList.forEach(mutation => {
-              switch (mutation.type) {
-                case "attributes":
-                  if (mutation.target.classList.contains('show')) {
-                    menu.classList.add('d-block');
-                  } else {
-                    menu.classList.remove('d-block');
-                  }
-
-                  break;
-              }
-            });
-          }
-
-          let observer = new MutationObserver(callback);
-          observer.observe(parent, {
-            attributeFilter: ["class"],
-            attributeOldValue: false,
-            subtree: false
+        function callback(mutationList) {
+          mutationList.forEach(mutation => {
+            switch (mutation.type) {
+              case "attributes":
+                if (mutation.target.classList.contains("show")) menu.classList.add("d-block");else menu.classList.remove("d-block");
+                break;
+            }
           });
         }
+
+        let observer = new MutationObserver(callback);
+        observer.observe(this._parent, {
+          attributeFilter: ["class"],
+          attributeOldValue: false,
+          subtree: false
+        });
       }
+
+      this._element.classList.add("ew-dropdown-toggle");
     }
 
-    return this._menu;
+    return this._isShown() ? this.hide() : this.show();
   };
-
-  $__default["default"](window).off("load.lte.treeview"); // Treeview
-
-  var Treeview = adminlte.Treeview;
-  Treeview.prototype._toggle = Treeview.prototype.toggle;
-
-  Treeview.prototype.toggle = function toggle(e) {
-    let $currentTarget = $__default["default"](e.currentTarget),
-        treeviewMenu = $currentTarget.next(),
-        href = $currentTarget.attr("href"),
-        isText = e.target.tagName == "P";
-    if (!treeviewMenu.is(".nav-treeview") || isText && href && href != "#" && href != "javascript:void(0);") // Menu text with href
-      return;
-
-    this._toggle(e);
-
-    e.stopImmediatePropagation();
-  }; // Dropdown menu parent item with href // Override AdminLTE
-
-  $__default["default"]("ul.dropdown-menu [data-bs-toggle=dropdown]").on("click", function (e) {
-    let href = $__default["default"](this).attr("href");
-    if (href && href != "#" && e.target.tagName == "SPAN") window.location = href;
-  });
 
   var isNil = (value) => {
       return value === null || value === undefined;
   };
 
-  var isNil$1 = isNil;
-
   var isFunction = (value) => {
       return typeof value === 'function';
   };
-
-  var isFunction$1 = isFunction;
 
   var isNaNNumber = (value) => {
       return typeof value === 'number' && isNaN(value);
   };
 
-  var isNaNNumber$1 = isNaNNumber;
-
   var isFiniteNumber = (value) => {
       return typeof value == 'number' && isFinite(value);
   };
-
-  var isFiniteNumber$1 = isFiniteNumber;
 
   /**
    * Optimized for performance
    */
   const multiplyByPowerOfTen = (number, powerOfTenExponent) => {
-      if (!isFiniteNumber$1(number))
+      if (!isFiniteNumber(number))
           return NaN;
       const numAsString = '' + number;
       const indexOfE = numAsString.indexOf('e');
@@ -9213,16 +10962,12 @@
       }
   };
 
-  var multiplyByPowerOfTen$1 = multiplyByPowerOfTen;
-
   /**
    * Only handles direct power of ten (only integer exponents)
    */
   const log10 = (numberThatIsPowerOfTen) => {
       return Math.round(Math.log(numberThatIsPowerOfTen) * Math.LOG10E);
   };
-
-  var log10$1 = log10;
 
   const toObject = (arr, entriesResolver) => {
       const object = {};
@@ -9235,14 +10980,10 @@
       return object;
   };
 
-  var toObject$1 = toObject;
-
   // <i> Extracted from https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
   const escapeRegexString = (string) => {
       return string.replace(/[.*+?^${}()|[\]\\]/g, match => `\\${match}`);
   };
-
-  var escapeRegexString$1 = escapeRegexString;
 
   /**
    * This function doesn't work with non-primitive arguments
@@ -9259,8 +11000,6 @@
           return result;
       };
   };
-
-  var memoize$1 = memoize;
 
   const powerOf10LookupObject = (() => {
       const object = {};
@@ -9286,28 +11025,26 @@
       return !!powerOf10LookupObject[number];
   };
 
-  var isPowerOfTen$1 = isPowerOfTen;
-
   const toBase = (value, valueUnit, unitScale) => {
-      if (!isFiniteNumber$1(value) || valueUnit === unitScale.base)
+      if (!isFiniteNumber(value) || valueUnit === unitScale.base)
           return value;
       if (!(valueUnit in unitScale.scale))
           return NaN;
       const toBaseMultiplier = unitScale.scale[valueUnit] || 1;
-      return isPowerOfTen$1(toBaseMultiplier)
-          ? multiplyByPowerOfTen$1(value, log10$1(toBaseMultiplier))
+      return isPowerOfTen(toBaseMultiplier)
+          ? multiplyByPowerOfTen(value, log10(toBaseMultiplier))
           : value * toBaseMultiplier;
   };
   const convertUnit = (value, originUnit, targetUnit, unitScale) => {
-      if (!isFiniteNumber$1(value) || originUnit === targetUnit)
+      if (!isFiniteNumber(value) || originUnit === targetUnit)
           return value;
       const valueAsBase = toBase(value, originUnit, unitScale);
       const resolvedScale = Object.assign(Object.assign({}, unitScale.scale), { [unitScale.base]: 1 });
       if (isNaN(valueAsBase) || !(originUnit in resolvedScale) || !(targetUnit in resolvedScale))
           return NaN;
       const conversionFactorFromBase = unitScale.scale[targetUnit] || 1;
-      return isPowerOfTen$1(conversionFactorFromBase)
-          ? multiplyByPowerOfTen$1(valueAsBase, -log10$1(conversionFactorFromBase))
+      return isPowerOfTen(conversionFactorFromBase)
+          ? multiplyByPowerOfTen(valueAsBase, -log10(conversionFactorFromBase))
           : valueAsBase / conversionFactorFromBase;
   };
   /**
@@ -9364,8 +11101,6 @@
       return result + pattern;
   };
 
-  var stringRepeat$1 = stringRepeat;
-
   const baseCreateUnitScaleFromLocaleAbbreviations = (str) => {
       if (!str) {
           return unitScale({ base: '', scale: {} });
@@ -9375,19 +11110,17 @@
       scale.forEach((scaleItem, scaleItemIndex) => {
           if (!scaleItem)
               return;
-          scaleDefinition[scaleItem] = +(1 + stringRepeat$1('0', scaleItemIndex));
+          scaleDefinition[scaleItem] = +(1 + stringRepeat('0', scaleItemIndex));
       });
       return unitScale({ base: '', scale: scaleDefinition });
   };
-  const createUnitScaleFromLocaleAbbreviations = memoize$1(baseCreateUnitScaleFromLocaleAbbreviations);
-
-  var createUnitScaleFromLocaleAbbreviations$1 = createUnitScaleFromLocaleAbbreviations;
+  const createUnitScaleFromLocaleAbbreviations = memoize(baseCreateUnitScaleFromLocaleAbbreviations);
 
   const replaceNumeralSystemWithLatinNumbers = (numericStringWithExtraInfo, numeralSystemMap) => {
       if (!numeralSystemMap || numeralSystemMap.length !== 10)
           return numericStringWithExtraInfo;
       const numericStringLength = numericStringWithExtraInfo.length;
-      const numeralSystemToLatinSystemMap = toObject$1(numeralSystemMap, (digit, digitIndex) => [digit.replace(/\u200e/g, ''), '' + digitIndex]);
+      const numeralSystemToLatinSystemMap = toObject(numeralSystemMap, (digit, digitIndex) => [digit.replace(/\u200e/g, ''), '' + digitIndex]);
       let output = '';
       for (let numericStringIndex = 0; numericStringIndex < numericStringLength; numericStringIndex++) {
           const char = numericStringWithExtraInfo[numericStringIndex];
@@ -9397,11 +11130,11 @@
   };
   const getScalingFactorFromAbbreviations = (stringOriginal, options) => {
       var _a;
-      const scale = createUnitScaleFromLocaleAbbreviations$1((_a = options.locale) === null || _a === void 0 ? void 0 : _a.abbreviations);
+      const scale = createUnitScaleFromLocaleAbbreviations((_a = options.locale) === null || _a === void 0 ? void 0 : _a.abbreviations);
       const abbreviationsSortedByLengthDesc = Object.keys(scale.scaleDefinition.scale).sort((a, b) => b.length - a.length);
       let abbreviationScalingFactor = 1;
       for (const abbreviation of abbreviationsSortedByLengthDesc) {
-          const scapedAbbreviationForRegex = escapeRegexString$1(abbreviation);
+          const scapedAbbreviationForRegex = escapeRegexString(abbreviation);
           const regexp = new RegExp('[^a-zA-Z]'
               + `(${scapedAbbreviationForRegex})|(${scapedAbbreviationForRegex.replace(/\u200e/g, '')})`
               + '(?:\\)(?:\\))?)?$');
@@ -9439,12 +11172,10 @@
               + Math.min(stringWithDotDecimalDelimiter.split('(').length - 1, stringWithDotDecimalDelimiter.split(')').length - 1)) % 2 ? 1 : -1;
           // Remove non numbers
           const numberAsString = stringWithDotDecimalDelimiter.replace(/[^0-9.]+/g, '');
-          value = negativeFactor * multiplyByPowerOfTen$1(+numberAsString, log10$1(abbreviationScalingFactor));
+          value = negativeFactor * multiplyByPowerOfTen(+numberAsString, log10(abbreviationScalingFactor));
       }
       return value;
   };
-
-  var formattedStringToNumber$1 = formattedStringToNumber;
 
   const locale = {
       code: 'en',
@@ -9467,8 +11198,6 @@
       },
   };
 
-  var locale$1 = locale;
-
   function merge(...args) {
       const newObject = {};
       const argsLength = args.length;
@@ -9483,19 +11212,13 @@
       return typeof value === 'object' && value !== null;
   };
 
-  var isObject$1 = isObject;
-
   var isString = (value) => {
       return typeof value === 'string';
   };
 
-  var isString$1 = isString;
-
   const truncateNumber = (value) => {
       return value < 0 ? Math.ceil(value) : Math.floor(value);
   };
-
-  var truncateNumber$1 = truncateNumber;
 
   const getPatternParts = (patternMask) => {
       let isInEscapedPart = false;
@@ -9555,8 +11278,6 @@
       return str.indexOf(search) !== -1;
   };
 
-  var stringIncludes$1 = stringIncludes;
-
   /**
    * What does it look for in the pattern?
    *     '(' | '+' | '-'
@@ -9583,16 +11304,14 @@
    */
   const signRule = (pattern) => {
       const patternWithoutEscapedText = patternRemoveEscapedText(pattern);
-      const negativeParentheses = stringIncludes$1(patternWithoutEscapedText, '(') && stringIncludes$1(patternWithoutEscapedText, ')');
-      const forceSign = !negativeParentheses && stringIncludes$1(patternWithoutEscapedText, '+');
+      const negativeParentheses = stringIncludes(patternWithoutEscapedText, '(') && stringIncludes(patternWithoutEscapedText, ')');
+      const forceSign = !negativeParentheses && stringIncludes(patternWithoutEscapedText, '+');
       let outputPatternMask = pattern;
       outputPatternMask = patternReplace(outputPatternMask, '(', `'ɵnps'`);
       outputPatternMask = patternReplace(outputPatternMask, ')', `'ɵnpe'`);
       outputPatternMask = patternReplace(outputPatternMask, /(-|\+)/, `'ɵs'`);
       return [outputPatternMask, { negativeParentheses, forceSign }];
   };
-
-  var signRule$1 = signRule;
 
   /**
    * Checks if abbreviation is wanted
@@ -9615,8 +11334,6 @@
       return [outputPatternMask, { compact, compactUnit, compactAuto: compact && !compactUnit }];
   };
 
-  var abbreviationRule$1 = abbreviationRule;
-
   /**
    * Faster version of String.prototype.split that only handles splitting in two parts
    */
@@ -9632,8 +11349,6 @@
       }
   };
 
-  var splitStringInTwoParts$1 = splitStringInTwoParts;
-
   const countChars = (string, char) => {
       return !string ? 0 : string.split('').filter(stringChar => stringChar === char).length;
   };
@@ -9643,25 +11358,25 @@
    */
   const decimalPlacesRule = (patternMask) => {
       const patternWithoutEscapedText = patternRemoveEscapedText(patternMask);
-      const patternPrecisionPart = splitStringInTwoParts$1(patternWithoutEscapedText, '.')[1];
+      const patternPrecisionPart = splitStringInTwoParts(patternWithoutEscapedText, '.')[1];
       let minimumFractionDigits = 0;
       let maximumFractionDigits = 0;
       if (!!patternPrecisionPart) {
           const trimmedPatternPrecisionPart = patternPrecisionPart.trim();
-          if (stringIncludes$1(trimmedPatternPrecisionPart, '[')) {
+          if (stringIncludes(trimmedPatternPrecisionPart, '[')) {
               // If it contains optional fraction digits
               const patternPrecisionPartWithoutClosingBracket = trimmedPatternPrecisionPart.replace(']', '');
               // Isolates forced (left) vs optional (right) decimals
-              const precisionSplitted = splitStringInTwoParts$1(patternPrecisionPartWithoutClosingBracket, '[');
+              const precisionSplitted = splitStringInTwoParts(patternPrecisionPartWithoutClosingBracket, '[');
               minimumFractionDigits = countChars(precisionSplitted[0], '0');
               maximumFractionDigits = minimumFractionDigits + countChars(precisionSplitted[1], '0');
           }
-          else if (stringIncludes$1(trimmedPatternPrecisionPart, '#')) {
+          else if (stringIncludes(trimmedPatternPrecisionPart, '#')) {
               // If it contains optional fraction digits marked with '#'
               minimumFractionDigits = countChars(trimmedPatternPrecisionPart.split('#')[0], '0');
               maximumFractionDigits = trimmedPatternPrecisionPart.length;
           }
-          else if (stringIncludes$1(trimmedPatternPrecisionPart, 'X')) {
+          else if (stringIncludes(trimmedPatternPrecisionPart, 'X')) {
               // If it contains no-maximum fraction digits marked with 'X'
               minimumFractionDigits = countChars(trimmedPatternPrecisionPart.split('X')[0], '0');
               maximumFractionDigits = 500;
@@ -9674,8 +11389,6 @@
       }
       return { minimumFractionDigits, maximumFractionDigits };
   };
-
-  var decimalPlacesRule$1 = decimalPlacesRule;
 
   /**
    * Check for optional decimals.
@@ -9698,8 +11411,6 @@
       }
       return [outputPatternMask, { optionalFractionDigits }];
   };
-
-  var optionalDecimalPlacesRule$1 = optionalDecimalPlacesRule;
 
   /**
    * <i> The regExp tests for:
@@ -9737,18 +11448,18 @@
   };
   // If sign is not included, put sign at the left of the number
   const addSignPositionIfItDoesNotExists = (patternMask) => {
-      if (stringIncludes$1(patternMask, `'ɵs'`) || stringIncludes$1(patternMask, `'ɵnps'`))
+      if (stringIncludes(patternMask, `'ɵs'`) || stringIncludes(patternMask, `'ɵnps'`))
           return patternMask;
       return patternMask.replace(`'ɵn'`, _ => `'ɵs''ɵn'`);
   };
   const baseParsePattern = (inputPattern) => {
-      const resolvedInputPattern = isString$1(inputPattern) && inputPattern || '0,0.##########';
-      const [patternMaskAfterSignRule, signRules] = signRule$1(resolvedInputPattern);
-      const [patternMaskAfterAbbreviationRule, abbreviationRules] = abbreviationRule$1(patternMaskAfterSignRule);
-      const [patternMaskAfterOptionalDecimalPlacesRule, optionalDecimalPlacesRules] = optionalDecimalPlacesRule$1(patternMaskAfterAbbreviationRule);
+      const resolvedInputPattern = isString(inputPattern) && inputPattern || '0,0.##########';
+      const [patternMaskAfterSignRule, signRules] = signRule(resolvedInputPattern);
+      const [patternMaskAfterAbbreviationRule, abbreviationRules] = abbreviationRule(patternMaskAfterSignRule);
+      const [patternMaskAfterOptionalDecimalPlacesRule, optionalDecimalPlacesRules] = optionalDecimalPlacesRule(patternMaskAfterAbbreviationRule);
       const outputPatternMask = patternMaskAfterOptionalDecimalPlacesRule;
       const outputPatternMaskWithoutEscapedText = patternRemoveEscapedText(outputPatternMask);
-      const decimalPlacesRules = decimalPlacesRule$1(outputPatternMask);
+      const decimalPlacesRules = decimalPlacesRule(outputPatternMask);
       const minimumIntegerDigits = minimumIntegerDigitsRule(outputPatternMask);
       const grouping = outputPatternMaskWithoutEscapedText.indexOf(',') > -1;
       const patternMaskAfterHandlingNumberPosition = numberPositionRule(outputPatternMask);
@@ -9758,9 +11469,7 @@
           minimumIntegerDigits,
           patternMask });
   };
-  const parsePattern = memoize$1(baseParsePattern);
-
-  var parsePattern$1 = parsePattern;
+  const parsePattern = memoize(baseParsePattern);
 
   /**
    * <i> Checks if value is negative, and removes the sign in case it exists
@@ -9770,8 +11479,6 @@
   const removeSignIfExists = (valueAsString) => {
       return valueAsString[0] === '-' ? valueAsString.slice(1) : valueAsString;
   };
-
-  var removeSignIfExists$1 = removeSignIfExists;
 
   /**
    * This process only is applied for automatic abbreviation ('a'), and only in the rounding
@@ -9792,12 +11499,10 @@
       if (!compact || !compactAuto) {
           return [value, currentAbbreviationScale];
       }
-      const scale = createUnitScaleFromLocaleAbbreviations$1(abbreviations);
+      const scale = createUnitScaleFromLocaleAbbreviations(abbreviations);
       const [newScaledValue, newScaledValueUnit] = scale.toBest(value, currentAbbreviationScale || '');
       return [newScaledValue, newScaledValueUnit];
   };
-
-  var rescaleRoundedValue$1 = rescaleRoundedValue;
 
   /**
    * If abbreviation is forced, looks for the closest (in terms of power of ten) abbreviation in the current locale
@@ -9822,7 +11527,7 @@
           return [value, null];
       }
       return [
-          multiplyByPowerOfTen$1(value, -closestPowerOfTenWithAvailableAbbreviation),
+          multiplyByPowerOfTen(value, -closestPowerOfTenWithAvailableAbbreviation),
           scaleDefinitionFromLocale[closestPowerOfTenWithAvailableAbbreviation],
       ];
   };
@@ -9838,36 +11543,32 @@
        * If abbreviation is automatic, resolves the abbreviation to the best (where the value has
        * the fewest numbers before the decimal point, but is still higher than 1).
        */
-      const scale = createUnitScaleFromLocaleAbbreviations$1(abbreviations);
+      const scale = createUnitScaleFromLocaleAbbreviations(abbreviations);
       const [scaledValue, localizedUnit] = scale.toBest(value, '');
       return [scaledValue, localizedUnit || null];
   };
 
-  var scaleValueWithAbbreviation$1 = scaleValueWithAbbreviation;
-
   const roundNumber = (number, precision, roundingFunction) => {
       const resolvedPrecision = precision || 0;
       const resolvedRoundingFunction = roundingFunction || Math.round;
-      const scaledValueForRounding = multiplyByPowerOfTen$1(number, resolvedPrecision);
+      const scaledValueForRounding = multiplyByPowerOfTen(number, resolvedPrecision);
       const roundedScaledValue = resolvedRoundingFunction(scaledValueForRounding);
-      const roundedValue = multiplyByPowerOfTen$1(roundedScaledValue, -resolvedPrecision);
+      const roundedValue = multiplyByPowerOfTen(roundedScaledValue, -resolvedPrecision);
       return roundedValue;
   };
-
-  var roundNumber$1 = roundNumber;
 
   /**
    * The result from toFixed can contain an exponent for big numbers (e.g. 1.12345671234567e+50).
    * <!> Only handles positive exponents.
    */
   const formatPositiveExponentResult = (valueAsString) => {
-      const [significand, exponent] = splitStringInTwoParts$1(valueAsString, 'e');
+      const [significand, exponent] = splitStringInTwoParts(valueAsString, 'e');
       const exponentAsNumber = +exponent;
       if (exponentAsNumber < 0)
           return valueAsString;
-      const [integerPartOfSignificand, fractionalPartOfSignificand] = splitStringInTwoParts$1(significand, '.');
+      const [integerPartOfSignificand, fractionalPartOfSignificand] = splitStringInTwoParts(significand, '.');
       const numberOfZerosToAdd = exponentAsNumber - fractionalPartOfSignificand.length;
-      return `${integerPartOfSignificand}${fractionalPartOfSignificand}${stringRepeat$1('0', numberOfZerosToAdd)}`;
+      return `${integerPartOfSignificand}${fractionalPartOfSignificand}${stringRepeat('0', numberOfZerosToAdd)}`;
   };
   /**
    * The result from toFixed can contain an exponent for small numbers (e.g. 1.123e-87).
@@ -9875,7 +11576,7 @@
    */
   const formatNegativeExponentResult = (value, exponentAsNumber, significandAsString) => {
       const negativeExponentAbsoluteValue = Math.abs(exponentAsNumber);
-      const [integerPartOfSignificand, fractionalPartOfSignificand] = splitStringInTwoParts$1(significandAsString, '.');
+      const [integerPartOfSignificand, fractionalPartOfSignificand] = splitStringInTwoParts(significandAsString, '.');
       const absoluteIntegerPartOfSignificand = integerPartOfSignificand[0] === '-' ? integerPartOfSignificand.slice(1) : integerPartOfSignificand;
       let outputIntegerPartOfSignificand = absoluteIntegerPartOfSignificand;
       let outputFractionalPartOfSignificand = fractionalPartOfSignificand;
@@ -9905,18 +11606,16 @@
       if (!valueAsStringHasExponentialInfo)
           return valueAsString;
       // If the toString returns an exponential number (e.g. 1.23e+28)
-      const [significand, exponent] = splitStringInTwoParts$1(valueAsString, 'e');
+      const [significand, exponent] = splitStringInTwoParts(valueAsString, 'e');
       const exponentAsNumber = +exponent;
       return exponentAsNumber >= 0
           ? formatPositiveExponentResult(valueAsString)
           : formatNegativeExponentResult(value, exponentAsNumber, significand);
   };
 
-  var numberToNonExponentialString$1 = numberToNonExponentialString;
-
   const addTrailingZerosInFractionalPart = (valueAsString, minimumFractionDigits) => {
-      const [integerPart, fractionalPart] = splitStringInTwoParts$1(valueAsString, '.');
-      return `${integerPart}.${fractionalPart + stringRepeat$1('0', minimumFractionDigits - fractionalPart.length)}`;
+      const [integerPart, fractionalPart] = splitStringInTwoParts(valueAsString, '.');
+      return `${integerPart}.${fractionalPart + stringRepeat('0', minimumFractionDigits - fractionalPart.length)}`;
   };
   /**
    * Implementation of Number.prototype.toFixed() that treats floats more like decimals
@@ -9929,22 +11628,20 @@
    * <i> optionalFractionDigits means: from the fractionDigits amount, the ones that are optional.
    */
   const numberToFixed = (finiteNumber, fractionDigits, roundingFunction, optionalFractionDigits) => {
-      const valueAsString = numberToNonExponentialString$1(finiteNumber);
+      const valueAsString = numberToNonExponentialString(finiteNumber);
       const minimumFractionDigits = fractionDigits - (optionalFractionDigits || 0);
-      const fractionalPartOfValueAsString = splitStringInTwoParts$1(valueAsString, '.')[1];
+      const fractionalPartOfValueAsString = splitStringInTwoParts(valueAsString, '.')[1];
       const targetFractionDigitsAmount = !!fractionalPartOfValueAsString
           ? Math.min(Math.max(fractionalPartOfValueAsString.length, minimumFractionDigits), fractionDigits)
           : minimumFractionDigits;
-      const roundedValue = roundNumber$1(finiteNumber, targetFractionDigitsAmount, roundingFunction);
-      let output = numberToNonExponentialString$1(roundedValue);
+      const roundedValue = roundNumber(finiteNumber, targetFractionDigitsAmount, roundingFunction);
+      let output = numberToNonExponentialString(roundedValue);
       // Add trailing zeros if needed
       if (!!minimumFractionDigits) {
           output = addTrailingZerosInFractionalPart(output, minimumFractionDigits);
       }
       return output;
   };
-
-  var numberToFixed$1 = numberToFixed;
 
   const roundValueAndAddTrailingZeros = (value, patternRules, options) => {
       const { rounding } = options;
@@ -9953,14 +11650,12 @@
       const shouldIncludeDecimalPlaces = minimumFractionDigits > 0 || maximumFractionDigits > 0;
       if (shouldIncludeDecimalPlaces) {
           const optionalDecimalDigitsCount = maximumFractionDigits - minimumFractionDigits;
-          return numberToFixed$1(value, maximumFractionDigits, resolvedRoundingFunction, optionalDecimalDigitsCount);
+          return numberToFixed(value, maximumFractionDigits, resolvedRoundingFunction, optionalDecimalDigitsCount);
       }
       else {
-          return numberToFixed$1(value, 0, resolvedRoundingFunction);
+          return numberToFixed(value, 0, resolvedRoundingFunction);
       }
   };
-
-  var roundValueAndAddTrailingZeros$1 = roundValueAndAddTrailingZeros;
 
   const replaceDigitsWithNumeralSystem = (numericString, numeralSystemMap) => {
       if (!numeralSystemMap || numeralSystemMap.length !== 10)
@@ -9973,8 +11668,6 @@
       }
       return output;
   };
-
-  var replaceDigitsWithNumeralSystem$1 = replaceDigitsWithNumeralSystem;
 
   /**
    * <i> Add or remove leading zeros
@@ -9989,10 +11682,8 @@
       }
       return valueIntegerPartWithoutSign.length >= minimumIntegerDigits
           ? valueIntegerPartWithoutSign
-          : `${stringRepeat$1('0', minimumIntegerDigits - valueIntegerPartWithoutSign.length)}${valueIntegerPartWithoutSign}`;
+          : `${stringRepeat('0', minimumIntegerDigits - valueIntegerPartWithoutSign.length)}${valueIntegerPartWithoutSign}`;
   };
-
-  var addOrRemoveLeadingZerosToValue$1 = addOrRemoveLeadingZerosToValue;
 
   const addSignInfoToFullFormattedNumber = (fullFormattedValueWithoutSign, isValueNegative, isValueZero, patternRules) => {
       const { negativeParentheses, forceSign } = patternRules;
@@ -10009,8 +11700,6 @@
       return output;
   };
 
-  var addSignInfoToFullFormattedNumber$1 = addSignInfoToFullFormattedNumber;
-
   /**
    * Splits the given number (as string) in the integer and decimal parts.
    * Returns:
@@ -10020,15 +11709,13 @@
    */
   const splitNumberIntegerAndDecimalParts = (valueAsString, patternRules) => {
       const { optionalFractionDigits } = patternRules;
-      const [integerPart, decimalPart] = splitStringInTwoParts$1(valueAsString, '.');
+      const [integerPart, decimalPart] = splitStringInTwoParts(valueAsString, '.');
       // Checks whether optionalDecimalPlaces [.] is enabled and the value is an integer (no decimals)
       if (optionalFractionDigits && Number(decimalPart) === 0) {
           return [integerPart, ''];
       }
       return [integerPart, decimalPart];
   };
-
-  var splitNumberIntegerAndDecimalParts$1 = splitNumberIntegerAndDecimalParts;
 
   const addThousandsSeparatorToValueIntegerPart = (valueIntegerPartWithLeadingZerosAndWithoutSign, patternRules, options) => {
       const { delimiters, digitGroupingStyle } = options.locale;
@@ -10057,8 +11744,6 @@
       return output;
   };
 
-  var addThousandsSeparatorToValueIntegerPart$1 = addThousandsSeparatorToValueIntegerPart;
-
   /**
    * Applies the localized abbreviation unit to the pattern mask
    * <i> If the localized unit is empty (''), it will remove the space between the number and the abbreviation.
@@ -10084,51 +11769,47 @@
       }
   };
 
-  var applyAbbreviationLocalizedUnitToPatternMask$1 = applyAbbreviationLocalizedUnitToPatternMask;
-
   const scaleAndRoundValue = (number, patternRules, options) => {
       // If it doesn't have abbreviation, just round the value and add trailing zeros
       if (!patternRules.compact) {
-          const roundedValueAsString = roundValueAndAddTrailingZeros$1(number, patternRules, options);
+          const roundedValueAsString = roundValueAndAddTrailingZeros(number, patternRules, options);
           return [roundedValueAsString, null];
       }
       // If it has abbreviation, scales the value
-      const [scaledValue, scaledValueLocalizedUnit] = scaleValueWithAbbreviation$1(number, patternRules, options);
-      const roundedScaledValue = +roundValueAndAddTrailingZeros$1(scaledValue, patternRules, options);
-      const [rescaledValue, rescaledValueLocalizedUnit] = rescaleRoundedValue$1(+roundedScaledValue, scaledValueLocalizedUnit, patternRules, options);
-      const roundedRescaledValueAsStringWithTrailingZeros = roundValueAndAddTrailingZeros$1(rescaledValue, patternRules, options);
+      const [scaledValue, scaledValueLocalizedUnit] = scaleValueWithAbbreviation(number, patternRules, options);
+      const roundedScaledValue = +roundValueAndAddTrailingZeros(scaledValue, patternRules, options);
+      const [rescaledValue, rescaledValueLocalizedUnit] = rescaleRoundedValue(+roundedScaledValue, scaledValueLocalizedUnit, patternRules, options);
+      const roundedRescaledValueAsStringWithTrailingZeros = roundValueAndAddTrailingZeros(rescaledValue, patternRules, options);
       return [roundedRescaledValueAsStringWithTrailingZeros, rescaledValueLocalizedUnit];
   };
   const numberToFormattedNumber = (number, pattern, options) => {
       var _a;
-      const patternRules = parsePattern$1(pattern);
+      const patternRules = parsePattern(pattern);
       // Ensure always uses a number or default number
-      const resolvedValue = isFiniteNumber$1(number) ? number : 0;
+      const resolvedValue = isFiniteNumber(number) ? number : 0;
       const [valueAsString, localizedAbbreviationUnit] = scaleAndRoundValue(resolvedValue, patternRules, options);
       // Prevents potentially wrong formatting coming from this function
       if (valueAsString === 'NaN')
           return '';
       const isValueNegative = options.signedZero ? number < 0 : +valueAsString < 0;
       const isValueZero = options.signedZero ? number === 0 : +valueAsString === 0;
-      const valueAsStringWithoutSign = removeSignIfExists$1(valueAsString);
-      const [integerPart, decimalPart] = splitNumberIntegerAndDecimalParts$1(valueAsStringWithoutSign, patternRules);
-      const valueIntegerPartWithLeadingZeros = addOrRemoveLeadingZerosToValue$1(integerPart, patternRules);
-      const valueIntegerPartWithThousandsSeparator = addThousandsSeparatorToValueIntegerPart$1(valueIntegerPartWithLeadingZeros, patternRules, options);
+      const valueAsStringWithoutSign = removeSignIfExists(valueAsString);
+      const [integerPart, decimalPart] = splitNumberIntegerAndDecimalParts(valueAsStringWithoutSign, patternRules);
+      const valueIntegerPartWithLeadingZeros = addOrRemoveLeadingZerosToValue(integerPart, patternRules);
+      const valueIntegerPartWithThousandsSeparator = addThousandsSeparatorToValueIntegerPart(valueIntegerPartWithLeadingZeros, patternRules, options);
       const numeralSystemFromLocale = options.locale.numeralSystem;
-      const integerPartWithNumeralSystem = replaceDigitsWithNumeralSystem$1(valueIntegerPartWithThousandsSeparator, numeralSystemFromLocale);
-      const decimalPartWithNumeralSystem = replaceDigitsWithNumeralSystem$1(decimalPart, numeralSystemFromLocale);
+      const integerPartWithNumeralSystem = replaceDigitsWithNumeralSystem(valueIntegerPartWithThousandsSeparator, numeralSystemFromLocale);
+      const decimalPartWithNumeralSystem = replaceDigitsWithNumeralSystem(decimalPart, numeralSystemFromLocale);
       const fullNumberWithNumeralSystem = (integerPartWithNumeralSystem
           + (!!decimalPartWithNumeralSystem ? (((_a = options.locale.delimiters) === null || _a === void 0 ? void 0 : _a.decimal) || '.') + decimalPartWithNumeralSystem : ''));
       // Assembling
-      const patternMaskWithAbbreviation = applyAbbreviationLocalizedUnitToPatternMask$1(patternRules.patternMask, localizedAbbreviationUnit, patternRules.compact);
+      const patternMaskWithAbbreviation = applyAbbreviationLocalizedUnitToPatternMask(patternRules.patternMask, localizedAbbreviationUnit, patternRules.compact);
       const patternMaskWithNumber = patternMaskWithAbbreviation.replace(`'ɵn'`, _ => `'${fullNumberWithNumeralSystem.replace(/'/g, "\\'")}'`);
-      const patternMaskWithSignInfo = addSignInfoToFullFormattedNumber$1(patternMaskWithNumber, isValueNegative, isValueZero, patternRules);
+      const patternMaskWithSignInfo = addSignInfoToFullFormattedNumber(patternMaskWithNumber, isValueNegative, isValueZero, patternRules);
       const cleanPatternMask = patternMaskWithSignInfo.replace(/'ɵ(nps|npe|s|a|n)'/g, '');
       const fullFormattedValueWithNormalizedText = patternStripAndNormalizeEscapedText(cleanPatternMask);
       return fullFormattedValueWithNormalizedText;
   };
-
-  var numberToFormattedNumber$1 = numberToFormattedNumber;
 
   /**
    * Basis point format (BPS)
@@ -10141,18 +11822,16 @@
           unformat: /BPS/,
       },
       format: (number, pattern, options) => {
-          const scaledValue = multiplyByPowerOfTen$1(number, 4);
+          const scaledValue = multiplyByPowerOfTen(number, 4);
           const patternWithEscapedBPS = patternReplace(pattern, /BPS/, `'ɵBPSɵ'`);
-          const formatResult = numberToFormattedNumber$1(scaledValue, patternWithEscapedBPS, options);
+          const formatResult = numberToFormattedNumber(scaledValue, patternWithEscapedBPS, options);
           return formatResult.replace('ɵBPSɵ', 'BPS');
       },
       unformat: (string, options) => {
-          const number = formattedStringToNumber$1(string.replace(/\s?BPS/, ''), options);
-          return isFiniteNumber$1(number) ? multiplyByPowerOfTen$1(number, -4) : number;
+          const number = formattedStringToNumber(string.replace(/\s?BPS/, ''), options);
+          return isFiniteNumber(number) ? multiplyByPowerOfTen(number, -4) : number;
       },
   };
-
-  var bpsFormatter$1 = bpsFormatter;
 
   const timeFormatter = {
       name: 'time',
@@ -10163,9 +11842,9 @@
       format: (number) => {
           const absoluteValue = Math.abs(number);
           const sign = number < 0 ? '-' : '';
-          const hours = truncateNumber$1(absoluteValue / 3600);
-          const minutes = truncateNumber$1((absoluteValue - (hours * 3600)) / 60);
-          const seconds = truncateNumber$1(absoluteValue - (hours * 3600) - (minutes * 60));
+          const hours = truncateNumber(absoluteValue / 3600);
+          const minutes = truncateNumber((absoluteValue - (hours * 3600)) / 60);
+          const seconds = truncateNumber(absoluteValue - (hours * 3600) - (minutes * 60));
           return `${sign}${hours}:${(minutes < 10 ? '0' : '') + minutes}:${(seconds < 10 ? '0' : '') + seconds}`;
       },
       unformat: (string) => {
@@ -10180,15 +11859,13 @@
       },
   };
 
-  var timeFormatter$1 = timeFormatter;
-
   const decimalSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   const binarySuffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
   const allSuffixes = decimalSuffixes.concat(binarySuffixes.slice(1));
   /** Avoid collision with BPS format @see formats|bps.ts */
   const unformatRegex = `(${allSuffixes.join('|').replace(/B/g, 'B(?!PS)')})`;
-  const bytesDecimalScale = unitScale({ base: 'B', scale: toObject$1(decimalSuffixes, (unit, unitIndex) => [unit, Math.pow(1000, unitIndex)]) });
-  const bytesBinaryScale = unitScale({ base: 'B', scale: toObject$1(binarySuffixes, (unit, unitIndex) => [unit, Math.pow(1024, unitIndex)]) });
+  const bytesDecimalScale = unitScale({ base: 'B', scale: toObject(decimalSuffixes, (unit, unitIndex) => [unit, Math.pow(1000, unitIndex)]) });
+  const bytesBinaryScale = unitScale({ base: 'B', scale: toObject(binarySuffixes, (unit, unitIndex) => [unit, Math.pow(1024, unitIndex)]) });
   const bytesFormatter = {
       name: 'bytes',
       regexps: {
@@ -10199,19 +11876,17 @@
           const scale = patternIncludes(pattern, 'bb') ? bytesBinaryScale : bytesDecimalScale;
           const [scaledValue, scaledValueUnit] = scale.toBest(number, 'B');
           const patternWithEscapedBytes = patternReplace(pattern, /b[bd]/, `'ɵbytesɵ'`);
-          const formatResult = numberToFormattedNumber$1(scaledValue, patternWithEscapedBytes, options);
+          const formatResult = numberToFormattedNumber(scaledValue, patternWithEscapedBytes, options);
           return formatResult.replace('ɵbytesɵ', scaledValueUnit || '');
       },
       unformat: (string, options) => {
           var _a;
-          const number = formattedStringToNumber$1(string.replace(new RegExp(unformatRegex), ''), options);
+          const number = formattedStringToNumber(string.replace(new RegExp(unformatRegex), ''), options);
           const suffix = ((_a = string.match(unformatRegex)) === null || _a === void 0 ? void 0 : _a[0]) || '';
           const scale = !!bytesBinaryScale.scaleDefinition.scale[suffix] ? bytesBinaryScale : bytesDecimalScale;
           return number ? scale.toBase(number, suffix) : number;
       }
   };
-
-  var bytesFormatter$1 = bytesFormatter;
 
   const ordinalFormatter = {
       name: 'ordinal',
@@ -10222,12 +11897,10 @@
           var _a, _b;
           const localizedOrdinal = ((_b = (_a = options.locale).ordinal) === null || _b === void 0 ? void 0 : _b.call(_a, number)) || '';
           const patternWithEscapedOrdinal = patternReplace(pattern, /o/, `'ɵordɵ'`);
-          const formatResult = numberToFormattedNumber$1(number, patternWithEscapedOrdinal, options);
+          const formatResult = numberToFormattedNumber(number, patternWithEscapedOrdinal, options);
           return formatResult.replace('ɵordɵ', _ => localizedOrdinal);
       }
   };
-
-  var ordinalFormatter$1 = ordinalFormatter;
 
   const currencySymbolsMap = {
       EUR: '€',
@@ -10261,12 +11934,10 @@
           const currencyFromOptions = (_a = options.currency) === null || _a === void 0 ? void 0 : _a.toUpperCase();
           const localizedCurrencySymbol = currencySymbolsMap[currencyFromOptions] || currencyFromOptions || '';
           const patternWithEscapedCurrencySymbol = patternReplace(pattern, /\$/, `'ɵcurrencyɵ'`);
-          const formatResult = numberToFormattedNumber$1(number, patternWithEscapedCurrencySymbol, options);
+          const formatResult = numberToFormattedNumber(number, patternWithEscapedCurrencySymbol, options);
           return formatResult.replace('ɵcurrencyɵ', _ => localizedCurrencySymbol);
       },
   };
-
-  var currencyFormatter$1 = currencyFormatter;
 
   const percentageFormatter = {
       name: 'percentage',
@@ -10276,18 +11947,16 @@
       },
       format: (number, pattern, options) => {
           const hasNotScalePercentageSymbolInPattern = patternIncludes(pattern, '%!');
-          const scaledValue = options.scalePercentage && !hasNotScalePercentageSymbolInPattern ? multiplyByPowerOfTen$1(number, 2) : number;
+          const scaledValue = options.scalePercentage && !hasNotScalePercentageSymbolInPattern ? multiplyByPowerOfTen(number, 2) : number;
           const patternWithEscapedPercentage = patternReplace(pattern, /%!?/, `'ɵ%ɵ'`);
-          const formatResult = numberToFormattedNumber$1(scaledValue, patternWithEscapedPercentage, options);
+          const formatResult = numberToFormattedNumber(scaledValue, patternWithEscapedPercentage, options);
           return formatResult.replace('ɵ%ɵ', '%');
       },
       unformat: (string, options) => {
-          const number = formattedStringToNumber$1(string.replace(/\s?%/, ''), options);
-          return number && options.scalePercentage ? multiplyByPowerOfTen$1(number, -2) : number;
+          const number = formattedStringToNumber(string.replace(/\s?%/, ''), options);
+          return number && options.scalePercentage ? multiplyByPowerOfTen(number, -2) : number;
       },
   };
-
-  var percentageFormatter$1 = percentageFormatter;
 
   const exponentialFormatter = {
       name: 'exponential',
@@ -10296,33 +11965,29 @@
           unformat: /[eE][+-][0-9]+/,
       },
       format: (number, pattern, options) => {
-          const exponential = typeof number === 'number' && !isNaNNumber$1(number) ? number.toExponential() : '0e+0';
-          const parts = splitStringInTwoParts$1(exponential, 'e');
+          const exponential = typeof number === 'number' && !isNaNNumber(number) ? number.toExponential() : '0e+0';
+          const parts = splitStringInTwoParts(exponential, 'e');
           const patternWithoutExponential = patternReplace(pattern, /e[+|-]{1}0/i, '');
-          const formatResult = numberToFormattedNumber$1(+parts[0], patternWithoutExponential, options);
+          const formatResult = numberToFormattedNumber(+parts[0], patternWithoutExponential, options);
           return formatResult + 'e' + parts[1];
       },
       unformat: (string, options) => {
           var _a;
-          const value = formattedStringToNumber$1(string.replace(/e[+-]{1}[0-9]{1,3}/i, ''), options);
+          const value = formattedStringToNumber(string.replace(/e[+-]{1}[0-9]{1,3}/i, ''), options);
           const powerOfTenExponent = +(((_a = string.match(/e([+-]{1}[0-9]{1,3})/i)) === null || _a === void 0 ? void 0 : _a[1]) || '0');
-          return isFiniteNumber$1(value) ? multiplyByPowerOfTen$1(value, powerOfTenExponent) : value;
+          return isFiniteNumber(value) ? multiplyByPowerOfTen(value, powerOfTenExponent) : value;
       },
   };
 
-  var exponentialFormatter$1 = exponentialFormatter;
-
   const BUILT_IN_FORMATTERS = [
-      percentageFormatter$1,
-      currencyFormatter$1,
-      ordinalFormatter$1,
-      timeFormatter$1,
-      bytesFormatter$1,
-      exponentialFormatter$1,
-      bpsFormatter$1,
+      percentageFormatter,
+      currencyFormatter,
+      ordinalFormatter,
+      timeFormatter,
+      bytesFormatter,
+      exponentialFormatter,
+      bpsFormatter,
   ];
-
-  var BUILT_IN_FORMATTERS$1 = BUILT_IN_FORMATTERS;
 
   const roundHalfAwayFromZero = (value) => {
       return value >= 0
@@ -10330,16 +11995,14 @@
           : (value % 0.5 === 0) ? Math.floor(value) : Math.round(value);
   };
 
-  var roundHalfAwayFromZero$1 = roundHalfAwayFromZero;
-
   const areDelimitersValid = (delimiters) => {
       return !!(delimiters === null || delimiters === void 0 ? void 0 : delimiters.decimal)
-          && isString$1(delimiters === null || delimiters === void 0 ? void 0 : delimiters.thousands)
+          && isString(delimiters === null || delimiters === void 0 ? void 0 : delimiters.thousands)
           && delimiters.decimal !== delimiters.thousands;
   };
   const resolveOptionsLocale = (optionsLocale) => {
-      const defaultLocale = locale$1;
-      if (!isObject$1(optionsLocale))
+      const defaultLocale = locale;
+      if (!isObject(optionsLocale))
           return defaultLocale;
       return merge(optionsLocale, {
           delimiters: areDelimitersValid(optionsLocale.delimiters) ? optionsLocale.delimiters : defaultLocale.delimiters,
@@ -10351,18 +12014,18 @@
       switch (roundingOption) {
           case 'ceil': return Math.ceil;
           case 'floor': return Math.floor;
-          case 'truncate': return truncateNumber$1;
+          case 'truncate': return truncateNumber;
           case 'half-up': return Math.round;
-          case 'half-away-from-zero': return roundHalfAwayFromZero$1;
-          default: return isFunction$1(roundingOption) ? roundingOption : roundHalfAwayFromZero$1;
+          case 'half-away-from-zero': return roundHalfAwayFromZero;
+          default: return isFunction(roundingOption) ? roundingOption : roundHalfAwayFromZero;
       }
   };
   const resolveOptionsFormatters = (optionsFormatters) => {
       if (!optionsFormatters)
-          return BUILT_IN_FORMATTERS$1;
-      return isFunction$1(optionsFormatters)
-          ? optionsFormatters(BUILT_IN_FORMATTERS$1)
-          : [...optionsFormatters, ...BUILT_IN_FORMATTERS$1];
+          return BUILT_IN_FORMATTERS;
+      return isFunction(optionsFormatters)
+          ? optionsFormatters(BUILT_IN_FORMATTERS)
+          : [...optionsFormatters, ...BUILT_IN_FORMATTERS];
   };
   const resolveFormatOptions = (formatOptions) => {
       var _a, _b, _c;
@@ -10387,22 +12050,20 @@
       };
   };
 
-  var resolveFormatOptions$1 = resolveFormatOptions;
-
   const getUnformatFunctionIfMatch = (input, resolvedOptions) => {
       for (const formatter of resolvedOptions.formatters) {
           const matcher = formatter.regexps.unformat;
           if (!matcher)
               continue;
-          const matcherResult = isFunction$1(matcher) ? matcher(input, resolvedOptions) : !!input.match(matcher);
+          const matcherResult = isFunction(matcher) ? matcher(input, resolvedOptions) : !!input.match(matcher);
           if (matcherResult)
               return formatter.unformat;
       }
   };
-  const parse$2 = (input, options) => {
-      const resolvedOptions = resolveFormatOptions$1(options);
+  const parse$1 = (input, options) => {
+      const resolvedOptions = resolveFormatOptions(options);
       let value;
-      if (isNil$1(input) || isNaNNumber$1(input)) {
+      if (isNil(input) || isNaNNumber(input)) {
           value = null;
       }
       else if (typeof input === 'number') {
@@ -10420,7 +12081,7 @@
               // Removes non-breaking spaces if they exists
               const inputStringWithNormalSpaces = input.replace(/\u00A0/, ' ');
               const unformatFunctionFromFormatters = getUnformatFunctionIfMatch(inputStringWithNormalSpaces, resolvedOptions);
-              const unformatFunction = unformatFunctionFromFormatters || formattedStringToNumber$1;
+              const unformatFunction = unformatFunctionFromFormatters || formattedStringToNumber;
               value = unformatFunction(inputStringWithNormalSpaces, resolvedOptions);
           }
       }
@@ -10430,8 +12091,6 @@
       }
       return value;
   };
-
-  var parse$1$1 = parse$2;
 
   /**
    * @example
@@ -10477,10 +12136,8 @@
    * ```
    */
   const parse = (string, options) => {
-      return parse$1$1(string, options);
+      return parse$1(string, options);
   };
-
-  var parse$1 = parse;
 
   /**
    * @example
@@ -10502,10 +12159,8 @@
    * @param roundingFunction roundingFunction: The function applied for rounding (e.g. **Math.floor**)
    * */
   const round = (number, precision, roundingFunction) => {
-      return roundNumber$1(number, precision, roundingFunction);
+      return roundNumber(number, precision, roundingFunction);
   };
-
-  var round$1 = round;
 
   const getFormatFunctionIfMatch = (pattern, resolvedOptions) => {
       const patternWithoutEscapedText = patternRemoveEscapedText(pattern);
@@ -10513,7 +12168,7 @@
           const matcher = formatter.regexps.format;
           if (!matcher)
               continue;
-          const matcherResult = isFunction$1(matcher) ? matcher(pattern, resolvedOptions) : !!patternWithoutEscapedText.match(matcher);
+          const matcherResult = isFunction(matcher) ? matcher(pattern, resolvedOptions) : !!patternWithoutEscapedText.match(matcher);
           if (matcherResult)
               return formatter.format;
       }
@@ -10521,33 +12176,33 @@
   const format$1 = (value, pattern, options) => {
       var _a;
       try {
-          const resolvedValue = isString$1(value) ? parseFloat(value) : value;
-          const resolvedOptions = resolveFormatOptions$1(options);
+          const resolvedValue = isString(value) ? parseFloat(value) : value;
+          const resolvedOptions = resolveFormatOptions(options);
           const resolvedPattern = pattern || resolvedOptions.defaultPattern;
           let output;
           if (resolvedValue === Infinity || resolvedValue === -Infinity) {
               output = resolvedValue > 0 ? '∞' : '-∞';
           }
-          else if (isNaNNumber$1(resolvedValue)) {
-              return isString$1(resolvedOptions.nanFormat)
+          else if (isNaNNumber(resolvedValue)) {
+              return isString(resolvedOptions.nanFormat)
                   ? resolvedOptions.nanFormat
-                  : (isString$1(resolvedOptions.nullFormat) ? resolvedOptions.nullFormat : '');
+                  : (isString(resolvedOptions.nullFormat) ? resolvedOptions.nullFormat : '');
           }
-          else if (isNil$1(resolvedValue)) {
-              output = isString$1(resolvedOptions.nullFormat) ? resolvedOptions.nullFormat : '';
+          else if (isNil(resolvedValue)) {
+              output = isString(resolvedOptions.nullFormat) ? resolvedOptions.nullFormat : '';
           }
-          else if (resolvedValue === 0 && isString$1(resolvedOptions.zeroFormat)) {
+          else if (resolvedValue === 0 && isString(resolvedOptions.zeroFormat)) {
               output = resolvedOptions.zeroFormat;
           }
           else {
               // <!> Here value should always be a number
               const resolvedValueAsNumber = resolvedValue || 0;
               const formatFunctionFromFormatters = getFormatFunctionIfMatch(resolvedPattern, resolvedOptions);
-              const resolvedFormatFunction = formatFunctionFromFormatters || numberToFormattedNumber$1;
+              const resolvedFormatFunction = formatFunctionFromFormatters || numberToFormattedNumber;
               output = resolvedFormatFunction(resolvedValueAsNumber, resolvedPattern, resolvedOptions);
           }
           // Ensures that it always returns an string
-          output = isString$1(output) ? output : '';
+          output = isString(output) ? output : '';
           // Replaces spaces with non-breaking spaces if needed
           output = resolvedOptions.nonBreakingSpace
               ? output.replace(/ /g, _ => '\u00A0')
@@ -10561,21 +12216,19 @@
       }
   };
 
-  var format$1$1 = format$1;
-
   function format(number, arg2, arg3) {
-      const pattern = isString$1(arg2) ? arg2 : null;
-      const options = isObject$1(arg2) ? arg2 : (isObject$1(arg3) ? arg3 : {});
-      return format$1$1(number, pattern, options);
+      const pattern = isString(arg2) ? arg2 : null;
+      const options = isObject(arg2) ? arg2 : (isObject(arg3) ? arg3 : {});
+      return format$1(number, pattern, options);
   }
   const createFormatFunction = (options) => {
       const baseOptions = merge(options, {
-          locale: isFunction$1(options.locale) ? options.locale() : options.locale,
+          locale: isFunction(options.locale) ? options.locale() : options.locale,
       });
       return ((value, arg2, arg3) => {
-          const pattern = isString$1(arg2) ? arg2 : null;
-          const optionsFromArguments = isObject$1(arg2) ? arg2 : (isObject$1(arg3) ? arg3 : {});
-          return format$1$1(value, pattern, merge(baseOptions, optionsFromArguments));
+          const pattern = isString(arg2) ? arg2 : null;
+          const optionsFromArguments = isObject(arg2) ? arg2 : (isObject(arg3) ? arg3 : {});
+          return format$1(value, pattern, merge(baseOptions, optionsFromArguments));
       });
   };
   format.withOptions = createFormatFunction;
@@ -10585,8 +12238,6 @@
           return [];
       return arr.filter((value, index, self) => self.indexOf(value) === index);
   };
-
-  var unique$1 = unique;
 
   // <i> Extracted from https://stackoverflow.com/questions/12006095/javascript-how-to-check-if-character-is-rtl
   const leftToRightMark = '\u200e';
@@ -10608,7 +12259,7 @@
               lookupObject[char] = true;
           });
           const digitsWithoutGroupingDelimiters = repeatedChar
-              ? localizedNumber.replace(new RegExp(escapeRegexString$1(repeatedChar || ''), 'g'), '')
+              ? localizedNumber.replace(new RegExp(escapeRegexString(repeatedChar || ''), 'g'), '')
               : localizedNumber;
           const digitsAsArray = digitsWithoutGroupingDelimiters.split('');
           const sortedDigits = [digitsAsArray[digitsAsArray.length - 1], ...digitsAsArray.slice(0, -1)];
@@ -10621,8 +12272,8 @@
   const getGroupingAndFractionDelimiters = (languageTag, digits) => {
       try {
           const localizedNumber = (12345678.123).toLocaleString(languageTag);
-          const localizedNumberWithoutDigits = localizedNumber.replace(new RegExp(`[${escapeRegexString$1(digits)}]`, 'g'), '');
-          const [groupingDelimiter = ',', fractionDelimiter = '.'] = unique$1(localizedNumberWithoutDigits.split(''));
+          const localizedNumberWithoutDigits = localizedNumber.replace(new RegExp(`[${escapeRegexString(digits)}]`, 'g'), '');
+          const [groupingDelimiter = ',', fractionDelimiter = '.'] = unique(localizedNumberWithoutDigits.split(''));
           return [groupingDelimiter, fractionDelimiter];
       }
       catch (_err) {
@@ -10666,10 +12317,10 @@
           const [digitOfZero, digitOfOne, digitOfTwo] = digits.split('');
           let abbreviations = '';
           for (let i = 1; i < 50; i++) {
-              const abbreviationResultForOne = (+(1 + stringRepeat$1('0', i))).toLocaleString(languageTag, intlFormatOptions);
+              const abbreviationResultForOne = (+(1 + stringRepeat('0', i))).toLocaleString(languageTag, intlFormatOptions);
               if (new RegExp(`^${digitOfOne}[^${digitOfZero}]+$`).test(abbreviationResultForOne)) {
                   if (type === 'long') {
-                      const abbreviationResultForTwo = (+(2 + stringRepeat$1('0', i))).toLocaleString(languageTag, intlFormatOptions);
+                      const abbreviationResultForTwo = (+(2 + stringRepeat('0', i))).toLocaleString(languageTag, intlFormatOptions);
                       const abbreviationOne = abbreviationResultForOne.replace(new RegExp(`${digitOfOne}`, 'g'), '').trim();
                       const abbreviationTwo = abbreviationResultForTwo.replace(new RegExp(`${digitOfTwo}`, 'g'), '').trim();
                       abbreviations += '|' + appendLeftToRightMarkIfIsRTL(abbreviationOne) + ':::' + appendLeftToRightMarkIfIsRTL(abbreviationTwo);
@@ -10708,18 +12359,16 @@
       const shortAbbreviations = getAbbreviations(resolvedLanguageTag, resolvedDigits, 'short');
       const longAbbreviations = getAbbreviations(resolvedLanguageTag, resolvedDigits, 'long');
       return {
-          _abbreviationsLong: longAbbreviations || locale$1.abbreviations,
+          _abbreviationsLong: longAbbreviations || locale.abbreviations,
           code: resolvedLanguageTag,
           delimiters: { thousands: groupingDelimiter, decimal: fractionDelimiter },
-          abbreviations: shortAbbreviations || locale$1.abbreviations,
+          abbreviations: shortAbbreviations || locale.abbreviations,
           digitGroupingStyle: !!(groupingStyle === null || groupingStyle === void 0 ? void 0 : groupingStyle.length) ? groupingStyle : undefined,
           numeralSystem: digits !== '0123456789' ? digits === null || digits === void 0 ? void 0 : digits.split('').map(appendLeftToRightMarkIfIsRTL) : undefined,
-          ordinal: locale$1.ordinal,
+          ordinal: locale.ordinal,
       };
   };
-  const getLocaleFromPlatform$2 = memoize$1(baseGetLocaleFromPlatform);
-
-  var getLocaleFromPlatform$1$1 = getLocaleFromPlatform$2;
+  const getLocaleFromPlatform$1 = memoize(baseGetLocaleFromPlatform);
 
   /**
    * Given a language tag (e.g. '**zh**' | '**es**' | '**fr**' | '**en-IN**' | '**zh-Hans**'), returns a NumerableLocale
@@ -10736,19 +12385,17 @@
    *     full support from numeral, and don't target legacy browsers.
    */
   const getLocaleFromPlatform = (languageTag) => {
-      return getLocaleFromPlatform$1$1(languageTag);
+      return getLocaleFromPlatform$1(languageTag);
   };
-
-  var getLocaleFromPlatform$1 = getLocaleFromPlatform;
 
   var numerable = {
     __proto__: null,
-    parse: parse$1,
-    round: round$1,
-    format: format,
-    getLocaleFromPlatform: getLocaleFromPlatform$1
+    parse,
+    round,
+    format,
+    getLocaleFromPlatform
   };
 
-  Object.assign(ew__default["default"], numerable);
+  Object.assign(ew__default.default, numerable);
 
 })(ew, jQuery, luxon);

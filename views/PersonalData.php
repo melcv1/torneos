@@ -1,7 +1,7 @@
-<?php namespace PHPMaker2022\project11; ?>
+<?php namespace PHPMaker2023\project11; ?>
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $PersonalData = &$Page;
@@ -9,20 +9,20 @@ $PersonalData = &$Page;
 <?php
 $Page->showMessage();
 ?>
-<?php if (SameText(Get("cmd"), "Delete")) { ?>
-    <script>
-        var fdeleteuser;
-        loadjs.ready(["wrapper", "head"], function() {
-            var $ = jQuery;
-            fdeleteuser = new ew.Form("fdeleteuser");
-
-            // Add field
-            fdeleteuser.addFields([
-                ["password", ew.Validators.required(ew.language.phrase("Password"))]
-            ]);
-
-            // Extend page with Validate function
-            fdeleteuser.validate = function() {
+<?php if (SameText(Param("cmd"), "Delete")) { ?>
+<script>
+var fpersonal_data;
+loadjs.ready(["wrapper", "head"], function() {
+    let $ = jQuery;
+    let form = new ew.FormBuilder()
+        .setId("fpersonal_data")
+        // Add field
+        .addFields([
+            ["password", ew.Validators.required(ew.language.phrase("Password")), <?= $Page->Password->IsInvalid ? "true" : "false" ?>]
+        ])
+        // Extend page with Validate function
+        .setValidate(
+            function() {
                 if (!this.validateRequired)
                     return true; // Ignore validation
 
@@ -31,14 +31,16 @@ $Page->showMessage();
                     return false;
                 return true;
             }
-
-            // Use JavaScript validation
-            fdeleteuser.validateRequired = ew.CLIENT_VALIDATE;
-            loadjs.done("fdeleteuser");
-        });
-    </script>
+        )
+        // Use JavaScript validation
+        .setValidateRequired(ew.CLIENT_VALIDATE)
+        .build();
+    window[form.id] = form;
+    loadjs.done(form.id);
+});
+</script>
     <div class="alert alert-danger d-inline-block">
-        <i class="icon fas fa-ban"></i><?= $Language->phrase("PersonalDataWarning") ?>
+        <i class="icon fa-solid fa-ban"></i><?= $Language->phrase("PersonalDataWarning") ?>
     </div>
     <?php if (!EmptyString($Page->getFailureMessage())) { ?>
     <div class="text-danger">
@@ -48,7 +50,8 @@ $Page->showMessage();
     </div>
     <?php } ?>
     <div class="container-fluid">
-        <form name="fdeleteuser" class="ew-form ew-personaldata-form" id="fdeleteuser" method="post">
+        <form name="fpersonal_data" class="ew-form ew-personaldata-form" id="fpersonal_data" method="post" novalidate autocomplete="on">
+            <input type="hidden" name="cmd" value="delete">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
@@ -60,8 +63,8 @@ $Page->showMessage();
                 </div>
                 <div class="col-sm-auto">
                     <div class="input-group">
-                        <input type="password" name="<?= $Page->Password->FieldVar ?>" id="<?= $Page->Password->FieldVar ?>" autocomplete="current-password" placeholder="<?= HtmlEncode($Language->phrase("Password")) ?>"<?= $Page->Password->editAttributes() ?>>
-                        <button type="button" class="btn btn-default ew-toggle-password rounded-end" data-ew-action="password"><i class="fas fa-eye"></i></button>
+                        <input type="password" name="<?= $Page->Password->FieldVar ?>" id="<?= $Page->Password->FieldVar ?>" autocomplete="current-password" placeholder="<?= HtmlEncode($Language->phrase("Password", true)) ?>"<?= $Page->Password->editAttributes() ?>>
+                        <button type="button" class="btn btn-default ew-toggle-password rounded-end" data-ew-action="password"><i class="fa-solid fa-eye"></i></button>
                         <div class="invalid-feedback"><?= $Page->Password->getErrorMessage() ?></div>
                     </div>
                 </div>
@@ -78,7 +81,7 @@ $Page->showMessage();
         <div class="col">
             <p><?= $Language->phrase("PersonalDataContent") ?></p>
             <div class="alert alert-danger d-inline-block">
-                <i class="icon fas fa-ban"></i><?= $Language->phrase("PersonalDataWarning") ?>
+                <i class="icon fa-solid fa-ban"></i><?= $Language->phrase("PersonalDataWarning") ?>
             </div>
             <p>
                 <a id="download" href="<?= HtmlEncode(GetUrl(CurrentPageUrl(false) . "?cmd=download")) ?>" class="btn btn-default"><?= $Language->phrase("DownloadBtn") ?></a>

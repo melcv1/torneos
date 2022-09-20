@@ -1,12 +1,12 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Debug timer
 class Timer
 {
     public $StartTime;
-    public static $Template = '<p class="text-info">Page processing time: {time} seconds</p>';
+    public static $Template = '<p class="ew-timer text-info">Page processing time: {time} seconds</p>';
 
     // Constructor
     public function __construct($start = true)

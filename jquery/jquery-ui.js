@@ -1,4 +1,4 @@
-/*! jQuery UI - v1.13.2 - 2022-08-04
+/*! jQuery UI - v1.13.1 - 2022-05-04
 * http://jqueryui.com
 * Includes: widget.js, data.js, scroll-parent.js, widgets/draggable.js, widgets/mouse.js
 * Copyright jQuery Foundation and other contributors; Licensed MIT */
@@ -20,11 +20,11 @@
 
 $.ui = $.ui || {};
 
-var version = $.ui.version = "1.13.2";
+var version = $.ui.version = "1.13.1";
 
 
 /*!
- * jQuery UI Widget 1.13.2
+ * jQuery UI Widget 1.13.1
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -766,7 +766,7 @@ var widget = $.widget;
 
 
 /*!
- * jQuery UI :data 1.13.2
+ * jQuery UI :data 1.13.1
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -795,7 +795,7 @@ var data = $.extend( $.expr.pseudos, {
 } );
 
 /*!
- * jQuery UI Scroll Parent 1.13.2
+ * jQuery UI Scroll Parent 1.13.1
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -833,7 +833,7 @@ var scrollParent = $.fn.scrollParent = function( includeHidden ) {
 var ie = $.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
 
 /*!
- * jQuery UI Mouse 1.13.2
+ * jQuery UI Mouse 1.13.1
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -853,7 +853,7 @@ $( document ).on( "mouseup", function() {
 } );
 
 var widgetsMouse = $.widget( "ui.mouse", {
-	version: "1.13.2",
+	version: "1.13.1",
 	options: {
 		cancel: "input, textarea, button, select, option",
 		distance: 1,
@@ -1125,7 +1125,7 @@ var safeBlur = $.ui.safeBlur = function( element ) {
 
 
 /*!
- * jQuery UI Draggable 1.13.2
+ * jQuery UI Draggable 1.13.1
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -1142,7 +1142,7 @@ var safeBlur = $.ui.safeBlur = function( element ) {
 
 
 $.widget( "ui.draggable", $.ui.mouse, {
-	version: "1.13.2",
+	version: "1.13.1",
 	widgetEventPrefix: "drag",
 	options: {
 		addClasses: true,

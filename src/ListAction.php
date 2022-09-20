@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * List action class
@@ -13,11 +13,11 @@ class ListAction
     public $Method = ACTION_POSTBACK; // Post back (p) / Ajax (a)
     public $Select = ACTION_MULTIPLE; // Multiple (m) / Single (s)
     public $Message = ""; // Message or Swal config
-    public $Icon = "fas fa-star ew-icon"; // Icon
+    public $Icon = "fa-solid fa-star ew-icon"; // Icon
     public $Success = ""; // JavaScript callback function name
 
     // Constructor
-    public function __construct($action, $caption, $allow = true, $method = ACTION_POSTBACK, $select = ACTION_MULTIPLE, $message = "", $icon = "fas fa-star ew-icon", $success = "", $input = false, $options = "")
+    public function __construct($action, $caption, $allow = true, $method = ACTION_POSTBACK, $select = ACTION_MULTIPLE, $message = "", $icon = "fa-solid fa-star ew-icon", $success = "", $input = false, $options = "")
     {
         $this->Action = $action;
         $this->Caption = $caption;

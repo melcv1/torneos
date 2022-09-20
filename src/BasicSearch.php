@@ -1,26 +1,28 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Basic Search class
  */
 class BasicSearch
 {
-    public $TableVar = "";
+    public $Table;
     public $BasicSearchAnyFields;
     public $Keyword = "";
     public $KeywordDefault = "";
     public $Type = "";
     public $TypeDefault = "";
+    public $Raw = false;
     protected $Prefix = "";
 
     // Constructor
-    public function __construct($tblvar)
+    public function __construct($table)
     {
+        $this->Table = $table;
         $this->BasicSearchAnyFields = Config("BASIC_SEARCH_ANY_FIELDS");
-        $this->TableVar = $tblvar;
-        $this->Prefix = PROJECT_NAME . "_" . $tblvar . "_";
+        $this->Prefix = PROJECT_NAME . "_" . $table->TableVar . "_";
+        $this->Raw = !Config("REMOVE_XSS");
     }
 
     // Session variable name
@@ -55,9 +57,7 @@ class BasicSearch
     // Set keyword
     public function setKeyword($v, $save = true)
     {
-        if (Config("REMOVE_XSS")) {
-            $v = RemoveXss($v);
-        }
+        $v = $this->Raw ? $v : RemoveXss($v);
         $this->Keyword = $v;
         if ($save) {
             $_SESSION[$this->getSessionName(Config("TABLE_BASIC_SEARCH"))] = $v;
@@ -67,9 +67,6 @@ class BasicSearch
     // Set type
     public function setType($v, $save = true)
     {
-        if (Config("REMOVE_XSS")) {
-            $v = RemoveXss($v);
-        }
         $this->Type = $v;
         if ($save) {
             $_SESSION[$this->getSessionName(Config("TABLE_BASIC_SEARCH_TYPE"))] = $v;

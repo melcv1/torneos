@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Attributes class
@@ -92,9 +92,7 @@ class Attributes implements \ArrayAccess, \IteratorAggregate
         if (SameText($offset, "class")) {
             return $this->appendClass($value);
         }
-        $ar = array_filter([$this->offsetGet($offset), $value], function ($v) {
-            return !EmptyString($v);
-        });
+        $ar = array_filter([$this->offsetGet($offset), $value], fn($v) => !EmptyString($v));
         $this->container[$offset] = implode($sep, $ar);
         return $this->container[$offset];
     }
@@ -105,9 +103,7 @@ class Attributes implements \ArrayAccess, \IteratorAggregate
         if (SameText($offset, "class")) {
             return $this->prependClass($value);
         }
-        $ar = array_filter([$value, $this->offsetGet($offset)], function ($v) {
-            return !EmptyString($v);
-        });
+        $ar = array_filter([$value, $this->offsetGet($offset)], fn($v) => !EmptyString($v));
         $this->container[$offset] = implode($sep, $ar);
         return $this->container[$offset];
     }

@@ -1,25 +1,11 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $ParticipanteView = &$Page;
 ?>
 <?php if (!$Page->isExport()) { ?>
-<script>
-var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
-ew.deepAssign(ew.vars, { tables: { participante: currentTable } });
-var currentForm, currentPageID;
-var fparticipanteview;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object
-    fparticipanteview = new ew.Form("fparticipanteview", "view");
-    currentPageID = ew.PAGE_ID = "view";
-    currentForm = fparticipanteview;
-    loadjs.done("fparticipanteview");
-});
-</script>
 <script>
 loadjs.ready("head", function () {
     // Write your table-specific client script here, no need to add script tags.
@@ -36,14 +22,37 @@ loadjs.ready("head", function () {
 <?php
 $Page->showMessage();
 ?>
-<form name="fparticipanteview" id="fparticipanteview" class="ew-form ew-view-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<main class="view">
+<form name="fparticipanteview" id="fparticipanteview" class="ew-form ew-view-form overlay-wrapper" action="<?= CurrentPageUrl(false) ?>" method="post" novalidate autocomplete="on">
+<?php if (!$Page->isExport()) { ?>
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { participante: currentTable } });
+var currentPageID = ew.PAGE_ID = "view";
+var currentForm;
+var fparticipanteview;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
+    // Form object
+    let form = new ew.FormBuilder()
+        .setId("fparticipanteview")
+        .setPageId("view")
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
+});
+</script>
+<?php } ?>
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="participante">
 <input type="hidden" name="modal" value="<?= (int)$Page->IsModal ?>">
-<table class="table table-striped table-bordered table-hover table-sm ew-view-table">
+<table class="<?= $Page->TableClass ?>">
 <?php if ($Page->ID_PARTICIPANTE->Visible) { // ID_PARTICIPANTE ?>
     <tr id="r_ID_PARTICIPANTE"<?= $Page->ID_PARTICIPANTE->rowAttributes() ?>>
         <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_participante_ID_PARTICIPANTE"><?= $Page->ID_PARTICIPANTE->caption() ?></span></td>
@@ -156,6 +165,7 @@ $Page->showMessage();
 <?php } ?>
 </table>
 </form>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();

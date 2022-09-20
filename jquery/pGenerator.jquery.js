@@ -55,8 +55,8 @@
             for(i = 97; i < 123; i++) {
                 lower_letters_array.push(i);
             }
-            
-            special_chars_array = [33, 35, 64, 36, 42, 91, 93, 123, 125, 92, 47, 63, 58, 59, 95, 45].concat(settings.additionalSpecialChars); //***
+
+            special_chars_array = [33, 35, 64, 42, 91, 93, 123, 125, 58, 59, 95, 45].concat(settings.additionalSpecialChars); //***
 
             return this.each(function(){
 
@@ -88,38 +88,35 @@
                 // uppercase letters
                 for(var i = 0; i < optionLength; i++) {
                     password.push(String.fromCharCode(upper_letters_array[randomFromInterval(0, upper_letters_array.length - 1)]));
+                    selected++; //***
                 }
 
                 no_lower_letters = no_lower_letters.concat(upper_letters_array);
-
-                selected++;
             }
 
             if(settings.numbers) {
                 // numbers letters
                 for(var i = 0; i < optionLength; i++) {
                     password.push(String.fromCharCode(numbers_array[randomFromInterval(0, numbers_array.length - 1)]));
+                    selected++; //***
                 }
 
                 no_lower_letters = no_lower_letters.concat(numbers_array);
-
-                selected++;
             }
 
             if(settings.specialChars) {
-                // special chars
+                // special chars //***
                 var count = parseInt(settings.specialChars, 10);
                 count = count > 0 ? count : optionLength;
                 for(var i = 0; i < count; i++) {
                     password.push(String.fromCharCode(special_chars_array[randomFromInterval(0, special_chars_array.length - 1)]));
+                    selected++; //***
                 }
 
                 no_lower_letters = no_lower_letters.concat(special_chars_array);
-
-                selected++;
             }
 
-            var remained = settings.passwordLength - (selected * optionLength);
+            var remained = settings.passwordLength - selected; //***
 
             if(settings.lowercase) {
 

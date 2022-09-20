@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 $trace = @$Error["error"]["trace"];
 if ($trace) {
     $card = preg_replace('/<button.+><\/button>/i', "", Config("DEBUG_MESSAGE_TEMPLATE"));
@@ -15,7 +15,7 @@ if ($trace) {
     <?php } ?>
     <div class="error-content">
         <?php if (@$Error["error"]["type"]) { ?>
-        <h3><i class="fas fa-exclamation-triangle <?= @$Error["error"]["class"] ?>"></i> <?= @$Error["error"]["type"] ?></h3>
+        <h3><i class="fa-solid fa-triangle-exclamation <?= @$Error["error"]["class"] ?>"></i> <?= @$Error["error"]["type"] ?></h3>
         <?php } ?>
         <p><?= @$Error["error"]["description"] ?></p>
         <?= $trace ?>

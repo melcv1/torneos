@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Class for crosstab
@@ -80,7 +80,7 @@ class CrosstabTable extends ReportTable
     // Render summary fields
     public function renderSummaryFields($idx)
     {
-        global $ExportType, $CustomExportType;
+        global $ExportType;
         $html = "";
         $cnt = count($this->SummaryFields);
         for ($i = 0; $i < $cnt; $i++) {
@@ -92,7 +92,7 @@ class CrosstabTable extends ReportTable
             }
             $vv = "<span" . $smry->summaryViewAttributes($idx) . ">" . $vv . "</span>";
             if ($cnt > 0) {
-                if ($ExportType == "" || $ExportType == "print" && $CustomExportType == "") {
+                if ($ExportType == "" || $ExportType == "print") {
                     $vv = "<li>" . $vv . "</li>";
                 } elseif ($ExportType == "excel" && Config("USE_PHPEXCEL") || $ExportType == "word" && Config("USE_PHPWORD")) {
                     $vv .= "    ";
@@ -102,7 +102,7 @@ class CrosstabTable extends ReportTable
             }
             $html .= $vv;
         }
-        if ($cnt > 0 && ($ExportType == "" || $ExportType == "print" && $CustomExportType == "")) {
+        if ($cnt > 0 && ($ExportType == "" || $ExportType == "print")) {
             $html = "<ul class=\"list-" . $this->SummarySeparatorStyle . " ew-crosstab-values\">" . $html . "</ul>";
         }
         return $html;
@@ -111,7 +111,7 @@ class CrosstabTable extends ReportTable
     // Render summary types
     public function renderSummaryCaptions($typ = "")
     {
-        global $Language, $ExportType, $CustomExportType;
+        global $Language, $ExportType;
         $html = "";
         $cnt = count($this->SummaryFields);
         if ($typ == "page") {
@@ -128,7 +128,7 @@ class CrosstabTable extends ReportTable
                     $st = $caption . " (" . $st . ")";
                 }
                 if ($cnt > 0) {
-                    if ($ExportType == "" || $ExportType == "print" && $CustomExportType == "") {
+                    if ($ExportType == "" || $ExportType == "print") {
                         $st = "<li>" . $st . "</li>";
                     } elseif ($ExportType == "excel" && Config("USE_PHPEXCEL") || $ExportType == "word" && Config("USE_PHPWORD")) {
                         $st .= "    ";
@@ -138,7 +138,7 @@ class CrosstabTable extends ReportTable
                 }
                 $html .= $st;
             }
-            if ($cnt > 0 && ($ExportType == "" || $ExportType == "print" && $CustomExportType == "")) {
+            if ($cnt > 0 && ($ExportType == "" || $ExportType == "print")) {
                 $html = "<ul class=\"list-" . $this->SummarySeparatorStyle . " ew-crosstab-values\">" . $html . "</ul>";
             }
             return $html;

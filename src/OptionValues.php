@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Class option values
@@ -26,7 +26,7 @@ class OptionValues
     // Convert to HTML
     public function toHtml(callable $fn = null)
     {
-        $fn = $fn ?? PROJECT_NAMESPACE . "OptionsHtml";
+        $fn ??= PROJECT_NAMESPACE . "OptionsHtml";
         if (is_callable($fn)) {
             return $fn($this->Values);
         }

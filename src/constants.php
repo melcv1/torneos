@@ -1,10 +1,10 @@
 <?php
 
 /**
- * PHPMaker 2022 constants
+ * PHPMaker 2023 constants
  */
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 /**
  * Constants
@@ -67,17 +67,30 @@ define(PROJECT_NAMESPACE . "ALLOW_ADD", 1); // Add
 define(PROJECT_NAMESPACE . "ALLOW_DELETE", 2); // Delete
 define(PROJECT_NAMESPACE . "ALLOW_EDIT", 4); // Edit
 define(PROJECT_NAMESPACE . "ALLOW_LIST", 8); // List
-define(PROJECT_NAMESPACE . "ALLOW_REPORT", 8); // Report
 define(PROJECT_NAMESPACE . "ALLOW_ADMIN", 16); // Admin
 define(PROJECT_NAMESPACE . "ALLOW_VIEW", 32); // View
 define(PROJECT_NAMESPACE . "ALLOW_SEARCH", 64); // Search
 define(PROJECT_NAMESPACE . "ALLOW_IMPORT", 128); // Import
 define(PROJECT_NAMESPACE . "ALLOW_LOOKUP", 256); // Lookup
 define(PROJECT_NAMESPACE . "ALLOW_PUSH", 512); // Push
-define(PROJECT_NAMESPACE . "ALLOW_ALL", 1023); // All (1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512)
+define(PROJECT_NAMESPACE . "ALLOW_EXPORT", 1024); // Export
+define(PROJECT_NAMESPACE . "ALLOW_ALL", 2047); // All (1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024)
+define(PROJECT_NAMESPACE . "PRIVILEGES", [
+    "add",
+    "delete",
+    "edit",
+    "list",
+    "view",
+    "search",
+    "import",
+    "lookup",
+    "export",
+    "push",
+    "admin" // Put "admin" at last for userpriv page
+]); // User permissions
 
 // Product version
-define(PROJECT_NAMESPACE . "PRODUCT_VERSION", "18.12.0");
+define(PROJECT_NAMESPACE . "PRODUCT_VERSION", "19.0.1");
 
 // Project
 define(PROJECT_NAMESPACE . "PROJECT_NAME", "project11"); // Project name
@@ -95,7 +108,7 @@ define(PROJECT_NAMESPACE . "IS_DOUBLE_BYTE", in_array(PROJECT_ENCODING, ["GBK", 
 define(PROJECT_NAMESPACE . "FILE_SYSTEM_ENCODING", ""); // File system encoding
 
 // Session
-define(PROJECT_NAMESPACE . "SESSION_STATUS", PROJECT_NAME . "_status"); // Login status
+define(PROJECT_NAMESPACE . "SESSION_STATUS", PROJECT_NAME . "_Status"); // Login status
 define(PROJECT_NAMESPACE . "SESSION_USER_PROFILE", SESSION_STATUS . "_UserProfile"); // User profile
 define(PROJECT_NAMESPACE . "SESSION_USER_NAME", SESSION_STATUS . "_UserName"); // User name
 define(PROJECT_NAMESPACE . "SESSION_USER_LOGIN_TYPE", SESSION_STATUS . "_UserLoginType"); // User login type
@@ -111,15 +124,18 @@ define(PROJECT_NAMESPACE . "SESSION_USER_LEVEL", SESSION_STATUS . "_UserLevelVal
 define(PROJECT_NAMESPACE . "SESSION_PARENT_USER_ID", SESSION_STATUS . "_ParentUserId"); // Parent User ID
 define(PROJECT_NAMESPACE . "SESSION_SYS_ADMIN", PROJECT_NAME . "_SysAdmin"); // System admin
 define(PROJECT_NAMESPACE . "SESSION_PROJECT_ID", PROJECT_NAME . "_ProjectId"); // User Level project ID
-define(PROJECT_NAMESPACE . "SESSION_AR_USER_LEVEL", PROJECT_NAME . "_arUserLevel"); // User Level array
-define(PROJECT_NAMESPACE . "SESSION_AR_USER_LEVEL_PRIV", PROJECT_NAME . "_arUserLevelPriv"); // User Level privilege array
+define(PROJECT_NAMESPACE . "SESSION_USER_LEVELS", PROJECT_NAME . "_UserLevels"); // User Levels (array)
+define(PROJECT_NAMESPACE . "SESSION_USER_LEVEL_PRIVS", PROJECT_NAME . "_UserLevelPrivs"); // User Level privileges (array)
 define(PROJECT_NAMESPACE . "SESSION_USER_LEVEL_MSG", PROJECT_NAME . "_UserLevelMessage"); // User Level Message
 define(PROJECT_NAMESPACE . "SESSION_MESSAGE", PROJECT_NAME . "_Message"); // System message
-define(PROJECT_NAMESPACE . "SESSION_FAILURE_MESSAGE", PROJECT_NAME . "_FailureMessage"); // System error message
-define(PROJECT_NAMESPACE . "SESSION_SUCCESS_MESSAGE", PROJECT_NAME . "_SuccessMessage"); // System message
+define(PROJECT_NAMESPACE . "SESSION_FAILURE_MESSAGE", PROJECT_NAME . "_FailureMessage"); // Failure message
+define(PROJECT_NAMESPACE . "SESSION_SUCCESS_MESSAGE", PROJECT_NAME . "_SuccessMessage"); // Success message
 define(PROJECT_NAMESPACE . "SESSION_WARNING_MESSAGE", PROJECT_NAME . "_WarningMessage"); // Warning message
+define(PROJECT_NAMESPACE . "SESSION_MESSAGE_HEADING", PROJECT_NAME . "_MessageHeading"); // Message heading
 define(PROJECT_NAMESPACE . "SESSION_INLINE_MODE", PROJECT_NAME . "_InlineMode"); // Inline mode
 define(PROJECT_NAMESPACE . "SESSION_BREADCRUMB", PROJECT_NAME . "_Breadcrumb"); // Breadcrumb
 define(PROJECT_NAMESPACE . "SESSION_TEMP_IMAGES", PROJECT_NAME . "_TempImages"); // Temp images
 define(PROJECT_NAMESPACE . "SESSION_CAPTCHA_CODE", PROJECT_NAME . "_Captcha"); // Captcha code
 define(PROJECT_NAMESPACE . "SESSION_LANGUAGE_ID", PROJECT_NAME . "_LanguageId"); // Language ID
+define(PROJECT_NAMESPACE . "SESSION_LOGOUT_PARAMS", PROJECT_NAME . "_LanguageId"); // Logout paramters
+define(PROJECT_NAMESPACE . "SESSION_MYSQL_ENGINES", PROJECT_NAME . "_MySqlEngines"); // MySQL table engines

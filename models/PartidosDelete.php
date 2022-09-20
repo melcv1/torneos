@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\FetchMode;
@@ -20,9 +20,6 @@ class PartidosDelete extends Partidos
     // Project ID
     public $ProjectID = PROJECT_ID;
 
-    // Table name
-    public $TableName = 'partidos';
-
     // Page object name
     public $PageObjName = "PartidosDelete";
 
@@ -34,6 +31,9 @@ class PartidosDelete extends Partidos
 
     // Rendering View
     public $RenderingView = false;
+
+    // CSS class/style
+    public $CurrentPageName = "partidosdelete";
 
     // Page headings
     public $Heading = "";
@@ -90,11 +90,7 @@ class PartidosDelete extends Partidos
             }
             unset($val);
         }
-        $url = rtrim(UrlFor($route->getName(), $args), "/") . "?";
-        if ($this->UseTokenInUrl) {
-            $url .= "t=" . $this->TableVar . "&"; // Add page token
-        }
-        return $url;
+        return rtrim(UrlFor($route->getName(), $args), "/") . "?";
     }
 
     // Show Page Header
@@ -117,35 +113,22 @@ class PartidosDelete extends Partidos
         }
     }
 
-    // Validate page request
-    protected function isPageRequest()
-    {
-        global $CurrentForm;
-        if ($this->UseTokenInUrl) {
-            if ($CurrentForm) {
-                return $this->TableVar == $CurrentForm->getValue("t");
-            }
-            if (Get("t") !== null) {
-                return $this->TableVar == Get("t");
-            }
-        }
-        return true;
-    }
-
     // Constructor
     public function __construct()
     {
-        global $Language, $DashboardReport, $DebugTimer;
-        global $UserTable;
+        parent::__construct();
+        global $Language, $DashboardReport, $DebugTimer, $UserTable;
+        $this->TableVar = 'partidos';
+        $this->TableName = 'partidos';
+
+        // Table CSS class
+        $this->TableClass = "table table-bordered table-hover table-sm ew-table";
 
         // Initialize
         $GLOBALS["Page"] = &$this;
 
         // Language object
         $Language = Container("language");
-
-        // Parent constuctor
-        parent::__construct();
 
         // Table object (partidos)
         if (!isset($GLOBALS["partidos"]) || get_class($GLOBALS["partidos"]) == PROJECT_NAMESPACE . "partidos") {
@@ -164,14 +147,14 @@ class PartidosDelete extends Partidos
         LoadDebugMessage();
 
         // Open connection
-        $GLOBALS["Conn"] = $GLOBALS["Conn"] ?? $this->getConnection();
+        $GLOBALS["Conn"] ??= $this->getConnection();
 
         // User table object
         $UserTable = Container("usertable");
     }
 
     // Get content from stream
-    public function getContents($stream = null): string
+    public function getContents(): string
     {
         global $Response;
         return is_object($Response) ? $Response->getBody() : ob_get_clean();
@@ -218,7 +201,7 @@ class PartidosDelete extends Partidos
         if ($this->terminated) {
             return;
         }
-        global $ExportFileName, $TempImages, $DashboardReport, $Response;
+        global $TempImages, $DashboardReport, $Response;
 
         // Page is terminated
         $this->terminated = true;
@@ -230,27 +213,6 @@ class PartidosDelete extends Partidos
 
         // Global Page Unloaded event (in userfn*.php)
         Page_Unloaded();
-
-        // Export
-        if ($this->CustomExport && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, Config("EXPORT_CLASSES"))) {
-            $content = $this->getContents();
-            if ($ExportFileName == "") {
-                $ExportFileName = $this->TableVar;
-            }
-            $class = PROJECT_NAMESPACE . Config("EXPORT_CLASSES." . $this->CustomExport);
-            if (class_exists($class)) {
-                $tbl = Container("partidos");
-                $doc = new $class($tbl);
-                $doc->Text = @$content;
-                if ($this->isExport("email")) {
-                    echo $this->exportEmail($doc->Text);
-                } else {
-                    $doc->export();
-                }
-                DeleteTempImages(); // Delete temp images
-                return;
-            }
-        }
         if (!IsApi() && method_exists($this, "pageRedirecting")) {
             $this->pageRedirecting($url);
         }
@@ -261,9 +223,11 @@ class PartidosDelete extends Partidos
         // Return for API
         if (IsApi()) {
             $res = $url === true;
-            if (!$res) { // Show error
-                WriteJson(array_merge(["success" => false], $this->getMessages()));
+            if (!$res) { // Show response for API
+                $ar = array_merge($this->getMessages(), $url ? ["url" => GetUrl($url)] : []);
+                WriteJson($ar);
             }
+            $this->clearMessages(); // Clear messages for API request
             return;
         } else { // Check if response is JSON
             if (StartsString("application/json", $Response->getHeaderLine("Content-type")) && $Response->getBody()->getSize()) { // With JSON response
@@ -390,10 +354,13 @@ class PartidosDelete extends Partidos
      */
     public function run()
     {
-        global $ExportType, $CustomExportType, $ExportFileName, $UserProfile, $Language, $Security, $CurrentForm;
+        global $ExportType, $UserProfile, $Language, $Security, $CurrentForm;
 
         // Use layout
-        $this->UseLayout = $this->UseLayout && ConvertToBool(Param("layout", true));
+        $this->UseLayout = $this->UseLayout && ConvertToBool(Param(Config("PAGE_LAYOUT"), true));
+
+        // View
+        $this->View = Get(Config("VIEW"));
         $this->CurrentAction = Param("action"); // Set up current action
         $this->ID_TORNEO->setVisibility();
         $this->equipo_local->setVisibility();
@@ -416,7 +383,6 @@ class PartidosDelete extends Partidos
         $this->usuario_dato->setVisibility();
         $this->automatico->setVisibility();
         $this->actualizado->setVisibility();
-        $this->hideFieldsForAddEdit();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -429,6 +395,15 @@ class PartidosDelete extends Partidos
         // Page Load event
         if (method_exists($this, "pageLoad")) {
             $this->pageLoad();
+        }
+
+        // Hide fields for add/edit
+        if (!$this->UseAjaxActions) {
+            $this->hideFieldsForAddEdit();
+        }
+        // Use inline delete
+        if ($this->UseAjaxActions) {
+            $this->InlineDelete = true;
         }
 
         // Set up lookup cache
@@ -457,12 +432,12 @@ class PartidosDelete extends Partidos
         // Get action
         if (IsApi()) {
             $this->CurrentAction = "delete"; // Delete record directly
-        } elseif (Post("action") !== null) {
-            $this->CurrentAction = Post("action");
-        } elseif (Get("action") == "1") {
-            $this->CurrentAction = "delete"; // Delete record directly
+        } elseif (Param("action") !== null) {
+            $this->CurrentAction = Param("action") == "delete" ? "delete" : "show";
         } else {
-            $this->CurrentAction = "show"; // Display record
+            $this->CurrentAction = $this->InlineDelete ?
+                "delete" : // Delete record directly
+                "show"; // Display record
         }
         if ($this->isDelete()) {
             $this->SendEmail = true; // Send email on delete success
@@ -470,7 +445,7 @@ class PartidosDelete extends Partidos
                 if ($this->getSuccessMessage() == "") {
                     $this->setSuccessMessage($Language->phrase("DeleteSuccess")); // Set up success message
                 }
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate(true);
                     return;
                 } else {
@@ -478,11 +453,23 @@ class PartidosDelete extends Partidos
                     return;
                 }
             } else { // Delete failed
-                if (IsApi()) {
+                if (IsJsonResponse()) {
                     $this->terminate();
                     return;
                 }
-                $this->CurrentAction = "show"; // Display record
+                // Return JSON error message if UseAjaxActions
+                if ($this->UseAjaxActions) {
+                    WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
+                    $this->clearFailureMessage();
+                    $this->terminate();
+                    return;                    
+                }
+                if ($this->InlineDelete) {
+                    $this->terminate($this->getReturnUrl()); // Return to caller
+                    return;
+                } else {
+                    $this->CurrentAction = "show"; // Display record
+                }
             }
         }
         if ($this->isShow()) { // Load records for display
@@ -556,7 +543,7 @@ class PartidosDelete extends Partidos
             $sql->setMaxResults($rowcnt);
         }
         $result = $sql->execute();
-        return $result->fetchAll(FetchMode::ASSOCIATIVE);
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -728,7 +715,7 @@ class PartidosDelete extends Partidos
             if ($curVal != "") {
                 $this->ID_TORNEO->ViewValue = $this->ID_TORNEO->lookupCacheOption($curVal);
                 if ($this->ID_TORNEO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`ID_TORNEO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`ID_TORNEO`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ID_TORNEO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -745,7 +732,6 @@ class PartidosDelete extends Partidos
             } else {
                 $this->ID_TORNEO->ViewValue = null;
             }
-            $this->ID_TORNEO->ViewCustomAttributes = "";
 
             // equipo_local
             if ($this->equipo_local->VirtualValue != "") {
@@ -755,7 +741,7 @@ class PartidosDelete extends Partidos
                 if ($curVal != "") {
                     $this->equipo_local->ViewValue = $this->equipo_local->lookupCacheOption($curVal);
                     if ($this->equipo_local->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->equipo_local->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -773,7 +759,6 @@ class PartidosDelete extends Partidos
                     $this->equipo_local->ViewValue = null;
                 }
             }
-            $this->equipo_local->ViewCustomAttributes = "";
 
             // equipo_visitante
             if ($this->equipo_visitante->VirtualValue != "") {
@@ -783,7 +768,7 @@ class PartidosDelete extends Partidos
                 if ($curVal != "") {
                     $this->equipo_visitante->ViewValue = $this->equipo_visitante->lookupCacheOption($curVal);
                     if ($this->equipo_visitante->ViewValue === null) { // Lookup from database
-                        $filterWrk = "`ID_EQUIPO`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                        $filterWrk = SearchFilter("`ID_EQUIPO`", "=", $curVal, DATATYPE_NUMBER, "");
                         $sqlWrk = $this->equipo_visitante->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                         $conn = Conn();
                         $config = $conn->getConfiguration();
@@ -801,28 +786,24 @@ class PartidosDelete extends Partidos
                     $this->equipo_visitante->ViewValue = null;
                 }
             }
-            $this->equipo_visitante->ViewCustomAttributes = "";
 
             // ID_PARTIDO
             $this->ID_PARTIDO->ViewValue = $this->ID_PARTIDO->CurrentValue;
-            $this->ID_PARTIDO->ViewCustomAttributes = "";
 
             // FECHA_PARTIDO
             $this->FECHA_PARTIDO->ViewValue = $this->FECHA_PARTIDO->CurrentValue;
             $this->FECHA_PARTIDO->ViewValue = FormatDateTime($this->FECHA_PARTIDO->ViewValue, $this->FECHA_PARTIDO->formatPattern());
-            $this->FECHA_PARTIDO->ViewCustomAttributes = "";
 
             // HORA_PARTIDO
             $this->HORA_PARTIDO->ViewValue = $this->HORA_PARTIDO->CurrentValue;
             $this->HORA_PARTIDO->ViewValue = FormatDateTime($this->HORA_PARTIDO->ViewValue, $this->HORA_PARTIDO->formatPattern());
-            $this->HORA_PARTIDO->ViewCustomAttributes = "";
 
             // ESTADIO
             $curVal = strval($this->ESTADIO->CurrentValue);
             if ($curVal != "") {
                 $this->ESTADIO->ViewValue = $this->ESTADIO->lookupCacheOption($curVal);
                 if ($this->ESTADIO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`id_estadio`" . SearchString("=", $curVal, DATATYPE_NUMBER, "");
+                    $filterWrk = SearchFilter("`id_estadio`", "=", $curVal, DATATYPE_NUMBER, "");
                     $sqlWrk = $this->ESTADIO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -839,18 +820,16 @@ class PartidosDelete extends Partidos
             } else {
                 $this->ESTADIO->ViewValue = null;
             }
-            $this->ESTADIO->ViewCustomAttributes = "";
 
             // CIUDAD_PARTIDO
             $this->CIUDAD_PARTIDO->ViewValue = $this->CIUDAD_PARTIDO->CurrentValue;
-            $this->CIUDAD_PARTIDO->ViewCustomAttributes = "";
 
             // PAIS_PARTIDO
             $curVal = strval($this->PAIS_PARTIDO->CurrentValue);
             if ($curVal != "") {
                 $this->PAIS_PARTIDO->ViewValue = $this->PAIS_PARTIDO->lookupCacheOption($curVal);
                 if ($this->PAIS_PARTIDO->ViewValue === null) { // Lookup from database
-                    $filterWrk = "`PAIS_EQUIPO`" . SearchString("=", $curVal, DATATYPE_MEMO, "");
+                    $filterWrk = SearchFilter("`PAIS_EQUIPO`", "=", $curVal, DATATYPE_MEMO, "");
                     $sqlWrk = $this->PAIS_PARTIDO->Lookup->getSql(false, $filterWrk, '', $this, true, true);
                     $conn = Conn();
                     $config = $conn->getConfiguration();
@@ -867,35 +846,28 @@ class PartidosDelete extends Partidos
             } else {
                 $this->PAIS_PARTIDO->ViewValue = null;
             }
-            $this->PAIS_PARTIDO->ViewCustomAttributes = "";
 
             // GOLES_LOCAL
             $this->GOLES_LOCAL->ViewValue = $this->GOLES_LOCAL->CurrentValue;
             $this->GOLES_LOCAL->ViewValue = FormatNumber($this->GOLES_LOCAL->ViewValue, $this->GOLES_LOCAL->formatPattern());
-            $this->GOLES_LOCAL->ViewCustomAttributes = "";
 
             // GOLES_VISITANTE
             $this->GOLES_VISITANTE->ViewValue = $this->GOLES_VISITANTE->CurrentValue;
             $this->GOLES_VISITANTE->ViewValue = FormatNumber($this->GOLES_VISITANTE->ViewValue, $this->GOLES_VISITANTE->formatPattern());
-            $this->GOLES_VISITANTE->ViewCustomAttributes = "";
 
             // GOLES_EXTRA_EQUIPO1
             $this->GOLES_EXTRA_EQUIPO1->ViewValue = $this->GOLES_EXTRA_EQUIPO1->CurrentValue;
             $this->GOLES_EXTRA_EQUIPO1->ViewValue = FormatNumber($this->GOLES_EXTRA_EQUIPO1->ViewValue, $this->GOLES_EXTRA_EQUIPO1->formatPattern());
-            $this->GOLES_EXTRA_EQUIPO1->ViewCustomAttributes = "";
 
             // GOLES_EXTRA_EQUIPO2
             $this->GOLES_EXTRA_EQUIPO2->ViewValue = $this->GOLES_EXTRA_EQUIPO2->CurrentValue;
             $this->GOLES_EXTRA_EQUIPO2->ViewValue = FormatNumber($this->GOLES_EXTRA_EQUIPO2->ViewValue, $this->GOLES_EXTRA_EQUIPO2->formatPattern());
-            $this->GOLES_EXTRA_EQUIPO2->ViewCustomAttributes = "";
 
             // NOTA_PARTIDO
             $this->NOTA_PARTIDO->ViewValue = $this->NOTA_PARTIDO->CurrentValue;
-            $this->NOTA_PARTIDO->ViewCustomAttributes = "";
 
             // RESUMEN_PARTIDO
             $this->RESUMEN_PARTIDO->ViewValue = $this->RESUMEN_PARTIDO->CurrentValue;
-            $this->RESUMEN_PARTIDO->ViewCustomAttributes = "";
 
             // ESTADO_PARTIDO
             if (strval($this->ESTADO_PARTIDO->CurrentValue) != "") {
@@ -903,21 +875,17 @@ class PartidosDelete extends Partidos
             } else {
                 $this->ESTADO_PARTIDO->ViewValue = null;
             }
-            $this->ESTADO_PARTIDO->ViewCustomAttributes = "";
 
             // crea_dato
             $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
             $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-            $this->crea_dato->ViewCustomAttributes = "";
 
             // modifica_dato
             $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
             $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-            $this->modifica_dato->ViewCustomAttributes = "";
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
-            $this->usuario_dato->ViewCustomAttributes = "";
 
             // automatico
             if (ConvertToBool($this->automatico->CurrentValue)) {
@@ -925,114 +893,91 @@ class PartidosDelete extends Partidos
             } else {
                 $this->automatico->ViewValue = $this->automatico->tagCaption(2) != "" ? $this->automatico->tagCaption(2) : "No";
             }
-            $this->automatico->ViewCustomAttributes = "";
 
             // actualizado
             $this->actualizado->ViewValue = $this->actualizado->CurrentValue;
-            $this->actualizado->ViewCustomAttributes = "";
 
             // ID_TORNEO
-            $this->ID_TORNEO->LinkCustomAttributes = "";
             $this->ID_TORNEO->HrefValue = "";
             $this->ID_TORNEO->TooltipValue = "";
 
             // equipo_local
-            $this->equipo_local->LinkCustomAttributes = "";
             $this->equipo_local->HrefValue = "";
             $this->equipo_local->TooltipValue = "";
 
             // equipo_visitante
-            $this->equipo_visitante->LinkCustomAttributes = "";
             $this->equipo_visitante->HrefValue = "";
             $this->equipo_visitante->TooltipValue = "";
 
             // ID_PARTIDO
-            $this->ID_PARTIDO->LinkCustomAttributes = "";
             $this->ID_PARTIDO->HrefValue = "";
             $this->ID_PARTIDO->TooltipValue = "";
 
             // FECHA_PARTIDO
-            $this->FECHA_PARTIDO->LinkCustomAttributes = "";
             $this->FECHA_PARTIDO->HrefValue = "";
             $this->FECHA_PARTIDO->TooltipValue = "";
 
             // HORA_PARTIDO
-            $this->HORA_PARTIDO->LinkCustomAttributes = "";
             $this->HORA_PARTIDO->HrefValue = "";
             $this->HORA_PARTIDO->TooltipValue = "";
 
             // ESTADIO
-            $this->ESTADIO->LinkCustomAttributes = "";
             $this->ESTADIO->HrefValue = "";
             $this->ESTADIO->TooltipValue = "";
 
             // CIUDAD_PARTIDO
-            $this->CIUDAD_PARTIDO->LinkCustomAttributes = "";
             $this->CIUDAD_PARTIDO->HrefValue = "";
             $this->CIUDAD_PARTIDO->TooltipValue = "";
 
             // PAIS_PARTIDO
-            $this->PAIS_PARTIDO->LinkCustomAttributes = "";
             $this->PAIS_PARTIDO->HrefValue = "";
             $this->PAIS_PARTIDO->TooltipValue = "";
 
             // GOLES_LOCAL
-            $this->GOLES_LOCAL->LinkCustomAttributes = "";
             $this->GOLES_LOCAL->HrefValue = "";
             $this->GOLES_LOCAL->TooltipValue = "";
 
             // GOLES_VISITANTE
-            $this->GOLES_VISITANTE->LinkCustomAttributes = "";
             $this->GOLES_VISITANTE->HrefValue = "";
             $this->GOLES_VISITANTE->TooltipValue = "";
 
             // GOLES_EXTRA_EQUIPO1
-            $this->GOLES_EXTRA_EQUIPO1->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO1->HrefValue = "";
             $this->GOLES_EXTRA_EQUIPO1->TooltipValue = "";
 
             // GOLES_EXTRA_EQUIPO2
-            $this->GOLES_EXTRA_EQUIPO2->LinkCustomAttributes = "";
             $this->GOLES_EXTRA_EQUIPO2->HrefValue = "";
             $this->GOLES_EXTRA_EQUIPO2->TooltipValue = "";
 
             // NOTA_PARTIDO
-            $this->NOTA_PARTIDO->LinkCustomAttributes = "";
             $this->NOTA_PARTIDO->HrefValue = "";
             $this->NOTA_PARTIDO->TooltipValue = "";
 
             // RESUMEN_PARTIDO
-            $this->RESUMEN_PARTIDO->LinkCustomAttributes = "";
             $this->RESUMEN_PARTIDO->HrefValue = "";
             $this->RESUMEN_PARTIDO->TooltipValue = "";
 
             // ESTADO_PARTIDO
-            $this->ESTADO_PARTIDO->LinkCustomAttributes = "";
             $this->ESTADO_PARTIDO->HrefValue = "";
             $this->ESTADO_PARTIDO->TooltipValue = "";
 
             // crea_dato
-            $this->crea_dato->LinkCustomAttributes = "";
             $this->crea_dato->HrefValue = "";
             $this->crea_dato->TooltipValue = "";
 
             // modifica_dato
-            $this->modifica_dato->LinkCustomAttributes = "";
             $this->modifica_dato->HrefValue = "";
             $this->modifica_dato->TooltipValue = "";
 
             // usuario_dato
-            $this->usuario_dato->LinkCustomAttributes = "";
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
 
             // automatico
-            $this->automatico->LinkCustomAttributes = "";
             $this->automatico->HrefValue = "";
             $this->automatico->TooltipValue = "";
 
             // actualizado
-            $this->actualizado->LinkCustomAttributes = "";
             $this->actualizado->HrefValue = "";
             $this->actualizado->TooltipValue = "";
         }
@@ -1077,6 +1022,9 @@ class PartidosDelete extends Partidos
             $deleteRow = $this->rowDeleting($row);
             if ($deleteRow) { // Delete
                 $deleteRow = $this->delete($row);
+                if (!$deleteRow && !EmptyValue($this->DbErrorMessage)) { // Show database error
+                    $this->setFailureMessage($this->DbErrorMessage);
+                }
             }
             if ($deleteRow === false) {
                 if ($this->UseTransaction) {
@@ -1115,7 +1063,7 @@ class PartidosDelete extends Partidos
 
             // Set warning message if delete some records failed
             if (count($failKeys) > 0) {
-                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteSomeRecordsFailed")));
+                $this->setWarningMessage(str_replace("%k", explode(", ", $failKeys), $Language->phrase("DeleteRecordsFailed")));
             }
         } else {
             if ($this->UseTransaction) { // Rollback transaction
@@ -1123,10 +1071,14 @@ class PartidosDelete extends Partidos
             }
         }
 
-        // Write JSON for API request
-        if (IsApi() && $deleteRows) {
-            $row = $this->getRecordsFromRecordset($rsold);
-            WriteJson(["success" => true, $this->TableVar => $row]);
+        // Write JSON response
+        if ((IsJsonResponse() || ConvertToBool(Param("infinitescroll"))) && $deleteRows) {
+            $rows = $this->getRecordsFromRecordset($rsold);
+            $table = $this->TableVar;
+            if (Route(2) !== null) { // Single delete
+                $rows = $rows[0]; // Return object
+            }
+            WriteJson(["success" => true, "action" => Config("API_DELETE_ACTION"), $table => $rows]);
         }
         return $deleteRows;
     }
@@ -1187,7 +1139,11 @@ class PartidosDelete extends Partidos
                 $ar = [];
                 foreach ($rows as $row) {
                     $row = $fld->Lookup->renderViewRow($row, Container($fld->Lookup->LinkTable));
-                    $ar[strval($row["lf"])] = $row;
+                    $key = $row["lf"];
+                    if (IsFloatType($fld->Type)) { // Handle float field
+                        $key = (float)$key;
+                    }
+                    $ar[strval($key)] = $row;
                 }
                 $fld->Lookup->Options = $ar;
             }
@@ -1246,5 +1202,13 @@ class PartidosDelete extends Partidos
     {
         // Example:
         //$footer = "your footer";
+    }
+
+    // Page Breaking event
+    public function pageBreaking(&$break, &$content)
+    {
+        // Example:
+        //$break = false; // Skip page break, or
+        //$content = "<div style=\"break-after:page;\"></div>"; // Modify page break content
     }
 }

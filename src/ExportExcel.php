@@ -1,33 +1,40 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
+
+use DiDom\Document;
+use DiDom\Element;
 
 /**
  * Export to Excel
  */
-class ExportExcel extends ExportBase
+class ExportExcel extends AbstractExport
 {
+    public $FileExtension = "xls";
+    public $UseCharset = true; // Add charset to content type
+    public $UseBom = true; // Output byte order mark
+    public $UseInlineStyles = true; // Use inline styles (Does not support multiple CSS classes)
+    public $ExportImages = false; // Does not support images
+
     // Export a value (caption, field value, or aggregate)
-    protected function exportValueEx(&$fld, $val, $useStyle = true)
+    protected function exportValueEx($fld, $val)
     {
-        if (($fld->DataType == DATATYPE_STRING || $fld->DataType == DATATYPE_MEMO) && is_numeric($val)) {
+        if (in_array($fld->DataType, [DATATYPE_STRING, DATATYPE_MEMO]) && is_numeric($val)) {
             $val = "=\"" . strval($val) . "\"";
         }
-        $this->Text .= parent::exportValueEx($fld, $val, $useStyle);
+        $this->Text .= parent::exportValueEx($fld, $val);
     }
 
     // Export
-    public function export()
+    public function export($fileName = "", $output = true, $save = false)
     {
-        global $ExportFileName;
-        if (!Config("DEBUG") && ob_get_length()) {
-            ob_end_clean();
+        $this->adjustHtml();
+        if ($save) { // Save to folder
+            SaveFile(ExportPath(true), $this->getSaveFileName(), $this->Text);
         }
-        AddHeader('Content-Type', 'application/vnd.ms-excel' . ((Config("PROJECT_CHARSET") != "") ? '; charset=' . Config("PROJECT_CHARSET") : ''));
-        AddHeader('Content-Disposition', 'attachment; filename=' . $ExportFileName . '.xls');
-        if (SameText(Config("PROJECT_CHARSET"), "utf-8")) {
-            Write("\xEF\xBB\xBF");
+        if ($output) { // Output
+            $this->writeHeaders($fileName);
+            $this->write();
         }
-        Write($this->Text);
     }
 }

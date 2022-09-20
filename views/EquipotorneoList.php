@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPMaker2022\project11;
+namespace PHPMaker2023\project11;
 
 // Page object
 $EquipotorneoList = &$Page;
@@ -9,112 +9,61 @@ $EquipotorneoList = &$Page;
 <script>
 var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
 ew.deepAssign(ew.vars, { tables: { equipotorneo: currentTable } });
-var currentForm, currentPageID;
-var fequipotorneolist;
+var currentPageID = ew.PAGE_ID = "list";
+var currentForm;
+var <?= $Page->FormName ?>;
 loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
+    let $ = jQuery;
+    let fields = currentTable.fields;
+
     // Form object
-    fequipotorneolist = new ew.Form("fequipotorneolist", "list");
-    currentPageID = ew.PAGE_ID = "list";
-    currentForm = fequipotorneolist;
-    fequipotorneolist.formKeyCountName = "<?= $Page->FormKeyCountName ?>";
+    let form = new ew.FormBuilder()
+        .setId("<?= $Page->FormName ?>")
+        .setPageId("list")
+        .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
+        .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
 
-    // Add fields
-    var fields = currentTable.fields;
-    fequipotorneolist.addFields([
-        ["ID_EQUIPO_TORNEO", [fields.ID_EQUIPO_TORNEO.visible && fields.ID_EQUIPO_TORNEO.required ? ew.Validators.required(fields.ID_EQUIPO_TORNEO.caption) : null], fields.ID_EQUIPO_TORNEO.isInvalid],
-        ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
-        ["ID_EQUIPO", [fields.ID_EQUIPO.visible && fields.ID_EQUIPO.required ? ew.Validators.required(fields.ID_EQUIPO.caption) : null], fields.ID_EQUIPO.isInvalid],
-        ["PARTIDOS_JUGADOS", [fields.PARTIDOS_JUGADOS.visible && fields.PARTIDOS_JUGADOS.required ? ew.Validators.required(fields.PARTIDOS_JUGADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_JUGADOS.isInvalid],
-        ["PARTIDOS_GANADOS", [fields.PARTIDOS_GANADOS.visible && fields.PARTIDOS_GANADOS.required ? ew.Validators.required(fields.PARTIDOS_GANADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_GANADOS.isInvalid],
-        ["PARTIDOS_EMPATADOS", [fields.PARTIDOS_EMPATADOS.visible && fields.PARTIDOS_EMPATADOS.required ? ew.Validators.required(fields.PARTIDOS_EMPATADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_EMPATADOS.isInvalid],
-        ["PARTIDOS_PERDIDOS", [fields.PARTIDOS_PERDIDOS.visible && fields.PARTIDOS_PERDIDOS.required ? ew.Validators.required(fields.PARTIDOS_PERDIDOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_PERDIDOS.isInvalid],
-        ["GF", [fields.GF.visible && fields.GF.required ? ew.Validators.required(fields.GF.caption) : null, ew.Validators.integer], fields.GF.isInvalid],
-        ["GC", [fields.GC.visible && fields.GC.required ? ew.Validators.required(fields.GC.caption) : null, ew.Validators.integer], fields.GC.isInvalid],
-        ["GD", [fields.GD.visible && fields.GD.required ? ew.Validators.required(fields.GD.caption) : null, ew.Validators.integer], fields.GD.isInvalid],
-        ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
-        ["POSICION_EQUIPO_TORENO", [fields.POSICION_EQUIPO_TORENO.visible && fields.POSICION_EQUIPO_TORENO.required ? ew.Validators.required(fields.POSICION_EQUIPO_TORENO.caption) : null], fields.POSICION_EQUIPO_TORENO.isInvalid],
-        ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-        ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
-        ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
-    ]);
+        // Add fields
+        .setFields([
+            ["ID_EQUIPO_TORNEO", [fields.ID_EQUIPO_TORNEO.visible && fields.ID_EQUIPO_TORNEO.required ? ew.Validators.required(fields.ID_EQUIPO_TORNEO.caption) : null], fields.ID_EQUIPO_TORNEO.isInvalid],
+            ["ID_TORNEO", [fields.ID_TORNEO.visible && fields.ID_TORNEO.required ? ew.Validators.required(fields.ID_TORNEO.caption) : null], fields.ID_TORNEO.isInvalid],
+            ["ID_EQUIPO", [fields.ID_EQUIPO.visible && fields.ID_EQUIPO.required ? ew.Validators.required(fields.ID_EQUIPO.caption) : null], fields.ID_EQUIPO.isInvalid],
+            ["PARTIDOS_JUGADOS", [fields.PARTIDOS_JUGADOS.visible && fields.PARTIDOS_JUGADOS.required ? ew.Validators.required(fields.PARTIDOS_JUGADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_JUGADOS.isInvalid],
+            ["PARTIDOS_GANADOS", [fields.PARTIDOS_GANADOS.visible && fields.PARTIDOS_GANADOS.required ? ew.Validators.required(fields.PARTIDOS_GANADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_GANADOS.isInvalid],
+            ["PARTIDOS_EMPATADOS", [fields.PARTIDOS_EMPATADOS.visible && fields.PARTIDOS_EMPATADOS.required ? ew.Validators.required(fields.PARTIDOS_EMPATADOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_EMPATADOS.isInvalid],
+            ["PARTIDOS_PERDIDOS", [fields.PARTIDOS_PERDIDOS.visible && fields.PARTIDOS_PERDIDOS.required ? ew.Validators.required(fields.PARTIDOS_PERDIDOS.caption) : null, ew.Validators.integer], fields.PARTIDOS_PERDIDOS.isInvalid],
+            ["GF", [fields.GF.visible && fields.GF.required ? ew.Validators.required(fields.GF.caption) : null, ew.Validators.integer], fields.GF.isInvalid],
+            ["GC", [fields.GC.visible && fields.GC.required ? ew.Validators.required(fields.GC.caption) : null, ew.Validators.integer], fields.GC.isInvalid],
+            ["GD", [fields.GD.visible && fields.GD.required ? ew.Validators.required(fields.GD.caption) : null, ew.Validators.integer], fields.GD.isInvalid],
+            ["GRUPO", [fields.GRUPO.visible && fields.GRUPO.required ? ew.Validators.required(fields.GRUPO.caption) : null], fields.GRUPO.isInvalid],
+            ["POSICION_EQUIPO_TORENO", [fields.POSICION_EQUIPO_TORENO.visible && fields.POSICION_EQUIPO_TORENO.required ? ew.Validators.required(fields.POSICION_EQUIPO_TORENO.caption) : null], fields.POSICION_EQUIPO_TORENO.isInvalid],
+            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
+            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
+            ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
+        ])
 
-    // Form_CustomValidate
-    fequipotorneolist.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
 
-    // Use JavaScript validation or not
-    fequipotorneolist.validateRequired = ew.CLIENT_VALIDATE;
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
 
-    // Dynamic selection lists
-    fequipotorneolist.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
-    fequipotorneolist.lists.ID_EQUIPO = <?= $Page->ID_EQUIPO->toClientList($Page) ?>;
-    fequipotorneolist.lists.GRUPO = <?= $Page->GRUPO->toClientList($Page) ?>;
-    fequipotorneolist.lists.POSICION_EQUIPO_TORENO = <?= $Page->POSICION_EQUIPO_TORENO->toClientList($Page) ?>;
-    loadjs.done("fequipotorneolist");
-});
-var fequipotorneosrch, currentSearchForm, currentAdvancedSearchForm;
-loadjs.ready(["wrapper", "head"], function () {
-    var $ = jQuery;
-    // Form object for search
-    fequipotorneosrch = new ew.Form("fequipotorneosrch", "list");
-    currentSearchForm = fequipotorneosrch;
-
-    // Add fields
-    var fields = currentTable.fields;
-    fequipotorneosrch.addFields([
-        ["ID_EQUIPO_TORNEO", [], fields.ID_EQUIPO_TORNEO.isInvalid],
-        ["ID_TORNEO", [], fields.ID_TORNEO.isInvalid],
-        ["ID_EQUIPO", [], fields.ID_EQUIPO.isInvalid],
-        ["PARTIDOS_JUGADOS", [], fields.PARTIDOS_JUGADOS.isInvalid],
-        ["PARTIDOS_GANADOS", [], fields.PARTIDOS_GANADOS.isInvalid],
-        ["PARTIDOS_EMPATADOS", [], fields.PARTIDOS_EMPATADOS.isInvalid],
-        ["PARTIDOS_PERDIDOS", [], fields.PARTIDOS_PERDIDOS.isInvalid],
-        ["GF", [], fields.GF.isInvalid],
-        ["GC", [], fields.GC.isInvalid],
-        ["GD", [], fields.GD.isInvalid],
-        ["GRUPO", [], fields.GRUPO.isInvalid],
-        ["POSICION_EQUIPO_TORENO", [], fields.POSICION_EQUIPO_TORENO.isInvalid],
-        ["crea_dato", [], fields.crea_dato.isInvalid],
-        ["modifica_dato", [], fields.modifica_dato.isInvalid],
-        ["usuario_dato", [], fields.usuario_dato.isInvalid]
-    ]);
-
-    // Validate form
-    fequipotorneosrch.validate = function () {
-        if (!this.validateRequired)
-            return true; // Ignore validation
-        var fobj = this.getForm();
-
-        // Validate fields
-        if (!this.validateFields())
-            return false;
-
-        // Call Form_CustomValidate event
-        if (!this.customValidate(fobj)) {
-            this.focus();
-            return false;
-        }
-        return true;
-    }
-
-    // Form_CustomValidate
-    fequipotorneosrch.customValidate = function(fobj) { // DO NOT CHANGE THIS LINE!
-        // Your custom validation code here, return false if invalid.
-        return true;
-    }
-
-    // Use JavaScript validation or not
-    fequipotorneosrch.validateRequired = ew.CLIENT_VALIDATE;
-
-    // Dynamic selection lists
-    fequipotorneosrch.lists.ID_TORNEO = <?= $Page->ID_TORNEO->toClientList($Page) ?>;
-
-    // Filters
-    fequipotorneosrch.filterList = <?= $Page->getFilterList() ?>;
-    loadjs.done("fequipotorneosrch");
+        // Dynamic selection lists
+        .setLists({
+            "ID_TORNEO": <?= $Page->ID_TORNEO->toClientList($Page) ?>,
+            "ID_EQUIPO": <?= $Page->ID_EQUIPO->toClientList($Page) ?>,
+            "GRUPO": <?= $Page->GRUPO->toClientList($Page) ?>,
+            "POSICION_EQUIPO_TORENO": <?= $Page->POSICION_EQUIPO_TORENO->toClientList($Page) ?>,
+        })
+        .build();
+    window[form.id] = form;
+    currentForm = form;
+    loadjs.done(form.id);
 });
 </script>
 <script>
@@ -139,16 +88,95 @@ loadjs.ready("head", function () {
 <?php } ?>
 </div>
 <?php } ?>
-<?php
-$Page->renderOtherOptions();
-?>
+<?php if ($Page->ShowCurrentFilter) { ?>
+<?php $Page->showFilterList() ?>
+<?php } ?>
 <?php if ($Security->canSearch()) { ?>
-<?php if (!$Page->isExport() && !$Page->CurrentAction && $Page->hasSearchFields()) { ?>
-<form name="fequipotorneosrch" id="fequipotorneosrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isExport() && !($Page->CurrentAction && $Page->CurrentAction != "search") && $Page->hasSearchFields()) { ?>
+<form name="fequipotorneosrch" id="fequipotorneosrch" class="ew-form ew-ext-search-form" action="<?= CurrentPageUrl(false) ?>" novalidate autocomplete="on">
 <div id="fequipotorneosrch_search_panel" class="mb-2 mb-sm-0 <?= $Page->SearchPanelClass ?>"><!-- .ew-search-panel -->
+<script>
+var currentTable = <?= JsonEncode($Page->toClientVar()) ?>;
+ew.deepAssign(ew.vars, { tables: { equipotorneo: currentTable } });
+var currentForm;
+var fequipotorneosrch, currentSearchForm, currentAdvancedSearchForm;
+loadjs.ready(["wrapper", "head"], function () {
+    let $ = jQuery,
+        fields = currentTable.fields;
+
+    // Form object for search
+    let form = new ew.FormBuilder()
+        .setId("fequipotorneosrch")
+        .setPageId("list")
+<?php if ($Page->UseAjaxActions) { ?>
+        .setSubmitWithFetch(true)
+<?php } ?>
+
+        // Add fields
+        .addFields([
+            ["ID_EQUIPO_TORNEO", [], fields.ID_EQUIPO_TORNEO.isInvalid],
+            ["ID_TORNEO", [], fields.ID_TORNEO.isInvalid],
+            ["ID_EQUIPO", [], fields.ID_EQUIPO.isInvalid],
+            ["PARTIDOS_JUGADOS", [], fields.PARTIDOS_JUGADOS.isInvalid],
+            ["PARTIDOS_GANADOS", [], fields.PARTIDOS_GANADOS.isInvalid],
+            ["PARTIDOS_EMPATADOS", [], fields.PARTIDOS_EMPATADOS.isInvalid],
+            ["PARTIDOS_PERDIDOS", [], fields.PARTIDOS_PERDIDOS.isInvalid],
+            ["GF", [], fields.GF.isInvalid],
+            ["GC", [], fields.GC.isInvalid],
+            ["GD", [], fields.GD.isInvalid],
+            ["GRUPO", [], fields.GRUPO.isInvalid],
+            ["POSICION_EQUIPO_TORENO", [], fields.POSICION_EQUIPO_TORENO.isInvalid],
+            ["crea_dato", [], fields.crea_dato.isInvalid],
+            ["modifica_dato", [], fields.modifica_dato.isInvalid],
+            ["usuario_dato", [], fields.usuario_dato.isInvalid]
+        ])
+        // Validate form
+        .setValidate(
+            async function () {
+                if (!this.validateRequired)
+                    return true; // Ignore validation
+                let fobj = this.getForm();
+
+                // Validate fields
+                if (!this.validateFields())
+                    return false;
+
+                // Call Form_CustomValidate event
+                if (!(await this.customValidate?.(fobj) ?? true)) {
+                    this.focus();
+                    return false;
+                }
+                return true;
+            }
+        )
+
+        // Form_CustomValidate
+        .setCustomValidate(
+            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
+                    // Your custom validation code here, return false if invalid.
+                    return true;
+                }
+        )
+
+        // Use JavaScript validation or not
+        .setValidateRequired(ew.CLIENT_VALIDATE)
+
+        // Dynamic selection lists
+        .setLists({
+            "ID_TORNEO": <?= $Page->ID_TORNEO->toClientList($Page) ?>,
+        })
+
+        // Filters
+        .setFilterList(<?= $Page->getFilterList() ?>)
+        .build();
+    window[form.id] = form;
+    currentSearchForm = form;
+    loadjs.done(form.id);
+});
+</script>
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="equipotorneo">
-<div class="ew-extended-search container-fluid">
+<div class="ew-extended-search container-fluid ps-2">
 <div class="row mb-0<?= ($Page->SearchFieldsPerRow > 0) ? " row-cols-sm-" . $Page->SearchFieldsPerRow : "" ?>">
 <?php
 // Render search row
@@ -162,7 +190,7 @@ if (!$Page->ID_TORNEO->UseFilter) {
     $Page->SearchColumnCount++;
 }
 ?>
-    <div id="xs_ID_TORNEO" class="col-sm-auto d-sm-flex mb-3 px-0 pe-sm-2<?= $Page->ID_TORNEO->UseFilter ? " ew-filter-field" : "" ?>">
+    <div id="xs_ID_TORNEO" class="col-sm-auto d-sm-flex align-items-start mb-3 px-0 pe-sm-2<?= $Page->ID_TORNEO->UseFilter ? " ew-filter-field" : "" ?>">
         <select
             id="x_ID_TORNEO"
             name="x_ID_TORNEO[]"
@@ -176,6 +204,7 @@ if (!$Page->ID_TORNEO->UseFilter) {
             size="1"
             data-value-separator="<?= $Page->ID_TORNEO->displayValueSeparatorAttribute() ?>"
             data-placeholder="<?= HtmlEncode($Page->ID_TORNEO->getPlaceHolder()) ?>"
+            data-ew-action="update-options"
             <?= $Page->ID_TORNEO->editAttributes() ?>>
             <?= $Page->ID_TORNEO->selectOptionListHtml("x_ID_TORNEO", true) ?>
         </select>
@@ -224,17 +253,22 @@ if (!$Page->ID_TORNEO->UseFilter) {
 <?php
 $Page->showMessage();
 ?>
+<main class="list<?= ($Page->TotalRecords == 0) ? " ew-no-record" : "" ?>">
+<div id="ew-list">
 <?php if ($Page->TotalRecords > 0 || $Page->CurrentAction) { ?>
-<div class="card ew-card ew-grid<?php if ($Page->isAddOrEdit()) { ?> ew-grid-add-edit<?php } ?> equipotorneo">
-<form name="fequipotorneolist" id="fequipotorneolist" class="ew-form ew-list-form" action="<?= CurrentPageUrl(false) ?>" method="post">
+<div class="card ew-card ew-grid<?= $Page->isAddOrEdit() ? " ew-grid-add-edit" : "" ?> <?= $Page->TableGridClass ?>">
+<form name="<?= $Page->FormName ?>" id="<?= $Page->FormName ?>" class="ew-form ew-list-form" action="<?= $Page->PageAction ?>" method="post" novalidate autocomplete="on">
 <?php if (Config("CHECK_TOKEN")) { ?>
 <input type="hidden" name="<?= $TokenNameKey ?>" value="<?= $TokenName ?>"><!-- CSRF token name -->
 <input type="hidden" name="<?= $TokenValueKey ?>" value="<?= $TokenValue ?>"><!-- CSRF token value -->
 <?php } ?>
 <input type="hidden" name="t" value="equipotorneo">
-<div id="gmp_equipotorneo" class="<?= ResponsiveTableClass() ?>card-body ew-grid-middle-panel">
-<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit()) { ?>
-<table id="tbl_equipotorneolist" class="table table-bordered table-hover table-sm ew-table"><!-- .ew-table -->
+<?php if ($Page->IsModal) { ?>
+<input type="hidden" name="modal" value="1">
+<?php } ?>
+<div id="gmp_equipotorneo" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<table id="tbl_equipotorneolist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
 <?php
@@ -298,94 +332,13 @@ $Page->ListOptions->render("header", "right");
 ?>
     </tr>
 </thead>
-<tbody>
+<tbody data-page="<?= $Page->getPageNumber() ?>">
 <?php
-if ($Page->ExportAll && $Page->isExport()) {
-    $Page->StopRecord = $Page->TotalRecords;
-} else {
-    // Set the last record to display
-    if ($Page->TotalRecords > $Page->StartRecord + $Page->DisplayRecords - 1) {
-        $Page->StopRecord = $Page->StartRecord + $Page->DisplayRecords - 1;
-    } else {
-        $Page->StopRecord = $Page->TotalRecords;
-    }
-}
-
-// Restore number of post back records
-if ($CurrentForm && ($Page->isConfirm() || $Page->EventCancelled)) {
-    $CurrentForm->Index = -1;
-    if ($CurrentForm->hasValue($Page->FormKeyCountName) && ($Page->isGridAdd() || $Page->isGridEdit() || $Page->isConfirm())) {
-        $Page->KeyCount = $CurrentForm->getValue($Page->FormKeyCountName);
-        $Page->StopRecord = $Page->StartRecord + $Page->KeyCount - 1;
-    }
-}
-$Page->RecordCount = $Page->StartRecord - 1;
-if ($Page->Recordset && !$Page->Recordset->EOF) {
-    // Nothing to do
-} elseif ($Page->isGridAdd() && !$Page->AllowAddDeleteRow && $Page->StopRecord == 0) {
-    $Page->StopRecord = $Page->GridAddRowCount;
-}
-
-// Initialize aggregate
-$Page->RowType = ROWTYPE_AGGREGATEINIT;
-$Page->resetAttributes();
-$Page->renderRow();
-$Page->EditRowCount = 0;
-if ($Page->isEdit()) {
-    $Page->RowIndex = 1;
-}
+$Page->setupGrid();
 while ($Page->RecordCount < $Page->StopRecord) {
     $Page->RecordCount++;
     if ($Page->RecordCount >= $Page->StartRecord) {
-        $Page->RowCount++;
-
-        // Set up key count
-        $Page->KeyCount = $Page->RowIndex;
-
-        // Init row class and style
-        $Page->resetAttributes();
-        $Page->CssClass = "";
-        if ($Page->isGridAdd()) {
-            $Page->loadRowValues(); // Load default values
-            $Page->OldKey = "";
-            $Page->setKey($Page->OldKey);
-        } else {
-            $Page->loadRowValues($Page->Recordset); // Load row values
-            if ($Page->isGridEdit()) {
-                $Page->OldKey = $Page->getKey(true); // Get from CurrentValue
-                $Page->setKey($Page->OldKey);
-            }
-        }
-        $Page->RowType = ROWTYPE_VIEW; // Render view
-        if ($Page->isEdit()) {
-            if ($Page->checkInlineEditKey() && $Page->EditRowCount == 0) { // Inline edit
-                $Page->RowType = ROWTYPE_EDIT; // Render edit
-            }
-        }
-        if ($Page->isEdit() && $Page->RowType == ROWTYPE_EDIT && $Page->EventCancelled) { // Update failed
-            $CurrentForm->Index = 1;
-            $Page->restoreFormValues(); // Restore form values
-        }
-        if ($Page->RowType == ROWTYPE_EDIT) { // Edit row
-            $Page->EditRowCount++;
-        }
-
-        // Set up row attributes
-        $Page->RowAttrs->merge([
-            "data-rowindex" => $Page->RowCount,
-            "id" => "r" . $Page->RowCount . "_equipotorneo",
-            "data-rowtype" => $Page->RowType,
-            "class" => ($Page->RowCount % 2 != 1) ? "ew-table-alt-row" : "",
-        ]);
-        if ($Page->isAdd() && $Page->RowType == ROWTYPE_ADD || $Page->isEdit() && $Page->RowType == ROWTYPE_EDIT) { // Inline-Add/Edit row
-            $Page->RowAttrs->appendClass("table-active");
-        }
-
-        // Render row
-        $Page->renderRow();
-
-        // Render list options
-        $Page->renderListOptions();
+        $Page->setupRow();
 ?>
     <tr <?= $Page->rowAttributes() ?>>
 <?php
@@ -398,8 +351,8 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO_TORNEO" class="el_equipotorneo_ID_EQUIPO_TORNEO">
 <span<?= $Page->ID_EQUIPO_TORNEO->viewAttributes() ?>>
 <input type="text" readonly class="form-control-plaintext" value="<?= HtmlEncode(RemoveHtml($Page->ID_EQUIPO_TORNEO->getDisplayValue($Page->ID_EQUIPO_TORNEO->EditValue))) ?>"></span>
-</span>
 <input type="hidden" data-table="equipotorneo" data-field="x_ID_EQUIPO_TORNEO" data-hidden="1" name="x<?= $Page->RowIndex ?>_ID_EQUIPO_TORNEO" id="x<?= $Page->RowIndex ?>_ID_EQUIPO_TORNEO" value="<?= HtmlEncode($Page->ID_EQUIPO_TORNEO->CurrentValue) ?>">
+</span>
 <?php } ?>
 <?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_ID_EQUIPO_TORNEO" class="el_equipotorneo_ID_EQUIPO_TORNEO">
@@ -419,7 +372,7 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
         id="x<?= $Page->RowIndex ?>_ID_TORNEO"
         name="x<?= $Page->RowIndex ?>_ID_TORNEO"
         class="form-select ew-select<?= $Page->ID_TORNEO->isInvalidClass() ?>"
-        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_ID_TORNEO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_ID_TORNEO"
         data-table="equipotorneo"
         data-field="x_ID_TORNEO"
         data-value-separator="<?= $Page->ID_TORNEO->displayValueSeparatorAttribute() ?>"
@@ -430,14 +383,15 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
     <div class="invalid-feedback"><?= $Page->ID_TORNEO->getErrorMessage() ?></div>
 <?= $Page->ID_TORNEO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_TORNEO") ?>
 <script>
-loadjs.ready("fequipotorneolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_ID_TORNEO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_ID_TORNEO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ID_TORNEO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_ID_TORNEO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipotorneolist.lists.ID_TORNEO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "fequipotorneolist" };
+    if (<?= $Page->FormName ?>.lists.ID_TORNEO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_TORNEO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.ID_TORNEO.selectOptions);
@@ -463,7 +417,7 @@ loadjs.ready("fequipotorneolist", function() {
         id="x<?= $Page->RowIndex ?>_ID_EQUIPO"
         name="x<?= $Page->RowIndex ?>_ID_EQUIPO"
         class="form-select ew-select<?= $Page->ID_EQUIPO->isInvalidClass() ?>"
-        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_ID_EQUIPO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_ID_EQUIPO"
         data-table="equipotorneo"
         data-field="x_ID_EQUIPO"
         data-value-separator="<?= $Page->ID_EQUIPO->displayValueSeparatorAttribute() ?>"
@@ -471,19 +425,20 @@ loadjs.ready("fequipotorneolist", function() {
         <?= $Page->ID_EQUIPO->editAttributes() ?>>
         <?= $Page->ID_EQUIPO->selectOptionListHtml("x{$Page->RowIndex}_ID_EQUIPO") ?>
     </select>
-    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_ID_EQUIPO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->ID_EQUIPO->caption() ?>" data-title="<?= $Page->ID_EQUIPO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_ID_EQUIPO" data-url="<?= GetUrl("equipoaddopt") ?>"><i class="fas fa-plus ew-icon"></i></button>
+    <button type="button" class="btn btn-default ew-add-opt-btn" id="aol_x<?= $Page->RowIndex ?>_ID_EQUIPO" title="<?= HtmlTitle($Language->phrase("AddLink")) . "&nbsp;" . $Page->ID_EQUIPO->caption() ?>" data-title="<?= $Page->ID_EQUIPO->caption() ?>" data-ew-action="add-option" data-el="x<?= $Page->RowIndex ?>_ID_EQUIPO" data-url="<?= GetUrl("equipoaddopt") ?>"><i class="fa-solid fa-plus ew-icon"></i></button>
 </div>
 <div class="invalid-feedback"><?= $Page->ID_EQUIPO->getErrorMessage() ?></div>
 <?= $Page->ID_EQUIPO->Lookup->getParamTag($Page, "p_x" . $Page->RowIndex . "_ID_EQUIPO") ?>
 <script>
-loadjs.ready("fequipotorneolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_ID_EQUIPO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_ID_EQUIPO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_ID_EQUIPO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_ID_EQUIPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipotorneolist.lists.ID_EQUIPO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_ID_EQUIPO", form: "fequipotorneolist" };
+    if (<?= $Page->FormName ?>.lists.ID_EQUIPO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_ID_EQUIPO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_EQUIPO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_ID_EQUIPO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.ID_EQUIPO.selectOptions);
@@ -504,7 +459,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="PARTIDOS_JUGADOS"<?= $Page->PARTIDOS_JUGADOS->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_JUGADOS" class="el_equipotorneo_PARTIDOS_JUGADOS">
-<input type="<?= $Page->PARTIDOS_JUGADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_JUGADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_JUGADOS" data-table="equipotorneo" data-field="x_PARTIDOS_JUGADOS" value="<?= $Page->PARTIDOS_JUGADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_JUGADOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_JUGADOS->editAttributes() ?>>
+<input type="<?= $Page->PARTIDOS_JUGADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_JUGADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_JUGADOS" data-table="equipotorneo" data-field="x_PARTIDOS_JUGADOS" value="<?= $Page->PARTIDOS_JUGADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_JUGADOS->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->PARTIDOS_JUGADOS->formatPattern()) ?>"<?= $Page->PARTIDOS_JUGADOS->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->PARTIDOS_JUGADOS->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -520,7 +475,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="PARTIDOS_GANADOS"<?= $Page->PARTIDOS_GANADOS->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_GANADOS" class="el_equipotorneo_PARTIDOS_GANADOS">
-<input type="<?= $Page->PARTIDOS_GANADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_GANADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_GANADOS" data-table="equipotorneo" data-field="x_PARTIDOS_GANADOS" value="<?= $Page->PARTIDOS_GANADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_GANADOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_GANADOS->editAttributes() ?>>
+<input type="<?= $Page->PARTIDOS_GANADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_GANADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_GANADOS" data-table="equipotorneo" data-field="x_PARTIDOS_GANADOS" value="<?= $Page->PARTIDOS_GANADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_GANADOS->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->PARTIDOS_GANADOS->formatPattern()) ?>"<?= $Page->PARTIDOS_GANADOS->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->PARTIDOS_GANADOS->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -536,7 +491,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="PARTIDOS_EMPATADOS"<?= $Page->PARTIDOS_EMPATADOS->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_EMPATADOS" class="el_equipotorneo_PARTIDOS_EMPATADOS">
-<input type="<?= $Page->PARTIDOS_EMPATADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_EMPATADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_EMPATADOS" data-table="equipotorneo" data-field="x_PARTIDOS_EMPATADOS" value="<?= $Page->PARTIDOS_EMPATADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_EMPATADOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_EMPATADOS->editAttributes() ?>>
+<input type="<?= $Page->PARTIDOS_EMPATADOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_EMPATADOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_EMPATADOS" data-table="equipotorneo" data-field="x_PARTIDOS_EMPATADOS" value="<?= $Page->PARTIDOS_EMPATADOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_EMPATADOS->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->PARTIDOS_EMPATADOS->formatPattern()) ?>"<?= $Page->PARTIDOS_EMPATADOS->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->PARTIDOS_EMPATADOS->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -552,7 +507,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="PARTIDOS_PERDIDOS"<?= $Page->PARTIDOS_PERDIDOS->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_PARTIDOS_PERDIDOS" class="el_equipotorneo_PARTIDOS_PERDIDOS">
-<input type="<?= $Page->PARTIDOS_PERDIDOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_PERDIDOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_PERDIDOS" data-table="equipotorneo" data-field="x_PARTIDOS_PERDIDOS" value="<?= $Page->PARTIDOS_PERDIDOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_PERDIDOS->getPlaceHolder()) ?>"<?= $Page->PARTIDOS_PERDIDOS->editAttributes() ?>>
+<input type="<?= $Page->PARTIDOS_PERDIDOS->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_PARTIDOS_PERDIDOS" id="x<?= $Page->RowIndex ?>_PARTIDOS_PERDIDOS" data-table="equipotorneo" data-field="x_PARTIDOS_PERDIDOS" value="<?= $Page->PARTIDOS_PERDIDOS->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->PARTIDOS_PERDIDOS->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->PARTIDOS_PERDIDOS->formatPattern()) ?>"<?= $Page->PARTIDOS_PERDIDOS->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->PARTIDOS_PERDIDOS->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -568,7 +523,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="GF"<?= $Page->GF->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GF" class="el_equipotorneo_GF">
-<input type="<?= $Page->GF->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GF" id="x<?= $Page->RowIndex ?>_GF" data-table="equipotorneo" data-field="x_GF" value="<?= $Page->GF->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GF->getPlaceHolder()) ?>"<?= $Page->GF->editAttributes() ?>>
+<input type="<?= $Page->GF->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GF" id="x<?= $Page->RowIndex ?>_GF" data-table="equipotorneo" data-field="x_GF" value="<?= $Page->GF->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GF->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->GF->formatPattern()) ?>"<?= $Page->GF->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->GF->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -584,7 +539,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="GC"<?= $Page->GC->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GC" class="el_equipotorneo_GC">
-<input type="<?= $Page->GC->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GC" id="x<?= $Page->RowIndex ?>_GC" data-table="equipotorneo" data-field="x_GC" value="<?= $Page->GC->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GC->getPlaceHolder()) ?>"<?= $Page->GC->editAttributes() ?>>
+<input type="<?= $Page->GC->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GC" id="x<?= $Page->RowIndex ?>_GC" data-table="equipotorneo" data-field="x_GC" value="<?= $Page->GC->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GC->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->GC->formatPattern()) ?>"<?= $Page->GC->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->GC->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -600,7 +555,7 @@ loadjs.ready("fequipotorneolist", function() {
         <td data-name="GD"<?= $Page->GD->cellAttributes() ?>>
 <?php if ($Page->RowType == ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?= $Page->RowCount ?>_equipotorneo_GD" class="el_equipotorneo_GD">
-<input type="<?= $Page->GD->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GD" id="x<?= $Page->RowIndex ?>_GD" data-table="equipotorneo" data-field="x_GD" value="<?= $Page->GD->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GD->getPlaceHolder()) ?>"<?= $Page->GD->editAttributes() ?>>
+<input type="<?= $Page->GD->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_GD" id="x<?= $Page->RowIndex ?>_GD" data-table="equipotorneo" data-field="x_GD" value="<?= $Page->GD->EditValue ?>" size="30" placeholder="<?= HtmlEncode($Page->GD->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->GD->formatPattern()) ?>"<?= $Page->GD->editAttributes() ?>>
 <div class="invalid-feedback"><?= $Page->GD->getErrorMessage() ?></div>
 </span>
 <?php } ?>
@@ -620,7 +575,7 @@ loadjs.ready("fequipotorneolist", function() {
         id="x<?= $Page->RowIndex ?>_GRUPO"
         name="x<?= $Page->RowIndex ?>_GRUPO"
         class="form-select ew-select<?= $Page->GRUPO->isInvalidClass() ?>"
-        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_GRUPO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_GRUPO"
         data-table="equipotorneo"
         data-field="x_GRUPO"
         data-value-separator="<?= $Page->GRUPO->displayValueSeparatorAttribute() ?>"
@@ -630,14 +585,15 @@ loadjs.ready("fequipotorneolist", function() {
     </select>
     <div class="invalid-feedback"><?= $Page->GRUPO->getErrorMessage() ?></div>
 <script>
-loadjs.ready("fequipotorneolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_GRUPO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_GRUPO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_GRUPO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_GRUPO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipotorneolist.lists.GRUPO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "fequipotorneolist" };
+    if (<?= $Page->FormName ?>.lists.GRUPO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_GRUPO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.GRUPO.selectOptions);
@@ -662,7 +618,7 @@ loadjs.ready("fequipotorneolist", function() {
         id="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
         name="x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
         class="form-select ew-select<?= $Page->POSICION_EQUIPO_TORENO->isInvalidClass() ?>"
-        data-select2-id="fequipotorneolist_x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
+        data-select2-id="<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO"
         data-table="equipotorneo"
         data-field="x_POSICION_EQUIPO_TORENO"
         data-value-separator="<?= $Page->POSICION_EQUIPO_TORENO->displayValueSeparatorAttribute() ?>"
@@ -672,14 +628,15 @@ loadjs.ready("fequipotorneolist", function() {
     </select>
     <div class="invalid-feedback"><?= $Page->POSICION_EQUIPO_TORENO->getErrorMessage() ?></div>
 <script>
-loadjs.ready("fequipotorneolist", function() {
-    var options = { name: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", selectId: "fequipotorneolist_x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" },
+loadjs.ready("<?= $Page->FormName ?>", function() {
+    var options = { name: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", selectId: "<?= $Page->FormName ?>_x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO" },
         el = document.querySelector("select[data-select2-id='" + options.selectId + "']");
+    options.closeOnSelect = !options.multiple;
     options.dropdownParent = el.closest("#ew-modal-dialog, #ew-add-opt-dialog");
-    if (fequipotorneolist.lists.POSICION_EQUIPO_TORENO.lookupOptions.length) {
-        options.data = { id: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", form: "fequipotorneolist" };
+    if (<?= $Page->FormName ?>.lists.POSICION_EQUIPO_TORENO?.lookupOptions.length) {
+        options.data = { id: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", form: "<?= $Page->FormName ?>" };
     } else {
-        options.ajax = { id: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", form: "fequipotorneolist", limit: ew.LOOKUP_PAGE_SIZE };
+        options.ajax = { id: "x<?= $Page->RowIndex ?>_POSICION_EQUIPO_TORENO", form: "<?= $Page->FormName ?>", limit: ew.LOOKUP_PAGE_SIZE };
     }
     options.minimumResultsForSearch = Infinity;
     options = Object.assign({}, ew.selectOptions, options, ew.vars.tables.equipotorneo.fields.POSICION_EQUIPO_TORENO.selectOptions);
@@ -744,8 +701,8 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
     </tr>
 <?php if ($Page->RowType == ROWTYPE_ADD || $Page->RowType == ROWTYPE_EDIT) { ?>
-<script>
-loadjs.ready(["fequipotorneolist","load"], () => fequipotorneolist.updateLists(<?= $Page->RowIndex ?>));
+<script data-rowindex="<?= $Page->RowIndex ?>">
+loadjs.ready(["<?= $Page->FormName ?>","load"], () => <?= $Page->FormName ?>.updateLists(<?= $Page->RowIndex ?><?= $Page->RowIndex === '$rowindex$' ? ", true" : "" ?>));
 </script>
 <?php } ?>
 <?php
@@ -758,12 +715,11 @@ loadjs.ready(["fequipotorneolist","load"], () => fequipotorneolist.updateLists(<
 </tbody>
 </table><!-- /.ew-table -->
 <?php } ?>
-</div><!-- /.ew-grid-middle-panel -->
 <?php if ($Page->isEdit()) { ?>
 <input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
-<?php if (!$Page->CurrentAction) { ?>
+</div><!-- /.ew-grid-middle-panel -->
+<?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
 <input type="hidden" name="action" id="action" value="">
 <?php } ?>
 </form><!-- /.ew-list-form -->
@@ -775,10 +731,8 @@ if ($Page->Recordset) {
 ?>
 <?php if (!$Page->isExport()) { ?>
 <div class="card-footer ew-grid-lower-panel">
-<?php if (!$Page->isGridAdd()) { ?>
-<form name="ew-pager-form" class="ew-form ew-pager-form" action="<?= CurrentPageUrl(false) ?>">
+<?php if (!$Page->isGridAdd() && !($Page->isGridEdit() && $Page->ModalGridEdit) && !$Page->isMultiEdit()) { ?>
 <?= $Page->Pager->render() ?>
-</form>
 <?php } ?>
 <div class="ew-list-other-options">
 <?php $Page->OtherOptions->render("body", "bottom") ?>
@@ -791,6 +745,8 @@ if ($Page->Recordset) {
 <?php $Page->OtherOptions->render("body") ?>
 </div>
 <?php } ?>
+</div>
+</main>
 <?php
 $Page->showPageFooter();
 echo GetDebugMessage();
