@@ -21,6 +21,7 @@ $topMenu->addMenuItem(6, "mi_partidos", $MenuLanguage->MenuPhrase("6", "MenuText
 $topMenu->addMenuItem(9, "mi_estadio", $MenuLanguage->MenuPhrase("9", "MenuText"), $MenuRelativePath . "estadiolist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}estadio'), false, false, "", "", true, false);
 $topMenu->addMenuItem(5, "mi_participante", $MenuLanguage->MenuPhrase("5", "MenuText"), $MenuRelativePath . "participantelist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}participante'), false, false, "", "", true, false);
 $topMenu->addMenuItem(2, "mi_pronosticador", $MenuLanguage->MenuPhrase("2", "MenuText"), $MenuRelativePath . "pronosticadorlist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}pronosticador'), false, false, "", "", true, false);
+$topMenu->addMenuItem(10, "mi_jugador", $MenuLanguage->MenuPhrase("10", "MenuText"), $MenuRelativePath . "jugadorlist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}jugador'), false, false, "", "", true, false);
 echo $topMenu->toScript();
 
 // Sidebar menu
@@ -32,4 +33,5 @@ $sideMenu->addMenuItem(6, "mi_partidos", $MenuLanguage->MenuPhrase("6", "MenuTex
 $sideMenu->addMenuItem(9, "mi_estadio", $MenuLanguage->MenuPhrase("9", "MenuText"), $MenuRelativePath . "estadiolist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}estadio'), false, false, "", "", true, true);
 $sideMenu->addMenuItem(5, "mi_participante", $MenuLanguage->MenuPhrase("5", "MenuText"), $MenuRelativePath . "participantelist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}participante'), false, false, "", "", true, true);
 $sideMenu->addMenuItem(2, "mi_pronosticador", $MenuLanguage->MenuPhrase("2", "MenuText"), $MenuRelativePath . "pronosticadorlist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}pronosticador'), false, false, "", "", true, true);
+$sideMenu->addMenuItem(10, "mi_jugador", $MenuLanguage->MenuPhrase("10", "MenuText"), $MenuRelativePath . "jugadorlist", -1, "", IsLoggedIn() || AllowListMenu('{1FEE5CED-11BB-4991-94A0-946354AE0202}jugador'), false, false, "", "", true, true);
 echo $sideMenu->toScript();
