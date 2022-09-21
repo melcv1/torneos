@@ -204,6 +204,7 @@ class Jugador extends DbTable
             'TEXT' // Edit Tag
         );
         $this->crea_dato->InputTextType = "text";
+        $this->crea_dato->Sortable = false; // Allow sort
         $this->crea_dato->DefaultErrorMessage = str_replace("%s", $GLOBALS["DATE_FORMAT"], $Language->phrase("IncorrectDate"));
         $this->crea_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['crea_dato'] = &$this->crea_dato;
@@ -227,6 +228,7 @@ class Jugador extends DbTable
             'TEXT' // Edit Tag
         );
         $this->modifica_dato->InputTextType = "text";
+        $this->modifica_dato->Sortable = false; // Allow sort
         $this->modifica_dato->DefaultErrorMessage = str_replace("%s", $GLOBALS["DATE_FORMAT"], $Language->phrase("IncorrectDate"));
         $this->modifica_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "<", "<=", ">", ">=", "BETWEEN", "NOT BETWEEN", "IS NULL", "IS NOT NULL"];
         $this->Fields['modifica_dato'] = &$this->modifica_dato;
@@ -251,6 +253,7 @@ class Jugador extends DbTable
         );
         $this->usuario_dato->addMethod("getDefault", fn() => "admin");
         $this->usuario_dato->InputTextType = "text";
+        $this->usuario_dato->Sortable = false; // Allow sort
         $this->usuario_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
 
@@ -1311,8 +1314,6 @@ class Jugador extends DbTable
                     $doc->exportCaption($this->usuario_dato);
                 } else {
                     $doc->exportCaption($this->id_jugador);
-                    $doc->exportCaption($this->crea_dato);
-                    $doc->exportCaption($this->modifica_dato);
                 }
                 $doc->endExportRow();
             }
@@ -1351,8 +1352,6 @@ class Jugador extends DbTable
                         $doc->exportField($this->usuario_dato);
                     } else {
                         $doc->exportField($this->id_jugador);
-                        $doc->exportField($this->crea_dato);
-                        $doc->exportField($this->modifica_dato);
                     }
                     $doc->endExportRow($rowCnt);
                 }

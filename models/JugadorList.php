@@ -615,9 +615,6 @@ class JugadorList extends Jugador
         // View
         $this->View = Get(Config("VIEW"));
 
-        // Create form object
-        $CurrentForm = new HttpForm();
-
         // Get export parameters
         $custom = "";
         if (Param("export") !== null) {
@@ -679,9 +676,6 @@ class JugadorList extends Jugador
             $this->ListActions->add($name, $action);
         }
 
-        // Load default values for add
-        $this->loadDefaultValues();
-
         // Update form name to avoid conflict
         if ($this->IsModal) {
             $this->FormName = "fjugadorgrid";
@@ -717,35 +711,6 @@ class JugadorList extends Jugador
         // Set up Breadcrumb
         if (!$this->isExport()) {
             $this->setupBreadcrumb();
-        }
-
-        // Check QueryString parameters
-        if (Get("action") !== null) {
-            $this->CurrentAction = Get("action");
-        } else {
-            if (Post("action") !== null) {
-                $this->CurrentAction = Post("action"); // Get action
-            }
-        }
-
-        // Clear inline mode
-        if ($this->isCancel()) {
-            $this->clearInlineMode();
-        }
-
-        // Switch to inline add mode
-        if ($this->isAdd() || $this->isCopy()) {
-            $this->inlineAddMode();
-        // Insert Inline
-        } elseif (IsPost() && $this->isInsert() && Session(SESSION_INLINE_MODE) == "add") {
-            $this->setKey(Post($this->OldKeyName));
-            // Return JSON error message if UseAjaxActions
-            if (!$this->inlineInsert() && $this->UseAjaxActions) {
-                WriteJson([ "success" => false, "error" => $this->getFailureMessage() ]);
-                $this->clearFailureMessage();
-                $this->terminate();
-                return;
-            }
         }
 
         // Hide list options
@@ -997,54 +962,6 @@ class JugadorList extends Jugador
         }
     }
 
-    // Exit inline mode
-    protected function clearInlineMode()
-    {
-        $this->LastAction = $this->CurrentAction; // Save last action
-        $this->CurrentAction = ""; // Clear action
-        $_SESSION[SESSION_INLINE_MODE] = ""; // Clear inline mode
-    }
-
-    // Switch to Inline Add mode
-    protected function inlineAddMode()
-    {
-        global $Security, $Language;
-        if (!$Security->canAdd()) {
-            return false; // Add not allowed
-        }
-        $this->CurrentAction = "add";
-        $_SESSION[SESSION_INLINE_MODE] = "add"; // Enable inline add
-        return true;
-    }
-
-    // Perform update to Inline Add/Copy record
-    protected function inlineInsert()
-    {
-        global $Language, $CurrentForm;
-        $rsold = $this->loadOldRecord(); // Load old record
-        $CurrentForm->Index = 0;
-        $this->loadFormValues(); // Get form values
-
-        // Validate form
-        if (!$this->validateForm()) {
-            $this->EventCancelled = true; // Set event cancelled
-            $this->CurrentAction = "add"; // Stay in add mode
-            return false;
-        }
-        $this->SendEmail = true; // Send email on add success
-        if ($this->addRow($rsold)) { // Add record
-            if ($this->getSuccessMessage() == "") {
-                $this->setSuccessMessage($Language->phrase("AddSuccess")); // Set up add success message
-            }
-            $this->clearInlineMode(); // Clear inline add mode
-            return true;
-        } else { // Add failed
-            $this->EventCancelled = true; // Set event cancelled
-            $this->CurrentAction = "add"; // Stay in add mode
-            return false;
-        }
-    }
-
     // Build filter for all keys
     protected function buildKeyFilter()
     {
@@ -1074,18 +991,6 @@ class JugadorList extends Jugador
             $thisKey = strval($CurrentForm->getValue($this->OldKeyName));
         }
         return $wrkFilter;
-    }
-
-    // Reset form status
-    public function resetFormError()
-    {
-        $this->id_jugador->clearErrorMessage();
-        $this->nombre_jugador->clearErrorMessage();
-        $this->votos_jugador->clearErrorMessage();
-        $this->imagen_jugador->clearErrorMessage();
-        $this->crea_dato->clearErrorMessage();
-        $this->modifica_dato->clearErrorMessage();
-        $this->usuario_dato->clearErrorMessage();
     }
 
     // Get list of filters
@@ -1427,55 +1332,7 @@ class JugadorList extends Jugador
 
         // Call ListOptions_Rendering event
         $this->listOptionsRendering();
-
-        // Set up row action and key
-        if ($CurrentForm && is_numeric($this->RowIndex) && $this->RowType != "view") {
-            $CurrentForm->Index = $this->RowIndex;
-            $actionName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormActionName);
-            $oldKeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->OldKeyName);
-            $blankRowName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormBlankRowName);
-            if ($this->RowAction != "") {
-                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $actionName . "\" id=\"" . $actionName . "\" value=\"" . $this->RowAction . "\">";
-            }
-            $oldKey = $this->getKey(false); // Get from OldValue
-            if ($oldKeyName != "" && $oldKey != "") {
-                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $oldKeyName . "\" id=\"" . $oldKeyName . "\" value=\"" . HtmlEncode($oldKey) . "\">";
-            }
-            if ($this->RowAction == "insert" && $this->isConfirm() && $this->emptyRow()) {
-                $this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $blankRowName . "\" id=\"" . $blankRowName . "\" value=\"1\">";
-            }
-        }
         $pageUrl = $this->pageUrl(false);
-
-        // "copy"
-        $opt = $this->ListOptions["copy"];
-        if ($this->isInlineAddRow() || $this->isInlineCopyRow()) { // Inline Add/Copy
-            $this->ListOptions->CustomItem = "copy"; // Show copy column only
-            $divClass = $opt->OnLeft ? " class=\"text-end\"" : "";
-            $insertCaption = $Language->phrase("InsertLink");
-            $insertTitle = HtmlTitle($insertCaption);
-            $cancelCaption = $Language->phrase("CancelLink");
-            $cancelTitle = HtmlTitle($cancelCaption);
-            $inlineInsertUrl = GetUrl($this->pageName());
-            if ($this->UseAjaxActions) {
-                $opt->Body = <<<INLINEADDAJAX
-                    <div{$divClass}>
-                        <button class="ew-grid-link ew-inline-insert" title="{$insertTitle}" data-caption="{$insertTitle}" data-ew-action="inline" data-action="insert" data-key="" data-url="{$inlineInsertUrl}">{$insertCaption}</button>
-                        <button class="ew-grid-link ew-inline-cancel" title="{$cancelTitle}" data-caption="{$cancelTitle}" data-ew-action="inline" data-action="cancel">{$cancelCaption}</button>
-                    </div>
-                    INLINEADDAJAX;
-            } else {
-                $cancelurl = $this->addMasterUrl($pageUrl . "action=cancel");
-                $opt->Body = <<<INLINEADD
-                    <div{$divClass}>
-                        <button class="ew-grid-link ew-inline-insert" title="{$insertTitle}" data-caption="{$insertTitle}" form="fjugadorlist" formaction="{$inlineInsertUrl}">{$insertCaption}</button>
-                        <a class="ew-grid-link ew-inline-cancel" title="{$cancelTitle}" data-caption="{$insertTitle}" href="{$cancelurl}">{$cancelCaption}</a>
-                        <input type="hidden" name="action" id="action" value="insert">
-                    </div>
-                    INLINEADD;
-            }
-            return;
-        }
         if ($this->CurrentMode == "view") {
             // "view"
             $opt = $this->ListOptions["view"];
@@ -1583,15 +1440,6 @@ class JugadorList extends Jugador
             $item->Body = "<a class=\"ew-add-edit ew-add\" title=\"" . $addcaption . "\" data-caption=\"" . $addcaption . "\" href=\"" . HtmlEncode(GetUrl($this->AddUrl)) . "\">" . $Language->phrase("AddLink") . "</a>";
         }
         $item->Visible = $this->AddUrl != "" && $Security->canAdd();
-
-        // Inline Add
-        $item = &$option->add("inlineadd");
-        if ($this->UseAjaxActions) {
-            $item->Body = "<button class=\"ew-add-edit ew-inline-add\" title=\"" . $Language->phrase("InlineAddLink", true) . "\" data-caption=\"" . $Language->phrase("InlineAddLink", true) . "\" data-ew-action=\"inline\" data-action=\"add\" data-position=\"top\" data-url=\"" . HtmlEncode(GetUrl($this->InlineAddUrl)) . "\">" . $Language->phrase("InlineAddLink") . "</button>";
-        } else {
-            $item->Body = "<a class=\"ew-add-edit ew-inline-add\" title=\"" . HtmlTitle($Language->phrase("InlineAddLink")) . "\" data-caption=\"" . HtmlTitle($Language->phrase("InlineAddLink")) . "\" href=\"" . HtmlEncode(GetUrl($this->InlineAddUrl)) . "\">" . $Language->phrase("InlineAddLink") . "</a>";
-        }
-        $item->Visible = $this->InlineAddUrl != "" && $Security->canAdd();
         $option = $options["action"];
 
         // Add multi delete
@@ -1801,15 +1649,6 @@ class JugadorList extends Jugador
                 $this->StopRecord = $this->TotalRecords;
             }
         }
-
-        // Restore number of post back records
-        if ($CurrentForm && ($this->isConfirm() || $this->EventCancelled)) {
-            $CurrentForm->Index = -1;
-            if ($CurrentForm->hasValue($this->FormKeyCountName) && ($this->isGridAdd() || $this->isGridEdit() || $this->isConfirm())) {
-                $this->KeyCount = $CurrentForm->getValue($this->FormKeyCountName);
-                $this->StopRecord = $this->StartRecord + $this->KeyCount - 1;
-            }
-        }
         $this->RecordCount = $this->StartRecord - 1;
         if ($this->Recordset && !$this->Recordset->EOF) {
             // Nothing to do
@@ -1821,12 +1660,6 @@ class JugadorList extends Jugador
         $this->RowType = ROWTYPE_AGGREGATEINIT;
         $this->resetAttributes();
         $this->renderRow();
-        if ($this->isAdd() || $this->isCopy() || $this->isInlineInserted()) {
-            $this->RowIndex = 0;
-            if ($this->UseInfiniteScroll) {
-                $this->StopRecord = $this->StartRecord; // Show this record only
-            }
-        }
         if (($this->isGridAdd() || $this->isGridEdit())) { // Render template row first
             $this->RowIndex = '$rowindex$';
         }
@@ -1915,22 +1748,6 @@ class JugadorList extends Jugador
         $this->renderListOptions();
     }
 
-    // Get upload files
-    protected function getUploadFiles()
-    {
-        global $CurrentForm, $Language;
-        $this->imagen_jugador->Upload->Index = $CurrentForm->Index;
-        $this->imagen_jugador->Upload->uploadFile();
-        $this->imagen_jugador->CurrentValue = $this->imagen_jugador->Upload->FileName;
-    }
-
-    // Load default values
-    protected function loadDefaultValues()
-    {
-        $this->usuario_dato->DefaultValue = $this->usuario_dato->getDefault(); // PHP
-        $this->usuario_dato->OldValue = $this->usuario_dato->DefaultValue;
-    }
-
     // Load basic search values
     protected function loadBasicSearchValues()
     {
@@ -1939,89 +1756,6 @@ class JugadorList extends Jugador
             $this->Command = "search";
         }
         $this->BasicSearch->setType(Get(Config("TABLE_BASIC_SEARCH_TYPE"), ""), false);
-    }
-
-    // Load form values
-    protected function loadFormValues()
-    {
-        // Load from form
-        global $CurrentForm;
-        $validate = !Config("SERVER_VALIDATE");
-
-        // Check field name 'id_jugador' first before field var 'x_id_jugador'
-        $val = $CurrentForm->hasValue("id_jugador") ? $CurrentForm->getValue("id_jugador") : $CurrentForm->getValue("x_id_jugador");
-        if (!$this->id_jugador->IsDetailKey && !$this->isGridAdd() && !$this->isAdd()) {
-            $this->id_jugador->setFormValue($val);
-        }
-
-        // Check field name 'nombre_jugador' first before field var 'x_nombre_jugador'
-        $val = $CurrentForm->hasValue("nombre_jugador") ? $CurrentForm->getValue("nombre_jugador") : $CurrentForm->getValue("x_nombre_jugador");
-        if (!$this->nombre_jugador->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->nombre_jugador->Visible = false; // Disable update for API request
-            } else {
-                $this->nombre_jugador->setFormValue($val);
-            }
-        }
-
-        // Check field name 'votos_jugador' first before field var 'x_votos_jugador'
-        $val = $CurrentForm->hasValue("votos_jugador") ? $CurrentForm->getValue("votos_jugador") : $CurrentForm->getValue("x_votos_jugador");
-        if (!$this->votos_jugador->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->votos_jugador->Visible = false; // Disable update for API request
-            } else {
-                $this->votos_jugador->setFormValue($val);
-            }
-        }
-
-        // Check field name 'crea_dato' first before field var 'x_crea_dato'
-        $val = $CurrentForm->hasValue("crea_dato") ? $CurrentForm->getValue("crea_dato") : $CurrentForm->getValue("x_crea_dato");
-        if (!$this->crea_dato->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->crea_dato->Visible = false; // Disable update for API request
-            } else {
-                $this->crea_dato->setFormValue($val);
-            }
-            $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
-        }
-
-        // Check field name 'modifica_dato' first before field var 'x_modifica_dato'
-        $val = $CurrentForm->hasValue("modifica_dato") ? $CurrentForm->getValue("modifica_dato") : $CurrentForm->getValue("x_modifica_dato");
-        if (!$this->modifica_dato->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->modifica_dato->Visible = false; // Disable update for API request
-            } else {
-                $this->modifica_dato->setFormValue($val);
-            }
-            $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
-        }
-
-        // Check field name 'usuario_dato' first before field var 'x_usuario_dato'
-        $val = $CurrentForm->hasValue("usuario_dato") ? $CurrentForm->getValue("usuario_dato") : $CurrentForm->getValue("x_usuario_dato");
-        if (!$this->usuario_dato->IsDetailKey) {
-            if (IsApi() && $val === null) {
-                $this->usuario_dato->Visible = false; // Disable update for API request
-            } else {
-                $this->usuario_dato->setFormValue($val);
-            }
-        }
-        $this->getUploadFiles(); // Get upload files
-    }
-
-    // Restore form values
-    public function restoreFormValues()
-    {
-        global $CurrentForm;
-        if (!$this->isGridAdd() && !$this->isAdd()) {
-            $this->id_jugador->CurrentValue = $this->id_jugador->FormValue;
-        }
-        $this->nombre_jugador->CurrentValue = $this->nombre_jugador->FormValue;
-        $this->votos_jugador->CurrentValue = $this->votos_jugador->FormValue;
-        $this->crea_dato->CurrentValue = $this->crea_dato->FormValue;
-        $this->crea_dato->CurrentValue = UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern());
-        $this->modifica_dato->CurrentValue = $this->modifica_dato->FormValue;
-        $this->modifica_dato->CurrentValue = UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern());
-        $this->usuario_dato->CurrentValue = $this->usuario_dato->FormValue;
     }
 
     // Load recordset
@@ -2260,292 +1994,12 @@ class JugadorList extends Jugador
             // usuario_dato
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
-        } elseif ($this->RowType == ROWTYPE_ADD) {
-            // id_jugador
-
-            // nombre_jugador
-            $this->nombre_jugador->setupEditAttributes();
-            $this->nombre_jugador->EditValue = HtmlEncode($this->nombre_jugador->CurrentValue);
-            $this->nombre_jugador->PlaceHolder = RemoveHtml($this->nombre_jugador->caption());
-
-            // votos_jugador
-            $this->votos_jugador->setupEditAttributes();
-            $this->votos_jugador->EditValue = HtmlEncode($this->votos_jugador->CurrentValue);
-            $this->votos_jugador->PlaceHolder = RemoveHtml($this->votos_jugador->caption());
-
-            // imagen_jugador
-            $this->imagen_jugador->setupEditAttributes();
-            if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
-                $this->imagen_jugador->ImageWidth = 50;
-                $this->imagen_jugador->ImageHeight = 0;
-                $this->imagen_jugador->ImageAlt = $this->imagen_jugador->alt();
-                $this->imagen_jugador->ImageCssClass = "ew-image";
-                $this->imagen_jugador->EditValue = $this->imagen_jugador->Upload->DbValue;
-            } else {
-                $this->imagen_jugador->EditValue = "";
-            }
-            if (!EmptyValue($this->imagen_jugador->CurrentValue)) {
-                if ($this->RowIndex == '$rowindex$') {
-                    $this->imagen_jugador->Upload->FileName = "";
-                } else {
-                    $this->imagen_jugador->Upload->FileName = $this->imagen_jugador->CurrentValue;
-                }
-            }
-            if (is_numeric($this->RowIndex)) {
-                RenderUploadField($this->imagen_jugador, $this->RowIndex);
-            }
-
-            // crea_dato
-            $this->crea_dato->setupEditAttributes();
-            $this->crea_dato->EditValue = HtmlEncode(FormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()));
-            $this->crea_dato->PlaceHolder = RemoveHtml($this->crea_dato->caption());
-
-            // modifica_dato
-            $this->modifica_dato->setupEditAttributes();
-            $this->modifica_dato->EditValue = HtmlEncode(FormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()));
-            $this->modifica_dato->PlaceHolder = RemoveHtml($this->modifica_dato->caption());
-
-            // usuario_dato
-            $this->usuario_dato->setupEditAttributes();
-            $this->usuario_dato->EditValue = HtmlEncode($this->usuario_dato->CurrentValue);
-            $this->usuario_dato->PlaceHolder = RemoveHtml($this->usuario_dato->caption());
-
-            // Add refer script
-
-            // id_jugador
-            $this->id_jugador->HrefValue = "";
-
-            // nombre_jugador
-            $this->nombre_jugador->HrefValue = "";
-
-            // votos_jugador
-            $this->votos_jugador->HrefValue = "";
-
-            // imagen_jugador
-            if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
-                $this->imagen_jugador->HrefValue = GetFileUploadUrl($this->imagen_jugador, $this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)); // Add prefix/suffix
-                $this->imagen_jugador->LinkAttrs["target"] = ""; // Add target
-                if ($this->isExport()) {
-                    $this->imagen_jugador->HrefValue = FullUrl($this->imagen_jugador->HrefValue, "href");
-                }
-            } else {
-                $this->imagen_jugador->HrefValue = "";
-            }
-            $this->imagen_jugador->ExportHrefValue = $this->imagen_jugador->UploadPath . $this->imagen_jugador->Upload->DbValue;
-
-            // crea_dato
-            $this->crea_dato->HrefValue = "";
-
-            // modifica_dato
-            $this->modifica_dato->HrefValue = "";
-
-            // usuario_dato
-            $this->usuario_dato->HrefValue = "";
-        }
-        if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) { // Add/Edit/Search row
-            $this->setupFieldTitles();
         }
 
         // Call Row Rendered event
         if ($this->RowType != ROWTYPE_AGGREGATEINIT) {
             $this->rowRendered();
         }
-    }
-
-    // Validate form
-    protected function validateForm()
-    {
-        global $Language, $Security;
-
-        // Check if validation required
-        if (!Config("SERVER_VALIDATE")) {
-            return true;
-        }
-        $validateForm = true;
-        if ($this->id_jugador->Required) {
-            if (!$this->id_jugador->IsDetailKey && EmptyValue($this->id_jugador->FormValue)) {
-                $this->id_jugador->addErrorMessage(str_replace("%s", $this->id_jugador->caption(), $this->id_jugador->RequiredErrorMessage));
-            }
-        }
-        if ($this->nombre_jugador->Required) {
-            if (!$this->nombre_jugador->IsDetailKey && EmptyValue($this->nombre_jugador->FormValue)) {
-                $this->nombre_jugador->addErrorMessage(str_replace("%s", $this->nombre_jugador->caption(), $this->nombre_jugador->RequiredErrorMessage));
-            }
-        }
-        if ($this->votos_jugador->Required) {
-            if (!$this->votos_jugador->IsDetailKey && EmptyValue($this->votos_jugador->FormValue)) {
-                $this->votos_jugador->addErrorMessage(str_replace("%s", $this->votos_jugador->caption(), $this->votos_jugador->RequiredErrorMessage));
-            }
-        }
-        if ($this->imagen_jugador->Required) {
-            if ($this->imagen_jugador->Upload->FileName == "" && !$this->imagen_jugador->Upload->KeepFile) {
-                $this->imagen_jugador->addErrorMessage(str_replace("%s", $this->imagen_jugador->caption(), $this->imagen_jugador->RequiredErrorMessage));
-            }
-        }
-        if ($this->crea_dato->Required) {
-            if (!$this->crea_dato->IsDetailKey && EmptyValue($this->crea_dato->FormValue)) {
-                $this->crea_dato->addErrorMessage(str_replace("%s", $this->crea_dato->caption(), $this->crea_dato->RequiredErrorMessage));
-            }
-        }
-        if ($this->modifica_dato->Required) {
-            if (!$this->modifica_dato->IsDetailKey && EmptyValue($this->modifica_dato->FormValue)) {
-                $this->modifica_dato->addErrorMessage(str_replace("%s", $this->modifica_dato->caption(), $this->modifica_dato->RequiredErrorMessage));
-            }
-        }
-        if ($this->usuario_dato->Required) {
-            if (!$this->usuario_dato->IsDetailKey && EmptyValue($this->usuario_dato->FormValue)) {
-                $this->usuario_dato->addErrorMessage(str_replace("%s", $this->usuario_dato->caption(), $this->usuario_dato->RequiredErrorMessage));
-            }
-        }
-
-        // Return validate result
-        $validateForm = $validateForm && !$this->hasInvalidFields();
-
-        // Call Form_CustomValidate event
-        $formCustomError = "";
-        $validateForm = $validateForm && $this->formCustomValidate($formCustomError);
-        if ($formCustomError != "") {
-            $this->setFailureMessage($formCustomError);
-        }
-        return $validateForm;
-    }
-
-    // Add record
-    protected function addRow($rsold = null)
-    {
-        global $Language, $Security;
-
-        // Set new row
-        $rsnew = [];
-
-        // nombre_jugador
-        $this->nombre_jugador->setDbValueDef($rsnew, $this->nombre_jugador->CurrentValue, null, false);
-
-        // votos_jugador
-        $this->votos_jugador->setDbValueDef($rsnew, $this->votos_jugador->CurrentValue, null, false);
-
-        // imagen_jugador
-        if ($this->imagen_jugador->Visible && !$this->imagen_jugador->Upload->KeepFile) {
-            $this->imagen_jugador->Upload->DbValue = ""; // No need to delete old file
-            if ($this->imagen_jugador->Upload->FileName == "") {
-                $rsnew['imagen_jugador'] = null;
-            } else {
-                $rsnew['imagen_jugador'] = $this->imagen_jugador->Upload->FileName;
-            }
-        }
-
-        // crea_dato
-        $this->crea_dato->setDbValueDef($rsnew, UnFormatDateTime($this->crea_dato->CurrentValue, $this->crea_dato->formatPattern()), null, false);
-
-        // modifica_dato
-        $this->modifica_dato->setDbValueDef($rsnew, UnFormatDateTime($this->modifica_dato->CurrentValue, $this->modifica_dato->formatPattern()), null, false);
-
-        // usuario_dato
-        $this->usuario_dato->setDbValueDef($rsnew, $this->usuario_dato->CurrentValue, null, strval($this->usuario_dato->CurrentValue) == "");
-        if ($this->imagen_jugador->Visible && !$this->imagen_jugador->Upload->KeepFile) {
-            $oldFiles = EmptyValue($this->imagen_jugador->Upload->DbValue) ? [] : [$this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)];
-            if (!EmptyValue($this->imagen_jugador->Upload->FileName)) {
-                $newFiles = [$this->imagen_jugador->Upload->FileName];
-                $NewFileCount = count($newFiles);
-                for ($i = 0; $i < $NewFileCount; $i++) {
-                    if ($newFiles[$i] != "") {
-                        $file = $newFiles[$i];
-                        $tempPath = UploadTempPath($this->imagen_jugador, $this->imagen_jugador->Upload->Index);
-                        if (file_exists($tempPath . $file)) {
-                            if (Config("DELETE_UPLOADED_FILES")) {
-                                $oldFileFound = false;
-                                $oldFileCount = count($oldFiles);
-                                for ($j = 0; $j < $oldFileCount; $j++) {
-                                    $oldFile = $oldFiles[$j];
-                                    if ($oldFile == $file) { // Old file found, no need to delete anymore
-                                        array_splice($oldFiles, $j, 1);
-                                        $oldFileFound = true;
-                                        break;
-                                    }
-                                }
-                                if ($oldFileFound) { // No need to check if file exists further
-                                    continue;
-                                }
-                            }
-                            $file1 = UniqueFilename($this->imagen_jugador->physicalUploadPath(), $file); // Get new file name
-                            if ($file1 != $file) { // Rename temp file
-                                while (file_exists($tempPath . $file1) || file_exists($this->imagen_jugador->physicalUploadPath() . $file1)) { // Make sure no file name clash
-                                    $file1 = UniqueFilename([$this->imagen_jugador->physicalUploadPath(), $tempPath], $file1, true); // Use indexed name
-                                }
-                                rename($tempPath . $file, $tempPath . $file1);
-                                $newFiles[$i] = $file1;
-                            }
-                        }
-                    }
-                }
-                $this->imagen_jugador->Upload->DbValue = empty($oldFiles) ? "" : implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $oldFiles);
-                $this->imagen_jugador->Upload->FileName = implode(Config("MULTIPLE_UPLOAD_SEPARATOR"), $newFiles);
-                $this->imagen_jugador->setDbValueDef($rsnew, $this->imagen_jugador->Upload->FileName, null, false);
-            }
-        }
-
-        // Update current values
-        $this->setCurrentValues($rsnew);
-        $conn = $this->getConnection();
-
-        // Load db values from old row
-        $this->loadDbValues($rsold);
-
-        // Call Row Inserting event
-        $insertRow = $this->rowInserting($rsold, $rsnew);
-        if ($insertRow) {
-            $addRow = $this->insert($rsnew);
-            if ($addRow) {
-                if ($this->imagen_jugador->Visible && !$this->imagen_jugador->Upload->KeepFile) {
-                    $oldFiles = EmptyValue($this->imagen_jugador->Upload->DbValue) ? [] : [$this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)];
-                    if (!EmptyValue($this->imagen_jugador->Upload->FileName)) {
-                        $newFiles = [$this->imagen_jugador->Upload->FileName];
-                        $newFiles2 = [$this->imagen_jugador->htmlDecode($rsnew['imagen_jugador'])];
-                        $newFileCount = count($newFiles);
-                        for ($i = 0; $i < $newFileCount; $i++) {
-                            if ($newFiles[$i] != "") {
-                                $file = UploadTempPath($this->imagen_jugador, $this->imagen_jugador->Upload->Index) . $newFiles[$i];
-                                if (file_exists($file)) {
-                                    if (@$newFiles2[$i] != "") { // Use correct file name
-                                        $newFiles[$i] = $newFiles2[$i];
-                                    }
-                                    if (!$this->imagen_jugador->Upload->SaveToFile($newFiles[$i], true, $i)) { // Just replace
-                                        $this->setFailureMessage($Language->phrase("UploadError7"));
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        $newFiles = [];
-                    }
-                    if (Config("DELETE_UPLOADED_FILES")) {
-                        foreach ($oldFiles as $oldFile) {
-                            if ($oldFile != "" && !in_array($oldFile, $newFiles)) {
-                                @unlink($this->imagen_jugador->oldPhysicalUploadPath() . $oldFile);
-                            }
-                        }
-                    }
-                }
-            } elseif (!EmptyValue($this->DbErrorMessage)) { // Show database error
-                $this->setFailureMessage($this->DbErrorMessage);
-            }
-        } else {
-            if ($this->getSuccessMessage() != "" || $this->getFailureMessage() != "") {
-                // Use the message, do nothing
-            } elseif ($this->CancelMessage != "") {
-                $this->setFailureMessage($this->CancelMessage);
-                $this->CancelMessage = "";
-            } else {
-                $this->setFailureMessage($Language->phrase("InsertCancelled"));
-            }
-            $addRow = false;
-        }
-        if ($addRow) {
-            // Call Row Inserted event
-            $this->rowInserted($rsold, $rsnew);
-        }
-        return $addRow;
     }
 
     // Set up search options

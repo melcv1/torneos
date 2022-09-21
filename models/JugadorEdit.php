@@ -852,14 +852,6 @@ class JugadorEdit extends Jugador
                 $this->imagen_jugador->ViewValue = "";
             }
 
-            // crea_dato
-            $this->crea_dato->ViewValue = $this->crea_dato->CurrentValue;
-            $this->crea_dato->ViewValue = FormatDateTime($this->crea_dato->ViewValue, $this->crea_dato->formatPattern());
-
-            // modifica_dato
-            $this->modifica_dato->ViewValue = $this->modifica_dato->CurrentValue;
-            $this->modifica_dato->ViewValue = FormatDateTime($this->modifica_dato->ViewValue, $this->modifica_dato->formatPattern());
-
             // id_jugador
             $this->id_jugador->HrefValue = "";
 

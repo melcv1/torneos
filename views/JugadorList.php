@@ -22,32 +22,6 @@ loadjs.ready(["wrapper", "head"], function () {
         .setPageId("list")
         .setSubmitWithFetch(<?= $Page->UseAjaxActions ? "true" : "false" ?>)
         .setFormKeyCountName("<?= $Page->FormKeyCountName ?>")
-
-        // Add fields
-        .setFields([
-            ["id_jugador", [fields.id_jugador.visible && fields.id_jugador.required ? ew.Validators.required(fields.id_jugador.caption) : null], fields.id_jugador.isInvalid],
-            ["nombre_jugador", [fields.nombre_jugador.visible && fields.nombre_jugador.required ? ew.Validators.required(fields.nombre_jugador.caption) : null], fields.nombre_jugador.isInvalid],
-            ["votos_jugador", [fields.votos_jugador.visible && fields.votos_jugador.required ? ew.Validators.required(fields.votos_jugador.caption) : null], fields.votos_jugador.isInvalid],
-            ["imagen_jugador", [fields.imagen_jugador.visible && fields.imagen_jugador.required ? ew.Validators.fileRequired(fields.imagen_jugador.caption) : null], fields.imagen_jugador.isInvalid],
-            ["crea_dato", [fields.crea_dato.visible && fields.crea_dato.required ? ew.Validators.required(fields.crea_dato.caption) : null], fields.crea_dato.isInvalid],
-            ["modifica_dato", [fields.modifica_dato.visible && fields.modifica_dato.required ? ew.Validators.required(fields.modifica_dato.caption) : null], fields.modifica_dato.isInvalid],
-            ["usuario_dato", [fields.usuario_dato.visible && fields.usuario_dato.required ? ew.Validators.required(fields.usuario_dato.caption) : null], fields.usuario_dato.isInvalid]
-        ])
-
-        // Form_CustomValidate
-        .setCustomValidate(
-            function (fobj) { // DO NOT CHANGE THIS LINE! (except for adding "async" keyword)!
-                    // Your custom validation code here, return false if invalid.
-                    return true;
-                }
-        )
-
-        // Use JavaScript validation or not
-        .setValidateRequired(ew.CLIENT_VALIDATE)
-
-        // Dynamic selection lists
-        .setLists({
-        })
         .build();
     window[form.id] = form;
     currentForm = form;
@@ -155,7 +129,7 @@ $Page->showMessage();
 <input type="hidden" name="modal" value="1">
 <?php } ?>
 <div id="gmp_jugador" class="card-body ew-grid-middle-panel <?= $Page->TableContainerClass ?>" style="<?= $Page->TableContainerStyle ?>">
-<?php if ($Page->TotalRecords > 0 || $Page->isAdd() || $Page->isCopy() || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
+<?php if ($Page->TotalRecords > 0 || $Page->isGridEdit() || $Page->isMultiEdit()) { ?>
 <table id="tbl_jugadorlist" class="<?= $Page->TableClass ?>"><!-- .ew-table -->
 <thead>
     <tr class="ew-table-header">
@@ -211,201 +185,59 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 ?>
     <?php if ($Page->id_jugador->Visible) { // id_jugador ?>
         <td data-name="id_jugador"<?= $Page->id_jugador->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_id_jugador" class="el_jugador_id_jugador"></span>
-<input type="hidden" data-table="jugador" data-field="x_id_jugador" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_id_jugador" id="o<?= $Page->RowIndex ?>_id_jugador" value="<?= HtmlEncode($Page->id_jugador->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_id_jugador" class="el_jugador_id_jugador">
 <span<?= $Page->id_jugador->viewAttributes() ?>>
 <?= $Page->id_jugador->getViewValue() ?></span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->nombre_jugador->Visible) { // nombre_jugador ?>
         <td data-name="nombre_jugador"<?= $Page->nombre_jugador->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_nombre_jugador" class="el_jugador_nombre_jugador">
-<textarea data-table="jugador" data-field="x_nombre_jugador" name="x<?= $Page->RowIndex ?>_nombre_jugador" id="x<?= $Page->RowIndex ?>_nombre_jugador" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->nombre_jugador->getPlaceHolder()) ?>"<?= $Page->nombre_jugador->editAttributes() ?>><?= $Page->nombre_jugador->EditValue ?></textarea>
-<div class="invalid-feedback"><?= $Page->nombre_jugador->getErrorMessage() ?></div>
-</span>
-<input type="hidden" data-table="jugador" data-field="x_nombre_jugador" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_nombre_jugador" id="o<?= $Page->RowIndex ?>_nombre_jugador" value="<?= HtmlEncode($Page->nombre_jugador->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_nombre_jugador" class="el_jugador_nombre_jugador">
 <span<?= $Page->nombre_jugador->viewAttributes() ?>>
 <?= $Page->nombre_jugador->getViewValue() ?></span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->votos_jugador->Visible) { // votos_jugador ?>
         <td data-name="votos_jugador"<?= $Page->votos_jugador->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_votos_jugador" class="el_jugador_votos_jugador">
-<textarea data-table="jugador" data-field="x_votos_jugador" name="x<?= $Page->RowIndex ?>_votos_jugador" id="x<?= $Page->RowIndex ?>_votos_jugador" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->votos_jugador->getPlaceHolder()) ?>"<?= $Page->votos_jugador->editAttributes() ?>><?= $Page->votos_jugador->EditValue ?></textarea>
-<div class="invalid-feedback"><?= $Page->votos_jugador->getErrorMessage() ?></div>
-</span>
-<input type="hidden" data-table="jugador" data-field="x_votos_jugador" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_votos_jugador" id="o<?= $Page->RowIndex ?>_votos_jugador" value="<?= HtmlEncode($Page->votos_jugador->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_votos_jugador" class="el_jugador_votos_jugador">
 <span<?= $Page->votos_jugador->viewAttributes() ?>>
 <?= $Page->votos_jugador->getViewValue() ?></span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->imagen_jugador->Visible) { // imagen_jugador ?>
         <td data-name="imagen_jugador"<?= $Page->imagen_jugador->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_imagen_jugador" class="el_jugador_imagen_jugador">
-<div id="fd_x<?= $Page->RowIndex ?>_imagen_jugador" class="fileinput-button ew-file-drop-zone">
-    <input
-        type="file"
-        id="x<?= $Page->RowIndex ?>_imagen_jugador"
-        name="x<?= $Page->RowIndex ?>_imagen_jugador"
-        class="form-control ew-file-input"
-        title="<?= $Page->imagen_jugador->title() ?>"
-        lang="<?= CurrentLanguageID() ?>"
-        data-table="jugador"
-        data-field="x_imagen_jugador"
-        data-size="1024"
-        data-accept-file-types="<?= $Page->imagen_jugador->acceptFileTypes() ?>"
-        data-max-file-size="<?= $Page->imagen_jugador->UploadMaxFileSize ?>"
-        data-max-number-of-files="null"
-        data-disable-image-crop="<?= $Page->imagen_jugador->ImageCropper ? 0 : 1 ?>"
-        <?= ($Page->imagen_jugador->ReadOnly || $Page->imagen_jugador->Disabled) ? " disabled" : "" ?>
-        <?= $Page->imagen_jugador->editAttributes() ?>
-    >
-    <div class="text-muted ew-file-text"><?= $Language->phrase("ChooseFile") ?></div>
-</div>
-<div class="invalid-feedback"><?= $Page->imagen_jugador->getErrorMessage() ?></div>
-<input type="hidden" name="fn_x<?= $Page->RowIndex ?>_imagen_jugador" id= "fn_x<?= $Page->RowIndex ?>_imagen_jugador" value="<?= $Page->imagen_jugador->Upload->FileName ?>">
-<input type="hidden" name="fa_x<?= $Page->RowIndex ?>_imagen_jugador" id= "fa_x<?= $Page->RowIndex ?>_imagen_jugador" value="0">
-<table id="ft_x<?= $Page->RowIndex ?>_imagen_jugador" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
-</span>
-<input type="hidden" data-table="jugador" data-field="x_imagen_jugador" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_imagen_jugador" id="o<?= $Page->RowIndex ?>_imagen_jugador" value="<?= HtmlEncode($Page->imagen_jugador->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_imagen_jugador" class="el_jugador_imagen_jugador">
 <span>
 <?= GetFileViewTag($Page->imagen_jugador, $Page->imagen_jugador->getViewValue(), false) ?>
 </span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->crea_dato->Visible) { // crea_dato ?>
         <td data-name="crea_dato"<?= $Page->crea_dato->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_crea_dato" class="el_jugador_crea_dato">
-<input type="<?= $Page->crea_dato->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_crea_dato" id="x<?= $Page->RowIndex ?>_crea_dato" data-table="jugador" data-field="x_crea_dato" value="<?= $Page->crea_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->crea_dato->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->crea_dato->formatPattern()) ?>"<?= $Page->crea_dato->editAttributes() ?>>
-<div class="invalid-feedback"><?= $Page->crea_dato->getErrorMessage() ?></div>
-<?php if (!$Page->crea_dato->ReadOnly && !$Page->crea_dato->Disabled && !isset($Page->crea_dato->EditAttrs["readonly"]) && !isset($Page->crea_dato->EditAttrs["disabled"])) { ?>
-<script>
-loadjs.ready(["<?= $Page->FormName ?>", "datetimepicker"], function () {
-    let format = "<?= DateFormat(0) ?>",
-        options = {
-            localization: {
-                locale: ew.LANGUAGE_ID + "-u-nu-" + ew.getNumberingSystem(),
-                ...ew.language.phrase("datetimepicker")
-            },
-            display: {
-                icons: {
-                    previous: ew.IS_RTL ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left",
-                    next: ew.IS_RTL ? "fa-solid fa-chevron-left" : "fa-solid fa-chevron-right"
-                },
-                components: {
-                    hours: !!format.match(/h/i),
-                    minutes: !!format.match(/m/),
-                    seconds: !!format.match(/s/i),
-                    useTwentyfourHour: !!format.match(/H/)
-                },
-                theme: ew.isDark() ? "dark" : "auto"
-            },
-            meta: {
-                format
-            }
-        };
-    ew.createDateTimePicker("<?= $Page->FormName ?>", "x<?= $Page->RowIndex ?>_crea_dato", jQuery.extend(true, {"useCurrent":false,"display":{"sideBySide":false}}, options));
-});
-</script>
-<?php } ?>
-</span>
-<input type="hidden" data-table="jugador" data-field="x_crea_dato" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_crea_dato" id="o<?= $Page->RowIndex ?>_crea_dato" value="<?= HtmlEncode($Page->crea_dato->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_crea_dato" class="el_jugador_crea_dato">
 <span<?= $Page->crea_dato->viewAttributes() ?>>
 <?= $Page->crea_dato->getViewValue() ?></span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->modifica_dato->Visible) { // modifica_dato ?>
         <td data-name="modifica_dato"<?= $Page->modifica_dato->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_modifica_dato" class="el_jugador_modifica_dato">
-<input type="<?= $Page->modifica_dato->getInputTextType() ?>" name="x<?= $Page->RowIndex ?>_modifica_dato" id="x<?= $Page->RowIndex ?>_modifica_dato" data-table="jugador" data-field="x_modifica_dato" value="<?= $Page->modifica_dato->EditValue ?>" placeholder="<?= HtmlEncode($Page->modifica_dato->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->modifica_dato->formatPattern()) ?>"<?= $Page->modifica_dato->editAttributes() ?>>
-<div class="invalid-feedback"><?= $Page->modifica_dato->getErrorMessage() ?></div>
-<?php if (!$Page->modifica_dato->ReadOnly && !$Page->modifica_dato->Disabled && !isset($Page->modifica_dato->EditAttrs["readonly"]) && !isset($Page->modifica_dato->EditAttrs["disabled"])) { ?>
-<script>
-loadjs.ready(["<?= $Page->FormName ?>", "datetimepicker"], function () {
-    let format = "<?= DateFormat(0) ?>",
-        options = {
-            localization: {
-                locale: ew.LANGUAGE_ID + "-u-nu-" + ew.getNumberingSystem(),
-                ...ew.language.phrase("datetimepicker")
-            },
-            display: {
-                icons: {
-                    previous: ew.IS_RTL ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left",
-                    next: ew.IS_RTL ? "fa-solid fa-chevron-left" : "fa-solid fa-chevron-right"
-                },
-                components: {
-                    hours: !!format.match(/h/i),
-                    minutes: !!format.match(/m/),
-                    seconds: !!format.match(/s/i),
-                    useTwentyfourHour: !!format.match(/H/)
-                },
-                theme: ew.isDark() ? "dark" : "auto"
-            },
-            meta: {
-                format
-            }
-        };
-    ew.createDateTimePicker("<?= $Page->FormName ?>", "x<?= $Page->RowIndex ?>_modifica_dato", jQuery.extend(true, {"useCurrent":false,"display":{"sideBySide":false}}, options));
-});
-</script>
-<?php } ?>
-</span>
-<input type="hidden" data-table="jugador" data-field="x_modifica_dato" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_modifica_dato" id="o<?= $Page->RowIndex ?>_modifica_dato" value="<?= HtmlEncode($Page->modifica_dato->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_modifica_dato" class="el_jugador_modifica_dato">
 <span<?= $Page->modifica_dato->viewAttributes() ?>>
 <?= $Page->modifica_dato->getViewValue() ?></span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
     <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
         <td data-name="usuario_dato"<?= $Page->usuario_dato->cellAttributes() ?>>
-<?php if ($Page->RowType == ROWTYPE_ADD) { // Add record ?>
-<span id="el<?= $Page->RowCount ?>_jugador_usuario_dato" class="el_jugador_usuario_dato">
-<textarea data-table="jugador" data-field="x_usuario_dato" name="x<?= $Page->RowIndex ?>_usuario_dato" id="x<?= $Page->RowIndex ?>_usuario_dato" cols="35" rows="4" placeholder="<?= HtmlEncode($Page->usuario_dato->getPlaceHolder()) ?>"<?= $Page->usuario_dato->editAttributes() ?>><?= $Page->usuario_dato->EditValue ?></textarea>
-<div class="invalid-feedback"><?= $Page->usuario_dato->getErrorMessage() ?></div>
-</span>
-<input type="hidden" data-table="jugador" data-field="x_usuario_dato" data-hidden="1" data-old name="o<?= $Page->RowIndex ?>_usuario_dato" id="o<?= $Page->RowIndex ?>_usuario_dato" value="<?= HtmlEncode($Page->usuario_dato->OldValue) ?>">
-<?php } ?>
-<?php if ($Page->RowType == ROWTYPE_VIEW) { // View record ?>
 <span id="el<?= $Page->RowCount ?>_jugador_usuario_dato" class="el_jugador_usuario_dato">
 <span<?= $Page->usuario_dato->viewAttributes() ?>>
 <?= $Page->usuario_dato->getViewValue() ?></span>
 </span>
-<?php } ?>
 </td>
     <?php } ?>
 <?php
@@ -422,10 +254,6 @@ $Page->ListOptions->render("body", "right", $Page->RowCount);
 ?>
 </tbody>
 </table><!-- /.ew-table -->
-<?php } ?>
-<?php if ($Page->isAdd() || $Page->isCopy()) { ?>
-<input type="hidden" name="<?= $Page->FormKeyCountName ?>" id="<?= $Page->FormKeyCountName ?>" value="<?= $Page->KeyCount ?>">
-<input type="hidden" name="<?= $Page->OldKeyName ?>" value="<?= $Page->OldKey ?>">
 <?php } ?>
 </div><!-- /.ew-grid-middle-panel -->
 <?php if (!$Page->CurrentAction && !$Page->UseAjaxActions) { ?>
