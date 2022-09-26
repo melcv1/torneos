@@ -45,6 +45,7 @@ return [
     "usuario" => \DI\create(Usuario::class),
     "estadio" => \DI\create(Estadio::class),
     "jugador" => \DI\create(Jugador::class),
+    "jugadorequipo" => \DI\create(Jugadorequipo::class),
 
     // User table
     "usertable" => \DI\get("usuario"),

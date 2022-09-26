@@ -131,6 +131,17 @@ loadjs.ready(["wrapper", "head"], function () {
 </td>
     </tr>
 <?php } ?>
+<?php if ($Page->posicion->Visible) { // posicion ?>
+    <tr id="r_posicion"<?= $Page->posicion->rowAttributes() ?>>
+        <td class="<?= $Page->TableLeftColumnClass ?>"><span id="elh_jugador_posicion"><?= $Page->posicion->caption() ?></span></td>
+        <td data-name="posicion"<?= $Page->posicion->cellAttributes() ?>>
+<span id="el_jugador_posicion">
+<span<?= $Page->posicion->viewAttributes() ?>>
+<?= $Page->posicion->getViewValue() ?></span>
+</span>
+</td>
+    </tr>
+<?php } ?>
 </table>
 </form>
 </main>

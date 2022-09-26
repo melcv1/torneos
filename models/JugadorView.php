@@ -498,6 +498,7 @@ class JugadorView extends Jugador
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
+        $this->posicion->setVisibility();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -735,6 +736,7 @@ class JugadorView extends Jugador
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
         $this->usuario_dato->setDbValue($row['usuario_dato']);
+        $this->posicion->setDbValue($row['posicion']);
     }
 
     // Return a row with default values
@@ -748,6 +750,7 @@ class JugadorView extends Jugador
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
+        $row['posicion'] = $this->posicion->DefaultValue;
         return $row;
     }
 
@@ -783,6 +786,8 @@ class JugadorView extends Jugador
 
         // usuario_dato
 
+        // posicion
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // id_jugador
@@ -815,6 +820,9 @@ class JugadorView extends Jugador
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+
+            // posicion
+            $this->posicion->ViewValue = $this->posicion->CurrentValue;
 
             // id_jugador
             $this->id_jugador->HrefValue = "";
@@ -859,6 +867,10 @@ class JugadorView extends Jugador
             // usuario_dato
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
+
+            // posicion
+            $this->posicion->HrefValue = "";
+            $this->posicion->TooltipValue = "";
         }
 
         // Call Row Rendered event

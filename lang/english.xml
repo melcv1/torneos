@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ew-language version="19.0.0" id="en-US" name="English (US)" desc="English (US)" author="e.World Technology Limited" date="2022/9/21">
+<ew-language version="19.0.0" id="en-US" name="English (US)" desc="English (US)" author="e.World Technology Limited" date="2022/9/26">
   <!--
     IMPORTANT NOTES:
     1. Language ID must be RFC 4646 language tags (which use hyphen, not underscore), e.g. en-US, fr-CA, fr-FR,
@@ -1159,9 +1159,6 @@
   <project>
     <phrase id="bodytitle" value="Torneo" />
     <phrase id="footertext" value="&amp;copy;2022 Primicias. All rights reserved." />
-    <menu id="10">
-      <phrase id="menutext" value="Jugador" />
-    </menu>
     <menu id="7">
       <phrase id="menutext" value="Torneo" />
     </menu>
@@ -1173,6 +1170,12 @@
     </menu>
     <menu id="4">
       <phrase id="menutext" value="Equipo Torneo" />
+    </menu>
+    <menu id="10">
+      <phrase id="menutext" value="Jugador" />
+    </menu>
+    <menu id="11">
+      <phrase id="menutext" value="jugadorequipo" />
     </menu>
     <menu id="6">
       <phrase id="menutext" value="Partidos" />
@@ -1615,6 +1618,27 @@
       </field>
       <field id="usuario_dato">
         <phrase id="fldcaption" value="usuario dato" />
+      </field>
+      <field id="posicion">
+        <phrase id="fldcaption" value="posicion" />
+      </field>
+    </table>
+    <table id="jugadorequipo">
+      <phrase id="tblcaption" value="jugadorequipo" />
+      <field id="id_jugadorequipo">
+        <phrase id="fldcaption" value="id jugadorequipo" />
+      </field>
+      <field id="id_equipo">
+        <phrase id="fldcaption" value="id equipo" />
+      </field>
+      <field id="id_jugador">
+        <phrase id="fldcaption" value="id jugador" />
+      </field>
+      <field id="crea_dato">
+        <phrase id="fldcaption" value="crea dato" />
+      </field>
+      <field id="modifica_dato">
+        <phrase id="fldcaption" value="modifica dato" />
       </field>
     </table>
   </project>

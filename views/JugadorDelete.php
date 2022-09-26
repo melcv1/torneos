@@ -71,6 +71,9 @@ $Page->showMessage();
 <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
         <th class="<?= $Page->usuario_dato->headerCellClass() ?>"><span id="elh_jugador_usuario_dato" class="jugador_usuario_dato"><?= $Page->usuario_dato->caption() ?></span></th>
 <?php } ?>
+<?php if ($Page->posicion->Visible) { // posicion ?>
+        <th class="<?= $Page->posicion->headerCellClass() ?>"><span id="elh_jugador_posicion" class="jugador_posicion"><?= $Page->posicion->caption() ?></span></th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
@@ -146,6 +149,14 @@ while (!$Page->Recordset->EOF) {
 <span id="el<?= $Page->RowCount ?>_jugador_usuario_dato" class="el_jugador_usuario_dato">
 <span<?= $Page->usuario_dato->viewAttributes() ?>>
 <?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($Page->posicion->Visible) { // posicion ?>
+        <td<?= $Page->posicion->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_jugador_posicion" class="el_jugador_posicion">
+<span<?= $Page->posicion->viewAttributes() ?>>
+<?= $Page->posicion->getViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

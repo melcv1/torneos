@@ -48,6 +48,7 @@ class Jugador extends DbTable
     public $crea_dato;
     public $modifica_dato;
     public $usuario_dato;
+    public $posicion;
 
     // Page ID
     public $PageID = ""; // To be overridden by subclass
@@ -256,6 +257,28 @@ class Jugador extends DbTable
         $this->usuario_dato->Sortable = false; // Allow sort
         $this->usuario_dato->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['usuario_dato'] = &$this->usuario_dato;
+
+        // posicion $tbl, $fldvar, $fldname, $fldexp, $fldbsexp, $fldtype, $fldsize, $flddtfmt, $upload, $fldvirtualexp, $fldvirtual, $forceselect, $fldvirtualsrch, $fldviewtag = "", $fldhtmltag
+        $this->posicion = new DbField(
+            $this, // Table
+            'x_posicion', // Variable name
+            'posicion', // Name
+            '`posicion`', // Expression
+            '`posicion`', // Basic search expression
+            200, // Type
+            56, // Size
+            -1, // Date/Time format
+            false, // Is upload field
+            '`posicion`', // Virtual expression
+            false, // Is virtual
+            false, // Force selection
+            false, // Is Virtual search
+            'FORMATTED TEXT', // View Tag
+            'TEXT' // Edit Tag
+        );
+        $this->posicion->InputTextType = "text";
+        $this->posicion->SearchOperators = ["=", "<>", "IN", "NOT IN", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
+        $this->Fields['posicion'] = &$this->posicion;
 
         // Add Doctrine Cache
         $this->Cache = new ArrayCache();
@@ -734,6 +757,7 @@ class Jugador extends DbTable
         $this->crea_dato->DbValue = $row['crea_dato'];
         $this->modifica_dato->DbValue = $row['modifica_dato'];
         $this->usuario_dato->DbValue = $row['usuario_dato'];
+        $this->posicion->DbValue = $row['posicion'];
     }
 
     // Delete uploaded files
@@ -1100,6 +1124,7 @@ class Jugador extends DbTable
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
         $this->usuario_dato->setDbValue($row['usuario_dato']);
+        $this->posicion->setDbValue($row['posicion']);
     }
 
     // Render list content
@@ -1144,6 +1169,8 @@ class Jugador extends DbTable
 
         // usuario_dato
 
+        // posicion
+
         // id_jugador
         $this->id_jugador->ViewValue = $this->id_jugador->CurrentValue;
 
@@ -1174,6 +1201,9 @@ class Jugador extends DbTable
 
         // usuario_dato
         $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+
+        // posicion
+        $this->posicion->ViewValue = $this->posicion->CurrentValue;
 
         // id_jugador
         $this->id_jugador->HrefValue = "";
@@ -1218,6 +1248,10 @@ class Jugador extends DbTable
         // usuario_dato
         $this->usuario_dato->HrefValue = "";
         $this->usuario_dato->TooltipValue = "";
+
+        // posicion
+        $this->posicion->HrefValue = "";
+        $this->posicion->TooltipValue = "";
 
         // Call Row Rendered event
         $this->rowRendered();
@@ -1277,6 +1311,14 @@ class Jugador extends DbTable
         $this->usuario_dato->setupEditAttributes();
         $this->usuario_dato->EditValue = $this->usuario_dato->CurrentValue;
 
+        // posicion
+        $this->posicion->setupEditAttributes();
+        if (!$this->posicion->Raw) {
+            $this->posicion->CurrentValue = HtmlDecode($this->posicion->CurrentValue);
+        }
+        $this->posicion->EditValue = $this->posicion->CurrentValue;
+        $this->posicion->PlaceHolder = RemoveHtml($this->posicion->caption());
+
         // Call Row Rendered event
         $this->rowRendered();
     }
@@ -1312,8 +1354,10 @@ class Jugador extends DbTable
                     $doc->exportCaption($this->crea_dato);
                     $doc->exportCaption($this->modifica_dato);
                     $doc->exportCaption($this->usuario_dato);
+                    $doc->exportCaption($this->posicion);
                 } else {
                     $doc->exportCaption($this->id_jugador);
+                    $doc->exportCaption($this->posicion);
                 }
                 $doc->endExportRow();
             }
@@ -1350,8 +1394,10 @@ class Jugador extends DbTable
                         $doc->exportField($this->crea_dato);
                         $doc->exportField($this->modifica_dato);
                         $doc->exportField($this->usuario_dato);
+                        $doc->exportField($this->posicion);
                     } else {
                         $doc->exportField($this->id_jugador);
+                        $doc->exportField($this->posicion);
                     }
                     $doc->endExportRow($rowCnt);
                 }

@@ -36,7 +36,8 @@ loadjs.ready(["wrapper", "head"], function () {
             ["id_jugador", [fields.id_jugador.visible && fields.id_jugador.required ? ew.Validators.required(fields.id_jugador.caption) : null], fields.id_jugador.isInvalid],
             ["nombre_jugador", [fields.nombre_jugador.visible && fields.nombre_jugador.required ? ew.Validators.required(fields.nombre_jugador.caption) : null], fields.nombre_jugador.isInvalid],
             ["votos_jugador", [fields.votos_jugador.visible && fields.votos_jugador.required ? ew.Validators.required(fields.votos_jugador.caption) : null], fields.votos_jugador.isInvalid],
-            ["imagen_jugador", [fields.imagen_jugador.visible && fields.imagen_jugador.required ? ew.Validators.fileRequired(fields.imagen_jugador.caption) : null], fields.imagen_jugador.isInvalid]
+            ["imagen_jugador", [fields.imagen_jugador.visible && fields.imagen_jugador.required ? ew.Validators.fileRequired(fields.imagen_jugador.caption) : null], fields.imagen_jugador.isInvalid],
+            ["posicion", [fields.posicion.visible && fields.posicion.required ? ew.Validators.required(fields.posicion.caption) : null], fields.posicion.isInvalid]
         ])
 
         // Form_CustomValidate
@@ -138,6 +139,18 @@ loadjs.ready(["wrapper", "head"], function () {
 <input type="hidden" name="fn_x_imagen_jugador" id= "fn_x_imagen_jugador" value="<?= $Page->imagen_jugador->Upload->FileName ?>">
 <input type="hidden" name="fa_x_imagen_jugador" id= "fa_x_imagen_jugador" value="<?= (Post("fa_x_imagen_jugador") == "0") ? "0" : "1" ?>">
 <table id="ft_x_imagen_jugador" class="table table-sm float-start ew-upload-table"><tbody class="files"></tbody></table>
+</span>
+</div></div>
+    </div>
+<?php } ?>
+<?php if ($Page->posicion->Visible) { // posicion ?>
+    <div id="r_posicion"<?= $Page->posicion->rowAttributes() ?>>
+        <label id="elh_jugador_posicion" for="x_posicion" class="<?= $Page->LeftColumnClass ?>"><?= $Page->posicion->caption() ?><?= $Page->posicion->Required ? $Language->phrase("FieldRequiredIndicator") : "" ?></label>
+        <div class="<?= $Page->RightColumnClass ?>"><div<?= $Page->posicion->cellAttributes() ?>>
+<span id="el_jugador_posicion">
+<input type="<?= $Page->posicion->getInputTextType() ?>" name="x_posicion" id="x_posicion" data-table="jugador" data-field="x_posicion" value="<?= $Page->posicion->EditValue ?>" size="30" maxlength="56" placeholder="<?= HtmlEncode($Page->posicion->getPlaceHolder()) ?>" data-format-pattern="<?= HtmlEncode($Page->posicion->formatPattern()) ?>"<?= $Page->posicion->editAttributes() ?> aria-describedby="x_posicion_help">
+<?= $Page->posicion->getCustomMessage() ?>
+<div class="invalid-feedback"><?= $Page->posicion->getErrorMessage() ?></div>
 </span>
 </div></div>
     </div>

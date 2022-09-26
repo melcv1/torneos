@@ -150,6 +150,23 @@ return function (App $app) {
         }
     );
 
+    // jugadorequipo
+    $app->map(["GET","POST","OPTIONS"], '/jugadorequipolist[/{id_jugadorequipo}]', JugadorequipoController::class . ':list')->add(PermissionMiddleware::class)->setName('jugadorequipolist-jugadorequipo-list'); // list
+    $app->map(["GET","POST","OPTIONS"], '/jugadorequipoadd[/{id_jugadorequipo}]', JugadorequipoController::class . ':add')->add(PermissionMiddleware::class)->setName('jugadorequipoadd-jugadorequipo-add'); // add
+    $app->map(["GET","POST","OPTIONS"], '/jugadorequipoview[/{id_jugadorequipo}]', JugadorequipoController::class . ':view')->add(PermissionMiddleware::class)->setName('jugadorequipoview-jugadorequipo-view'); // view
+    $app->map(["GET","POST","OPTIONS"], '/jugadorequipoedit[/{id_jugadorequipo}]', JugadorequipoController::class . ':edit')->add(PermissionMiddleware::class)->setName('jugadorequipoedit-jugadorequipo-edit'); // edit
+    $app->map(["GET","POST","OPTIONS"], '/jugadorequipodelete[/{id_jugadorequipo}]', JugadorequipoController::class . ':delete')->add(PermissionMiddleware::class)->setName('jugadorequipodelete-jugadorequipo-delete'); // delete
+    $app->group(
+        '/jugadorequipo',
+        function (RouteCollectorProxy $group) {
+            $group->map(["GET","POST","OPTIONS"], '/' . Config('LIST_ACTION') . '[/{id_jugadorequipo}]', JugadorequipoController::class . ':list')->add(PermissionMiddleware::class)->setName('jugadorequipo/list-jugadorequipo-list-2'); // list
+            $group->map(["GET","POST","OPTIONS"], '/' . Config('ADD_ACTION') . '[/{id_jugadorequipo}]', JugadorequipoController::class . ':add')->add(PermissionMiddleware::class)->setName('jugadorequipo/add-jugadorequipo-add-2'); // add
+            $group->map(["GET","POST","OPTIONS"], '/' . Config('VIEW_ACTION') . '[/{id_jugadorequipo}]', JugadorequipoController::class . ':view')->add(PermissionMiddleware::class)->setName('jugadorequipo/view-jugadorequipo-view-2'); // view
+            $group->map(["GET","POST","OPTIONS"], '/' . Config('EDIT_ACTION') . '[/{id_jugadorequipo}]', JugadorequipoController::class . ':edit')->add(PermissionMiddleware::class)->setName('jugadorequipo/edit-jugadorequipo-edit-2'); // edit
+            $group->map(["GET","POST","OPTIONS"], '/' . Config('DELETE_ACTION') . '[/{id_jugadorequipo}]', JugadorequipoController::class . ':delete')->add(PermissionMiddleware::class)->setName('jugadorequipo/delete-jugadorequipo-delete-2'); // delete
+        }
+    );
+
     // personal_data
     $app->map(["GET","POST","OPTIONS"], '/personaldata', OthersController::class . ':personaldata')->add(PermissionMiddleware::class)->setName('personaldata');
 

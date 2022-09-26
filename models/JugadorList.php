@@ -645,6 +645,7 @@ class JugadorList extends Jugador
         $this->crea_dato->setVisibility();
         $this->modifica_dato->setVisibility();
         $this->usuario_dato->setVisibility();
+        $this->posicion->setVisibility();
 
         // Set lookup cache
         if (!in_array($this->PageID, Config("LOOKUP_CACHE_PAGE_IDS"))) {
@@ -1010,6 +1011,7 @@ class JugadorList extends Jugador
         $filterList = Concat($filterList, $this->nombre_jugador->AdvancedSearch->toJson(), ","); // Field nombre_jugador
         $filterList = Concat($filterList, $this->votos_jugador->AdvancedSearch->toJson(), ","); // Field votos_jugador
         $filterList = Concat($filterList, $this->imagen_jugador->AdvancedSearch->toJson(), ","); // Field imagen_jugador
+        $filterList = Concat($filterList, $this->posicion->AdvancedSearch->toJson(), ","); // Field posicion
         if ($this->BasicSearch->Keyword != "") {
             $wrk = "\"" . Config("TABLE_BASIC_SEARCH") . "\":\"" . JsEncode($this->BasicSearch->Keyword) . "\",\"" . Config("TABLE_BASIC_SEARCH_TYPE") . "\":\"" . JsEncode($this->BasicSearch->Type) . "\"";
             $filterList = Concat($filterList, $wrk, ",");
@@ -1081,6 +1083,14 @@ class JugadorList extends Jugador
         $this->imagen_jugador->AdvancedSearch->SearchValue2 = @$filter["y_imagen_jugador"];
         $this->imagen_jugador->AdvancedSearch->SearchOperator2 = @$filter["w_imagen_jugador"];
         $this->imagen_jugador->AdvancedSearch->save();
+
+        // Field posicion
+        $this->posicion->AdvancedSearch->SearchValue = @$filter["x_posicion"];
+        $this->posicion->AdvancedSearch->SearchOperator = @$filter["z_posicion"];
+        $this->posicion->AdvancedSearch->SearchCondition = @$filter["v_posicion"];
+        $this->posicion->AdvancedSearch->SearchValue2 = @$filter["y_posicion"];
+        $this->posicion->AdvancedSearch->SearchOperator2 = @$filter["w_posicion"];
+        $this->posicion->AdvancedSearch->save();
         $this->BasicSearch->setKeyword(@$filter[Config("TABLE_BASIC_SEARCH")]);
         $this->BasicSearch->setType(@$filter[Config("TABLE_BASIC_SEARCH_TYPE")]);
     }
@@ -1123,6 +1133,7 @@ class JugadorList extends Jugador
         $searchFlds[] = &$this->nombre_jugador;
         $searchFlds[] = &$this->votos_jugador;
         $searchFlds[] = &$this->imagen_jugador;
+        $searchFlds[] = &$this->posicion;
         $searchKeyword = $default ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
         $searchType = $default ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
 
@@ -1208,6 +1219,7 @@ class JugadorList extends Jugador
             $this->updateSort($this->crea_dato); // crea_dato
             $this->updateSort($this->modifica_dato); // modifica_dato
             $this->updateSort($this->usuario_dato); // usuario_dato
+            $this->updateSort($this->posicion); // posicion
             $this->setStartRecordNumber(1); // Reset start position
         }
 
@@ -1239,6 +1251,7 @@ class JugadorList extends Jugador
                 $this->crea_dato->setSort("");
                 $this->modifica_dato->setSort("");
                 $this->usuario_dato->setSort("");
+                $this->posicion->setSort("");
             }
 
             // Reset start position
@@ -1467,6 +1480,7 @@ class JugadorList extends Jugador
             $option->add("crea_dato", $this->createColumnOption("crea_dato"));
             $option->add("modifica_dato", $this->createColumnOption("modifica_dato"));
             $option->add("usuario_dato", $this->createColumnOption("usuario_dato"));
+            $option->add("posicion", $this->createColumnOption("posicion"));
         }
 
         // Set up options default
@@ -1851,6 +1865,7 @@ class JugadorList extends Jugador
         $this->crea_dato->setDbValue($row['crea_dato']);
         $this->modifica_dato->setDbValue($row['modifica_dato']);
         $this->usuario_dato->setDbValue($row['usuario_dato']);
+        $this->posicion->setDbValue($row['posicion']);
     }
 
     // Return a row with default values
@@ -1864,6 +1879,7 @@ class JugadorList extends Jugador
         $row['crea_dato'] = $this->crea_dato->DefaultValue;
         $row['modifica_dato'] = $this->modifica_dato->DefaultValue;
         $row['usuario_dato'] = $this->usuario_dato->DefaultValue;
+        $row['posicion'] = $this->posicion->DefaultValue;
         return $row;
     }
 
@@ -1918,6 +1934,8 @@ class JugadorList extends Jugador
 
         // usuario_dato
 
+        // posicion
+
         // View row
         if ($this->RowType == ROWTYPE_VIEW) {
             // id_jugador
@@ -1950,6 +1968,9 @@ class JugadorList extends Jugador
 
             // usuario_dato
             $this->usuario_dato->ViewValue = $this->usuario_dato->CurrentValue;
+
+            // posicion
+            $this->posicion->ViewValue = $this->posicion->CurrentValue;
 
             // id_jugador
             $this->id_jugador->HrefValue = "";
@@ -1994,6 +2015,10 @@ class JugadorList extends Jugador
             // usuario_dato
             $this->usuario_dato->HrefValue = "";
             $this->usuario_dato->TooltipValue = "";
+
+            // posicion
+            $this->posicion->HrefValue = "";
+            $this->posicion->TooltipValue = "";
         }
 
         // Call Row Rendered event

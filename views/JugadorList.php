@@ -164,6 +164,9 @@ $Page->ListOptions->render("header", "left");
 <?php if ($Page->usuario_dato->Visible) { // usuario_dato ?>
         <th data-name="usuario_dato" class="<?= $Page->usuario_dato->headerCellClass() ?>"><div id="elh_jugador_usuario_dato" class="jugador_usuario_dato"><?= $Page->renderFieldHeader($Page->usuario_dato) ?></div></th>
 <?php } ?>
+<?php if ($Page->posicion->Visible) { // posicion ?>
+        <th data-name="posicion" class="<?= $Page->posicion->headerCellClass() ?>"><div id="elh_jugador_posicion" class="jugador_posicion"><?= $Page->renderFieldHeader($Page->posicion) ?></div></th>
+<?php } ?>
 <?php
 // Render list options (header, right)
 $Page->ListOptions->render("header", "right");
@@ -237,6 +240,14 @@ $Page->ListOptions->render("body", "left", $Page->RowCount);
 <span id="el<?= $Page->RowCount ?>_jugador_usuario_dato" class="el_jugador_usuario_dato">
 <span<?= $Page->usuario_dato->viewAttributes() ?>>
 <?= $Page->usuario_dato->getViewValue() ?></span>
+</span>
+</td>
+    <?php } ?>
+    <?php if ($Page->posicion->Visible) { // posicion ?>
+        <td data-name="posicion"<?= $Page->posicion->cellAttributes() ?>>
+<span id="el<?= $Page->RowCount ?>_jugador_posicion" class="el_jugador_posicion">
+<span<?= $Page->posicion->viewAttributes() ?>>
+<?= $Page->posicion->getViewValue() ?></span>
 </span>
 </td>
     <?php } ?>
