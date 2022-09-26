@@ -141,7 +141,7 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => '6PhceAvx4DtbHtAu', // Random key for encryption
+    "RANDOM_KEY" => 'Ml3ZHmXtZQKVq3l5', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project11.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
@@ -469,7 +469,7 @@ $CONFIG = [
     // File upload
     "UPLOAD_TEMP_PATH" => "", // Upload temp path (absolute local physical path)
     "UPLOAD_TEMP_HREF_PATH" => "", // Upload temp href path (absolute URL path for download)
-    "UPLOAD_DEST_PATH" => "imagenes/", // Upload destination path (relative to app root)
+    "UPLOAD_DEST_PATH" => "imagen/", // Upload destination path (relative to app root)
     "UPLOAD_HREF_PATH" => "", // Upload file href path (URL for download)
     "UPLOAD_TEMP_FOLDER_PREFIX" => "temp__", // Upload temp folders prefix
     "UPLOAD_TEMP_FOLDER_TIME_LIMIT" => 1440, // Upload temp folder time limit (minutes)
