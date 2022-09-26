@@ -214,7 +214,7 @@ ew.ready("head", [
                     <a class="nav-link" data-widget="pushmenu" data-enable-remember="true" data-ew-action="none"><i class="fa-solid fa-bars ew-icon"></i></a>
                 </li>
                 <a class="navbar-brand d-none d-sm-block" href="#" data-ew-action="none">
-                    <span class="brand-text">PHPMaker 2022</span>
+                    <span class="brand-text">TORNEOS</span>
                 </a>
             </ul>
             <!-- Right navbar links -->
