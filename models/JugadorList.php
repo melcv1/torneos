@@ -362,6 +362,8 @@ class JugadorList extends Jugador
         if (is_object($rs)) { // Recordset
             while ($rs && !$rs->EOF) {
                 $this->loadRowValues($rs); // Set up DbValue/CurrentValue
+                $this->imagen_jugador->OldUploadPath = $this->imagen_jugador->getUploadPath(); // PHP
+                $this->imagen_jugador->UploadPath = $this->imagen_jugador->OldUploadPath;
                 $row = $this->getRecordFromArray($rs->fields);
                 if ($current) {
                     return $row;
@@ -1948,6 +1950,7 @@ class JugadorList extends Jugador
             $this->votos_jugador->ViewValue = $this->votos_jugador->CurrentValue;
 
             // imagen_jugador
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
                 $this->imagen_jugador->ImageWidth = 50;
                 $this->imagen_jugador->ImageHeight = 0;
@@ -1985,6 +1988,7 @@ class JugadorList extends Jugador
             $this->votos_jugador->TooltipValue = "";
 
             // imagen_jugador
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
                 $this->imagen_jugador->HrefValue = GetFileUploadUrl($this->imagen_jugador, $this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)); // Add prefix/suffix
                 $this->imagen_jugador->LinkAttrs["target"] = ""; // Add target

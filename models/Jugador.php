@@ -182,7 +182,9 @@ class Jugador extends DbTable
             'IMAGE', // View Tag
             'FILE' // Edit Tag
         );
+        $this->imagen_jugador->addMethod("getUploadPath", fn() => "/imagenes");
         $this->imagen_jugador->InputTextType = "text";
+        $this->imagen_jugador->ImageResize = true;
         $this->imagen_jugador->SearchOperators = ["=", "<>", "STARTS WITH", "NOT STARTS WITH", "LIKE", "NOT LIKE", "ENDS WITH", "NOT ENDS WITH", "IS EMPTY", "IS NOT EMPTY", "IS NULL", "IS NOT NULL"];
         $this->Fields['imagen_jugador'] = &$this->imagen_jugador;
 
@@ -764,6 +766,7 @@ class Jugador extends DbTable
     public function deleteUploadedFiles($row)
     {
         $this->loadDbValues($row);
+        $this->imagen_jugador->OldUploadPath = $this->imagen_jugador->getUploadPath(); // PHP
         $oldFiles = EmptyValue($row['imagen_jugador']) ? [] : [$row['imagen_jugador']];
         foreach ($oldFiles as $oldFile) {
             if (file_exists($this->imagen_jugador->oldPhysicalUploadPath() . $oldFile)) {
@@ -1181,6 +1184,7 @@ class Jugador extends DbTable
         $this->votos_jugador->ViewValue = $this->votos_jugador->CurrentValue;
 
         // imagen_jugador
+        $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
         if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
             $this->imagen_jugador->ImageWidth = 50;
             $this->imagen_jugador->ImageHeight = 0;
@@ -1218,6 +1222,7 @@ class Jugador extends DbTable
         $this->votos_jugador->TooltipValue = "";
 
         // imagen_jugador
+        $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
         if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
             $this->imagen_jugador->HrefValue = GetFileUploadUrl($this->imagen_jugador, $this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)); // Add prefix/suffix
             $this->imagen_jugador->LinkAttrs["target"] = ""; // Add target
@@ -1284,6 +1289,7 @@ class Jugador extends DbTable
 
         // imagen_jugador
         $this->imagen_jugador->setupEditAttributes();
+        $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
         if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
             $this->imagen_jugador->ImageWidth = 50;
             $this->imagen_jugador->ImageHeight = 0;

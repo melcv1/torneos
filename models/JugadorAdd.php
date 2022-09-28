@@ -270,6 +270,8 @@ class JugadorAdd extends Jugador
         if (is_object($rs)) { // Recordset
             while ($rs && !$rs->EOF) {
                 $this->loadRowValues($rs); // Set up DbValue/CurrentValue
+                $this->imagen_jugador->OldUploadPath = $this->imagen_jugador->getUploadPath(); // PHP
+                $this->imagen_jugador->UploadPath = $this->imagen_jugador->OldUploadPath;
                 $row = $this->getRecordFromArray($rs->fields);
                 if ($current) {
                     return $row;
@@ -676,6 +678,8 @@ class JugadorAdd extends Jugador
 
         // Check field name 'id_jugador' first before field var 'x_id_jugador'
         $val = $CurrentForm->hasValue("id_jugador") ? $CurrentForm->getValue("id_jugador") : $CurrentForm->getValue("x_id_jugador");
+		$this->imagen_jugador->OldUploadPath = $this->imagen_jugador->getUploadPath(); // PHP
+		$this->imagen_jugador->UploadPath = $this->imagen_jugador->OldUploadPath;
         $this->getUploadFiles(); // Get upload files
     }
 
@@ -828,6 +832,7 @@ class JugadorAdd extends Jugador
             $this->votos_jugador->ViewValue = $this->votos_jugador->CurrentValue;
 
             // imagen_jugador
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
                 $this->imagen_jugador->ImageWidth = 50;
                 $this->imagen_jugador->ImageHeight = 0;
@@ -848,6 +853,7 @@ class JugadorAdd extends Jugador
             $this->votos_jugador->HrefValue = "";
 
             // imagen_jugador
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
                 $this->imagen_jugador->HrefValue = GetFileUploadUrl($this->imagen_jugador, $this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)); // Add prefix/suffix
                 $this->imagen_jugador->LinkAttrs["target"] = ""; // Add target
@@ -874,6 +880,7 @@ class JugadorAdd extends Jugador
 
             // imagen_jugador
             $this->imagen_jugador->setupEditAttributes();
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
                 $this->imagen_jugador->ImageWidth = 50;
                 $this->imagen_jugador->ImageHeight = 0;
@@ -907,6 +914,7 @@ class JugadorAdd extends Jugador
             $this->votos_jugador->HrefValue = "";
 
             // imagen_jugador
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             if (!EmptyValue($this->imagen_jugador->Upload->DbValue)) {
                 $this->imagen_jugador->HrefValue = GetFileUploadUrl($this->imagen_jugador, $this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)); // Add prefix/suffix
                 $this->imagen_jugador->LinkAttrs["target"] = ""; // Add target
@@ -1001,6 +1009,7 @@ class JugadorAdd extends Jugador
         // posicion
         $this->posicion->setDbValueDef($rsnew, $this->posicion->CurrentValue, null, false);
         if ($this->imagen_jugador->Visible && !$this->imagen_jugador->Upload->KeepFile) {
+            $this->imagen_jugador->UploadPath = $this->imagen_jugador->getUploadPath(); // PHP
             $oldFiles = EmptyValue($this->imagen_jugador->Upload->DbValue) ? [] : [$this->imagen_jugador->htmlDecode($this->imagen_jugador->Upload->DbValue)];
             if (!EmptyValue($this->imagen_jugador->Upload->FileName)) {
                 $newFiles = [$this->imagen_jugador->Upload->FileName];
@@ -1048,6 +1057,8 @@ class JugadorAdd extends Jugador
 
         // Load db values from old row
         $this->loadDbValues($rsold);
+        $this->imagen_jugador->OldUploadPath = $this->imagen_jugador->getUploadPath(); // PHP
+        $this->imagen_jugador->UploadPath = $this->imagen_jugador->OldUploadPath;
 
         // Call Row Inserting event
         $insertRow = $this->rowInserting($rsold, $rsnew);

@@ -122,7 +122,7 @@ require_once __DIR__ . "/userlevelsettings.php";
 $CONFIG = [
 
     // Debug
-    "DEBUG" => true, // Enabled
+    "DEBUG" => false, // Enabled
     "REPORT_ALL_ERRORS" => false, // Treat PHP warnings and notices as errors
     "LOG_ERROR_TO_FILE" => true, // Log error to file
     "DEBUG_MESSAGE_TEMPLATE" => '<div class="card card-danger ew-debug"><div class="card-header">' .
@@ -141,7 +141,7 @@ $CONFIG = [
 
     // General
     "UNFORMAT_YEAR" => 50, // Unformat year
-    "RANDOM_KEY" => 'Mr978TRAl35C5l0t', // Random key for encryption
+    "RANDOM_KEY" => 'nLJGuySSaYJ1OWAS', // Random key for encryption
     "ENCRYPTION_KEY" => '', // Encryption key for data protection
     "PROJECT_STYLESHEET_FILENAME" => "css/project11.css", // Project stylesheet file name
     "USE_COMPRESSED_STYLESHEET" => true, // Compressed stylesheet
@@ -470,7 +470,7 @@ $CONFIG = [
     "UPLOAD_TEMP_PATH" => "", // Upload temp path (absolute local physical path)
     "UPLOAD_TEMP_HREF_PATH" => "", // Upload temp href path (absolute URL path for download)
     "UPLOAD_DEST_PATH" => "imagenes/", // Upload destination path (relative to app root)
-    "UPLOAD_HREF_PATH" => "/imagenes", // Upload file href path (URL for download)
+    "UPLOAD_HREF_PATH" => "", // Upload file href path (URL for download)
     "UPLOAD_TEMP_FOLDER_PREFIX" => "temp__", // Upload temp folders prefix
     "UPLOAD_TEMP_FOLDER_TIME_LIMIT" => 1440, // Upload temp folder time limit (minutes)
     "UPLOAD_THUMBNAIL_FOLDER" => "thumbnail", // Temporary thumbnail folder
@@ -479,10 +479,10 @@ $CONFIG = [
     "UPLOAD_ALLOWED_FILE_EXT" => "gif,jpg,jpeg,bmp,png", // Allowed file extensions
     "IMAGE_ALLOWED_FILE_EXT" => "gif,jpe,jpeg,jpg,png,bmp", // Allowed file extensions for images
     "DOWNLOAD_ALLOWED_FILE_EXT" => "csv,pdf,xls,doc,xlsx,docx", // Allowed file extensions for download (non-image)
-    "ENCRYPT_FILE_PATH" => false, // Encrypt file path
-    "MAX_FILE_SIZE" => 2000000, // Max file size
+    "ENCRYPT_FILE_PATH" => true, // Encrypt file path
+    "MAX_FILE_SIZE" => 2000000000, // Max file size
     "MAX_FILE_COUNT" => null, // Max file count, null => no limit
-    "IMAGE_CROPPER" => true, // Upload cropper
+    "IMAGE_CROPPER" => false, // Upload cropper
     "THUMBNAIL_DEFAULT_WIDTH" => 100, // Thumbnail default width
     "THUMBNAIL_DEFAULT_HEIGHT" => 0, // Thumbnail default height
     "UPLOADED_FILE_MODE" => 0666, // Uploaded file mode

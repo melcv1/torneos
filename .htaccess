@@ -3,17 +3,3 @@ RewriteBase /torneos/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
-
-RewriteCond %{REQUEST_URI} ^/simulador/.*
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^.*$ /simulador/index.html [L]
-
-
-#<IfModule mod_rewrite.c>
-#RewriteEngine On
-#RewriteBase /simulador/
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteCond %{REQUEST_FILENAME} !-d
-#RewriteCond %{REQUEST_FILENAME} !-l
-#RewriteRule . /simulador/index.html [L]
-#</IfModule>
