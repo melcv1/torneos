@@ -1,5 +1,5 @@
 {
-    "packages": [
+    "packages": [ 
         {
             "name": "defuse/php-encryption",
             "version": "v2.3.1",

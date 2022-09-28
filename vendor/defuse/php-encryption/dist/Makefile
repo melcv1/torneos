@@ -1,5 +1,5 @@
 # This builds defuse-crypto.phar. To run this Makefile, `box` and `composer`
-# must be installed and in your $PATH. Run it from inside the dist/ directory.
+# must be installed and in your $PATH. Run it from inside the dist/ directory. 
 
 box := $(shell which box)
 composer := $(shell which composer)

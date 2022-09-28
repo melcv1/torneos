@@ -1,4 +1,4 @@
-<?php return array(
+<?php return array( 
     'root' => array(
         'name' => 'hkvstore/phpmaker',
         'pretty_version' => '2023',
